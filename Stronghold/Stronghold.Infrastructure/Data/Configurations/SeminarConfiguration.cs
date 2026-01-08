@@ -31,6 +31,16 @@ namespace Stronghold.Infrastructure.Data.Configurations
 
             builder.Property(s => s.CreatedAt)
                 .IsRequired();
+
+            builder.HasOne(s => s.Lecturer)
+                .WithMany(u => u.Seminars)
+                .HasForeignKey(s => s.LecturerId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(s => s.SeminarEnrollments)
+                .WithOne(se => se.Seminar)
+                .HasForeignKey(se => se.SeminarId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Stronghold.Core.Entities
         public ICollection<Appointment> AppointmentsAsMember { get; set; }
         public ICollection<Appointment> AppointmentsAsProfessional { get; set; }
         public ICollection<Seminar> Seminars { get; set; }
+        public ICollection<SeminarEnrollment> SeminarEnrollments { get; set; }
         public ICollection<Progress> ProgressRecords { get; set; }
         public ICollection<RefreshToken> RefreshTokens { get; set; }
     }

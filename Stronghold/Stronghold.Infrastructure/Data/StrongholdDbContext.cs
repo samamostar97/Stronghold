@@ -20,6 +20,7 @@ namespace Stronghold.Infrastructure.Data
         public DbSet<Review> Reviews { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Seminar> Seminars { get; set; }
+        public DbSet<SeminarEnrollment> SeminarEnrollments { get; set; }
         public DbSet<Progress> ProgressRecords { get; set; }
         public DbSet<FAQ> FAQs { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }

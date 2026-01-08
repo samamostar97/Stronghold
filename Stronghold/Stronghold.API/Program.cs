@@ -18,10 +18,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Build connection string from environment variables
 var dbServer = Environment.GetEnvironmentVariable("DB_SERVER");
 var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-var dbTrustedConnection = Environment.GetEnvironmentVariable("DB_TRUSTED_CONNECTION");
+var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
 var dbTrustServerCertificate = Environment.GetEnvironmentVariable("DB_TRUST_SERVER_CERTIFICATE");
 
-var connectionString = $"Server={dbServer};Database={dbName};Trusted_Connection={dbTrustedConnection};TrustServerCertificate={dbTrustServerCertificate};";
+var connectionString = $"Server={dbServer};Database={dbName};User Id={dbUser};Password={dbPassword};TrustServerCertificate={dbTrustServerCertificate};";
 
 // Configure Database
 builder.Services.AddDbContext<StrongholdDbContext>(options =>
@@ -91,6 +92,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Seed database (uncomment to populate with initial data)
+// using (var scope = app.Services.CreateScope())
+// {
+//     var context = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
+//     var seeder = new DatabaseSeeder(context);
+//     await seeder.SeedAsync();
+// }
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

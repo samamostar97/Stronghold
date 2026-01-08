@@ -26,7 +26,8 @@ namespace Stronghold.Infrastructure.Data.Configurations
                 .IsRequired();
 
             builder.Property(a => a.Notes)
-                .HasMaxLength(1000);
+                .HasMaxLength(1000)
+                .IsUnicode(true);
 
             builder.Property(a => a.IsCompleted)
                 .IsRequired();

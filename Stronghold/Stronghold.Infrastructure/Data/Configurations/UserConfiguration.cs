@@ -75,6 +75,11 @@ namespace Stronghold.Infrastructure.Data.Configurations
                 .WithOne(rt => rt.User)
                 .HasForeignKey(rt => rt.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasMany(u => u.SeminarEnrollments)
+                .WithOne(se => se.User)
+                .HasForeignKey(se => se.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

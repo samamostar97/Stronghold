@@ -18,5 +18,6 @@ namespace Stronghold.Core.Entities
         public DateTime CreatedAt { get; set; }
 
         public User Lecturer { get; set; }
+        public ICollection<SeminarEnrollment> SeminarEnrollments { get; set; }
     }
 }
