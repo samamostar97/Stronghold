@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36811.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.API", "Stronghold.API\Stronghold.API.csproj", "{17F53576-F05A-4238-97DB-7AE79B8E6C93}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Application", "Stronghold.Application\Stronghold.Application.csproj", "{37987E51-DFA4-4FBB-8DDA-31054BAD03AE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Core", "Stronghold.Core\Stronghold.Core.csproj", "{4D7CA1D7-3FFE-4DD0-9366-0C9C2EBEE1EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Infrastructure", "Stronghold.Infrastructure\Stronghold.Infrastructure.csproj", "{52DB74B7-1BF4-4503-83F4-8CA4C73678A9}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{17F53576-F05A-4238-97DB-7AE79B8E6C93}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17F53576-F05A-4238-97DB-7AE79B8E6C93}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17F53576-F05A-4238-97DB-7AE79B8E6C93}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17F53576-F05A-4238-97DB-7AE79B8E6C93}.Release|Any CPU.Build.0 = Release|Any CPU
+		{37987E51-DFA4-4FBB-8DDA-31054BAD03AE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37987E51-DFA4-4FBB-8DDA-31054BAD03AE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37987E51-DFA4-4FBB-8DDA-31054BAD03AE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37987E51-DFA4-4FBB-8DDA-31054BAD03AE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4D7CA1D7-3FFE-4DD0-9366-0C9C2EBEE1EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4D7CA1D7-3FFE-4DD0-9366-0C9C2EBEE1EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4D7CA1D7-3FFE-4DD0-9366-0C9C2EBEE1EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4D7CA1D7-3FFE-4DD0-9366-0C9C2EBEE1EA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52DB74B7-1BF4-4503-83F4-8CA4C73678A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52DB74B7-1BF4-4503-83F4-8CA4C73678A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52DB74B7-1BF4-4503-83F4-8CA4C73678A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52DB74B7-1BF4-4503-83F4-8CA4C73678A9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FCC6FC8B-3057-489C-AF29-C22A49CE89FA}
+	EndGlobalSection
+EndGlobal
