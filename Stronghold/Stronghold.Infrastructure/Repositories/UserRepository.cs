@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.UserDTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
@@ -10,23 +9,33 @@ namespace Stronghold.Infrastructure.Repositories;
 
 public class UserRepository : BaseRepository<User, int>, IUserRepository
 {
-    public UserRepository(StrongholdDbContext context) : base(context) { }
+    private readonly StrongholdDbContext _context;
 
-    public async Task<PagedResult<User>> SearchPagedAsync(UserSearchRequest request)
+    public UserRepository(StrongholdDbContext context) : base(context)
     {
-        var query = AsQueryable().AsNoTracking();
-        if (!string.IsNullOrWhiteSpace(request.Search))
-        {
-            var s = request.Search.Trim();
-            query = query.Where(x =>
-                x.FirstName.Contains(s) ||
-                x.LastName.Contains(s) ||
-                x.Username.Contains(s));
-        }
+        _context = context;
+    }
 
-        // Example: order by newest first (optional)
-        query = query.OrderByDescending(x => x.CreatedAt);
+    public Task<bool> UsernameExistsAsync(string username, int? excludeUserId = null)
+    {
+        username = username.Trim();
+        var q = _context.Users.Where(u => u.Username == username);
 
-        return await GetPagedAsync(query, request);
+        if (excludeUserId.HasValue)
+            q = q.Where(u => u.Id != excludeUserId.Value);
+
+        return q.AnyAsync();
+    }
+
+    public Task<bool> EmailExistsAsync(string email, int? excludeUserId = null)
+    {
+        email = email.Trim();
+        var q = _context.Users.Where(u => u.Email == email);
+
+        if (excludeUserId.HasValue)
+            q = q.Where(u => u.Id != excludeUserId.Value);
+
+        return q.AnyAsync();
     }
 }
+

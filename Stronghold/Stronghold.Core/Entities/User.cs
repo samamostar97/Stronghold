@@ -4,6 +4,7 @@ using Stronghold.Core.Enums;
 
 public class User : BaseEntity
 {
+
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
     public string Username { get; set; } = string.Empty;
@@ -16,8 +17,8 @@ public class User : BaseEntity
 
     // Navigation properties
     public ICollection<GymVisit> GymVisits { get; set; } = new List<GymVisit>();
-    public MembershipPackage? MembershipPackage { get; set; }
-    public ICollection<MembershipPayment> MembershipPayments { get; set; } = new List<MembershipPayment>();
+    public Membership? Membership { get; set; }
+    public ICollection<MembershipPaymentHistory> MembershipPaymentHistory { get; set; } = new List<MembershipPaymentHistory>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();

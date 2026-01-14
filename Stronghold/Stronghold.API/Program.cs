@@ -2,10 +2,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using Stronghold.Application.GymVisits;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
-using Stronghold.Application.Users;
 using Stronghold.Core.Entities;
 using Stronghold.Infrastructure.Data;
 using Stronghold.Infrastructure.Repositories;
@@ -38,9 +36,10 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+builder.Services.AddScoped<IAdminMembershipService,AdminMembershipService>();
 builder.Services.AddScoped<IRepository<GymVisit, int>, BaseRepository<GymVisit, int>>();
-builder.Services.AddScoped<IGymVisitService, GymVisitService>();
+
 
 
 builder.Services.AddControllers();

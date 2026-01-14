@@ -127,7 +127,7 @@ namespace Stronghold.Infrastructure.Migrations
                     b.ToTable("GymVisits");
                 });
 
-            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPackage", b =>
+            modelBuilder.Entity("Stronghold.Core.Entities.Membership", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -138,24 +138,14 @@ namespace Stronghold.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
                     b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Price")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("MembershipPackageId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
@@ -168,13 +158,15 @@ namespace Stronghold.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MembershipPackageId");
+
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("MembershipPackages");
+                    b.ToTable("Memberships");
                 });
 
-            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPayment", b =>
+            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPackage", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -182,11 +174,55 @@ namespace Stronghold.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Amount")
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("PackageName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("PackagePrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MembershipPackages");
+                });
+
+            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPaymentHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal>("AmountPaid")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("EndDate")
                         .HasColumnType("datetime2");
 
                     b.Property<bool>("IsDeleted")
@@ -196,6 +232,9 @@ namespace Stronghold.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<DateTime>("PaymentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -210,7 +249,7 @@ namespace Stronghold.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("MembershipPayments");
+                    b.ToTable("MembershipPaymentHistory");
                 });
 
             modelBuilder.Entity("Stronghold.Core.Entities.Nutritionist", b =>
@@ -266,10 +305,6 @@ namespace Stronghold.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Amount")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -286,8 +321,9 @@ namespace Stronghold.Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int>("SupplementId")
-                        .HasColumnType("int");
+                    b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -297,11 +333,48 @@ namespace Stronghold.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SupplementId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Orders");
+                });
+
+            modelBuilder.Entity("Stronghold.Core.Entities.OrderItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SupplementId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("SupplementId");
+
+                    b.ToTable("OrderItems");
                 });
 
             modelBuilder.Entity("Stronghold.Core.Entities.Review", b =>
@@ -672,27 +745,35 @@ namespace Stronghold.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPackage", b =>
-                {
-                    b.HasOne("Stronghold.Core.Entities.User", "User")
-                        .WithOne("MembershipPackage")
-                        .HasForeignKey("Stronghold.Core.Entities.MembershipPackage", "UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPayment", b =>
+            modelBuilder.Entity("Stronghold.Core.Entities.Membership", b =>
                 {
                     b.HasOne("Stronghold.Core.Entities.MembershipPackage", "MembershipPackage")
-                        .WithMany()
+                        .WithMany("Memberships")
                         .HasForeignKey("MembershipPackageId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Stronghold.Core.Entities.User", "User")
-                        .WithMany("MembershipPayments")
+                        .WithOne("Membership")
+                        .HasForeignKey("Stronghold.Core.Entities.Membership", "UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MembershipPackage");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPaymentHistory", b =>
+                {
+                    b.HasOne("Stronghold.Core.Entities.MembershipPackage", "MembershipPackage")
+                        .WithMany("PaymentHistory")
+                        .HasForeignKey("MembershipPackageId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Stronghold.Core.Entities.User", "User")
+                        .WithMany("MembershipPaymentHistory")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -704,21 +785,32 @@ namespace Stronghold.Infrastructure.Migrations
 
             modelBuilder.Entity("Stronghold.Core.Entities.Order", b =>
                 {
-                    b.HasOne("Stronghold.Core.Entities.Supplement", "Supplement")
-                        .WithMany()
-                        .HasForeignKey("SupplementId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Stronghold.Core.Entities.User", "User")
                         .WithMany("Orders")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Supplement");
-
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Stronghold.Core.Entities.OrderItem", b =>
+                {
+                    b.HasOne("Stronghold.Core.Entities.Order", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Stronghold.Core.Entities.Supplement", "Supplement")
+                        .WithMany()
+                        .HasForeignKey("SupplementId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+
+                    b.Navigation("Supplement");
                 });
 
             modelBuilder.Entity("Stronghold.Core.Entities.Review", b =>
@@ -778,9 +870,21 @@ namespace Stronghold.Infrastructure.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("Stronghold.Core.Entities.MembershipPackage", b =>
+                {
+                    b.Navigation("Memberships");
+
+                    b.Navigation("PaymentHistory");
+                });
+
             modelBuilder.Entity("Stronghold.Core.Entities.Nutritionist", b =>
                 {
                     b.Navigation("Appointments");
+                });
+
+            modelBuilder.Entity("Stronghold.Core.Entities.Order", b =>
+                {
+                    b.Navigation("OrderItems");
                 });
 
             modelBuilder.Entity("Stronghold.Core.Entities.Seminar", b =>
@@ -814,9 +918,9 @@ namespace Stronghold.Infrastructure.Migrations
 
                     b.Navigation("GymVisits");
 
-                    b.Navigation("MembershipPackage");
+                    b.Navigation("Membership");
 
-                    b.Navigation("MembershipPayments");
+                    b.Navigation("MembershipPaymentHistory");
 
                     b.Navigation("Orders");
 

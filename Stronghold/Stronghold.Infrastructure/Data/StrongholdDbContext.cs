@@ -12,11 +12,13 @@ public class StrongholdDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<GymVisit> GymVisits => Set<GymVisit>();
     public DbSet<MembershipPackage> MembershipPackages => Set<MembershipPackage>();
-    public DbSet<MembershipPayment> MembershipPayments => Set<MembershipPayment>();
+    public DbSet<Membership> Memberships => Set<Membership>();
+    public DbSet<MembershipPaymentHistory> MembershipPaymentHistory => Set<MembershipPaymentHistory>();
     public DbSet<SupplementCategory> SupplementCategories => Set<SupplementCategory>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Supplement> Supplements => Set<Supplement>();
     public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Trainer> Trainers => Set<Trainer>();
     public DbSet<Nutritionist> Nutritionists => Set<Nutritionist>();
     public DbSet<Appointment> Appointments => Set<Appointment>();

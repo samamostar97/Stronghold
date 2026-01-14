@@ -1,86 +1,79 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stronghold.Application.DTOs.UserDTOs;
+using Stronghold.Application.Common;
+using Stronghold.Application.DTOs.AdminUsersDTO;
 using Stronghold.Application.IServices;
-using Stronghold.Application.Users;
+using Stronghold.Infrastructure.Services;
+using System.Security.Claims;
 
 namespace Stronghold.API.Controllers;
 
 [ApiController]
 [Route("api/admin/users")]
-[Authorize(Roles = "Admin")] // If you store role as enum, make sure your JWT puts "Administrator" as role claim
+[Authorize(Roles = "Admin")]
 public class AdminUsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IAdminUserService _service;
 
-    public AdminUsersController(IUserService userService)
+    public AdminUsersController(IAdminUserService service)
     {
-        _userService = userService;
+        _service = service;
     }
 
-    // GET: api/admin/users?pageNumber=1&pageSize=10&search=samir
     [HttpGet]
-    public async Task<IActionResult> Search([FromQuery] UserSearchRequest request)
+    public async Task<ActionResult<PagedResult<AdminUserTableRowDTO>>> GetUsers(
+    [FromQuery] string? search,
+    [FromQuery] int pageNumber = 1,
+    [FromQuery] int pageSize = 10)
     {
-        var result = await _userService.SearchAsync(request);
+        var pagination = new PaginationRequest { PageNumber = pageNumber, PageSize = pageSize };
+        var result = await _service.GetUsersAsync(search, pagination);
         return Ok(result);
     }
 
-    // GET: api/admin/users/5
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<AdminUserDetailsDTO>> GetById(int id)
     {
-        try
-        {
-            var user = await _userService.GetByIdAsync(id);
-            return Ok(user);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
+        var user = await _service.GetByIdAsync(id);
+        if (user == null) return NotFound();
+        return Ok(user);
     }
 
-    // POST: api/admin/users
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] UserInsertRequest request)
+    public async Task<ActionResult> Create([FromBody] AdminCreateUserDTO dto)
     {
-        try
-        {
-            var id = await _userService.CreateAsync(request);
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
-        }
-        catch (InvalidOperationException ex)
-        {
-            // e.g. username/email already taken
-            return BadRequest(new { message = ex.Message });
-        }
+        var id = await _service.CreateAsync(dto);
+        return CreatedAtAction(nameof(GetById), new { id }, new { id });
     }
 
-    // PUT: api/admin/users/5
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateUserRequest request)
+    public async Task<ActionResult> Update(int id, [FromBody] AdminUpdateUserDTO dto)
     {
-        try
-        {
-            await _userService.UpdateAsync(id, request);
-            return NoContent();
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
+        var ok = await _service.UpdateAsync(id, dto);
+        if (!ok) return NotFound();
+        return NoContent();
     }
 
-    // DELETE: api/admin/users/5
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult> SoftDelete(int id)
     {
-        await _userService.DeleteAsync(id);
+        var adminId = GetCurrentUserId();
+        var ok = await _service.SoftDeleteAsync(id, adminId);
+        if (!ok) return NotFound();
         return NoContent();
+    }
+
+    [HttpPost("{id:int}/restore")]
+    public async Task<ActionResult> Restore(int id)
+    {
+        var ok = await _service.RestoreAsync(id);
+        if (!ok) return NotFound();
+        return NoContent();
+    }
+
+    private int GetCurrentUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return int.TryParse(value, out var id) ? id : 0;
     }
 }

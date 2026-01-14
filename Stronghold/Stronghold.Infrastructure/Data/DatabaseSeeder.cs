@@ -16,6 +16,9 @@ public class DatabaseSeeder
     public async Task SeedAsync()
     {
         await SeedAdminAsync();
+        await SeedGymMembersAsync();
+        await SeedMembershipPackagesAsync();
+
         await SeedSupplementCategoriesAsync();
         await SeedSuppliersAsync();
         await SeedSupplementsAsync();
@@ -43,6 +46,114 @@ public class DatabaseSeeder
         };
 
         _context.Users.Add(admin);
+        await _context.SaveChangesAsync();
+    }
+    private async Task SeedGymMembersAsync()
+    {
+        if (await _context.Users.AnyAsync(u => u.Role == Role.GymMember))
+            return;
+
+        var members = new List<User>
+    {
+        new()
+        {
+            FirstName = "Samir",
+            LastName = "Obradovic",
+            Username = "samir",
+            Email = "samir@stronghold.com",
+            PhoneNumber = "061111111",
+            Gender = Gender.Male,
+            Role = Role.GymMember,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("test123")
+        },
+        new()
+        {
+            FirstName = "Marko",
+            LastName = "Kovacevic",
+            Username = "marko",
+            Email = "marko@stronghold.com",
+            PhoneNumber = "062222222",
+            Gender = Gender.Male,
+            Role = Role.GymMember,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("test123")
+        },
+        new()
+        {
+            FirstName = "Ana",
+            LastName = "Petrovic",
+            Username = "ana",
+            Email = "ana@stronghold.com",
+            PhoneNumber = "063333333",
+            Gender = Gender.Female,
+            Role = Role.GymMember,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("test123")
+        },
+        new()
+        {
+            FirstName = "Ivana",
+            LastName = "Jukic",
+            Username = "ivana",
+            Email = "ivana@stronghold.com",
+            PhoneNumber = "064444444",
+            Gender = Gender.Female,
+            Role = Role.GymMember,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("test123")
+        },
+        new()
+        {
+            FirstName = "Denis",
+            LastName = "Basic",
+            Username = "denis",
+            Email = "denis@stronghold.com",
+            PhoneNumber = "065555555",
+            Gender = Gender.Male,
+            Role = Role.GymMember,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword("test123")
+        }
+    };
+
+        _context.Users.AddRange(members);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedMembershipPackagesAsync()
+    {
+        if (await _context.MembershipPackages.AnyAsync())
+            return;
+
+        var packages = new List<MembershipPackage>
+        {
+            new()
+            {
+                PackageName = "Basic Monthly",
+                PackagePrice = 60.00m,
+                Description = "Basic membership, with a 24/7 access to the gym",
+                IsActive = true
+            },
+            new()
+            {
+                PackageName = "Premium Monthly",
+                PackagePrice = 90.00m,
+                Description = "Premium membership, with a 24/7 access to the gym and access to group workouts",
+                IsActive = true
+            },
+            new()
+            {
+                PackageName = "Basic Duo Monthly",
+                PackagePrice = 100.00m,
+                Description = "Basic membership for partners, 24/7 access to the gym",
+                IsActive = true
+            },
+            new()
+            {
+                PackageName = "Premium Duo Monthly",
+                PackagePrice = 150.00m,
+                Description = "Premium membership for partners, 24/7 access to the gym, and access to group workouts for both partners",
+                IsActive = true
+            }
+        };
+
+        _context.MembershipPackages.AddRange(packages);
         await _context.SaveChangesAsync();
     }
 

@@ -10,15 +10,11 @@ public class MembershipPackageConfiguration : BaseEntityConfiguration<Membership
     {
         base.Configure(builder);
 
-        builder.Property(m => m.Name).HasMaxLength(100).IsRequired();
-        builder.Property(m => m.Price).HasPrecision(18, 2).IsRequired();
-        builder.Property(m => m.Description).HasMaxLength(500);
-        builder.Property(m => m.StartDate).IsRequired();
-        builder.Property(m => m.EndDate).IsRequired();
+        builder.Property(m => m.PackageName).HasMaxLength(100).IsRequired();
+        builder.Property(m => m.PackagePrice).HasPrecision(18, 2).IsRequired();
+        builder.Property(m => m.Description).HasMaxLength(500).IsRequired();
+        builder.Property(m => m.IsActive).IsRequired().HasDefaultValue(true);
 
-        builder.HasOne(m => m.User)
-            .WithOne(u => u.MembershipPackage)
-            .HasForeignKey<MembershipPackage>(m => m.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+        // Navigation properties are configured from the other side (Membership and MembershipPaymentHistory)
     }
 }
