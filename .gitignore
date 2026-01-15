@@ -418,3 +418,8 @@ FodyWeavers.xsd
 *.msp
 instructions.txt
 tmpclaude-*
+/Stronghold/nul
+/Stronghold/RepositoryPattern_Explanation.txt
+/Stronghold/CLAUDE.md
+/Changes.txt
+/RS2 Prijava IB210378.pdf

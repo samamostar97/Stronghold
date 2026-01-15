@@ -1,36 +1,137 @@
 import 'package:flutter/material.dart';
+import 'package:stronghold_desktop/screens/business_report_screen.dart';
+import 'package:stronghold_desktop/screens/membership_extension_screen.dart';
+import 'package:stronghold_desktop/screens/users_management_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
-  const AdminDashboardScreen({Key? key}) : super(key: key);
+  const AdminDashboardScreen({super.key});
+
+  static const _bg1 = Color(0xFF1A1D2E);
+  static const _bg2 = Color(0xFF16192B);
+  static const _card = Color(0xFF22253A);
+  static const _accent = Color(0xFFFF5757);
+  static const _accent2 = Color(0xFFFF6B6B);
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.transparent,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [_bg1, _bg2],
           ),
         ),
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final width = constraints.maxWidth;
+
+              // mimic CSS breakpoints:
+              // >1200 => 3 cols, <=1200 => 2 cols, <=800 => 1 col
+              final cols = width <= 800 ? 1 : (width <= 1200 ? 2 : 3);
+
               return SingleChildScrollView(
-                padding: EdgeInsets.all(MediaQuery.of(context).size.width * 0.03),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - MediaQuery.of(context).size.width * 0.06,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(context),
-                      SizedBox(height: MediaQuery.of(context).size.height * 0.03),
-                      _buildDashboardGrid(),
-                    ],
-                  ),
+                padding: EdgeInsets.symmetric(
+                  horizontal: width < 700 ? 16 : 50,
+                  vertical: width < 700 ? 16 : 30,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _Header(),
+                    const SizedBox(height: 24),
+                    _DashboardGrid(
+                      columns: cols,
+                      children: [
+                        _SectionCard(
+                          icon: "🏋️",
+                          title: "Trenutno u teretani",
+                          items: const [
+                            _MenuItemData(icon: "👁️", text: "Pogledaj aktivne članove"),
+                          ],
+                          onTapIndex: (i) {
+                            // TODO: navigate
+                          },
+                        ),
+                        _SectionCard(
+                          icon: "🎫",
+                          title: "Članarine",
+                          items: const [
+                            _MenuItemData(icon: "➕", text: "Produžavanje članarina"),
+                            _MenuItemData(icon: "📋", text: "Upravljanje paketima"),
+                          ],
+                          onTapIndex: (i) {
+                                if (i == 0) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const MembershipExtensionScreen(),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        _SectionCard(
+                          icon: "👥",
+                          title: "Korisnici i osoblje",
+                          items: const [
+                            _MenuItemData(icon: "👤", text: "Upravljanje korisnicima"),
+                            _MenuItemData(icon: "🏃", text: "Treneri"),
+                            _MenuItemData(icon: "🍴", text: "Nutricionisti"),
+                          ],
+                          onTapIndex: (i) {
+                            if (i == 0) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const UsersManagementScreen(),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                        _SectionCard(
+                          icon: "🛒",
+                          title: "Prodavnica",
+                          items: const [
+                            _MenuItemData(icon: "💊", text: "Suplementi"),
+                            _MenuItemData(icon: "📁", text: "Kategorije"),
+                            _MenuItemData(icon: "🚚", text: "Dobavljači"),
+                            _MenuItemData(icon: "📦", text: "Kupovine"),
+                          ],
+                          onTapIndex: (i) {},
+                        ),
+                        _SectionCard(
+                          icon: "📝",
+                          title: "Sadržaj",
+                          items: const [
+                            _MenuItemData(icon: "❓", text: "FAQ"),
+                            _MenuItemData(icon: "⭐", text: "Recenzije"),
+                            _MenuItemData(icon: "🎓", text: "Seminari"),
+                          ],
+                          onTapIndex: (i) {},
+                        ),
+                        _SectionCard(
+                          icon: "📊",
+                          title: "Izvještaji",
+                          items: const [
+                            _MenuItemData(icon: "📈", text: "Biznis report"),
+                          ],
+                          onTapIndex: (i) {
+                            if (i == 0) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const BusinessReportScreen(),
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               );
             },
@@ -39,246 +140,339 @@ class AdminDashboardScreen extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildHeader(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmall = screenWidth < 600;
-
+class _Header extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(
-          Icons.fitness_center,
-          size: isSmall ? 24 : 32,
-          color: const Color(0xFFe63946),
+        const _Logo(),
+        const Spacer(),
+        _AdminBadge(
+          onTap: () {
+            // TODO: profile / logout
+          },
         ),
-        SizedBox(width: isSmall ? 8 : 12),
+      ],
+    );
+  }
+}
+
+class _Logo extends StatelessWidget {
+  const _Logo();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: const [
         Text(
-          'STRONGHOLD',
+          "🏋️",
+          style: TextStyle(fontSize: 34),
+        ),
+        SizedBox(width: 12),
+        Text(
+          "STRONGHOLD",
           style: TextStyle(
-            fontSize: isSmall ? 18 : 24,
+            fontSize: 26,
             fontWeight: FontWeight.w800,
             color: Colors.white,
-            letterSpacing: 2,
-          ),
-        ),
-        const Spacer(),
-        Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: isSmall ? 10 : 16,
-            vertical: isSmall ? 6 : 8,
-          ),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0f0f1a),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-            ),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.admin_panel_settings,
-                size: isSmall ? 14 : 18,
-                color: Colors.white.withOpacity(0.7),
-              ),
-              SizedBox(width: isSmall ? 6 : 8),
-              Text(
-                'Admin',
-                style: TextStyle(
-                  fontSize: isSmall ? 12 : 14,
-                  color: Colors.white.withOpacity(0.7),
-                ),
-              ),
-            ],
           ),
         ),
       ],
     );
   }
+}
 
-  Widget _buildDashboardGrid() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final crossAxisCount = width > 1200
-            ? 4
-            : width > 800
-                ? 3
-                : width > 500
-                    ? 2
-                    : 2;
+class _AdminBadge extends StatelessWidget {
+  const _AdminBadge({required this.onTap});
 
-        final spacing = width * 0.02;
+  final VoidCallback onTap;
 
-        return GridView.count(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: spacing,
-          mainAxisSpacing: spacing,
-          childAspectRatio: 0.95,
-          children: const [
-            _DashboardCard(
-              icon: Icons.notifications_outlined,
-              label: 'Notifikacije',
-            ),
-            _DashboardCard(
-              icon: Icons.people_outline,
-              label: 'Korisnici',
-            ),
-            _DashboardCard(
-              icon: Icons.card_membership_outlined,
-              label: 'Produžavanje članarina',
-            ),
-            _DashboardCard(
-              icon: Icons.local_pharmacy_outlined,
-              label: 'Suplementi',
-            ),
-            _DashboardCard(
-              icon: Icons.badge_outlined,
-              label: 'Članarine',
-            ),
-            _DashboardCard(
-              icon: Icons.fitness_center,
-              label: 'Treneri',
-            ),
-            _DashboardCard(
-              icon: Icons.restaurant_outlined,
-              label: 'Nutricionisti',
-            ),
-            _DashboardCard(
-              icon: Icons.analytics_outlined,
-              label: 'Biznis report',
-            ),
-          ],
-        );
-      },
+  static const _bg = Color(0xFF22253A);
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(25),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          decoration: BoxDecoration(
+            color: _bg,
+            borderRadius: BorderRadius.circular(25),
+          ),
+          child: Row(
+            children: const [
+              Text("👤", style: TextStyle(fontSize: 16)),
+              SizedBox(width: 10),
+              Text(
+                "Admin",
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
 
-class _DashboardCard extends StatefulWidget {
-  final IconData icon;
-  final String label;
-
-  const _DashboardCard({
-    required this.icon,
-    required this.label,
+class _DashboardGrid extends StatelessWidget {
+  const _DashboardGrid({
+    required this.columns,
+    required this.children,
   });
 
-  @override
-  State<_DashboardCard> createState() => _DashboardCardState();
-}
-
-class _DashboardCardState extends State<_DashboardCard> {
-  bool _isHovered = false;
+  final int columns;
+  final List<Widget> children;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final cardSize = constraints.maxWidth;
-        final iconCircleSize = cardSize * (_isHovered ? 0.55 : 0.5);
-        final iconSize = cardSize * (_isHovered ? 0.35 : 0.3);
-        final padding = cardSize * 0.08;
-        final fontSize = (cardSize * 0.07).clamp(12.0, 16.0);
-        final buttonFontSize = (cardSize * 0.06).clamp(11.0, 14.0);
-        final buttonPadding = cardSize * 0.04;
-        final spacing = cardSize * 0.05;
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: columns,
+      crossAxisSpacing: 24,
+      mainAxisSpacing: 24,
+      childAspectRatio: 1.15,
+      children: children,
+    );
+  }
+}
 
-        return MouseRegion(
-          onEnter: (_) => setState(() => _isHovered = true),
-          onExit: (_) => setState(() => _isHovered = false),
-          cursor: SystemMouseCursors.click,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOut,
-            transform: Matrix4.identity()
-              ..translate(0.0, _isHovered ? -8.0 : 0.0, 0.0),
-            padding: EdgeInsets.all(padding),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0f0f1a),
-              borderRadius: BorderRadius.circular(cardSize * 0.08),
-              border: Border.all(
-                color: _isHovered
-                    ? const Color(0xFFe63946).withOpacity(0.5)
-                    : Colors.white.withOpacity(0.05),
-              ),
-              boxShadow: _isHovered
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFFe63946).withOpacity(0.2),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
-                      ),
-                    ]
-                  : [],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
+class _SectionCard extends StatelessWidget {
+  const _SectionCard({
+    required this.icon,
+    required this.title,
+    required this.items,
+    required this.onTapIndex,
+  });
+
+  final String icon;
+  final String title;
+  final List<_MenuItemData> items;
+  final void Function(int index) onTapIndex;
+
+  static const _card = Color(0xFF22253A);
+  static const _accent = Color(0xFFFF5757);
+  static const _accent2 = Color(0xFFFF6B6B);
+
+  @override
+  Widget build(BuildContext context) {
+    return _HoverCard(
+      child: Container(
+        decoration: BoxDecoration(
+          color: _card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.transparent, width: 1),
+        ),
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
               children: [
-                // Icon Circle
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: iconCircleSize,
-                  height: iconCircleSize,
+                Container(
+                  width: 52,
+                  height: 52,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFe63946)
-                        .withOpacity(_isHovered ? 0.2 : 0.15),
-                    shape: BoxShape.circle,
+                    borderRadius: BorderRadius.circular(14),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [_accent, _accent2],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _accent.withOpacity(0.30),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      )
+                    ],
                   ),
-                  child: Icon(
-                    widget.icon,
-                    size: iconSize,
-                    color: const Color(0xFFe63946),
-                  ),
-                ),
-                SizedBox(height: spacing),
-
-                // Label
-                Flexible(
+                  alignment: Alignment.center,
                   child: Text(
-                    widget.label,
-                    style: TextStyle(
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withOpacity(0.9),
-                    ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    icon,
+                    style: const TextStyle(fontSize: 22),
                   ),
                 ),
-                SizedBox(height: spacing),
-
-                // Button
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFe63946),
-                      padding: EdgeInsets.symmetric(vertical: buttonPadding),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(cardSize * 0.04),
-                      ),
-                      elevation: 0,
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.3,
+                      color: Colors.white,
                     ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Column(
+              children: [
+                for (var i = 0; i < items.length; i++) ...[
+                  _MenuRow(
+                    icon: items[i].icon,
+                    text: items[i].text,
+                    onTap: () => onTapIndex(i),
+                  ),
+                  if (i != items.length - 1) const SizedBox(height: 6),
+                ]
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuItemData {
+  final String icon;
+  final String text;
+  const _MenuItemData({required this.icon, required this.text});
+}
+
+class _MenuRow extends StatefulWidget {
+  const _MenuRow({
+    required this.icon,
+    required this.text,
+    required this.onTap,
+  });
+
+  final String icon;
+  final String text;
+  final VoidCallback onTap;
+
+  @override
+  State<_MenuRow> createState() => _MenuRowState();
+}
+
+class _MenuRowState extends State<_MenuRow> {
+  bool _hover = false;
+
+  static const _accent = Color(0xFFFF5757);
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = _hover ? _accent.withOpacity(0.10) : Colors.white.withOpacity(0.03);
+    final leftPad = _hover ? 24.0 : 18.0;
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.fromLTRB(leftPad, 16, 18, 16),
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                Opacity(
+                  opacity: _hover ? 1 : 0.8,
+                  child: SizedBox(
+                    width: 24,
                     child: Text(
-                      'Odaberi',
-                      style: TextStyle(
-                        fontSize: buttonFontSize,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
+                      widget.icon,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Text(
+                    widget.text,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                      color: _hover ? Colors.white : Colors.white.withOpacity(0.85),
+                    ),
+                  ),
+                ),
+                AnimatedSlide(
+                  duration: const Duration(milliseconds: 180),
+                  offset: _hover ? const Offset(0.1, 0) : Offset.zero,
+                  child: Text(
+                    "→",
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: _hover ? _accent : Colors.white.withOpacity(0.30),
                     ),
                   ),
                 ),
               ],
             ),
           ),
-        );
-      },
+        ),
+      ),
+    );
+  }
+}
+
+class _HoverCard extends StatefulWidget {
+  const _HoverCard({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_HoverCard> createState() => _HoverCardState();
+}
+
+class _HoverCardState extends State<_HoverCard> {
+  bool _hover = false;
+
+  static const _accent = Color(0xFFFF5757);
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..translate(0.0, _hover ? -4.0 : 0.0),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: _hover
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.30),
+                      blurRadius: 40,
+                      offset: const Offset(0, 20),
+                    ),
+                  ]
+                : const [],
+            border: Border.all(
+              color: _hover ? _accent.withOpacity(0.30) : Colors.transparent,
+              width: 1,
+            ),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(20),
+            child: widget.child,
+          ),
+        ),
+      ),
     );
   }
 }

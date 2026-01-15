@@ -9,6 +9,7 @@ using Stronghold.Infrastructure.Data;
 using Stronghold.Infrastructure.Repositories;
 using Stronghold.Infrastructure.Services;
 using System.Text;
+using Stronghold.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,6 +39,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAdminMembershipService,AdminMembershipService>();
+builder.Services.AddScoped<IReportsService, ReportsService>();
 builder.Services.AddScoped<IRepository<GymVisit, int>, BaseRepository<GymVisit, int>>();
 
 
@@ -83,8 +85,9 @@ var app = builder.Build();
 
 
 // Seed database
-using (var scope = app.Services.CreateScope())
+if (app.Configuration.GetValue<bool>("SeedDatabase"))
 {
+    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
     var seeder = new DatabaseSeeder(context);
     await seeder.SeedAsync();
@@ -96,6 +99,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseMiddleware<ApiExceptionMiddleware>();
 
 app.UseHttpsRedirection();
 

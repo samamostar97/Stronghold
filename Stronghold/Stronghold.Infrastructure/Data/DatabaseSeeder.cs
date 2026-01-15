@@ -15,10 +15,12 @@ public class DatabaseSeeder
 
     public async Task SeedAsync()
     {
+        // Core entities (must be seeded first)
         await SeedAdminAsync();
         await SeedGymMembersAsync();
         await SeedMembershipPackagesAsync();
 
+        // Products and staff
         await SeedSupplementCategoriesAsync();
         await SeedSuppliersAsync();
         await SeedSupplementsAsync();
@@ -26,6 +28,12 @@ public class DatabaseSeeder
         await SeedNutritionistsAsync();
         await SeedSeminarsAsync();
         await SeedFAQsAsync();
+
+        // Business data (depends on users, packages, supplements)
+        await SeedMembershipsAsync();
+        await SeedMembershipPaymentsAsync();
+        await SeedGymVisitsAsync();
+        await SeedOrdersAsync();
     }
 
     private async Task SeedAdminAsync()
@@ -277,6 +285,329 @@ public class DatabaseSeeder
         };
 
         _context.FAQs.AddRange(faqs);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedMembershipsAsync()
+    {
+        if (await _context.Memberships.AnyAsync())
+            return;
+
+        // Get gym members (skip admin)
+        var gymMembers = await _context.Users
+            .Where(u => u.Role == Role.GymMember)
+            .Take(4) // Leave 1 member without membership for testing
+            .ToListAsync();
+
+        // Get packages
+        var basicPackage = await _context.MembershipPackages.FirstAsync(p => p.PackageName == "Basic Monthly");
+        var premiumPackage = await _context.MembershipPackages.FirstAsync(p => p.PackageName == "Premium Monthly");
+
+        var now = DateTime.UtcNow;
+
+        var memberships = new List<Membership>
+        {
+            // 3 members with Basic package
+            new() { UserId = gymMembers[0].Id, MembershipPackageId = basicPackage.Id, StartDate = now.AddDays(-20), EndDate = now.AddDays(10) },
+            new() { UserId = gymMembers[1].Id, MembershipPackageId = basicPackage.Id, StartDate = now.AddDays(-15), EndDate = now.AddDays(15) },
+            new() { UserId = gymMembers[2].Id, MembershipPackageId = basicPackage.Id, StartDate = now.AddDays(-25), EndDate = now.AddDays(5) },
+            // 1 member with Premium package
+            new() { UserId = gymMembers[3].Id, MembershipPackageId = premiumPackage.Id, StartDate = now.AddDays(-10), EndDate = now.AddDays(20) }
+        };
+
+        _context.Memberships.AddRange(memberships);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedMembershipPaymentsAsync()
+    {
+        if (await _context.MembershipPaymentHistory.AnyAsync())
+            return;
+
+        var gymMembers = await _context.Users
+            .Where(u => u.Role == Role.GymMember)
+            .Take(4)
+            .ToListAsync();
+
+        var basicPackage = await _context.MembershipPackages.FirstAsync(p => p.PackageName == "Basic Monthly");
+        var premiumPackage = await _context.MembershipPackages.FirstAsync(p => p.PackageName == "Premium Monthly");
+
+        var now = DateTime.UtcNow;
+        var thisMonth = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+        var lastMonth = thisMonth.AddMonths(-1);
+
+        var payments = new List<MembershipPaymentHistory>
+        {
+            // Last month payments (3 payments = 180 KM from basic)
+            new()
+            {
+                UserId = gymMembers[0].Id,
+                MembershipPackageId = basicPackage.Id,
+                AmountPaid = basicPackage.PackagePrice,
+                PaymentDate = lastMonth.AddDays(5),
+                StartDate = lastMonth.AddDays(5),
+                EndDate = lastMonth.AddDays(35)
+            },
+            new()
+            {
+                UserId = gymMembers[1].Id,
+                MembershipPackageId = basicPackage.Id,
+                AmountPaid = basicPackage.PackagePrice,
+                PaymentDate = lastMonth.AddDays(10),
+                StartDate = lastMonth.AddDays(10),
+                EndDate = lastMonth.AddDays(40)
+            },
+            new()
+            {
+                UserId = gymMembers[2].Id,
+                MembershipPackageId = basicPackage.Id,
+                AmountPaid = basicPackage.PackagePrice,
+                PaymentDate = lastMonth.AddDays(15),
+                StartDate = lastMonth.AddDays(15),
+                EndDate = lastMonth.AddDays(45)
+            },
+
+            // This month payments (4 payments = 270 KM, showing growth!)
+            new()
+            {
+                UserId = gymMembers[0].Id,
+                MembershipPackageId = basicPackage.Id,
+                AmountPaid = basicPackage.PackagePrice,
+                PaymentDate = thisMonth.AddDays(2),
+                StartDate = thisMonth.AddDays(2),
+                EndDate = thisMonth.AddDays(32)
+            },
+            new()
+            {
+                UserId = gymMembers[1].Id,
+                MembershipPackageId = basicPackage.Id,
+                AmountPaid = basicPackage.PackagePrice,
+                PaymentDate = thisMonth.AddDays(5),
+                StartDate = thisMonth.AddDays(5),
+                EndDate = thisMonth.AddDays(35)
+            },
+            new()
+            {
+                UserId = gymMembers[2].Id,
+                MembershipPackageId = basicPackage.Id,
+                AmountPaid = basicPackage.PackagePrice,
+                PaymentDate = thisMonth.AddDays(8),
+                StartDate = thisMonth.AddDays(8),
+                EndDate = thisMonth.AddDays(38)
+            },
+            new()
+            {
+                UserId = gymMembers[3].Id,
+                MembershipPackageId = premiumPackage.Id,
+                AmountPaid = premiumPackage.PackagePrice,
+                PaymentDate = thisMonth.AddDays(10),
+                StartDate = thisMonth.AddDays(10),
+                EndDate = thisMonth.AddDays(40)
+            }
+        };
+
+        _context.MembershipPaymentHistory.AddRange(payments);
+        await _context.SaveChangesAsync();
+    }
+
+    private async Task SeedGymVisitsAsync()
+    {
+        if (await _context.GymVisits.AnyAsync())
+            return;
+
+        var gymMembers = await _context.Users
+            .Where(u => u.Role == Role.GymMember)
+            .Take(4)
+            .ToListAsync();
+
+        var now = DateTime.UtcNow;
+
+        // Calculate start of this week (Monday)
+        var dayOfWeek = (int)now.DayOfWeek;
+        var monday = (int)DayOfWeek.Monday;
+        var daysToMonday = (7 + dayOfWeek - monday) % 7;
+        var startOfThisWeek = now.Date.AddDays(-daysToMonday);
+        var startOfLastWeek = startOfThisWeek.AddDays(-7);
+
+        var visits = new List<GymVisit>();
+
+        // Last week: 12 visits (fewer)
+        // Monday - 2 visits
+        visits.Add(CreateVisit(gymMembers[0].Id, startOfLastWeek.AddHours(8)));
+        visits.Add(CreateVisit(gymMembers[1].Id, startOfLastWeek.AddHours(17)));
+        // Tuesday - 2 visits
+        visits.Add(CreateVisit(gymMembers[2].Id, startOfLastWeek.AddDays(1).AddHours(9)));
+        visits.Add(CreateVisit(gymMembers[3].Id, startOfLastWeek.AddDays(1).AddHours(18)));
+        // Wednesday - 3 visits
+        visits.Add(CreateVisit(gymMembers[0].Id, startOfLastWeek.AddDays(2).AddHours(7)));
+        visits.Add(CreateVisit(gymMembers[1].Id, startOfLastWeek.AddDays(2).AddHours(12)));
+        visits.Add(CreateVisit(gymMembers[2].Id, startOfLastWeek.AddDays(2).AddHours(19)));
+        // Thursday - 2 visits
+        visits.Add(CreateVisit(gymMembers[0].Id, startOfLastWeek.AddDays(3).AddHours(8)));
+        visits.Add(CreateVisit(gymMembers[3].Id, startOfLastWeek.AddDays(3).AddHours(16)));
+        // Friday - 2 visits
+        visits.Add(CreateVisit(gymMembers[1].Id, startOfLastWeek.AddDays(4).AddHours(10)));
+        visits.Add(CreateVisit(gymMembers[2].Id, startOfLastWeek.AddDays(4).AddHours(17)));
+        // Saturday - 1 visit
+        visits.Add(CreateVisit(gymMembers[0].Id, startOfLastWeek.AddDays(5).AddHours(11)));
+
+        // This week: 18 visits (more - showing growth!)
+        // Only add visits for days that have passed
+        var daysPassedThisWeek = (int)(now.Date - startOfThisWeek).TotalDays;
+
+        // Monday - 3 visits
+        if (daysPassedThisWeek >= 0)
+        {
+            visits.Add(CreateVisit(gymMembers[0].Id, startOfThisWeek.AddHours(7)));
+            visits.Add(CreateVisit(gymMembers[1].Id, startOfThisWeek.AddHours(12)));
+            visits.Add(CreateVisit(gymMembers[2].Id, startOfThisWeek.AddHours(18)));
+        }
+        // Tuesday - 4 visits
+        if (daysPassedThisWeek >= 1)
+        {
+            visits.Add(CreateVisit(gymMembers[0].Id, startOfThisWeek.AddDays(1).AddHours(8)));
+            visits.Add(CreateVisit(gymMembers[1].Id, startOfThisWeek.AddDays(1).AddHours(11)));
+            visits.Add(CreateVisit(gymMembers[2].Id, startOfThisWeek.AddDays(1).AddHours(16)));
+            visits.Add(CreateVisit(gymMembers[3].Id, startOfThisWeek.AddDays(1).AddHours(19)));
+        }
+        // Wednesday - 3 visits
+        if (daysPassedThisWeek >= 2)
+        {
+            visits.Add(CreateVisit(gymMembers[0].Id, startOfThisWeek.AddDays(2).AddHours(9)));
+            visits.Add(CreateVisit(gymMembers[2].Id, startOfThisWeek.AddDays(2).AddHours(14)));
+            visits.Add(CreateVisit(gymMembers[3].Id, startOfThisWeek.AddDays(2).AddHours(20)));
+        }
+        // Thursday - 4 visits
+        if (daysPassedThisWeek >= 3)
+        {
+            visits.Add(CreateVisit(gymMembers[0].Id, startOfThisWeek.AddDays(3).AddHours(7)));
+            visits.Add(CreateVisit(gymMembers[1].Id, startOfThisWeek.AddDays(3).AddHours(10)));
+            visits.Add(CreateVisit(gymMembers[2].Id, startOfThisWeek.AddDays(3).AddHours(15)));
+            visits.Add(CreateVisit(gymMembers[3].Id, startOfThisWeek.AddDays(3).AddHours(18)));
+        }
+        // Friday - 2 visits
+        if (daysPassedThisWeek >= 4)
+        {
+            visits.Add(CreateVisit(gymMembers[0].Id, startOfThisWeek.AddDays(4).AddHours(9)));
+            visits.Add(CreateVisit(gymMembers[1].Id, startOfThisWeek.AddDays(4).AddHours(17)));
+        }
+        // Saturday - 2 visits
+        if (daysPassedThisWeek >= 5)
+        {
+            visits.Add(CreateVisit(gymMembers[2].Id, startOfThisWeek.AddDays(5).AddHours(10)));
+            visits.Add(CreateVisit(gymMembers[3].Id, startOfThisWeek.AddDays(5).AddHours(14)));
+        }
+
+        _context.GymVisits.AddRange(visits);
+        await _context.SaveChangesAsync();
+    }
+
+    private static GymVisit CreateVisit(int userId, DateTime checkIn)
+    {
+        // Each visit lasts 1-2 hours
+        var random = new Random();
+        var duration = TimeSpan.FromMinutes(60 + random.Next(60));
+
+        return new GymVisit
+        {
+            UserId = userId,
+            CheckInTime = checkIn,
+            CheckOutTime = checkIn.Add(duration)
+        };
+    }
+
+    private async Task SeedOrdersAsync()
+    {
+        if (await _context.Orders.AnyAsync())
+            return;
+
+        var gymMembers = await _context.Users
+            .Where(u => u.Role == Role.GymMember)
+            .Take(4)
+            .ToListAsync();
+
+        var supplements = await _context.Supplements.ToListAsync();
+        var wheyProtein = supplements.First(s => s.Name == "Gold Standard Whey");
+        var preWorkout = supplements.First(s => s.Name == "C4 Original");
+        var creatine = supplements.First(s => s.Name == "Cell-Tech Creatine");
+        var nitroTech = supplements.First(s => s.Name == "Nitro-Tech Whey");
+
+        var now = DateTime.UtcNow;
+
+        // Create orders spread over last 30 days
+        // Gold Standard Whey will be the bestseller (8 units sold)
+        var orders = new List<Order>
+        {
+            // Order 1: 25 days ago
+            new()
+            {
+                UserId = gymMembers[0].Id,
+                PurchaseDate = now.AddDays(-25),
+                IsDelivered = true,
+                TotalAmount = wheyProtein.Price * 2 + preWorkout.Price,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = wheyProtein.Id, Quantity = 2, UnitPrice = wheyProtein.Price },
+                    new() { SupplementId = preWorkout.Id, Quantity = 1, UnitPrice = preWorkout.Price }
+                }
+            },
+            // Order 2: 20 days ago
+            new()
+            {
+                UserId = gymMembers[1].Id,
+                PurchaseDate = now.AddDays(-20),
+                IsDelivered = true,
+                TotalAmount = wheyProtein.Price + creatine.Price,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = wheyProtein.Id, Quantity = 1, UnitPrice = wheyProtein.Price },
+                    new() { SupplementId = creatine.Id, Quantity = 1, UnitPrice = creatine.Price }
+                }
+            },
+            // Order 3: 15 days ago
+            new()
+            {
+                UserId = gymMembers[2].Id,
+                PurchaseDate = now.AddDays(-15),
+                IsDelivered = true,
+                TotalAmount = wheyProtein.Price * 3,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = wheyProtein.Id, Quantity = 3, UnitPrice = wheyProtein.Price }
+                }
+            },
+            // Order 4: 10 days ago
+            new()
+            {
+                UserId = gymMembers[3].Id,
+                PurchaseDate = now.AddDays(-10),
+                IsDelivered = true,
+                TotalAmount = preWorkout.Price * 2 + nitroTech.Price,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = preWorkout.Id, Quantity = 2, UnitPrice = preWorkout.Price },
+                    new() { SupplementId = nitroTech.Id, Quantity = 1, UnitPrice = nitroTech.Price }
+                }
+            },
+            // Order 5: 5 days ago
+            new()
+            {
+                UserId = gymMembers[0].Id,
+                PurchaseDate = now.AddDays(-5),
+                IsDelivered = false,
+                TotalAmount = wheyProtein.Price * 2 + creatine.Price * 2,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = wheyProtein.Id, Quantity = 2, UnitPrice = wheyProtein.Price },
+                    new() { SupplementId = creatine.Id, Quantity = 2, UnitPrice = creatine.Price }
+                }
+            }
+        };
+
+        // Total: Whey=8, PreWorkout=3, Creatine=3, NitroTech=1
+        // Bestseller should be "Gold Standard Whey" with 8 units
+
+        _context.Orders.AddRange(orders);
         await _context.SaveChangesAsync();
     }
 }
