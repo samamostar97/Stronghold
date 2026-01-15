@@ -22,7 +22,18 @@ public class AuthService : IAuthService
         _context = context;
         _configuration = configuration;
     }
+    public Task<bool> IsAdminAsync(ClaimsPrincipal user)
+    {
+        if (user == null)
+            return Task.FromResult(false);
 
+        if (!user.Identity?.IsAuthenticated ?? true)
+            return Task.FromResult(false);
+
+        var isAdmin = user.IsInRole("Admin");
+
+        return Task.FromResult(isAdmin);
+    }
     public async Task<AuthResponse?> LoginAsync(LoginRequest request)
     {
         var user = await _context.Users

@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:stronghold_desktop/screens/business_report_screen.dart';
+import 'package:stronghold_desktop/screens/current_visitors_screen.dart';
 import 'package:stronghold_desktop/screens/membership_extension_screen.dart';
+import 'package:stronghold_desktop/screens/supplements_management_screen.dart';
+import 'package:stronghold_desktop/screens/category_management_screen.dart';
+import 'package:stronghold_desktop/screens/supplier_management_screen.dart';
+
+
 import 'package:stronghold_desktop/screens/users_management_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -38,14 +44,19 @@ class AdminDashboardScreen extends StatelessWidget {
                   horizontal: width < 700 ? 16 : 50,
                   vertical: width < 700 ? 16 : 30,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _Header(),
-                    const SizedBox(height: 24),
-                    _DashboardGrid(
-                      columns: cols,
-                      children: [
+                child: ConstrainedBox(
+                  // Ensure content fills at least the full screen height
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - (width < 700 ? 32 : 60),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _Header(),
+                      const SizedBox(height: 24),
+                      _DashboardGrid(
+                        columns: cols,
+                        children: [
                         _SectionCard(
                           icon: "🏋️",
                           title: "Trenutno u teretani",
@@ -53,7 +64,11 @@ class AdminDashboardScreen extends StatelessWidget {
                             _MenuItemData(icon: "👁️", text: "Pogledaj aktivne članove"),
                           ],
                           onTapIndex: (i) {
-                            // TODO: navigate
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const CurrentVisitorsScreen(),
+                              ),
+                            );
                           },
                         ),
                         _SectionCard(
@@ -101,7 +116,30 @@ class AdminDashboardScreen extends StatelessWidget {
                             _MenuItemData(icon: "🚚", text: "Dobavljači"),
                             _MenuItemData(icon: "📦", text: "Kupovine"),
                           ],
-                          onTapIndex: (i) {},
+                          onTapIndex: (i) {
+                            if (i == 0) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SupplementsManagementScreen(),
+                                ),
+                              );
+                            }
+                            if (i == 1) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:(_)=>const CategoryManagementScreen(),
+                                )
+                              );
+                            }
+                            if (i == 2) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder:(_)=>const SupplierManagementScreen(),
+                                )
+                              );
+                            }
+                          },
+                          
                         ),
                         _SectionCard(
                           icon: "📝",
@@ -129,9 +167,10 @@ class AdminDashboardScreen extends StatelessWidget {
                             }
                           },
                         ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               );
             },
@@ -234,14 +273,25 @@ class _DashboardGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: columns,
-      crossAxisSpacing: 24,
-      mainAxisSpacing: 24,
-      childAspectRatio: 1.15,
-      children: children,
+    const spacing = 24.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate card width based on number of columns and spacing
+        final totalSpacing = spacing * (columns - 1);
+        final cardWidth = (constraints.maxWidth - totalSpacing) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: children
+              .map((child) => SizedBox(
+                    width: cardWidth,
+                    child: child,
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 }

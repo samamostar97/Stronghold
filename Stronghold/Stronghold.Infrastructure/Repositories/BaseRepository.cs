@@ -10,7 +10,8 @@ using System.Threading.Tasks;
 
 namespace Stronghold.Infrastructure.Repositories
 {
-    public class BaseRepository<T, TKey> : IRepository<T, TKey> where T : class
+    public class BaseRepository<T, TKey> : IRepository<T, TKey> 
+        where T : class
     {
         private readonly StrongholdDbContext _context;
         private readonly DbSet<T> _dbSet;
@@ -49,7 +50,7 @@ namespace Stronghold.Infrastructure.Repositories
 
         public virtual IQueryable<T> AsQueryable()
         {
-            return _dbSet.AsQueryable();
+            return _dbSet.AsNoTracking().AsQueryable();
         }
 
         public virtual async Task<PagedResult<T>> GetPagedAsync(IQueryable<T> query, PaginationRequest pagination)

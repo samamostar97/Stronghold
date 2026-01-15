@@ -74,33 +74,38 @@ class _LoginScreenState extends State<LoginScreen> {
             colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
           ),
         ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(40),
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 420),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0f0f1a),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFFe63946).withOpacity(0.3),
-                  width: 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.5),
-                    blurRadius: 40,
-                    offset: const Offset(0, 15),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // Responsive padding based on screen width
+            final padding = constraints.maxWidth < 500 ? 20.0 : 40.0;
+
+            return Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(padding),
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 420),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0f0f1a),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFFe63946).withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.5),
+                        blurRadius: 40,
+                        offset: const Offset(0, 15),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.all(40),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+                  padding: const EdgeInsets.all(40),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
                     // Logo and Title
                     const Icon(
                       Icons.fitness_center,
@@ -340,12 +345,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                 color: Colors.white,
                               ),
                             ),
-                    ),
-                  ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
+          );
+        },
         ),
       ),
     );

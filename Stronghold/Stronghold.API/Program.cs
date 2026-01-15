@@ -10,13 +10,15 @@ using Stronghold.Infrastructure.Repositories;
 using Stronghold.Infrastructure.Services;
 using System.Text;
 using Stronghold.API.Middleware;
+using Mapster;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddDbContext<StrongholdDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddMapster();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -40,7 +42,18 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAdminMembershipService,AdminMembershipService>();
 builder.Services.AddScoped<IReportsService, ReportsService>();
+builder.Services.AddScoped<IRepository<User, int>, BaseRepository<User, int>>();
 builder.Services.AddScoped<IRepository<GymVisit, int>, BaseRepository<GymVisit, int>>();
+builder.Services.AddScoped<ISupplementRepository, SupplementRepository>();
+builder.Services.AddScoped<IAdminSupplementService, AdminSupplementService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();
+builder.Services.AddScoped<IAdminSupplierService, AdminSupplierService>();
+builder.Services.AddScoped<IRepository<Supplier, int>, BaseRepository<Supplier, int>>();
+
+
+
+builder.Services.AddScoped<IGymVisitsService, GymVisitsService>();
 
 
 

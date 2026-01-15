@@ -119,11 +119,25 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
               final statsCols = w < 600 ? 1 : (w < 900 ? 2 : 3);
               final chartsCols = w < 900 ? 1 : 2;
 
+              // Responsive padding based on screen width
+              final horizontalPadding = w > 1200
+                  ? 40.0
+                  : w > 800
+                      ? 24.0
+                      : 16.0;
+
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 20,
+                ),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 40, // subtract vertical padding
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
                     const _Header(accent: _accent, badgeColor: _badge),
                     const SizedBox(height: 20),
 
@@ -223,6 +237,7 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                       ),
                     ],
                   ],
+                ),
                 ),
               );
             },
@@ -357,14 +372,24 @@ class _StatsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: columns,
-      crossAxisSpacing: 20,
-      mainAxisSpacing: 20,
-      childAspectRatio: 1.45,
-      children: children,
+    const spacing = 20.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalSpacing = spacing * (columns - 1);
+        final cardWidth = (constraints.maxWidth - totalSpacing) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: children
+              .map((child) => SizedBox(
+                    width: cardWidth,
+                    child: child,
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -423,14 +448,27 @@ class _ChartsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: columns,
-      crossAxisSpacing: 20,
-      mainAxisSpacing: 20,
-      childAspectRatio: columns == 1 ? 1.15 : 1.25,
-      children: children,
+    const spacing = 20.0;
+    // Base height for chart cards
+    const cardHeight = 320.0;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final totalSpacing = spacing * (columns - 1);
+        final cardWidth = (constraints.maxWidth - totalSpacing) / columns;
+
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: children
+              .map((child) => SizedBox(
+                    width: cardWidth,
+                    height: cardHeight,
+                    child: child,
+                  ))
+              .toList(),
+        );
+      },
     );
   }
 }
@@ -608,66 +646,96 @@ class _BestSeller extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Container(
-            width: 180,
-            height: 180,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [_bg1, _bg2],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: border, width: 2),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Responsive: use column layout on narrow screens
+        final isNarrow = constraints.maxWidth < 400;
+        final imageSize = isNarrow ? 120.0 : 150.0;
+        final emojiSize = isNarrow ? 60.0 : 70.0;
+        final titleSize = isNarrow ? 22.0 : 26.0;
+        final unitsSize = isNarrow ? 36.0 : 44.0;
+
+        final imageWidget = Container(
+          width: imageSize,
+          height: imageSize,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_bg1, _bg2],
             ),
-            alignment: Alignment.center,
-            child: Text(productEmoji, style: const TextStyle(fontSize: 80)),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: border, width: 2),
           ),
-          const SizedBox(width: 30),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          alignment: Alignment.center,
+          child: Text(productEmoji, style: TextStyle(fontSize: emojiSize)),
+        );
+
+        final infoWidget = Column(
+          crossAxisAlignment: isNarrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              productName,
+              style: TextStyle(
+                fontSize: titleSize,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+              textAlign: isNarrow ? TextAlign.center : TextAlign.left,
+            ),
+            const SizedBox(height: 6),
+            Text(category, style: TextStyle(color: muted, fontSize: 14)),
+            const SizedBox(height: 12),
+            Wrap(
+              crossAxisAlignment: WrapCrossAlignment.end,
+              alignment: isNarrow ? WrapAlignment.center : WrapAlignment.start,
               children: [
                 Text(
-                  productName,
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+                  units,
+                  style: TextStyle(
+                    fontSize: unitsSize,
+                    fontWeight: FontWeight.w800,
+                    color: accent,
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(category, style: TextStyle(color: muted, fontSize: 14)),
-                const SizedBox(height: 20),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      units,
-                      style: TextStyle(
-                        fontSize: 48,
-                        fontWeight: FontWeight.w800,
-                        color: accent,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10),
-                      child: Text('prodatih jedinica', style: TextStyle(color: muted, fontSize: 16)),
-                    ),
-                  ],
+                const SizedBox(width: 8),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Text('prodatih jedinica', style: TextStyle(color: muted, fontSize: 14)),
                 ),
-                const SizedBox(height: 8),
-                Text(period, style: const TextStyle(color: Color(0xFF2ECC71), fontSize: 14)),
               ],
             ),
+            const SizedBox(height: 6),
+            Text(period, style: const TextStyle(color: Color(0xFF2ECC71), fontSize: 14)),
+          ],
+        );
+
+        if (isNarrow) {
+          return Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                imageWidget,
+                const SizedBox(height: 16),
+                infoWidget,
+              ],
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              imageWidget,
+              const SizedBox(width: 24),
+              Expanded(child: infoWidget),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

@@ -82,9 +82,21 @@ class _MembershipExtensionScreenState extends State<MembershipExtensionScreen> {
           ),
         ),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // Responsive padding based on screen width
+              final horizontalPadding = constraints.maxWidth > 1200
+                  ? 40.0
+                  : constraints.maxWidth > 800
+                      ? 24.0
+                      : 16.0;
+
+              return SingleChildScrollView(
+                padding: EdgeInsets.symmetric(
+                  horizontal: horizontalPadding,
+                  vertical: 20,
+                ),
+                child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const _Header(),
@@ -227,6 +239,8 @@ class _MembershipExtensionScreenState extends State<MembershipExtensionScreen> {
                 ),
               ],
             ),
+          );
+        },
           ),
         ),
       ),

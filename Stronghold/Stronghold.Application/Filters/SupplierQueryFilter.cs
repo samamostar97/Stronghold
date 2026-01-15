@@ -1,0 +1,16 @@
+﻿using Stronghold.Application.Common;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Stronghold.Application.Filters
+{
+    public class SupplierQueryFilter:PaginationRequest
+    {
+        public string? Search { get; set; }
+        public int? CategoryId { get; set; }
+        public string? OrderBy { get; set; }
+    }
+}
