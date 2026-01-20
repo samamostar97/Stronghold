@@ -1,0 +1,6 @@
+@Stronghold.API_HostAddress = http://localhost:5034
+
+GET {{Stronghold.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

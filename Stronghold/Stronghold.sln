@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36811.4 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.API", "Stronghold.API\Stronghold.API.csproj", "{9A385523-9570-45CE-95BE-2B4145F0F547}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Application", "Stronghold.Application\Stronghold.Application.csproj", "{D44FFB29-7AF7-4D8A-AA8C-782F326810E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Core", "Stronghold.Core\Stronghold.Core.csproj", "{6C353E11-DD09-45C7-8652-66239943A40B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Infrastructure", "Stronghold.Infrastructure\Stronghold.Infrastructure.csproj", "{7FD57DED-945A-490C-9068-7F15F25C23BA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9A385523-9570-45CE-95BE-2B4145F0F547}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9A385523-9570-45CE-95BE-2B4145F0F547}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9A385523-9570-45CE-95BE-2B4145F0F547}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9A385523-9570-45CE-95BE-2B4145F0F547}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D44FFB29-7AF7-4D8A-AA8C-782F326810E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D44FFB29-7AF7-4D8A-AA8C-782F326810E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D44FFB29-7AF7-4D8A-AA8C-782F326810E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D44FFB29-7AF7-4D8A-AA8C-782F326810E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6C353E11-DD09-45C7-8652-66239943A40B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6C353E11-DD09-45C7-8652-66239943A40B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6C353E11-DD09-45C7-8652-66239943A40B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6C353E11-DD09-45C7-8652-66239943A40B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FD57DED-945A-490C-9068-7F15F25C23BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FD57DED-945A-490C-9068-7F15F25C23BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FD57DED-945A-490C-9068-7F15F25C23BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FD57DED-945A-490C-9068-7F15F25C23BA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8D737283-CC63-4338-B6A7-5E1A5909FF34}
+	EndGlobalSection
+EndGlobal
