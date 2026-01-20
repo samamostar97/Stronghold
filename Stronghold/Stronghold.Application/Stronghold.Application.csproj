@@ -12,9 +12,7 @@
 
   <ItemGroup>
     <Folder Include="Common\" />
-    <Folder Include="DTOs\" />
     <Folder Include="IRepositories\" />
-    <Folder Include="IServices\" />
     <Folder Include="Filters\" />
   </ItemGroup>
 
