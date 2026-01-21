@@ -13,12 +13,9 @@ public class MembershipConfiguration : BaseEntityConfiguration<Membership>
         builder.Property(m => m.StartDate).IsRequired();
         builder.Property(m => m.EndDate).IsRequired();
 
-        // ensures one membership per user
-        builder.HasIndex(m => m.UserId).IsUnique();
-
         builder.HasOne(m => m.User)
-            .WithOne(u => u.Membership)
-            .HasForeignKey<Membership>(m => m.UserId)
+            .WithMany(u => u.Memberships)
+            .HasForeignKey(m => m.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(m => m.MembershipPackage)

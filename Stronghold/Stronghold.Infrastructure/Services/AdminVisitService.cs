@@ -39,15 +39,8 @@ namespace Stronghold.Infrastructure.Services
                                                   CheckInTime=x.CheckInTime
 
                                               }).ToListAsync();
-
             return visit;
 
-            
-            
-
-            
-
-            
         }
 
         public async Task<VisitDTO> CheckInAsync(CheckInRequestDTO request)

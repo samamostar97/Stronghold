@@ -17,7 +17,7 @@ public class User : BaseEntity
 
     // Navigation properties
     public ICollection<GymVisit> GymVisits { get; set; } = new List<GymVisit>();
-    public Membership? Membership { get; set; }
+    public ICollection<Membership> Memberships { get; set; } = new List<Membership>();
     public ICollection<MembershipPaymentHistory> MembershipPaymentHistory { get; set; } = new List<MembershipPaymentHistory>();
     public ICollection<Order> Orders { get; set; } = new List<Order>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
