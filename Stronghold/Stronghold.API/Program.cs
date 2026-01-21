@@ -1,11 +1,15 @@
 using DotNetEnv;
+using Mapster;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Infrastructure.Data;
+using Stronghold.Infrastructure.Repositories;
 using Stronghold.Infrastructure.Services;
 using System.Text;
+
 
 Env.Load();
 
@@ -21,9 +25,12 @@ var connectionString = $"Server={Environment.GetEnvironmentVariable("DB_SERVER")
 // Add services to the container.
 builder.Services.AddDbContext<StrongholdDbContext>(options =>
     options.UseSqlServer(connectionString));
-
+builder.Services.AddMapster();
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped(typeof(IRepository<,>), typeof(BaseRepository<,>));
+builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+
 
 // Configure JWT authentication
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")

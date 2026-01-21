@@ -10,10 +10,4 @@
     <ProjectReference Include="..\Stronghold.Core\Stronghold.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Common\" />
-    <Folder Include="IRepositories\" />
-    <Folder Include="Filters\" />
-  </ItemGroup>
-
 </Project>
