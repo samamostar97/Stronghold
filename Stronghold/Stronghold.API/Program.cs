@@ -30,6 +30,7 @@ builder.Services.AddMapster();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(BaseRepository<,>));
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
+builder.Services.AddScoped<IAdminVisitService, AdminVisitService>();
 
 
 // Configure JWT authentication
