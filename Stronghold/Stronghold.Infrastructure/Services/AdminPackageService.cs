@@ -46,7 +46,10 @@ namespace Stronghold.Infrastructure.Services
                     "pricedesc" => query.OrderByDescending(x => x.PackagePrice),
                     _ => query.OrderBy(x=>x.CreatedAt)
                 };
+                return query;
+
             }
+            query = query.OrderBy(x => x.CreatedAt);
             return query;
         }
     }

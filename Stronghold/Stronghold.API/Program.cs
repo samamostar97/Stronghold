@@ -8,6 +8,8 @@ using Stronghold.Application.IServices;
 using Stronghold.Infrastructure.Data;
 using Stronghold.Infrastructure.Repositories;
 using Stronghold.Infrastructure.Services;
+using Stronghold.Infrastructure.Mapping;
+using Stronghold.API.Middleware;
 using System.Text;
 
 
@@ -26,6 +28,7 @@ var connectionString = $"Server={Environment.GetEnvironmentVariable("DB_SERVER")
 builder.Services.AddDbContext<StrongholdDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddMapster();
+MappingConfig.Configure();
 // Register services
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped(typeof(IRepository<,>), typeof(BaseRepository<,>));
@@ -33,6 +36,8 @@ builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAdminVisitService, AdminVisitService>();
 builder.Services.AddScoped<IAdminMembershipService, AdminMembershipService>();
 builder.Services.AddScoped<IAdminPackageService, AdminPackageService>();
+builder.Services.AddScoped<IAdminSupplementService, AdminSupplementService>();
+
 
 
 
@@ -104,6 +109,8 @@ if (app.Environment.IsDevelopment())
 }
 
 // Configure the HTTP request pipeline.
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:stronghold_desktop/services/token_storage.dart';
+import 'package:stronghold_desktop/screens/login_screen.dart';
 
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -138,10 +140,48 @@ class _Header extends StatelessWidget {
       children: [
         const _Logo(),
         const Spacer(),
-        _AdminBadge(
-          onTap: () {
-            // TODO: profile / logout
+        PopupMenuButton<String>(
+          offset: const Offset(0, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          color: const Color(0xFF22253A),
+          onSelected: (value) async {
+            if (value == 'logout') {
+              await TokenStorage.clear();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            }
           },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'profile',
+              child: Row(
+                children: [
+                  Icon(Icons.person_outline, color: Colors.white70, size: 20),
+                  SizedBox(width: 12),
+                  Text('Profil', style: TextStyle(color: Colors.white)),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  Icon(Icons.logout, color: Color(0xFFFF5757), size: 20),
+                  SizedBox(width: 12),
+                  Text('Odjavi se', style: TextStyle(color: Color(0xFFFF5757))),
+                ],
+              ),
+            ),
+          ],
+          child: const _AdminBadge(),
         ),
       ],
     );
@@ -174,39 +214,32 @@ class _Logo extends StatelessWidget {
 }
 
 class _AdminBadge extends StatelessWidget {
-  const _AdminBadge({required this.onTap});
-
-  final VoidCallback onTap;
+  const _AdminBadge();
 
   static const _bg = Color(0xFF22253A);
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      decoration: BoxDecoration(
+        color: _bg,
         borderRadius: BorderRadius.circular(25),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          decoration: BoxDecoration(
-            color: _bg,
-            borderRadius: BorderRadius.circular(25),
+      ),
+      child: Row(
+        children: const [
+          Text("👤", style: TextStyle(fontSize: 16)),
+          SizedBox(width: 10),
+          Text(
+            "Admin",
+            style: TextStyle(
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
+            ),
           ),
-          child: Row(
-            children: const [
-              Text("👤", style: TextStyle(fontSize: 16)),
-              SizedBox(width: 10),
-              Text(
-                "Admin",
-                style: TextStyle(
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
+          SizedBox(width: 8),
+          Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 20),
+        ],
       ),
     );
   }

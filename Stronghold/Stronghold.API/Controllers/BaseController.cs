@@ -50,7 +50,7 @@ namespace Stronghold.API.Controllers
             if (result is null) return NotFound();
             return Ok(result);
         }
-        [HttpDelete]
+        [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete(TKey id)
         {
             await _service.DeleteAsync(id);

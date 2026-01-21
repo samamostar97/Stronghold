@@ -66,10 +66,11 @@ namespace Stronghold.Infrastructure.Services
 
         public virtual async Task<TDto> GetByIdAsync(TKey id)
         {
+
+
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
                 throw new KeyNotFoundException($"Entity sa id '{id}' nije pronadjen.");
-
             await AfterGetAsync(entity);
             return _mapper.Map<TDto>(entity);
         }
