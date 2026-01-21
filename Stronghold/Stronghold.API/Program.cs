@@ -32,6 +32,8 @@ builder.Services.AddScoped(typeof(IRepository<,>), typeof(BaseRepository<,>));
 builder.Services.AddScoped<IAdminUserService, AdminUserService>();
 builder.Services.AddScoped<IAdminVisitService, AdminVisitService>();
 builder.Services.AddScoped<IAdminMembershipService, AdminMembershipService>();
+builder.Services.AddScoped<IAdminPackageService, AdminPackageService>();
+
 
 
 
