@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.DTOs.AdminUserMembershipsDTO;
 using Stronghold.Application.IServices;
 using Stronghold.Infrastructure.Services;
@@ -8,6 +9,7 @@ namespace Stronghold.API.Controllers
 {
     [ApiController]
     [Route("api/admin/user/membership")]
+    [Authorize(Roles ="Admin")]
     public class AdminUserMembershipsController: ControllerBase
     {
         private readonly IAdminMembershipService _adminMembershipService;

@@ -24,7 +24,7 @@ namespace Stronghold.Infrastructure.Services
         }
         public async Task<MembershipDTO> AssignMembership(AssignMembershipRequest request)
         {
-            if (request.StartDate < DateTime.UtcNow || request.EndDate < request.StartDate)
+            if (request.StartDate < DateTime.Today || request.EndDate < request.StartDate)
                 throw new ArgumentException("Neispravan format datuma");
             var userExists= await _userRepository.AsQueryable().AnyAsync(x=>x.Id==request.UserId);
             if (!userExists)
