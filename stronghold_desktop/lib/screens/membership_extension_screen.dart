@@ -7,6 +7,8 @@ import '../models/user_dto.dart';
 import '../services/users_api.dart';
 import '../services/memberships_api.dart';
 import '../widgets/success_animation.dart';
+import '../widgets/error_animation.dart';
+import '../utils/error_handler.dart';
 import 'membership_payment_history_screen.dart';
 
 class MembershipManagementScreen extends StatefulWidget {
@@ -158,12 +160,8 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Greška: ${e.toString().replaceAll('Exception: ', '')}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          String errorMessage = ErrorHandler.getContextualMessage(e, 'revoke-membership');
+          showErrorAnimation(context, message: errorMessage);
         }
       }
     }
@@ -1103,7 +1101,7 @@ class _AddPaymentDialogState extends State<_AddPaymentDialog> {
       if (mounted) {
         setState(() {
           _isSaving = false;
-          _errorMessage = e.toString().replaceAll('Exception: ', '');
+          _errorMessage = ErrorHandler.getContextualMessage(e, 'add-payment');
         });
       }
     }

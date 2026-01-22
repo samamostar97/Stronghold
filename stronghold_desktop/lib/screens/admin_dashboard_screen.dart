@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stronghold_desktop/screens/current_visitors_screen.dart';
 import 'package:stronghold_desktop/services/token_storage.dart';
 import 'package:stronghold_desktop/screens/login_screen.dart';
 import 'package:stronghold_desktop/screens/users_management_screen.dart';
@@ -58,7 +59,11 @@ class AdminDashboardScreen extends StatelessWidget {
                             _MenuItemData(icon: "👁️", text: "Pogledaj aktivne članove"),
                           ],
                           onTapIndex: (i) {
-
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const CurrentVisitorsScreen(),
+                              ),
+                            );
                           },
                         ),
                         _SectionCard(

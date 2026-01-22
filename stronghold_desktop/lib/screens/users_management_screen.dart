@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../models/user_dto.dart';
 import '../services/users_api.dart';
 import '../widgets/success_animation.dart';
+import '../widgets/error_animation.dart';
+import '../utils/error_handler.dart';
 
 class UsersManagementScreen extends StatefulWidget {
   const UsersManagementScreen({super.key});
@@ -107,9 +109,14 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Greška: $e'), backgroundColor: _AppColors.accent),
-        );
+        String errorMessage = ErrorHandler.getContextualMessage(e, 'load-users');
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          showErrorAnimation(
+            context,
+            message: errorMessage,
+          );
+        }
       }
     }
   }
@@ -152,8 +159,10 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
       _loadUsers();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Greška: $e'), backgroundColor: _AppColors.accent),
+        String errorMessage = ErrorHandler.getContextualMessage(e, 'delete-user');
+        showErrorAnimation(
+          context,
+          message: errorMessage,
         );
       }
     }
@@ -931,13 +940,22 @@ class _EditUserDialogState extends State<_EditUserDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Greška: $e'), backgroundColor: _AppColors.accent),
-        );
-      }
-    } finally {
-      if (mounted) {
         setState(() => _isSaving = false);
+
+        String errorMessage = ErrorHandler.getContextualMessage(e, 'edit-user');
+
+        // Close dialog first
+        Navigator.of(context).pop(false);
+
+        // Small delay before showing error animation
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        if (mounted) {
+          showErrorAnimation(
+            context,
+            message: errorMessage,
+          );
+        }
       }
     }
   }
@@ -1127,13 +1145,22 @@ class _AddUserDialogState extends State<_AddUserDialog> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Greška: $e'), backgroundColor: _AppColors.accent),
-        );
-      }
-    } finally {
-      if (mounted) {
         setState(() => _isSaving = false);
+
+        String errorMessage = ErrorHandler.getContextualMessage(e, 'add-user');
+
+        // Close dialog first
+        Navigator.of(context).pop(false);
+
+        // Small delay before showing error animation
+        await Future.delayed(const Duration(milliseconds: 100));
+
+        if (mounted) {
+          showErrorAnimation(
+            context,
+            message: errorMessage,
+          );
+        }
       }
     }
   }
