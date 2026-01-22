@@ -29,7 +29,7 @@ class UsersApi {
 
     if (res.statusCode == 200) {
       final json = jsonDecode(res.body) as Map<String, dynamic>;
-      return PagedUsersResult.fromJson(json, pageSize);
+      return PagedUsersResult.fromJson(json);
     }
 
     throw Exception('Failed to load users: ${res.statusCode} ${res.body}');

@@ -77,6 +77,12 @@ class ErrorHandler {
     // Log the actual error
     print('ERROR [$operation]: $errorString');
 
+    // Try to extract validation errors from the response body
+    final validationError = _extractValidationError(errorString);
+    if (validationError != null) {
+      return validationError;
+    }
+
     // Check if this is a user-friendly validation message (no status codes, no technical jargon)
     // If backend sends a clear message, show it to the user
     if (_isUserFriendlyMessage(errorString)) {
@@ -93,6 +99,15 @@ class ErrorHandler {
       'add-payment': 'Dodavanje uplate nije uspjelo.',
       'revoke-membership': 'Ukidanje članarine nije uspjelo.',
       'load-users': 'Učitavanje korisnika nije uspjelo.',
+      'add-package': 'Dodavanje paketa nije uspjelo.',
+      'edit-package': 'Izmjena paketa nije uspjela.',
+      'delete-package': 'Brisanje paketa nije uspjelo.',
+      'add-supplement': 'Dodavanje suplementa nije uspjelo.',
+      'edit-supplement': 'Izmjena suplementa nije uspjela.',
+      'delete-supplement': 'Brisanje suplementa nije uspjelo.',
+      'create-supplier': 'Dodavanje dobavljača nije uspjelo.',
+      'update-supplier': 'Izmjena dobavljača nije uspjela.',
+      'delete-supplier': 'Brisanje dobavljača nije uspjelo.',
     };
 
     // Check for specific error types and provide more context
@@ -113,6 +128,68 @@ class ErrorHandler {
 
     // Return the operation-specific message or a generic one
     return operationMessages[operation] ?? 'Operacija nije uspjela.';
+  }
+
+  /// Extracts validation error messages from error response
+  static String? _extractValidationError(String errorString) {
+    // Check for validation errors (400 status)
+    if (!errorString.contains('400')) {
+      return null;
+    }
+
+    // Common validation error patterns
+    final patterns = [
+      // Pattern: "Name" must be at least X characters
+      RegExp(r'"?(\w+)"?\s+must be at least (\d+) characters?', caseSensitive: false),
+      // Pattern: "Name" is too short (minimum X characters)
+      RegExp(r'"?(\w+)"?\s+is too short.*?minimum[:\s]+(\d+)', caseSensitive: false),
+      // Pattern: Field must not be empty
+      RegExp(r'"?(\w+)"?\s+(must not be empty|is required)', caseSensitive: false),
+      // Pattern: Invalid format
+      RegExp(r'"?(\w+)"?\s+has invalid format', caseSensitive: false),
+      // Pattern: Value is too long
+      RegExp(r'"?(\w+)"?\s+must be at most (\d+) characters?', caseSensitive: false),
+    ];
+
+    for (var pattern in patterns) {
+      final match = pattern.firstMatch(errorString);
+      if (match != null) {
+        final fieldName = match.group(1);
+
+        // Map field names to Croatian
+        final fieldTranslations = {
+          'name': 'Naziv',
+          'username': 'Korisničko ime',
+          'email': 'Email',
+          'password': 'Lozinka',
+          'phone': 'Broj telefona',
+          'phonenumber': 'Broj telefona',
+          'website': 'Web stranica',
+          'description': 'Opis',
+        };
+
+        final translatedField = fieldTranslations[fieldName?.toLowerCase()] ?? fieldName;
+
+        // Build appropriate message
+        if (match.group(2) != null) {
+          final number = match.group(2);
+          if (errorString.toLowerCase().contains('at least') ||
+              errorString.toLowerCase().contains('too short')) {
+            return '$translatedField mora imati najmanje $number znakova.';
+          } else if (errorString.toLowerCase().contains('at most')) {
+            return '$translatedField može imati maksimalno $number znakova.';
+          }
+        } else if (errorString.toLowerCase().contains('empty') ||
+                   errorString.toLowerCase().contains('required')) {
+          return '$translatedField je obavezno polje.';
+        } else if (errorString.toLowerCase().contains('invalid')) {
+          return '$translatedField ima neispravan format.';
+        }
+      }
+    }
+
+    // If it's a 400 error but we couldn't parse it, return a generic validation message
+    return 'Provjerite unesene podatke i pokušajte ponovo.';
   }
 
   /// Checks if an error message is safe to show to users

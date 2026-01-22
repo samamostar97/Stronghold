@@ -42,21 +42,18 @@ class PagedUsersResult {
     required this.totalPages,
   });
 
-  factory PagedUsersResult.fromJson(Map<String, dynamic> json, int pageSize) {
+  factory PagedUsersResult.fromJson(Map<String, dynamic> json) {
     final itemsList = (json['items'] as List<dynamic>?)
             ?.map((e) => UserTableRowDTO.fromJson(e as Map<String, dynamic>))
             .toList() ??
         <UserTableRowDTO>[];
 
-    final totalCount = (json['totalCount'] ?? 0) as int;
-    final totalPages = totalCount > 0 ? ((totalCount / pageSize).ceil()) : 1;
-
     return PagedUsersResult(
       items: itemsList,
-      totalCount: totalCount,
+      totalCount: (json['totalCount'] ?? 0) as int,
       pageNumber: (json['pageNumber'] ?? 1) as int,
-      pageSize: pageSize,
-      totalPages: totalPages,
+      pageSize: (json['pageSize'] ?? 10) as int,
+      totalPages: (json['totalPages'] ?? 1) as int,
     );
   }
 }

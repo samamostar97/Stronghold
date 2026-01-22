@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Stronghold.Application.Filters
 {
-    public class MembershipPackageQueryFilter : PaginationRequest
+    public class SupplierQueryFilter : PaginationRequest
     {
         public string? Search {  get; set; }
         public string? OrderBy { get; set; }

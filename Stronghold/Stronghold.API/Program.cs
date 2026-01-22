@@ -37,6 +37,8 @@ builder.Services.AddScoped<IAdminVisitService, AdminVisitService>();
 builder.Services.AddScoped<IAdminMembershipService, AdminMembershipService>();
 builder.Services.AddScoped<IAdminPackageService, AdminPackageService>();
 builder.Services.AddScoped<IAdminSupplementService, AdminSupplementService>();
+builder.Services.AddScoped<IAdminSupplierService, AdminSupplierService>();
+
 
 
 

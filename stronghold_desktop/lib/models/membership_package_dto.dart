@@ -63,6 +63,37 @@ class UpdateMembershipPackageDTO {
       };
 }
 
+class PagedPackagesResult {
+  final List<MembershipPackageDTO> items;
+  final int totalCount;
+  final int pageNumber;
+  final int pageSize;
+  final int totalPages;
+
+  const PagedPackagesResult({
+    required this.items,
+    required this.totalCount,
+    required this.pageNumber,
+    required this.pageSize,
+    required this.totalPages,
+  });
+
+  factory PagedPackagesResult.fromJson(Map<String, dynamic> json) {
+    final itemsList = (json['items'] as List<dynamic>?)
+            ?.map((e) => MembershipPackageDTO.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <MembershipPackageDTO>[];
+
+    return PagedPackagesResult(
+      items: itemsList,
+      totalCount: (json['totalCount'] ?? 0) as int,
+      pageNumber: (json['pageNumber'] ?? 1) as int,
+      pageSize: (json['pageSize'] ?? 10) as int,
+      totalPages: (json['totalPages'] ?? 1) as int,
+    );
+  }
+}
+
 class AddMembershipPaymentRequest {
   final int userId;
   final int membershipPackageId;
