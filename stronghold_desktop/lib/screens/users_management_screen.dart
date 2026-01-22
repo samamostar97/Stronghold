@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/user_dto.dart';
 import '../services/users_api.dart';
+import '../widgets/success_animation.dart';
 
 class UsersManagementScreen extends StatefulWidget {
   const UsersManagementScreen({super.key});
@@ -97,6 +98,11 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
       );
 
       if (updated == true) {
+        // Small delay to ensure dialog is fully closed before showing animation
+        await Future.delayed(const Duration(milliseconds: 100));
+        if (mounted) {
+          showSuccessAnimation(context);
+        }
         _loadUsers();
       }
     } catch (e) {
@@ -115,6 +121,11 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
     );
 
     if (created == true) {
+      // Small delay to ensure dialog is fully closed before showing animation
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (mounted) {
+        showSuccessAnimation(context);
+      }
       _loadUsers();
     }
   }
@@ -132,6 +143,12 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
 
     try {
       await UsersApi.deleteUser(user.id);
+
+      // Small delay to ensure dialog is fully closed before showing animation
+      await Future.delayed(const Duration(milliseconds: 100));
+      if (mounted) {
+        showSuccessAnimation(context);
+      }
       _loadUsers();
     } catch (e) {
       if (mounted) {

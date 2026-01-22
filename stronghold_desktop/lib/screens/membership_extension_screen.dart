@@ -6,6 +6,7 @@ import 'package:stronghold_desktop/models/membership_package_dto.dart';
 import '../models/user_dto.dart';
 import '../services/users_api.dart';
 import '../services/memberships_api.dart';
+import '../widgets/success_animation.dart';
 import 'membership_payment_history_screen.dart';
 
 class MembershipManagementScreen extends StatefulWidget {
@@ -152,12 +153,7 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
             _activeMembershipStatus[user.id] = false;
           });
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Članarina uspješno ukinuta'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          _showSuccessAnimation();
           _loadUsers();
         }
       } catch (e) {
@@ -173,6 +169,10 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
     }
   }
 
+  void _showSuccessAnimation() {
+    showSuccessAnimation(context);
+  }
+
   Future<void> _addPayment(UserTableRowDTO user) async {
     final result = await showDialog<bool>(
       context: context,
@@ -180,7 +180,10 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
     );
 
     if (result == true) {
-      // Payment was added successfully, refresh the list
+      // Payment was added successfully, show success animation
+      showSuccessAnimation(context);
+
+      // Refresh the list
       _loadUsers();
 
       // Update status for this specific user
@@ -324,39 +327,45 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: isNarrow
-            ? SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: SizedBox(
-                  width: tableMinWidth,
-                  child: Column(
-                    children: [
-                      const _TableHeader(),
-                      if (_users.isEmpty)
-                        const SizedBox(
-                          height: 100,
-                          child: Center(
-                            child: Text(
-                              'Nema rezultata.',
-                              style: TextStyle(color: Colors.white70),
+            ? LayoutBuilder(
+                builder: (context, innerConstraints) {
+                  return SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: SizedBox(
+                      width: tableMinWidth,
+                      height: innerConstraints.maxHeight,
+                      child: Column(
+                        children: [
+                          const _TableHeader(),
+                          if (_users.isEmpty)
+                            const Expanded(
+                              child: Center(
+                                child: Text(
+                                  'Nema rezultata.',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: _users.length,
+                                itemBuilder: (context, i) => _UserTableRow(
+                                  user: _users[i],
+                                  isLast: i == _users.length - 1,
+                                  hasActiveMembership: _activeMembershipStatus[_users[i].id] ?? false,
+                                  isLoadingStatus: _loadingStatuses.contains(_users[i].id),
+                                  onViewPayments: () => _viewPayments(_users[i]),
+                                  onAddPayment: () => _addPayment(_users[i]),
+                                  onRevokeMembership: () => _revokeMembership(_users[i]),
+                                ),
+                              ),
                             ),
-                          ),
-                        )
-                      else
-                        ...List.generate(
-                          _users.length,
-                          (i) => _UserTableRow(
-                            user: _users[i],
-                            isLast: i == _users.length - 1,
-                            hasActiveMembership: _activeMembershipStatus[_users[i].id] ?? false,
-                            isLoadingStatus: _loadingStatuses.contains(_users[i].id),
-                            onViewPayments: () => _viewPayments(_users[i]),
-                            onAddPayment: () => _addPayment(_users[i]),
-                            onRevokeMembership: () => _revokeMembership(_users[i]),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               )
             : Column(
                 children: [
