@@ -6,13 +6,14 @@ using System.Threading.Tasks;
 
 namespace Stronghold.Application.DTOs.AdminUserMembershipsDTO
 {
-    public class AssignMembershipRequest
+    public class MembershipPaymentsDTO
     {
-        public int UserId { get; set; }
+        public int Id { get; set; }
         public int MembershipPackageId { get; set; }
+        public string PackageName { get; set; } = string.Empty;
         public decimal AmountPaid { get; set; }
+        public DateTime PaymentDate { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
-        public DateTime PaymentDate { get; set; }
     }
 }

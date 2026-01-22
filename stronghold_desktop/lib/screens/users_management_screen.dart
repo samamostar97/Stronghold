@@ -571,6 +571,8 @@ class _SmallButtonState extends State<_SmallButton> {
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ),
@@ -684,17 +686,22 @@ class _UserTableRowState extends State<_UserTableRow> {
               flex: _TableFlex.actions,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  _SmallButton(
-                    text: 'Izmijeni',
-                    color: _AppColors.editBlue,
-                    onTap: widget.onEdit,
+                  Flexible(
+                    child: _SmallButton(
+                      text: 'Izmijeni',
+                      color: _AppColors.editBlue,
+                      onTap: widget.onEdit,
+                    ),
                   ),
                   const SizedBox(width: 8),
-                  _SmallButton(
-                    text: 'Obriši',
-                    color: _AppColors.accent,
-                    onTap: widget.onDelete,
+                  Flexible(
+                    child: _SmallButton(
+                      text: 'Obriši',
+                      color: _AppColors.accent,
+                      onTap: widget.onDelete,
+                    ),
                   ),
                 ],
               ),
@@ -720,6 +727,7 @@ class _DataCell extends StatelessWidget {
         text,
         style: const TextStyle(fontSize: 14, color: Colors.white),
         overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
     );
   }

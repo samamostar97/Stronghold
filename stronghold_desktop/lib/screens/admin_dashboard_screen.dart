@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:stronghold_desktop/services/token_storage.dart';
 import 'package:stronghold_desktop/screens/login_screen.dart';
 import 'package:stronghold_desktop/screens/users_management_screen.dart';
+import 'package:stronghold_desktop/screens/membership_extension_screen.dart';
 
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -68,8 +69,13 @@ class AdminDashboardScreen extends StatelessWidget {
                             _MenuItemData(icon: "📋", text: "Upravljanje paketima"),
                           ],
                           onTapIndex: (i) {
-
-
+                            if (i == 0) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const MembershipManagementScreen(),
+                                ),
+                              );
+                            }
                           },
                         ),
                         _SectionCard(
