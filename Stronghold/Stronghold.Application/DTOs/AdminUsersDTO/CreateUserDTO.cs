@@ -17,7 +17,7 @@ namespace Stronghold.Application.DTOs.AdminUsersDTO
         [StringLength(25, ErrorMessage = "Unos prezimena obavezan")]
         public string LastName { get; set; } = string.Empty;
         [Required]
-        [StringLength(15, ErrorMessage = "Unos usernamea obavezan")]
+        [StringLength(15, MinimumLength = 3, ErrorMessage = "Username mora biti između 3 i 15 karaktera")]
         public string Username { get; set; } = string.Empty;
         [Required]
         [EmailAddress(ErrorMessage ="Neispravan format email-a")]
@@ -26,7 +26,6 @@ namespace Stronghold.Application.DTOs.AdminUsersDTO
         public string PhoneNumber { get; set; } = string.Empty;
         [Required]
         public Gender Gender { get; set; }
-        public Role Role { get; set; }
         [Required]
         public string Password { get; set; } = string.Empty;
     }

@@ -37,20 +37,7 @@ namespace Stronghold.Infrastructure.Services
                 throw new KeyNotFoundException($"Entity sa id '{id}' nije pronadjen.");
 
             await BeforeDeleteAsync(entity);
-
-            // Soft delete
-            var isDeletedProperty = entity.GetType().GetProperty("IsDeleted");
-            if (isDeletedProperty != null)
-            {
-                isDeletedProperty.SetValue(entity, true);
-                await _repository.UpdateAsync(entity);
-            }
-            else
-            {
-                // Fallback to hard delete if entity doesn't have IsDeleted
-                await _repository.DeleteAsync(entity);
-            }
-
+            await _repository.DeleteAsync(entity);
             await AfterDeleteAsync(entity);
         }
         

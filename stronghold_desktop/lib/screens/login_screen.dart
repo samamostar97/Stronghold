@@ -4,7 +4,7 @@ import 'package:stronghold_desktop/services/auth_service.dart';
 import 'package:stronghold_desktop/screens/admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -37,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final data = await AuthService.login(
+      await AuthService.login(
         username: _usernameController.text.trim(),
         password: _passwordController.text,
       );

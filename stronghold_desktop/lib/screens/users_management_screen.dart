@@ -511,7 +511,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -558,7 +558,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,

@@ -24,10 +24,10 @@ namespace Stronghold.Infrastructure.Services
         {
             var usernameExists = await _repository.AsQueryable().AnyAsync(x=>x.Username == dto.Username);
             if (usernameExists)
-                throw new ArgumentNullException("Username zauzet");
+                throw new InvalidOperationException("Username zauzet");
             var emailExists = await _repository.AsQueryable().AnyAsync(x => x.Email == dto.Email);
             if (emailExists)
-                throw new ArgumentNullException("Email zauzet");
+                throw new InvalidOperationException("Email zauzet");
 
             entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             entity.Role = Core.Enums.Role.GymMember;
@@ -39,14 +39,14 @@ namespace Stronghold.Infrastructure.Services
             var usernameExists = await _repository.AsQueryable()
                                                   .AnyAsync(x => x.Username == dto.Username && x.Id != entity.Id);
                 if (usernameExists)
-                    throw new ArgumentNullException("Username zauzet");
+                    throw new InvalidOperationException("Username zauzet");
             }
             if (!string.IsNullOrEmpty(dto.Email))
             {
                 var emailExists = await _repository.AsQueryable()
                                                       .AnyAsync(x => x.Email == dto.Email && x.Id != entity.Id);
                 if (emailExists)
-                    throw new ArgumentNullException("Email zauzet");
+                    throw new InvalidOperationException("Email zauzet");
             }
             if(!string.IsNullOrEmpty(dto.Password))
             {

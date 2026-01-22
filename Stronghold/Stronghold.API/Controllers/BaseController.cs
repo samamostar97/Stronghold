@@ -30,6 +30,8 @@ namespace Stronghold.API.Controllers
         public virtual async Task<ActionResult<TDto>> GetById(TKey id)
         {
             var result = await _service.GetByIdAsync(id);
+            if(result == null)
+                return NotFound();
             return Ok(result);
         }
         [HttpPost]

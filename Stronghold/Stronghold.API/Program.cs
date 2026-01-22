@@ -105,6 +105,16 @@ if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
+
+    // set CLEAR_DATABASE=true in .env for database clear
+    var shouldClearDatabase = Environment.GetEnvironmentVariable("CLEAR_DATABASE")?.ToLower() == "true";
+    if (shouldClearDatabase)
+    {
+        Console.WriteLine("Clearing database...");
+        await StrongholdDbContextDataSeed.ClearDatabaseAsync(context);
+        Console.WriteLine("Database cleared successfully.");
+    }
+
     await StrongholdDbContextDataSeed.SeedAsync(context);
 }
 

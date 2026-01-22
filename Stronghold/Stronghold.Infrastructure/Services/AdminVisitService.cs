@@ -77,9 +77,10 @@ namespace Stronghold.Infrastructure.Services
         public async Task<VisitDTO> CheckOutAsync(int visitId)
         {
             var visit = await _visitRepository.GetByIdAsync(visitId);
-            var user = await _userRepository.GetByIdAsync(visit.UserId);
             if (visit == null)
                 throw new KeyNotFoundException($"Posjet sa ID '{visitId}' nije pronađen.");
+            var user = await _userRepository.GetByIdAsync(visit.UserId);
+            
 
             if (visit.CheckOutTime != null)
                 throw new InvalidOperationException("Korisnik je već odjavljen iz teretane.");

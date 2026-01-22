@@ -21,7 +21,7 @@ namespace Stronghold.Infrastructure.Services
         }
         protected override async Task BeforeCreateAsync(Supplement entity, CreateSupplementDTO dto)
         {
-            var supplementExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower()==dto.Name.ToLower()&&!x.IsDeleted);
+            var supplementExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower()==dto.Name.ToLower());
             if (supplementExists) throw new InvalidOperationException("Suplement već postoji");
             var categoryExists = await _supplementCategoryRepo.AsQueryable().AnyAsync(x => x.Id == dto.SupplementCategoryId);
             if (!categoryExists) throw new InvalidOperationException("Odabrana kategorija ne postoji");

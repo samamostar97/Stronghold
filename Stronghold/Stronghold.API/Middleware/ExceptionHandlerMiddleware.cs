@@ -46,7 +46,9 @@ namespace Stronghold.API.Middleware
 
             var response = new
             {
-                error = exception.Message,
+                error = statusCode == HttpStatusCode.InternalServerError
+                    ? "Server error"
+                    : exception.Message,
                 statusCode = (int)statusCode
             };
 

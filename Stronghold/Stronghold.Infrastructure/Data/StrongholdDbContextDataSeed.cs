@@ -6,6 +6,82 @@ namespace Stronghold.Infrastructure.Data;
 
 public static class StrongholdDbContextDataSeed
 {
+    public static async Task ClearDatabaseAsync(StrongholdDbContext context)
+    {
+        // Delete data in correct order (respecting foreign key constraints)
+        // Using IgnoreQueryFilters to load ALL records including soft-deleted ones
+
+        var reviews = await context.Reviews.IgnoreQueryFilters().ToListAsync();
+        context.Reviews.RemoveRange(reviews);
+        await context.SaveChangesAsync();
+
+        var orderItems = await context.OrderItems.IgnoreQueryFilters().ToListAsync();
+        context.OrderItems.RemoveRange(orderItems);
+        await context.SaveChangesAsync();
+
+        var orders = await context.Orders.IgnoreQueryFilters().ToListAsync();
+        context.Orders.RemoveRange(orders);
+        await context.SaveChangesAsync();
+
+        var seminarAttendees = await context.SeminarAttendees.IgnoreQueryFilters().ToListAsync();
+        context.SeminarAttendees.RemoveRange(seminarAttendees);
+        await context.SaveChangesAsync();
+
+        var appointments = await context.Appointments.IgnoreQueryFilters().ToListAsync();
+        context.Appointments.RemoveRange(appointments);
+        await context.SaveChangesAsync();
+
+        var paymentHistory = await context.MembershipPaymentHistory.IgnoreQueryFilters().ToListAsync();
+        context.MembershipPaymentHistory.RemoveRange(paymentHistory);
+        await context.SaveChangesAsync();
+
+        var memberships = await context.Memberships.IgnoreQueryFilters().ToListAsync();
+        context.Memberships.RemoveRange(memberships);
+        await context.SaveChangesAsync();
+
+        var gymVisits = await context.GymVisits.IgnoreQueryFilters().ToListAsync();
+        context.GymVisits.RemoveRange(gymVisits);
+        await context.SaveChangesAsync();
+
+        var users = await context.Users.IgnoreQueryFilters().ToListAsync();
+        context.Users.RemoveRange(users);
+        await context.SaveChangesAsync();
+
+        var seminars = await context.Seminars.IgnoreQueryFilters().ToListAsync();
+        context.Seminars.RemoveRange(seminars);
+        await context.SaveChangesAsync();
+
+        var supplements = await context.Supplements.IgnoreQueryFilters().ToListAsync();
+        context.Supplements.RemoveRange(supplements);
+        await context.SaveChangesAsync();
+
+        var suppliers = await context.Suppliers.IgnoreQueryFilters().ToListAsync();
+        context.Suppliers.RemoveRange(suppliers);
+        await context.SaveChangesAsync();
+
+        var categories = await context.SupplementCategories.IgnoreQueryFilters().ToListAsync();
+        context.SupplementCategories.RemoveRange(categories);
+        await context.SaveChangesAsync();
+
+        var nutritionists = await context.Nutritionists.IgnoreQueryFilters().ToListAsync();
+        context.Nutritionists.RemoveRange(nutritionists);
+        await context.SaveChangesAsync();
+
+        var trainers = await context.Trainers.IgnoreQueryFilters().ToListAsync();
+        context.Trainers.RemoveRange(trainers);
+        await context.SaveChangesAsync();
+
+        var packages = await context.MembershipPackages.IgnoreQueryFilters().ToListAsync();
+        context.MembershipPackages.RemoveRange(packages);
+        await context.SaveChangesAsync();
+
+        var faqs = await context.FAQs.IgnoreQueryFilters().ToListAsync();
+        context.FAQs.RemoveRange(faqs);
+        await context.SaveChangesAsync();
+
+        Console.WriteLine("All data cleared successfully.");
+    }
+
     public static async Task SeedAsync(StrongholdDbContext context)
     {
         await context.Database.MigrateAsync();
@@ -318,6 +394,25 @@ public static class StrongholdDbContextDataSeed
         };
 
         await context.Memberships.AddRangeAsync(memberships);
+        await context.SaveChangesAsync();
+
+        // Create payment history for each membership
+        var paymentHistory = new List<MembershipPaymentHistory>();
+        foreach (var membership in memberships)
+        {
+            var package = packages.First(p => p.Id == membership.MembershipPackageId);
+            paymentHistory.Add(new MembershipPaymentHistory
+            {
+                UserId = membership.UserId,
+                MembershipPackageId = membership.MembershipPackageId,
+                AmountPaid = package.PackagePrice,
+                PaymentDate = membership.StartDate.AddDays(-1), // Payment made 1 day before start date
+                StartDate = membership.StartDate,
+                EndDate = membership.EndDate
+            });
+        }
+
+        await context.MembershipPaymentHistory.AddRangeAsync(paymentHistory);
         await context.SaveChangesAsync();
     }
 

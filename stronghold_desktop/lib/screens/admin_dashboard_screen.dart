@@ -494,7 +494,7 @@ class _HoverCardState extends State<_HoverCard> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
-        transform: Matrix4.identity()..translate(0.0, _hover ? -4.0 : 0.0),
+        transform: Matrix4.translationValues(0.0, _hover ? -4.0 : 0.0, 0.0),
         child: DecoratedBox(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),

@@ -20,14 +20,15 @@ namespace Stronghold.Infrastructure.Services
         }
         protected override async Task BeforeCreateAsync(MembershipPackage entity, CreateMembershipPackageDTO dto)
         {
-            var packageExists = await _repository.AsQueryable().AnyAsync(x => x.Id == entity.Id);
+            var packageExists = await _repository.AsQueryable().AnyAsync(x => x.PackageName.ToLower() == dto.PackageName.ToLower());
             if (packageExists)
-                throw new InvalidOperationException("Package vec postoji");
+                throw new InvalidOperationException("Package sa ovim imenom vec postoji");
 
         }
         protected override async Task BeforeUpdateAsync(MembershipPackage entity, UpdateMembershipPackageDTO dto)
         {
-            var packageExists = await _repository.AsQueryable().AnyAsync(x => x.PackageName.ToLower() == dto.PackageName && x.Id != entity.Id);
+
+            var packageExists = await _repository.AsQueryable().AnyAsync(x => x.PackageName.ToLower() == dto.PackageName.ToLower() && x.Id != entity.Id);
             if (packageExists) throw new InvalidOperationException("Paket sa ovim imenom već postoji");
         }
         protected override IQueryable<MembershipPackage> ApplyFilter(IQueryable<MembershipPackage> query, MembershipPackageQueryFilter? filter)
