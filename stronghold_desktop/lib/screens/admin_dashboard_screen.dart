@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:stronghold_desktop/screens/business_report_screen.dart';
 import 'package:stronghold_desktop/screens/category_management_screen.dart';
 import 'package:stronghold_desktop/screens/current_visitors_screen.dart';
 import 'package:stronghold_desktop/screens/membership_package_management_screen.dart';
@@ -189,7 +190,13 @@ class AdminDashboardScreen extends StatelessWidget {
                             _MenuItemData(icon: "📈", text: "Biznis report"),
                           ],
                           onTapIndex: (i) {
-                            
+                            if (i == 0) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const BusinessReportScreen(),
+                                ),
+                              );
+                            }
                           },
                         ),
                         ],
