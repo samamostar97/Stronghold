@@ -38,6 +38,8 @@ builder.Services.AddScoped<IAdminMembershipService, AdminMembershipService>();
 builder.Services.AddScoped<IAdminPackageService, AdminPackageService>();
 builder.Services.AddScoped<IAdminSupplementService, AdminSupplementService>();
 builder.Services.AddScoped<IAdminSupplierService, AdminSupplierService>();
+builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();
+
 
 
 

@@ -108,6 +108,9 @@ class ErrorHandler {
       'create-supplier': 'Dodavanje dobavljača nije uspjelo.',
       'update-supplier': 'Izmjena dobavljača nije uspjela.',
       'delete-supplier': 'Brisanje dobavljača nije uspjelo.',
+      'create-category': 'Dodavanje kategorije nije uspjelo.',
+      'update-category': 'Izmjena kategorije nije uspjela.',
+      'delete-category': 'Brisanje kategorije nije uspjelo.',
     };
 
     // Check for specific error types and provide more context

@@ -12,6 +12,8 @@ public class SupplementCategoryConfiguration : BaseEntityConfiguration<Supplemen
 
         builder.Property(c => c.Name).HasMaxLength(100).IsRequired();
 
-        builder.HasIndex(c => c.Name).IsUnique();
+        builder.HasIndex(c => c.Name)
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }
