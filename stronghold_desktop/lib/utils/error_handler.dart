@@ -120,6 +120,8 @@ class ErrorHandler {
       'create-seminar': 'Dodavanje seminara nije uspjelo.',
       'update-seminar': 'Izmjena seminara nije uspjela.',
       'delete-seminar': 'Brisanje seminara nije uspjelo.',
+      'load-orders': 'Učitavanje narudžbi nije uspjelo.',
+      'deliver-order': 'Označavanje narudžbe kao dostavljene nije uspjelo.',
     };
 
     // Check for specific error types and provide more context

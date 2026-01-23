@@ -1,4 +1,5 @@
 using Mapster;
+using Stronghold.Application.DTOs.AdminOrderDTO;
 using Stronghold.Application.DTOs.AdminSupplementsDTO;
 using Stronghold.Core.Entities;
 
@@ -13,7 +14,14 @@ namespace Stronghold.Infrastructure.Mapping
                 .Map(dest => dest.SupplementCategoryName, src => src.SupplementCategory.Name)
                 .Map(dest => dest.SupplierName, src => src.Supplier.Name);
 
-            // new mapping
+            // Order -> OrdersDTO
+            TypeAdapterConfig<Order, OrdersDTO>.NewConfig()
+                .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)
+                .Map(dest => dest.UserEmail, src => src.User.Email);
+
+            // OrderItem -> OrderItemDTO
+            TypeAdapterConfig<OrderItem, OrderItemDTO>.NewConfig()
+                .Map(dest => dest.SupplementName, src => src.Supplement.Name);
         }
     }
 }

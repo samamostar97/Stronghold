@@ -43,6 +43,7 @@ builder.Services.AddScoped<IAdminNutritionistService, AdminNutritionistService>(
 builder.Services.AddScoped<IAdminTrainerService, AdminTrainerService>();
 builder.Services.AddScoped<IAdminSeminarService, AdminSeminarService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
 
 
 
