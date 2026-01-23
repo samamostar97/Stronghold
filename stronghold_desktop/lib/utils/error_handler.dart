@@ -117,6 +117,9 @@ class ErrorHandler {
       'create-nutritionist': 'Dodavanje nutricioniste nije uspjelo.',
       'update-nutritionist': 'Izmjena nutricioniste nije uspjela.',
       'delete-nutritionist': 'Brisanje nutricioniste nije uspjelo.',
+      'create-seminar': 'Dodavanje seminara nije uspjelo.',
+      'update-seminar': 'Izmjena seminara nije uspjela.',
+      'delete-seminar': 'Brisanje seminara nije uspjelo.',
     };
 
     // Check for specific error types and provide more context
@@ -165,7 +168,7 @@ class ErrorHandler {
       if (match != null) {
         final fieldName = match.group(1);
 
-        // Map field names to Croatian
+        // Translate field names to user-friendly terms
         final fieldTranslations = {
           'name': 'Naziv',
           'username': 'Korisničko ime',
@@ -175,6 +178,8 @@ class ErrorHandler {
           'phonenumber': 'Broj telefona',
           'website': 'Web stranica',
           'description': 'Opis',
+          'topic': 'Naziv teme',
+          'speakername': 'Voditelj',
         };
 
         final translatedField = fieldTranslations[fieldName?.toLowerCase()] ?? fieldName;

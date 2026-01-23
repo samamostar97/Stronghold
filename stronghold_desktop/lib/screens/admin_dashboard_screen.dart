@@ -3,6 +3,7 @@ import 'package:stronghold_desktop/screens/category_management_screen.dart';
 import 'package:stronghold_desktop/screens/current_visitors_screen.dart';
 import 'package:stronghold_desktop/screens/membership_package_management_screen.dart';
 import 'package:stronghold_desktop/screens/nutritionist_management_screen.dart';
+import 'package:stronghold_desktop/screens/seminar_management_screen.dart';
 import 'package:stronghold_desktop/screens/supplements_management_screen.dart';
 import 'package:stronghold_desktop/screens/supplier_management_screen.dart';
 import 'package:stronghold_desktop/screens/trainer_management_screen.dart';
@@ -172,6 +173,13 @@ class AdminDashboardScreen extends StatelessWidget {
                             _MenuItemData(icon: "🎓", text: "Seminari"),
                           ],
                           onTapIndex: (i) {
+                            if (i == 2) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const SeminarManagementScreen(),
+                                ),
+                              );
+                            }
                           },
                         ),
                         _SectionCard(

@@ -8,5 +8,8 @@ namespace Stronghold.Application.DTOs.AdminSeminarDTO
 {
     public class UpdateSeminarDTO
     {
+        public string? Topic { get; set; }
+        public string? SpeakerName { get; set; }
+        public DateTime? EventDate { get; set; }
     }
 }
