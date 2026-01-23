@@ -39,6 +39,8 @@ builder.Services.AddScoped<IAdminPackageService, AdminPackageService>();
 builder.Services.AddScoped<IAdminSupplementService, AdminSupplementService>();
 builder.Services.AddScoped<IAdminSupplierService, AdminSupplierService>();
 builder.Services.AddScoped<IAdminCategoryService, AdminCategoryService>();
+builder.Services.AddScoped<IAdminNutritionistService, AdminNutritionistService>();
+builder.Services.AddScoped<IAdminTrainerService, AdminTrainerService>();
 
 
 

@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
-import '../models/supplier_dto.dart';
+import '../models/trainer_dto.dart';
 import 'token_storage.dart';
 
-class SuppliersApi {
+class TrainersApi {
   static Future<Map<String, String>> _headers() async {
     final token = await TokenStorage.accessToken();
     return {
@@ -13,8 +13,8 @@ class SuppliersApi {
     };
   }
 
-  /// Get all suppliers with pagination and optional search filter
-  static Future<PagedSuppliersResult> getSuppliers({
+  /// Get all trainers with pagination and optional search filter
+  static Future<PagedTrainersResult> getTrainers({
     String? search,
     int pageNumber = 1,
     int pageSize = 10,
@@ -25,36 +25,37 @@ class SuppliersApi {
       if (search != null && search.isNotEmpty) 'search': search,
     };
 
-    final uri = ApiConfig.uri('/api/admin/supplier/GetAllPaged')
+    final uri = ApiConfig.uri('/api/admin/trainer/GetAllPaged')
         .replace(queryParameters: queryParams);
     final res = await http.get(uri, headers: await _headers());
 
     if (res.statusCode == 200) {
       final json = jsonDecode(res.body) as Map<String, dynamic>;
-      return PagedSuppliersResult.fromJson(json);
+      return PagedTrainersResult.fromJson(json);
     }
 
-    throw Exception('Failed to load suppliers: ${res.statusCode} ${res.body}');
+    throw Exception('Failed to load trainers: ${res.statusCode} ${res.body}');
   }
-   /// Get a single category by ID
-  static Future<SupplierDTO> geSupplierById(int id) async {
+
+  /// Get a single trainer by ID
+  static Future<TrainerDTO> getTrainerById(int id) async {
     final res = await http.get(
-      ApiConfig.uri('/api/admin/supplier/$id'),
+      ApiConfig.uri('/api/admin/trainer/$id'),
       headers: await _headers(),
     );
 
     if (res.statusCode == 200) {
       final json = jsonDecode(res.body) as Map<String, dynamic>;
-      return SupplierDTO.fromJson(json);
+      return TrainerDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load suppliers: ${res.statusCode} ${res.body}');
+    throw Exception('Failed to load trainer: ${res.statusCode} ${res.body}');
   }
 
-  /// Create a new supplement
-  static Future<int> createSupplier(CreateSupplierDTO dto) async {
+  /// Create a new trainer
+  static Future<int> createTrainer(CreateTrainerDTO dto) async {
     final res = await http.post(
-      ApiConfig.uri('/api/admin/supplier'),
+      ApiConfig.uri('/api/admin/trainer'),
       headers: await _headers(),
       body: jsonEncode(dto.toJson()),
     );
@@ -64,33 +65,31 @@ class SuppliersApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create supplier: ${res.statusCode} ${res.body}');
+    throw Exception('Failed to create trainer: ${res.statusCode} ${res.body}');
   }
 
-  /// Update an existing supplement (partial update)
-  static Future<void> updateSupplier(int id, UpdateSupplierDTO dto) async {
+  /// Update an existing trainer (partial update)
+  static Future<void> updateTrainer(int id, UpdateTrainerDTO dto) async {
     final res = await http.put(
-      ApiConfig.uri('/api/admin/supplier/$id'),
+      ApiConfig.uri('/api/admin/trainer/$id'),
       headers: await _headers(),
       body: jsonEncode(dto.toJson()),
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update supplier: ${res.statusCode} ${res.body}');
+      throw Exception('Failed to update trainer: ${res.statusCode} ${res.body}');
     }
   }
 
-  /// Soft delete a supplement
-  static Future<void> deleteSupplier(int id) async {
+  /// Delete a trainer
+  static Future<void> deleteTrainer(int id) async {
     final res = await http.delete(
-      ApiConfig.uri('/api/admin/supplier/$id'),
+      ApiConfig.uri('/api/admin/trainer/$id'),
       headers: await _headers(),
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete supplier: ${res.statusCode} ${res.body}');
+      throw Exception('Failed to delete trainer: ${res.statusCode} ${res.body}');
     }
   }
 }
-
-

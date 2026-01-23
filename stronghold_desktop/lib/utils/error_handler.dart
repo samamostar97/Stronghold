@@ -111,6 +111,12 @@ class ErrorHandler {
       'create-category': 'Dodavanje kategorije nije uspjelo.',
       'update-category': 'Izmjena kategorije nije uspjela.',
       'delete-category': 'Brisanje kategorije nije uspjelo.',
+      'create-trainer': 'Dodavanje trenera nije uspjelo.',
+      'update-trainer': 'Izmjena trenera nije uspjela.',
+      'delete-trainer': 'Brisanje trenera nije uspjelo.',
+      'create-nutritionist': 'Dodavanje nutricioniste nije uspjelo.',
+      'update-nutritionist': 'Izmjena nutricioniste nije uspjela.',
+      'delete-nutritionist': 'Brisanje nutricioniste nije uspjelo.',
     };
 
     // Check for specific error types and provide more context

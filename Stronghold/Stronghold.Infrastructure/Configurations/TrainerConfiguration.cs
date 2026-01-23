@@ -15,6 +15,8 @@ public class TrainerConfiguration : BaseEntityConfiguration<Trainer>
         builder.Property(t => t.Email).HasMaxLength(255).IsRequired();
         builder.Property(t => t.PhoneNumber).HasMaxLength(20).IsRequired();
 
-        builder.HasIndex(t => t.Email).IsUnique();
+        builder.HasIndex(t => t.Email)
+               .IsUnique()
+               .HasFilter("[IsDeleted] = 0"); 
     }
 }

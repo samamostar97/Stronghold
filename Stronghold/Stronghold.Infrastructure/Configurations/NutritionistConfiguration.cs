@@ -15,6 +15,8 @@ public class NutritionistConfiguration : BaseEntityConfiguration<Nutritionist>
         builder.Property(n => n.Email).HasMaxLength(255).IsRequired();
         builder.Property(n => n.PhoneNumber).HasMaxLength(20).IsRequired();
 
-        builder.HasIndex(n => n.Email).IsUnique();
+        builder.HasIndex(n => n.Email)
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }

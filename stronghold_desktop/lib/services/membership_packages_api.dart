@@ -81,6 +81,11 @@ class MembershipPackagesApi {
       return MembershipPackageDTO.fromJson(json);
     }
 
+    if (res.statusCode == 204) {
+      // No Content - fetch the updated package
+      return getPackageById(id);
+    }
+
     throw Exception('Failed to update package: ${res.statusCode} ${res.body}');
   }
 

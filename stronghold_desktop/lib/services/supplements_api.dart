@@ -76,7 +76,7 @@ class SupplementsApi {
       body: jsonEncode(dto.toJson()),
     );
 
-    if (res.statusCode != 204) {
+    if (res.statusCode != 200 && res.statusCode != 204) {
       throw Exception('Failed to update supplement: ${res.statusCode} ${res.body}');
     }
   }
