@@ -30,7 +30,7 @@ namespace Stronghold.Infrastructure.Services
             var userExists=await _userRepository.AsQueryable().AnyAsync(x=>x.Id==userId&&!x.IsDeleted);
             if (!userExists) throw new KeyNotFoundException("User ne postoji");
             var activeMembership = await _membershipRepository.AsQueryable().FirstOrDefaultAsync(x=>x.UserId==userId&&x.EndDate>DateTime.UtcNow&&!x.IsDeleted);
-            if (activeMembership == null) throw new KeyNotFoundException("User nema aktivnu clanarinu");
+            if (activeMembership == null) throw new InvalidOperationException("User nema aktivnu clanarinu");
 
             // Mark membership as deleted and set end date to now
             activeMembership.IsDeleted = true;

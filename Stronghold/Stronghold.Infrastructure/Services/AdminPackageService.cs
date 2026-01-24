@@ -28,9 +28,10 @@ namespace Stronghold.Infrastructure.Services
         }
         protected override async Task BeforeUpdateAsync(MembershipPackage entity, UpdateMembershipPackageDTO dto)
         {
-
+            if (!string.IsNullOrEmpty(dto.PackageName)) { 
             var packageExists = await _repository.AsQueryable().AnyAsync(x => x.PackageName.ToLower() == dto.PackageName.ToLower() && x.Id != entity.Id);
             if (packageExists) throw new ConflictException("Paket sa ovim imenom već postoji");
+            }
         }
         protected override IQueryable<MembershipPackage> ApplyFilter(IQueryable<MembershipPackage> query, MembershipPackageQueryFilter? filter)
         {

@@ -22,21 +22,21 @@ namespace Stronghold.Infrastructure.Services
         protected override async Task BeforeCreateAsync(Seminar entity, CreateSeminarDTO dto)
         {
             var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == dto.EventDate);
-            if (seminarExists) throw new ConflictException("Seminar vec postoji");
+            if (seminarExists) throw new ConflictException("Seminar sa ovim nazivom teme na odabrani datum vec postoji");
             if (dto.EventDate < DateTime.UtcNow)
                 throw new ArgumentException("Nemoguce unijeti datum u proslosti");
 
         }
         protected override async Task BeforeUpdateAsync(Seminar entity, UpdateSeminarDTO dto)
         {
+            var eventDate = dto.EventDate ?? entity.EventDate;
+            var topic = !string.IsNullOrEmpty(dto.Topic) ? dto.Topic : entity.Topic;
             if (dto.EventDate != null&& dto.EventDate < DateTime.UtcNow)
                     throw new ArgumentException("Nemoguce unijeti datum u proslosti");
-            if (!string.IsNullOrEmpty(dto.Topic)) { 
-            var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == dto.EventDate&&x.Id!=entity.Id);
-            if (seminarExists) throw new ConflictException("Seminar sa ovim imenom vec postoji");
+            if (!string.IsNullOrEmpty(dto.Topic)&&dto.EventDate!=null) { 
+            var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == topic.ToLower() && x.EventDate == eventDate&&x.Id!=entity.Id);
+            if (seminarExists) throw new ConflictException("Seminar sa ovim nazivom teme vec postoji na odabranom datumu");
             }
-            
-            
         }
         protected override IQueryable<Seminar> ApplyFilter(IQueryable<Seminar> query, SeminarQueryFilter? filter)
         {
