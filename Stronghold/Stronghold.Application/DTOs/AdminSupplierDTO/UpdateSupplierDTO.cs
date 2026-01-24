@@ -9,8 +9,12 @@ namespace Stronghold.Application.DTOs.AdminSupplierDTO
 {
     public class UpdateSupplierDTO
     {
-        [MinLength(2,ErrorMessage ="Naziv prekratak")]
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Naziv dobavljaca moze da sadrzi 2-50 karaktera")]
         public string? Name { get; set; }
+        [StringLength(50, MinimumLength = 2, ErrorMessage = "Web stranica moze da sadrzi 2-50 karaktera")]
+        [RegularExpression(
+         @"^(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}$",
+         ErrorMessage = "Unesite ispravnu web adresu (npr. example.com ili www.example-site.com)")]
         public string? Website { get; set; }
     }
 }

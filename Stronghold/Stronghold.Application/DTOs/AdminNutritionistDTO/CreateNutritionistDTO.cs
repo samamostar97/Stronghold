@@ -10,10 +10,10 @@ namespace Stronghold.Application.DTOs.AdminNutritionistDTO
     public class CreateNutritionistDTO
     {
         [Required]
-        [MinLength(2,ErrorMessage ="Prekratak naziv")]
+        [StringLength(30, MinimumLength = 2, ErrorMessage = "Ime nutricioniste moze da sadrzi 2-30 karaktera")]
         public string FirstName { get; set; } = string.Empty;
         [Required]
-        [MinLength(2, ErrorMessage = "Prekratak naziv")]
+        [StringLength(30, MinimumLength = 2, ErrorMessage = "Prezime nutricioniste moze da sadrzi 2-30 karaktera")]
         public string LastName { get; set; } = string.Empty;
         [Required]
         [EmailAddress(ErrorMessage ="Neispravan format email adrese")]
@@ -21,7 +21,7 @@ namespace Stronghold.Application.DTOs.AdminNutritionistDTO
         [Required]
         [RegularExpression(
         @"^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$",
-        ErrorMessage = "Broj telefona mora biti u formatu 061 123 456 ")]
+        ErrorMessage = "Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456 ")]
         public string PhoneNumber { get; set; } = string.Empty;
     }
 }

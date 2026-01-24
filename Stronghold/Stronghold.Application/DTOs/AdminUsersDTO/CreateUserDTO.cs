@@ -11,10 +11,10 @@ namespace Stronghold.Application.DTOs.AdminUsersDTO
     public class CreateUserDTO
     {
         [Required]
-        [StringLength(25,ErrorMessage ="Unos imena obavezan")]
+        [StringLength(30, MinimumLength = 2, ErrorMessage = "Ime moze da sadrzi 2-30 karaktera")]
         public string FirstName { get; set; } = string.Empty;
         [Required]
-        [StringLength(25, ErrorMessage = "Unos prezimena obavezan")]
+        [StringLength(30, MinimumLength = 2, ErrorMessage = "Prezime moze da sadrzi 2-30 karaktera")]
         public string LastName { get; set; } = string.Empty;
         [Required]
         [StringLength(15, MinimumLength = 3, ErrorMessage = "Username mora biti između 3 i 15 karaktera")]

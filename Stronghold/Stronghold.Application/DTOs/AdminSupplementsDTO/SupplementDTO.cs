@@ -14,9 +14,9 @@ namespace Stronghold.Application.DTOs.AdminSupplementsDTO
         public string? Description { get; set; }
 
         public int SupplementCategoryId { get; set; }
-        public string SupplementCategoryName { get; set; }
+        public string SupplementCategoryName { get; set; } = string.Empty;
         public int SupplierId { get; set; }
-        public string SupplierName { get; set; }
+        public string SupplierName { get; set; }= string.Empty;
 
     }
 }
