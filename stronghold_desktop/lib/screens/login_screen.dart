@@ -64,7 +64,11 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Neuspješna prijava. Provjerite podatke.';
+        if (e.toString().contains('ACCESS_DENIED')) {
+          _errorMessage = 'Pristup odbijen. Samo administratori mogu pristupiti.';
+        } else {
+          _errorMessage = 'Neuspješna prijava. Provjerite podatke.';
+        }
       });
     }
   }
