@@ -5,6 +5,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,14 +22,14 @@ namespace Stronghold.Infrastructure.Services
         protected override async Task BeforeCreateAsync(SupplementCategory entity, CreateSupplementCategoryDTO dto)
         {
             var categoryExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower() == dto.Name.ToLower());
-            if (categoryExists) throw new InvalidOperationException("Kategorija sa ovim nazivom već postoji");
+            if (categoryExists) throw new ConflictException("Kategorija sa ovim nazivom već postoji");
         }
         protected override async Task BeforeUpdateAsync(SupplementCategory entity, UpdateSupplementCategoryDTO dto)
         {
             if (!string.IsNullOrEmpty(dto.Name)) 
             {
                 var categoryExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower() == dto.Name.ToLower() && !x.IsDeleted && x.Id != entity.Id);
-                if (categoryExists) throw new InvalidOperationException("Kategorija sa ovim nazivom već postoji");
+                if (categoryExists) throw new ConflictException("Kategorija sa ovim nazivom već postoji");
             }
         }
         protected override IQueryable<SupplementCategory> ApplyFilter(IQueryable<SupplementCategory> query, SupplementCategoryQueryFilter? filter)

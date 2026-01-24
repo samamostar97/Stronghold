@@ -5,6 +5,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,20 +22,20 @@ namespace Stronghold.Infrastructure.Services
         protected override async Task BeforeCreateAsync(Seminar entity, CreateSeminarDTO dto)
         {
             var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == dto.EventDate);
-            if (seminarExists) throw new InvalidOperationException("Seminar vec postoji");
+            if (seminarExists) throw new ConflictException("Seminar vec postoji");
             if (dto.EventDate < DateTime.UtcNow)
-                throw new InvalidOperationException("Nemoguce unijeti datum u proslosti");
+                throw new ArgumentException("Nemoguce unijeti datum u proslosti");
 
         }
         protected override async Task BeforeUpdateAsync(Seminar entity, UpdateSeminarDTO dto)
         {
+            if (dto.EventDate != null&& dto.EventDate < DateTime.UtcNow)
+                    throw new ArgumentException("Nemoguce unijeti datum u proslosti");
+            if (!string.IsNullOrEmpty(dto.Topic)) { 
             var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == dto.EventDate&&x.Id!=entity.Id);
-            if (seminarExists) throw new InvalidOperationException("Seminar sa ovim imenom vec postoji");
-            if(dto.EventDate!=null)
-            {
-                if (dto.EventDate < DateTime.UtcNow)
-                    throw new InvalidOperationException("Nemoguce unijeti datum u proslosti");
+            if (seminarExists) throw new ConflictException("Seminar sa ovim imenom vec postoji");
             }
+            
             
         }
         protected override IQueryable<Seminar> ApplyFilter(IQueryable<Seminar> query, SeminarQueryFilter? filter)

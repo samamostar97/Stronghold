@@ -5,6 +5,7 @@ import '../models/supplement_dto.dart';
 import '../models/supplement_category_dto.dart';
 import '../models/supplier_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class SupplementsApi {
   static Future<Map<String, String>> _headers() async {
@@ -38,7 +39,7 @@ class SupplementsApi {
       return PagedSupplementsResult.fromJson(json, pageSize);
     }
 
-    throw Exception('Failed to load supplements: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single supplement by ID
@@ -53,7 +54,7 @@ class SupplementsApi {
       return SupplementDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load supplement: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new supplement
@@ -69,7 +70,7 @@ class SupplementsApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create supplement: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing supplement (partial update)
@@ -81,7 +82,7 @@ class SupplementsApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update supplement: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -93,7 +94,7 @@ class SupplementsApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete supplement: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -111,7 +112,7 @@ class SupplementsApi {
           .toList();
     }
 
-    throw Exception('Failed to load categories: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get all suppliers
@@ -128,6 +129,6 @@ class SupplementsApi {
           .toList();
     }
 
-    throw Exception('Failed to load suppliers: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 }

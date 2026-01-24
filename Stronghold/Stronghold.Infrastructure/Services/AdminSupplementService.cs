@@ -5,6 +5,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Core.Exceptions;
 
 
 namespace Stronghold.Infrastructure.Services
@@ -22,16 +23,16 @@ namespace Stronghold.Infrastructure.Services
         protected override async Task BeforeCreateAsync(Supplement entity, CreateSupplementDTO dto)
         {
             var supplementExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower()==dto.Name.ToLower());
-            if (supplementExists) throw new InvalidOperationException("Suplement već postoji");
+            if (supplementExists) throw new ConflictException("Suplement već postoji");
             var categoryExists = await _supplementCategoryRepo.AsQueryable().AnyAsync(x => x.Id == dto.SupplementCategoryId);
-            if (!categoryExists) throw new InvalidOperationException("Odabrana kategorija ne postoji");
+            if (!categoryExists) throw new KeyNotFoundException("Odabrana kategorija ne postoji");
             var supplierExists = await _supplierRepo.AsQueryable().AnyAsync(x=>x.Id == dto.SupplierId);
-            if (!supplierExists) throw new InvalidOperationException("Odabrani dobavljac ne postoji");
+            if (!supplierExists) throw new KeyNotFoundException("Odabrani dobavljac ne postoji");
         }
         protected override async Task BeforeUpdateAsync(Supplement entity, UpdateSupplementDTO dto)
         {
             var supplementExists = await _repository.AsQueryable().AnyAsync(x => x.Name == dto.Name && x.Id != entity.Id);
-            if (supplementExists) throw new InvalidOperationException("Supplement sa ovim imenom već postoji");
+            if (supplementExists) throw new ConflictException("Supplement sa ovim imenom već postoji");
         }
         protected override IQueryable<Supplement> ApplyFilter(IQueryable<Supplement> query, SupplementQueryFilter? filter)
         {

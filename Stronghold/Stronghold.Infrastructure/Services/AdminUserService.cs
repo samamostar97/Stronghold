@@ -7,6 +7,7 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,10 +25,13 @@ namespace Stronghold.Infrastructure.Services
         {
             var usernameExists = await _repository.AsQueryable().AnyAsync(x=>x.Username == dto.Username);
             if (usernameExists)
-                throw new InvalidOperationException("Username zauzet");
+                throw new ConflictException("Username zauzet");
             var emailExists = await _repository.AsQueryable().AnyAsync(x => x.Email == dto.Email);
             if (emailExists)
-                throw new InvalidOperationException("Email zauzet");
+                throw new ConflictException("Email zauzet");
+            var phoneNumberExists = await _repository.AsQueryable().AnyAsync(x => x.PhoneNumber == dto.PhoneNumber);
+            if (phoneNumberExists)
+                throw new ConflictException("Korisnik sa ovim brojem telefona vec postoji");
 
             entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
             entity.Role = Core.Enums.Role.GymMember;
@@ -39,14 +43,21 @@ namespace Stronghold.Infrastructure.Services
             var usernameExists = await _repository.AsQueryable()
                                                   .AnyAsync(x => x.Username == dto.Username && x.Id != entity.Id);
                 if (usernameExists)
-                    throw new InvalidOperationException("Username zauzet");
+                    throw new ConflictException("Username zauzet");
+            }
+            if (!string.IsNullOrEmpty(dto.PhoneNumber))
+            {
+                var phoneNumberExists = await _repository.AsQueryable()
+                                                      .AnyAsync(x => x.PhoneNumber == dto.PhoneNumber && x.Id != entity.Id);
+                if (phoneNumberExists)
+                    throw new ConflictException("Korisnik sa ovim brojem telefona već postoji.");
             }
             if (!string.IsNullOrEmpty(dto.Email))
             {
                 var emailExists = await _repository.AsQueryable()
                                                       .AnyAsync(x => x.Email == dto.Email && x.Id != entity.Id);
                 if (emailExists)
-                    throw new InvalidOperationException("Email zauzet");
+                    throw new ConflictException("Email zauzet");
             }
             if(!string.IsNullOrEmpty(dto.Password))
             {

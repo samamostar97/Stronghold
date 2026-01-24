@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/order_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class OrdersApi {
   static Future<Map<String, String>> _headers() async {
@@ -40,7 +41,7 @@ class OrdersApi {
       return PagedOrdersResult.fromJson(json);
     }
 
-    throw Exception('Failed to load orders: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single order by ID with full details
@@ -55,7 +56,7 @@ class OrdersApi {
       return OrderDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load order: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Mark an order as delivered
@@ -70,6 +71,6 @@ class OrdersApi {
       return OrderDTO.fromJson(json);
     }
 
-    throw Exception('Failed to mark order as delivered: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 }

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/supplier_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class SuppliersApi {
   static Future<Map<String, String>> _headers() async {
@@ -36,7 +37,7 @@ class SuppliersApi {
       return PagedSuppliersResult.fromJson(json);
     }
 
-    throw Exception('Failed to load suppliers: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
   /// Get a single supplier by ID
   static Future<SupplierDTO> getSupplierById(int id) async {
@@ -50,7 +51,7 @@ class SuppliersApi {
       return SupplierDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load suppliers: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new supplement
@@ -66,7 +67,7 @@ class SuppliersApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create supplier: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing supplement (partial update)
@@ -78,7 +79,7 @@ class SuppliersApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update supplier: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -90,7 +91,7 @@ class SuppliersApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete supplier: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

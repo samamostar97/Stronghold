@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/membership_package_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class MembershipPackagesApi {
   static Future<Map<String, String>> _headers() async {
@@ -36,7 +37,7 @@ class MembershipPackagesApi {
       return PagedPackagesResult.fromJson(json);
     }
 
-    throw Exception('Failed to load packages: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single package by ID
@@ -51,7 +52,7 @@ class MembershipPackagesApi {
       return MembershipPackageDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load package: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new membership package
@@ -67,7 +68,7 @@ class MembershipPackagesApi {
       return MembershipPackageDTO.fromJson(json);
     }
 
-    throw Exception('Failed to create package: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing membership package
@@ -88,7 +89,7 @@ class MembershipPackagesApi {
       return getPackageById(id);
     }
 
-    throw Exception('Failed to update package: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Delete a membership package
@@ -99,7 +100,7 @@ class MembershipPackagesApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete package: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

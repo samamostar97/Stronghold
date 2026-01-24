@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/faq_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class FaqApi {
   static Future<Map<String, String>> _headers() async {
@@ -35,7 +36,7 @@ class FaqApi {
       return PagedFaqsResult.fromJson(json);
     }
 
-    throw Exception('Failed to load FAQs: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
     /// Get a single FAQ by ID
   static Future<FaqDTO> getFaqById(int id) async {
@@ -49,7 +50,7 @@ class FaqApi {
       return FaqDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load FAQs: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new FAQ
@@ -65,7 +66,7 @@ class FaqApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create FAQ: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing FAQ (partial update)
@@ -77,7 +78,7 @@ class FaqApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update FAQ: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -89,7 +90,7 @@ class FaqApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete FAQ: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

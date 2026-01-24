@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/nutritionist_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class NutritionistsApi {
   static Future<Map<String, String>> _headers() async {
@@ -36,7 +37,7 @@ class NutritionistsApi {
       return PagedNutritionistsResult.fromJson(json);
     }
 
-    throw Exception('Failed to load nutritionists: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single nutritionist by ID
@@ -51,7 +52,7 @@ class NutritionistsApi {
       return NutritionistDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load nutritionist: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new nutritionist
@@ -67,7 +68,7 @@ class NutritionistsApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create nutritionist: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing nutritionist (partial update)
@@ -79,7 +80,7 @@ class NutritionistsApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update nutritionist: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -91,7 +92,7 @@ class NutritionistsApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete nutritionist: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

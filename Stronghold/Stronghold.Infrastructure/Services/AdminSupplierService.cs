@@ -5,6 +5,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace Stronghold.Infrastructure.Services
         protected override async Task BeforeCreateAsync(Supplier entity, CreateSupplierDTO dto)
         {
             var supplierExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower().Contains(dto.Name.ToLower()));
-            if (supplierExists) throw new InvalidOperationException("Supplier sa ovim imenom već postoji");
+            if (supplierExists) throw new ConflictException("Supplier sa ovim imenom već postoji");
 
         }
         protected override async Task BeforeUpdateAsync(Supplier entity, UpdateSupplierDTO dto)
@@ -29,7 +30,7 @@ namespace Stronghold.Infrastructure.Services
             if (!string.IsNullOrEmpty(dto.Name))
             {
                 var supplierExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower().Contains(dto.Name.ToLower()) && x.Id != entity.Id);
-                if (supplierExists) throw new InvalidOperationException("Supplier sa ovim imenom već postoji");
+                if (supplierExists) throw new ConflictException("Supplier sa ovim imenom već postoji");
             }
         }
         protected override IQueryable<Supplier> ApplyFilter(IQueryable<Supplier> query, SupplierQueryFilter? filter)

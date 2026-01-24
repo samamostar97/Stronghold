@@ -6,6 +6,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,19 +24,19 @@ namespace Stronghold.Infrastructure.Services
         {
             var emailExists = await _repository.AsQueryable().AnyAsync(x=>x.Email.ToLower()==dto.Email.ToLower());
             var phoneExists = await _repository.AsQueryable().AnyAsync(x => x.PhoneNumber == dto.PhoneNumber);
-            if (emailExists) throw new InvalidOperationException("Email zauzet");
-            if (phoneExists) throw new InvalidOperationException("Postoji trener sa ovim brojem");
+            if (emailExists) throw new ConflictException("Email zauzet");
+            if (phoneExists) throw new ConflictException("Postoji trener sa ovim brojem");
             var nutritionistExists = await _repository.AsQueryable().AnyAsync(x=>x.FirstName.ToLower()==dto.FirstName.ToLower()&&x.Email.ToLower()==dto.Email.ToLower());
-            if (nutritionistExists) throw new InvalidOperationException("Nemoguce dodati postojeceg trenera");
+            if (nutritionistExists) throw new ConflictException("Nemoguce dodati postojeceg trenera");
         }
         protected override async Task BeforeUpdateAsync(Trainer entity, UpdateTrainerDTO dto)
         {
             var emailExists = await _repository.AsQueryable().AnyAsync(x => x.Email.ToLower() == dto.Email.ToLower()&&x.Id!=entity.Id);
             var phoneExists = await _repository.AsQueryable().AnyAsync(x => x.PhoneNumber == dto.PhoneNumber && x.Id != entity.Id);
-            if (emailExists) throw new InvalidOperationException("Email zauzet");
-            if (phoneExists) throw new InvalidOperationException("Postoji trener sa ovim brojem");
+            if (emailExists) throw new ConflictException("Email zauzet");
+            if (phoneExists) throw new ConflictException("Postoji trener sa ovim brojem");
             var nutritionistExists = await _repository.AsQueryable().AnyAsync(x => x.FirstName.ToLower() == dto.FirstName.ToLower() && x.Email.ToLower() == dto.Email.ToLower() && x.Id != entity.Id);
-            if (nutritionistExists) throw new InvalidOperationException("Nemoguce dodati postojeceg nutricionistu");
+            if (nutritionistExists) throw new ConflictException("Nemoguce dodati postojeceg trenera");
         }
         protected override IQueryable<Trainer> ApplyFilter(IQueryable<Trainer> query, TrainerQueryFilter? filter)
         {

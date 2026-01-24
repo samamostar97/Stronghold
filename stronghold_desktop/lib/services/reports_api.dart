@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/business_report_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class ReportsApi {
   static Future<Map<String, String>> _headers() async {
@@ -25,6 +26,6 @@ class ReportsApi {
       return BusinessReportDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load business report: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 }

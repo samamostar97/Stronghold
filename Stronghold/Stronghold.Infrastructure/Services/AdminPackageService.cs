@@ -5,6 +5,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Core.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,14 +23,14 @@ namespace Stronghold.Infrastructure.Services
         {
             var packageExists = await _repository.AsQueryable().AnyAsync(x => x.PackageName.ToLower() == dto.PackageName.ToLower());
             if (packageExists)
-                throw new InvalidOperationException("Package sa ovim imenom vec postoji");
+                throw new ConflictException("Package sa ovim imenom vec postoji");
 
         }
         protected override async Task BeforeUpdateAsync(MembershipPackage entity, UpdateMembershipPackageDTO dto)
         {
 
             var packageExists = await _repository.AsQueryable().AnyAsync(x => x.PackageName.ToLower() == dto.PackageName.ToLower() && x.Id != entity.Id);
-            if (packageExists) throw new InvalidOperationException("Paket sa ovim imenom već postoji");
+            if (packageExists) throw new ConflictException("Paket sa ovim imenom već postoji");
         }
         protected override IQueryable<MembershipPackage> ApplyFilter(IQueryable<MembershipPackage> query, MembershipPackageQueryFilter? filter)
         {

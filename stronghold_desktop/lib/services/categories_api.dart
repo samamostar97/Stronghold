@@ -4,6 +4,7 @@ import 'package:stronghold_desktop/models/category_dto.dart';
 import '../config/api_config.dart';
 import '../models/supplement_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class CategoriesApi {
   static Future<Map<String, String>> _headers() async {
@@ -37,7 +38,7 @@ class CategoriesApi {
       return PagedCategoriesResult.fromJson(json);
     }
 
-    throw Exception('Failed to load categories: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single category by ID
@@ -52,7 +53,7 @@ class CategoriesApi {
       return CategoryDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load categories: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new supplement
@@ -68,7 +69,7 @@ class CategoriesApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create category: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing supplement (partial update)
@@ -80,7 +81,7 @@ class CategoriesApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update category: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -92,7 +93,7 @@ class CategoriesApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete category: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

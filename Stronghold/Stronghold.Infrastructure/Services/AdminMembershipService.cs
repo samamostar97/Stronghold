@@ -96,17 +96,19 @@ namespace Stronghold.Infrastructure.Services
         }
         public async Task<MembershipDTO> AssignMembership(AssignMembershipRequest request)
         {
-            if (request.StartDate < DateTime.Today || request.EndDate < request.StartDate)
-                throw new ArgumentException("Neispravan format datuma");
+            if (request.StartDate < DateTime.Today) 
+                throw new ArgumentException("Nemoguće unijeti datum u prošlosti");
+            if (request.EndDate < request.StartDate)
+                throw new ArgumentException("EndDate ne moze biti prije StartDate-a");
             var userExists= await _userRepository.AsQueryable().AnyAsync(x=>x.Id==request.UserId);
             if (!userExists)
-                throw new InvalidOperationException("User ne postoji");
+                throw new KeyNotFoundException("User ne postoji");
             var membershipExists = await _membershipRepository.AsQueryable().AnyAsync(x=>x.UserId==request.UserId&&x.EndDate>DateTime.UtcNow&&!x.IsDeleted);
             if (membershipExists)
                 throw new InvalidOperationException("User vec ima aktivnu clanarinu");
             var packageExists = await _membershipPackageRepository.AsQueryable().AnyAsync(x => x.Id == request.MembershipPackageId);
            if (!packageExists)
-                throw new InvalidOperationException("Ta članarina ne postoji");
+                throw new KeyNotFoundException("Ta članarina ne postoji");
            
             var membership = new Membership()
             {

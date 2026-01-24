@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Stronghold.Core.Exceptions;
 
 namespace Stronghold.API.Middleware
 {
@@ -32,7 +33,9 @@ namespace Stronghold.API.Middleware
             {
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 InvalidOperationException => HttpStatusCode.BadRequest,
+                ArgumentException => HttpStatusCode.BadRequest,
                 UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+                ConflictException => HttpStatusCode.Conflict,
                 _ => HttpStatusCode.InternalServerError
             };
 

@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:stronghold_desktop/models/review_dto.dart';
 import '../config/api_config.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class ReviewsApi {
   static Future<Map<String, String>> _headers() async {
@@ -36,7 +37,7 @@ static Future<PagedReviewsResult> getReviews({
       return PagedReviewsResult.fromJson(json);
     }
 
-    throw Exception('Failed to load reviews: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
   static Future<void> deleteReview(int id) async {
     final res = await http.delete(
@@ -45,7 +46,7 @@ static Future<PagedReviewsResult> getReviews({
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to delete review: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

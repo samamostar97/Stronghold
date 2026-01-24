@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/user_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class UsersApi {
   static Future<Map<String, String>> _headers() async {
@@ -34,7 +35,7 @@ class UsersApi {
       return PagedUsersResult.fromJson(json);
     }
 
-    throw Exception('Failed to load users: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   static Future<UserDetailsDTO> getUserById(int id) async {
@@ -48,7 +49,7 @@ class UsersApi {
       return UserDetailsDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load user: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   static Future<int> createUser(CreateUserDTO dto) async {
@@ -63,7 +64,7 @@ class UsersApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create user: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   static Future<void> updateUser(int id, UpdateUserDTO dto) async {
@@ -74,7 +75,7 @@ class UsersApi {
     );
 
     if (res.statusCode != 204 && res.statusCode != 200) {
-      throw Exception('Failed to update user: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -85,7 +86,7 @@ class UsersApi {
     );
 
     if (res.statusCode != 204 && res.statusCode != 200) {
-      throw Exception('Failed to delete user: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -96,7 +97,7 @@ class UsersApi {
     );
 
     if (res.statusCode != 204 && res.statusCode != 200) {
-      throw Exception('Failed to restore user: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

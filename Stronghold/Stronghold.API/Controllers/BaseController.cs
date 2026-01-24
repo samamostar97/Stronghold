@@ -38,9 +38,7 @@ namespace Stronghold.API.Controllers
         public virtual async Task<ActionResult<TDto>> Create([FromBody]TCreateDto dto)
         {
             var result = await _service.CreateAsync(dto);
-            if (result is null)
-                return BadRequest();
-            var idProp = result.GetType().GetProperty("Id");
+            var idProp = result!.GetType().GetProperty("Id");
             var id = idProp?.GetValue(result);
 
             return CreatedAtAction(nameof(GetById), new { id }, new { id });

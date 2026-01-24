@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/seminar_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class SeminarsApi {
   static Future<Map<String, String>> _headers() async {
@@ -36,7 +37,7 @@ class SeminarsApi {
       return PagedSeminarsResult.fromJson(json);
     }
 
-    throw Exception('Failed to load seminars: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single seminar by ID
@@ -51,7 +52,7 @@ class SeminarsApi {
       return SeminarDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load seminar: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new seminar
@@ -67,7 +68,7 @@ class SeminarsApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create seminar: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing seminar (partial update)
@@ -79,7 +80,7 @@ class SeminarsApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update seminar: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -91,7 +92,7 @@ class SeminarsApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete seminar: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }

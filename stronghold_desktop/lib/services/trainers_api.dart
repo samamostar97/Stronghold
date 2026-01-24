@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../models/trainer_dto.dart';
 import 'token_storage.dart';
+import 'api_helper.dart';
 
 class TrainersApi {
   static Future<Map<String, String>> _headers() async {
@@ -36,7 +37,7 @@ class TrainersApi {
       return PagedTrainersResult.fromJson(json);
     }
 
-    throw Exception('Failed to load trainers: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Get a single trainer by ID
@@ -51,7 +52,7 @@ class TrainersApi {
       return TrainerDTO.fromJson(json);
     }
 
-    throw Exception('Failed to load trainer: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Create a new trainer
@@ -67,7 +68,7 @@ class TrainersApi {
       return json['id'] as int;
     }
 
-    throw Exception('Failed to create trainer: ${res.statusCode} ${res.body}');
+    throw Exception(extractErrorMessage(res));
   }
 
   /// Update an existing trainer (partial update)
@@ -79,7 +80,7 @@ class TrainersApi {
     );
 
     if (res.statusCode != 200 && res.statusCode != 204) {
-      throw Exception('Failed to update trainer: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 
@@ -91,7 +92,7 @@ class TrainersApi {
     );
 
     if (res.statusCode != 204) {
-      throw Exception('Failed to delete trainer: ${res.statusCode} ${res.body}');
+      throw Exception(extractErrorMessage(res));
     }
   }
 }
