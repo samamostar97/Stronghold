@@ -1,5 +1,6 @@
 using Mapster;
 using Stronghold.Application.DTOs.AdminOrderDTO;
+using Stronghold.Application.DTOs.AdminReviewDTO;
 using Stronghold.Application.DTOs.AdminSupplementsDTO;
 using Stronghold.Core.Entities;
 
@@ -21,6 +22,10 @@ namespace Stronghold.Infrastructure.Mapping
 
             // OrderItem -> OrderItemDTO
             TypeAdapterConfig<OrderItem, OrderItemDTO>.NewConfig()
+                .Map(dest => dest.SupplementName, src => src.Supplement.Name);
+            // OrderItem -> OrderItemDTO
+            TypeAdapterConfig<Review, ReviewDTO>.NewConfig()
+                .Map(dest => dest.UserName, src => src.User.FirstName + " " + src.User.LastName)
                 .Map(dest => dest.SupplementName, src => src.Supplement.Name);
         }
     }

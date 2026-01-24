@@ -44,6 +44,10 @@ builder.Services.AddScoped<IAdminTrainerService, AdminTrainerService>();
 builder.Services.AddScoped<IAdminSeminarService, AdminSeminarService>();
 builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IAdminOrderService, AdminOrderService>();
+builder.Services.AddScoped<IAdminReviewService, AdminReviewService>();
+builder.Services.AddScoped<IAdminFaqService, AdminFaqService>();
+
+
 
 
 

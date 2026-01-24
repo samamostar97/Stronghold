@@ -122,6 +122,12 @@ class ErrorHandler {
       'delete-seminar': 'Brisanje seminara nije uspjelo.',
       'load-orders': 'Učitavanje narudžbi nije uspjelo.',
       'deliver-order': 'Označavanje narudžbe kao dostavljene nije uspjelo.',
+      'load-reviews': 'Učitavanje recenzija nije uspjelo.',
+      'delete-review': 'Brisanje recenzije nije uspjelo.',
+      'load-faqs': 'Učitavanje FAQ-ova nije uspjelo.',
+      'create-faq': 'Dodavanje FAQ-a nije uspjelo.',
+      'update-faq': 'Izmjena FAQ-a nije uspjela.',
+      'delete-faq': 'Brisanje FAQ-a nije uspjelo.',
     };
 
     // Check for specific error types and provide more context
