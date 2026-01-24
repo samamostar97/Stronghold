@@ -42,9 +42,6 @@ class _LoginScreenState extends State<LoginScreen> {
         password: _passwordController.text,
       );
 
-      final token = await TokenStorage.accessToken();
-      debugPrint('Stored access token: $token');
-
       if (!mounted) return;
 
       // Show success state

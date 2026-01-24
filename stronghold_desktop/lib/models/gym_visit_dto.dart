@@ -20,9 +20,6 @@ class CurrentVisitorDTO {
   /// Creates a CurrentVisitorDTO from JSON response.
   /// Uses defensive parsing with null checks and defaults.
   factory CurrentVisitorDTO.fromJson(Map<String, dynamic> json) {
-    // Debug: Print the JSON to see what fields the backend is sending
-    print('DEBUG: CurrentVisitorDTO JSON: $json');
-
     // Parse the checkInTime - ALWAYS treat as UTC (backend sends UTC time with or without Z)
     final checkInTimeString = json['checkInTime'] ?? DateTime.now().toIso8601String();
 
@@ -31,12 +28,7 @@ class CurrentVisitorDTO {
         ? checkInTimeString
         : '${checkInTimeString}Z';
 
-    final parsedTime = DateTime.parse(normalizedString).toLocal();
-
-    print('DEBUG: Original checkInTime: $checkInTimeString');
-    print('DEBUG: Normalized: $normalizedString');
-    print('DEBUG: Parsed checkInTime (local): $parsedTime');
-    print('DEBUG: Now: ${DateTime.now()}');
+    final parsedTime = DateTime.tryParse(normalizedString)?.toLocal() ?? DateTime.now();
 
     return CurrentVisitorDTO(
       visitId: (json['visitId'] ?? json['gymVisitId'] ?? json['id'] ?? 0) as int,

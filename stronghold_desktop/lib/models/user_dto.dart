@@ -82,6 +82,8 @@ class UserDetailsDTO {
   });
 
   factory UserDetailsDTO.fromJson(Map<String, dynamic> json) {
+    final genderIndex = (json['gender'] ?? 0) as int;
+    final safeGenderIndex = genderIndex.clamp(0, Gender.values.length - 1);
     return UserDetailsDTO(
       id: (json['id'] ?? 0) as int,
       username: (json['username'] ?? '') as String,
@@ -89,7 +91,7 @@ class UserDetailsDTO {
       lastName: (json['lastName'] ?? '') as String,
       email: (json['email'] ?? '') as String,
       phoneNumber: (json['phoneNumber'] ?? '') as String,
-      gender: Gender.values[(json['gender'] ?? 0) as int],
+      gender: Gender.values[safeGenderIndex],
     );
   }
 }

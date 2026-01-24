@@ -16,13 +16,14 @@ class MembershipPaymentRowDTO {
   });
 
   factory MembershipPaymentRowDTO.fromJson(Map<String, dynamic> json) {
+    final now = DateTime.now();
     return MembershipPaymentRowDTO(
       id: (json['id'] ?? 0) as int,
       packageName: (json['packageName'] ?? '') as String,
       amountPaid: ((json['amountPaid'] ?? 0) as num).toDouble(),
-      paymentDate: DateTime.parse(json['paymentDate'] as String),
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
+      paymentDate: DateTime.tryParse(json['paymentDate']?.toString() ?? '') ?? now,
+      startDate: DateTime.tryParse(json['startDate']?.toString() ?? '') ?? now,
+      endDate: DateTime.tryParse(json['endDate']?.toString() ?? '') ?? now,
     );
   }
 }

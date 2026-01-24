@@ -38,8 +38,8 @@ class SuppliersApi {
 
     throw Exception('Failed to load suppliers: ${res.statusCode} ${res.body}');
   }
-   /// Get a single category by ID
-  static Future<SupplierDTO> geSupplierById(int id) async {
+  /// Get a single supplier by ID
+  static Future<SupplierDTO> getSupplierById(int id) async {
     final res = await http.get(
       ApiConfig.uri('/api/admin/supplier/$id'),
       headers: await _headers(),

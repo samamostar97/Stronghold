@@ -65,8 +65,6 @@ class GymVisitsApi {
   static Future<void> checkOut(int visitId) async {
     final token = await TokenStorage.accessToken();
 
-    print('DEBUG: Attempting checkout for visitId: $visitId');
-
     final response = await http.post(
       ApiConfig.uri('/api/admin/visits/check-out/$visitId'),
       headers: {
@@ -74,9 +72,6 @@ class GymVisitsApi {
         if (token != null) 'Authorization': 'Bearer $token',
       },
     );
-
-    print('DEBUG: Checkout response status: ${response.statusCode}');
-    print('DEBUG: Checkout response body: ${response.body}');
 
     if (response.statusCode == 204 || response.statusCode == 200) {
       return; // Success

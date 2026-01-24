@@ -29,9 +29,14 @@ class AuthService {
         throw Exception('ACCESS_DENIED');
       }
 
-      final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
-      final claims = jsonDecode(payload) as Map<String, dynamic>;
-      final role = claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString();
+      String role;
+      try {
+        final payload = utf8.decode(base64Url.decode(base64Url.normalize(parts[1])));
+        final claims = jsonDecode(payload) as Map<String, dynamic>;
+        role = claims['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']?.toString() ?? '';
+      } catch (e) {
+        throw Exception('ACCESS_DENIED');
+      }
 
       if (role != 'Admin') {
         throw Exception('ACCESS_DENIED');
