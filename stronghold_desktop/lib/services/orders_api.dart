@@ -17,6 +17,8 @@ class OrdersApi {
   static Future<PagedOrdersResult> getOrders({
     String? search,
     OrderStatus? status,
+    String? orderBy,
+    bool descending = false,
     int pageNumber = 1,
     int pageSize = 10,
   }) async {
@@ -25,6 +27,8 @@ class OrdersApi {
       'pageSize': pageSize.toString(),
       if (search != null && search.isNotEmpty) 'search': search,
       if (status != null) 'status': status.index.toString(),
+      if (orderBy != null && orderBy.isNotEmpty) 'orderBy': orderBy,
+      if (descending) 'descending': 'true',
     };
 
     final uri = ApiConfig.uri('/api/admin/orders/GetAllPaged')

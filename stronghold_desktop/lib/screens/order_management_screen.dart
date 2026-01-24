@@ -27,7 +27,11 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
-  final int _pageSize = 20;
+  final int _pageSize = 10;
+
+  // Sorting state
+  String? _selectedOrderBy;
+  bool _sortDescending = false;
 
   // Set of order IDs currently being marked as delivered
   final Set<int> _deliveringOrders = {};
@@ -63,6 +67,8 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
     try {
       final result = await OrdersApi.getOrders(
         search: _searchController.text.trim(),
+        orderBy: _selectedOrderBy,
+        descending: _sortDescending,
         pageNumber: _currentPage,
         pageSize: _pageSize,
       );
@@ -217,6 +223,8 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
             onSubmitted: (_) => _onSearch(),
             hintText: 'Pretraži po korisniku ili email-u...',
           ),
+          const SizedBox(height: 12),
+          _buildSortDropdown(),
         ],
       );
     }
@@ -230,7 +238,78 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
             hintText: 'Pretraži po korisniku ili email-u...',
           ),
         ),
+        const SizedBox(width: 16),
+        _buildSortDropdown(),
       ],
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    // Combine orderBy and descending into a single value for the dropdown
+    String? dropdownValue;
+    if (_selectedOrderBy != null) {
+      dropdownValue = '${_selectedOrderBy}_${_sortDescending ? 'desc' : 'asc'}';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: dropdownValue,
+          hint: const Text(
+            'Sortiraj',
+            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+          ),
+          dropdownColor: _AppColors.panel,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          items: const [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Zadano'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'date_desc',
+              child: Text('Datum (najnovije)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'date_asc',
+              child: Text('Datum (najstarije)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'amount_desc',
+              child: Text('Iznos (opadajuće)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'amount_asc',
+              child: Text('Iznos (rastuće)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'status_asc',
+              child: Text('Status'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              if (value == null) {
+                _selectedOrderBy = null;
+                _sortDescending = false;
+              } else {
+                final parts = value.split('_');
+                _selectedOrderBy = parts[0];
+                _sortDescending = parts[1] == 'desc';
+              }
+              _currentPage = 1;
+            });
+            _loadOrders();
+          },
+        ),
+      ),
     );
   }
 

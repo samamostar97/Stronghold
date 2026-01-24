@@ -26,7 +26,10 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
-  final int _pageSize = 20;
+  final int _pageSize = 10;
+
+  // Sorting state
+  String? _selectedOrderBy;
 
   @override
   void initState() {
@@ -59,6 +62,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
     try {
       final result = await ReviewsApi.getReviews(
         search: _searchController.text.trim(),
+        orderBy: _selectedOrderBy,
         pageNumber: _currentPage,
         pageSize: _pageSize,
       );
@@ -189,6 +193,23 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
   }
 
   Widget _buildSearchBar(BoxConstraints constraints) {
+    final isNarrow = constraints.maxWidth < 600;
+
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _SearchInput(
+            controller: _searchController,
+            onSubmitted: (_) => _onSearch(),
+            hintText: 'Pretraži po korisniku ili proizvodu...',
+          ),
+          const SizedBox(height: 12),
+          _buildSortDropdown(),
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(
@@ -198,7 +219,57 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
             hintText: 'Pretraži po korisniku ili proizvodu...',
           ),
         ),
+        const SizedBox(width: 16),
+        _buildSortDropdown(),
       ],
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _selectedOrderBy,
+          hint: const Text(
+            'Sortiraj',
+            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+          ),
+          dropdownColor: _AppColors.panel,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          items: const [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Zadano'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'firstname',
+              child: Text('Korisnik (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'supplement',
+              child: Text('Proizvod (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'createdatdesc',
+              child: Text('Najnovije prvo'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedOrderBy = value;
+              _currentPage = 1;
+            });
+            _loadReviews();
+          },
+        ),
+      ),
     );
   }
 

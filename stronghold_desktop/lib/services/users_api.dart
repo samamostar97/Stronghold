@@ -15,6 +15,7 @@ class UsersApi {
 
   static Future<PagedUsersResult> getUsers({
     String? search,
+    String? orderBy,
     int pageNumber = 1,
     int pageSize = 10,
   }) async {
@@ -22,6 +23,7 @@ class UsersApi {
       'pageNumber': pageNumber.toString(),
       'pageSize': pageSize.toString(),
       if (search != null && search.isNotEmpty) 'name': search,
+      if (orderBy != null && orderBy.isNotEmpty) 'orderBy': orderBy,
     };
 
     final uri = ApiConfig.uri('/api/admin/user/GetAllPaged').replace(queryParameters: queryParams);

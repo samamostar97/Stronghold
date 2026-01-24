@@ -26,7 +26,10 @@ class _SupplementsManagementScreenState extends State<SupplementsManagementScree
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
-  static const int _pageSize = 20;
+  static const int _pageSize = 10;
+
+  // Sorting state
+  String? _selectedOrderBy;
 
   @override
   void initState() {
@@ -61,6 +64,7 @@ class _SupplementsManagementScreenState extends State<SupplementsManagementScree
     try {
       final result = await SupplementsApi.getSupplements(
         search: _searchController.text.trim(),
+        orderBy: _selectedOrderBy,
         pageNumber: _currentPage,
         pageSize: _pageSize,
       );
@@ -247,6 +251,8 @@ class _SupplementsManagementScreenState extends State<SupplementsManagementScree
             hintText: 'Pretraži po nazivu, dobavljaču ili kategoriji...',
           ),
           const SizedBox(height: 12),
+          _buildSortDropdown(),
+          const SizedBox(height: 12),
           _GradientButton(
             text: '+ Dodaj suplement',
             onTap: _addSupplement,
@@ -265,11 +271,61 @@ class _SupplementsManagementScreenState extends State<SupplementsManagementScree
           ),
         ),
         const SizedBox(width: 16),
+        _buildSortDropdown(),
+        const SizedBox(width: 16),
         _GradientButton(
           text: '+ Dodaj suplement',
           onTap: _addSupplement,
         ),
       ],
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _selectedOrderBy,
+          hint: const Text(
+            'Sortiraj',
+            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+          ),
+          dropdownColor: _AppColors.panel,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          items: const [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Zadano'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'supplement',
+              child: Text('Naziv (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'category',
+              child: Text('Kategorija (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'supplier',
+              child: Text('Dobavljač (A-Z)'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedOrderBy = value;
+              _currentPage = 1;
+            });
+            _loadSupplements();
+          },
+        ),
+      ),
     );
   }
 
@@ -930,35 +986,13 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
 
   Future<void> _loadDropdownData() async {
     try {
-      // Fetch all supplements to extract categories and suppliers
-      final result = await SupplementsApi.getSupplements(
-        pageNumber: 1,
-        pageSize: 1000,
-      );
+      final results = await Future.wait([
+        SupplementsApi.getCategories(),
+        SupplementsApi.getSuppliers(),
+      ]);
 
-      // Extract unique categories and suppliers from supplements
-      final categoryMap = <int, SupplementCategoryDTO>{};
-      final supplierMap = <int, SupplierDTO>{};
-
-      for (var supplement in result.items) {
-        if (supplement.supplementCategoryName != null) {
-          categoryMap[supplement.supplementCategoryId] = SupplementCategoryDTO(
-            id: supplement.supplementCategoryId,
-            name: supplement.supplementCategoryName!,
-          );
-        }
-        if (supplement.supplierName != null) {
-          supplierMap[supplement.supplierId] = SupplierDTO(
-            id: supplement.supplierId,
-            name: supplement.supplierName!,
-          );
-        }
-      }
-
-      final categories = categoryMap.values.toList();
-      final suppliers = supplierMap.values.toList();
-
-      print('Extracted ${categories.length} categories and ${suppliers.length} suppliers from supplements');
+      final categories = results[0] as List<SupplementCategoryDTO>;
+      final suppliers = results[1] as List<SupplierDTO>;
 
       setState(() {
         _categories = categories;
@@ -968,11 +1002,9 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
         _isLoadingData = false;
       });
     } catch (e) {
-      print('Failed to load categories/suppliers: $e');
       setState(() {
         _isLoadingData = false;
       });
-      // Show error to user
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

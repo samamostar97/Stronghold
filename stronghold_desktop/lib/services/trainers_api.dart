@@ -16,6 +16,7 @@ class TrainersApi {
   /// Get all trainers with pagination and optional search filter
   static Future<PagedTrainersResult> getTrainers({
     String? search,
+    String? orderBy,
     int pageNumber = 1,
     int pageSize = 10,
   }) async {
@@ -23,6 +24,7 @@ class TrainersApi {
       'pageNumber': pageNumber.toString(),
       'pageSize': pageSize.toString(),
       if (search != null && search.isNotEmpty) 'search': search,
+      if (orderBy != null && orderBy.isNotEmpty) 'orderBy': orderBy,
     };
 
     final uri = ApiConfig.uri('/api/admin/trainer/GetAllPaged')

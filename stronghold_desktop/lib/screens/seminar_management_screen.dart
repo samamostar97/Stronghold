@@ -27,7 +27,10 @@ class _SeminarManagementScreenState extends State<SeminarManagementScreen> {
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
-  final int _pageSize = 20;
+  final int _pageSize = 10;
+
+  // Sorting state
+  String? _selectedOrderBy;
 
   @override
   void initState() {
@@ -60,6 +63,7 @@ class _SeminarManagementScreenState extends State<SeminarManagementScreen> {
     try {
       final result = await SeminarsApi.getSeminars(
         search: _searchController.text.trim(),
+        orderBy: _selectedOrderBy,
         pageNumber: _currentPage,
         pageSize: _pageSize,
       );
@@ -232,6 +236,8 @@ class _SeminarManagementScreenState extends State<SeminarManagementScreen> {
             hintText: 'Pretraži po temi ili voditelju...',
           ),
           const SizedBox(height: 12),
+          _buildSortDropdown(),
+          const SizedBox(height: 12),
           _GradientButton(
             text: '+ Dodaj seminar',
             onTap: _addSeminar,
@@ -250,11 +256,61 @@ class _SeminarManagementScreenState extends State<SeminarManagementScreen> {
           ),
         ),
         const SizedBox(width: 16),
+        _buildSortDropdown(),
+        const SizedBox(width: 16),
         _GradientButton(
           text: '+ Dodaj seminar',
           onTap: _addSeminar,
         ),
       ],
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _selectedOrderBy,
+          hint: const Text(
+            'Sortiraj',
+            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+          ),
+          dropdownColor: _AppColors.panel,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          items: const [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Zadano'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'topic',
+              child: Text('Tema (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'speakername',
+              child: Text('Voditelj (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'createdatdesc',
+              child: Text('Najnovije prvo'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedOrderBy = value;
+              _currentPage = 1;
+            });
+            _loadSeminars();
+          },
+        ),
+      ),
     );
   }
 

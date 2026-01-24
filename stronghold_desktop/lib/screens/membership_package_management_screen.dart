@@ -24,7 +24,10 @@ class _MembershipPackageManagementScreenState extends State<MembershipPackageMan
   int _currentPage = 1;
   int _totalPages = 1;
   int _totalCount = 0;
-  static const int _pageSize = 20;
+  static const int _pageSize = 10;
+
+  // Sorting state
+  String? _selectedOrderBy;
 
   @override
   void initState() {
@@ -59,6 +62,7 @@ class _MembershipPackageManagementScreenState extends State<MembershipPackageMan
     try {
       final result = await MembershipPackagesApi.getPackages(
         search: _searchController.text.trim(),
+        orderBy: _selectedOrderBy,
         pageNumber: _currentPage,
         pageSize: _pageSize,
       );
@@ -248,6 +252,8 @@ class _MembershipPackageManagementScreenState extends State<MembershipPackageMan
             hintText: 'Pretraži po nazivu ili opisu...',
           ),
           const SizedBox(height: 12),
+          _buildSortDropdown(),
+          const SizedBox(height: 12),
           _GradientButton(
             text: '+ Dodaj paket',
             onTap: _addPackage,
@@ -266,11 +272,61 @@ class _MembershipPackageManagementScreenState extends State<MembershipPackageMan
           ),
         ),
         const SizedBox(width: 16),
+        _buildSortDropdown(),
+        const SizedBox(width: 16),
         _GradientButton(
           text: '+ Dodaj paket',
           onTap: _addPackage,
         ),
       ],
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _selectedOrderBy,
+          hint: const Text(
+            'Sortiraj',
+            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+          ),
+          dropdownColor: _AppColors.panel,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          items: const [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Zadano'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'packagename',
+              child: Text('Naziv (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'priceasc',
+              child: Text('Cijena (rastuće)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'pricedesc',
+              child: Text('Cijena (opadajuće)'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedOrderBy = value;
+              _currentPage = 1;
+            });
+            _loadPackages();
+          },
+        ),
+      ),
     );
   }
 

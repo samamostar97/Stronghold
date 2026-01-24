@@ -16,6 +16,7 @@ class SuppliersApi {
   /// Get all suppliers with pagination and optional search filter
   static Future<PagedSuppliersResult> getSuppliers({
     String? search,
+    String? orderBy,
     int pageNumber = 1,
     int pageSize = 10,
   }) async {
@@ -23,6 +24,7 @@ class SuppliersApi {
       'pageNumber': pageNumber.toString(),
       'pageSize': pageSize.toString(),
       if (search != null && search.isNotEmpty) 'search': search,
+      if (orderBy != null && orderBy.isNotEmpty) 'orderBy': orderBy,
     };
 
     final uri = ApiConfig.uri('/api/admin/supplier/GetAllPaged')

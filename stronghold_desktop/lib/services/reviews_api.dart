@@ -16,6 +16,7 @@ class ReviewsApi {
   /// Get reviews
 static Future<PagedReviewsResult> getReviews({
     String? search,
+    String? orderBy,
     int pageNumber = 1,
     int pageSize = 10,
   }) async {
@@ -23,6 +24,7 @@ static Future<PagedReviewsResult> getReviews({
       'pageNumber': pageNumber.toString(),
       'pageSize': pageSize.toString(),
       if (search != null && search.isNotEmpty) 'search': search,
+      if (orderBy != null && orderBy.isNotEmpty) 'orderBy': orderBy,
     };
 
     final uri = ApiConfig.uri('/api/admin/review/GetPaged')

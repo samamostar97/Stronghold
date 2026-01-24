@@ -40,22 +40,16 @@ class MembershipsApi {
   }
 
   static Future<List<MembershipPackageDTO>> getPackages() async {
-    final queryParams = <String, String>{
-      'pageNumber': '1',
-      'pageSize': '1000', // Fetch all packages for dropdown
-    };
-
-    final uri = ApiConfig.uri('/api/admin/membership-package/GetAllPaged')
-        .replace(queryParameters: queryParams);
-    final res = await http.get(uri, headers: await _headers());
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/membership-package/GetAll'),
+      headers: await _headers(),
+    );
 
     if (res.statusCode == 200) {
-      final json = jsonDecode(res.body) as Map<String, dynamic>;
-      final itemsList = (json['items'] as List<dynamic>?)
-              ?.map((e) => MembershipPackageDTO.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          <MembershipPackageDTO>[];
-      return itemsList;
+      final json = jsonDecode(res.body) as List<dynamic>;
+      return json
+          .map((e) => MembershipPackageDTO.fromJson(e as Map<String, dynamic>))
+          .toList();
     }
 
     throw Exception('Nije moguće učitati pakete članarina');

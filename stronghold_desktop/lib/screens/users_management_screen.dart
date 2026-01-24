@@ -27,6 +27,9 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
   int _totalCount = 0;
   static const int _pageSize = 10;
 
+  // Sorting state
+  String? _selectedOrderBy;
+
   @override
   void initState() {
     super.initState();
@@ -58,6 +61,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
     try {
       final result = await UsersApi.getUsers(
         search: _searchController.text.trim(),
+        orderBy: _selectedOrderBy,
         pageNumber: _currentPage,
         pageSize: _pageSize,
       );
@@ -251,6 +255,8 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
             onSubmitted: (_) => _onSearch(),
           ),
           const SizedBox(height: 12),
+          _buildSortDropdown(),
+          const SizedBox(height: 12),
           _GradientButton(
             text: '+ Dodaj korisnika',
             onTap: _addUser,
@@ -268,11 +274,61 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
           ),
         ),
         const SizedBox(width: 16),
+        _buildSortDropdown(),
+        const SizedBox(width: 16),
         _GradientButton(
           text: '+ Dodaj korisnika',
           onTap: _addUser,
         ),
       ],
+    );
+  }
+
+  Widget _buildSortDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: _AppColors.panel,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: _AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _selectedOrderBy,
+          hint: const Text(
+            'Sortiraj',
+            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+          ),
+          dropdownColor: _AppColors.panel,
+          style: const TextStyle(color: Colors.white, fontSize: 14),
+          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          items: const [
+            DropdownMenuItem<String?>(
+              value: null,
+              child: Text('Zadano'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'firstname',
+              child: Text('Ime (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'lastname',
+              child: Text('Prezime (A-Z)'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'datedesc',
+              child: Text('Najnovije prvo'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() {
+              _selectedOrderBy = value;
+              _currentPage = 1;
+            });
+            _loadUsers();
+          },
+        ),
+      ),
     );
   }
 
