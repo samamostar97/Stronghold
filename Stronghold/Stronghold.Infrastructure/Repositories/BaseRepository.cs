@@ -26,7 +26,7 @@ public class BaseRepository<T, TKey> : IRepository<T, TKey>
 
     public virtual IQueryable<T> AsQueryable()
     {
-        return _dbSet.AsNoTracking().Where(e => !e.IsDeleted);
+        return _dbSet.Where(e => !e.IsDeleted);
     }
 
     public virtual async Task DeleteAsync(T entity)

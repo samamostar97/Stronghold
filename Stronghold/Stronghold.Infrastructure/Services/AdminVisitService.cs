@@ -80,6 +80,7 @@ namespace Stronghold.Infrastructure.Services
             if (visit == null)
                 throw new KeyNotFoundException($"Posjet sa ID '{visitId}' nije pronađen.");
             var user = await _userRepository.GetByIdAsync(visit.UserId);
+            if (user == null) throw new KeyNotFoundException($"User sa ID '{visit.UserId}' nije pronadjen");
             
 
             if (visit.CheckOutTime != null)

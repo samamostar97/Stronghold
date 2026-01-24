@@ -25,8 +25,11 @@ namespace Stronghold.Infrastructure.Services
         }
         protected override async Task BeforeUpdateAsync(SupplementCategory entity, UpdateSupplementCategoryDTO dto)
         {
-            var categoryExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower() == dto.Name.ToLower() && !x.IsDeleted&&x.Id!=entity.Id);
-            if (categoryExists) throw new InvalidOperationException("Kategorija sa ovim nazivom već postoji");
+            if (!string.IsNullOrEmpty(dto.Name)) 
+            {
+                var categoryExists = await _repository.AsQueryable().AnyAsync(x => x.Name.ToLower() == dto.Name.ToLower() && !x.IsDeleted && x.Id != entity.Id);
+                if (categoryExists) throw new InvalidOperationException("Kategorija sa ovim nazivom već postoji");
+            }
         }
         protected override IQueryable<SupplementCategory> ApplyFilter(IQueryable<SupplementCategory> query, SupplementCategoryQueryFilter? filter)
         {
