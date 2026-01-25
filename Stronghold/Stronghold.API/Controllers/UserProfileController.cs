@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.IServices;
@@ -8,7 +7,7 @@ namespace Stronghold.API.Controllers;
 [ApiController]
 [Route("api/user/profile")]
 [Authorize]
-public class UserProfileController : ControllerBase
+public class UserProfileController : UserControllerBase
 {
     private readonly IUserProfileService _profileService;
     private readonly IWebHostEnvironment _environment;
@@ -22,6 +21,9 @@ public class UserProfileController : ControllerBase
     [HttpPost("picture")]
     public async Task<IActionResult> UploadProfilePicture(IFormFile file)
     {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
         if (file == null || file.Length == 0)
             return BadRequest("Nije odabrana slika");
 
@@ -35,16 +37,12 @@ public class UserProfileController : ControllerBase
         if (file.Length > 5 * 1024 * 1024)
             return BadRequest("Maksimalna velicina slike je 5MB");
 
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            return Unauthorized();
-
         // Create uploads directory if it doesn't exist
         var uploadsFolder = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "uploads", "profile-pictures");
         Directory.CreateDirectory(uploadsFolder);
 
         // Generate unique filename
-        var fileName = $"{userId}_{Guid.NewGuid()}{extension}";
+        var fileName = $"{userId.Value}_{Guid.NewGuid()}{extension}";
         var filePath = Path.Combine(uploadsFolder, fileName);
 
         // Save the file
@@ -57,7 +55,7 @@ public class UserProfileController : ControllerBase
         var imageUrl = $"/uploads/profile-pictures/{fileName}";
 
         // Update user's profile image URL in database
-        var success = await _profileService.UpdateProfilePictureAsync(userId, imageUrl);
+        var success = await _profileService.UpdateProfilePictureAsync(userId.Value, imageUrl);
         if (!success)
         {
             // Clean up the uploaded file if database update fails
@@ -72,11 +70,10 @@ public class UserProfileController : ControllerBase
     [HttpDelete("picture")]
     public async Task<IActionResult> DeleteProfilePicture()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            return Unauthorized();
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
 
-        var success = await _profileService.UpdateProfilePictureAsync(userId, null);
+        var success = await _profileService.UpdateProfilePictureAsync(userId.Value, null);
         if (!success)
             return BadRequest("Greska prilikom brisanja slike");
 
@@ -86,11 +83,10 @@ public class UserProfileController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetProfile()
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
-            return Unauthorized();
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
 
-        var profile = await _profileService.GetProfileAsync(userId);
+        var profile = await _profileService.GetProfileAsync(userId.Value);
         if (profile == null)
             return NotFound();
 

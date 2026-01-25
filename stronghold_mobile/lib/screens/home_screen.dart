@@ -5,6 +5,7 @@ import '../config/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
 import 'login_screen.dart';
+import 'membership_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -464,25 +465,23 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 20),
 
-                        // Placeholder for navigation options
+                        // Navigation options
                         Expanded(
-                          child: Center(
+                          child: SingleChildScrollView(
                             child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(
-                                  Icons.widgets_outlined,
-                                  size: 48,
-                                  color: Colors.white.withValues(alpha: 0.2),
-                                ),
-                                const SizedBox(height: 12),
-                                Text(
-                                  'Navigacijske opcije ce biti dodane ovdje',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.white.withValues(alpha: 0.3),
-                                  ),
-                                  textAlign: TextAlign.center,
+                                _buildQuickAccessCard(
+                                  icon: Icons.receipt_long_outlined,
+                                  title: 'Historija članarine',
+                                  subtitle: 'Pregledaj sve uplate',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const MembershipHistoryScreen(),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ],
                             ),
@@ -576,6 +575,74 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.w700,
             color: Color(0xFFe63946),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildQuickAccessCard({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0f0f1a),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFe63946).withValues(alpha: 0.2),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFe63946).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFFe63946),
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.chevron_right,
+              color: Colors.white.withValues(alpha: 0.3),
+              size: 24,
+            ),
+          ],
         ),
       ),
     );
