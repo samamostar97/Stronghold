@@ -18,6 +18,7 @@ class TokenStorage {
         'username': authResponse.username,
         'email': authResponse.email,
         'profileImageUrl': authResponse.profileImageUrl,
+        'hasActiveMembership': authResponse.hasActiveMembership,
       }),
     );
   }

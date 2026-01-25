@@ -9,11 +9,13 @@ import 'login_screen.dart';
 class HomeScreen extends StatefulWidget {
   final String userName;
   final String? userImageUrl;
+  final bool hasActiveMembership;
 
   const HomeScreen({
     super.key,
     required this.userName,
     this.userImageUrl,
+    required this.hasActiveMembership,
   });
 
   @override
@@ -395,14 +397,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Container(
                                       width: 8,
                                       height: 8,
-                                      decoration: const BoxDecoration(
-                                        color: Color(0xFF4CAF50),
+                                      decoration: BoxDecoration(
+                                        color: widget.hasActiveMembership
+                                            ? const Color(0xFF4CAF50)
+                                            : const Color(0xFFe63946),
                                         shape: BoxShape.circle,
                                       ),
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      'Aktivan',
+                                      widget.hasActiveMembership
+                                          ? 'Aktivna clanarina'
+                                          : 'Neaktivna clanarina',
                                       style: TextStyle(
                                         fontSize: 14,
                                         color: Colors.white.withValues(alpha: 0.5),

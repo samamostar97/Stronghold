@@ -4,11 +4,13 @@ import 'home_screen.dart';
 class LoginSuccessScreen extends StatefulWidget {
   final String userName;
   final String? userImageUrl;
+  final bool hasActiveMembership;
 
   const LoginSuccessScreen({
     super.key,
     required this.userName,
     this.userImageUrl,
+    required this.hasActiveMembership,
   });
 
   @override
@@ -56,6 +58,7 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
                 HomeScreen(
                   userName: widget.userName,
                   userImageUrl: widget.userImageUrl,
+                  hasActiveMembership: widget.hasActiveMembership,
                 ),
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(opacity: animation, child: child);

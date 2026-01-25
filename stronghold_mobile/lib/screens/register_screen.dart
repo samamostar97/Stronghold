@@ -97,6 +97,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           builder: (_) => LoginSuccessScreen(
             userName: authResponse.displayName,
             userImageUrl: authResponse.profileImageUrl,
+            hasActiveMembership: authResponse.hasActiveMembership,
           ),
         ),
       );
@@ -368,11 +369,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   icon: Icons.phone_outlined,
                                 ),
                                 validator: (value) {
-                                  if (_phoneError != null) {
-                                    return _phoneError;
+                                  if(_phoneError != null) {
+                                  return _phoneError;
                                   }
                                   if (value == null || value.isEmpty) {
-                                    return 'Molimo unesite broj telefona';
+                                    return 'Molimo unesite broj telefona';                                    
                                   }
                                   return null;
                                 },

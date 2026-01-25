@@ -49,7 +49,7 @@ public class AuthService : IAuthService
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             return null;
 
-        return GenerateAuthResponse(user);
+        return await GenerateAuthResponseAsync(user);
     }
 
     public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
@@ -76,12 +76,15 @@ public class AuthService : IAuthService
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        return GenerateAuthResponse(user);
+        return await GenerateAuthResponseAsync(user);
     }
 
-    private AuthResponse GenerateAuthResponse(User user)
+    private async Task<AuthResponse> GenerateAuthResponseAsync(User user)
     {
         var token = GenerateJwtToken(user);
+
+        var hasActiveMembership = await _context.Memberships
+            .AnyAsync(m => m.UserId == user.Id && m.EndDate >= DateTime.UtcNow);
 
         return new AuthResponse
         {
@@ -91,7 +94,8 @@ public class AuthService : IAuthService
             Username = user.Username,
             Email = user.Email,
             ProfileImageUrl = user.ProfileImageUrl,
-            Token = token
+            Token = token,
+            HasActiveMembership = hasActiveMembership
         };
     }
 

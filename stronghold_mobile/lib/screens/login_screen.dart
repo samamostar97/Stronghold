@@ -53,6 +53,7 @@ class _LoginScreenState extends State<LoginScreen> {
           builder: (_) => LoginSuccessScreen(
             userName: authResponse.displayName,
             userImageUrl: authResponse.profileImageUrl,
+            hasActiveMembership: authResponse.hasActiveMembership,
           ),
         ),
       );

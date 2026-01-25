@@ -48,6 +48,7 @@ class AuthResponse {
   final String email;
   final String? profileImageUrl;
   final String token;
+  final bool hasActiveMembership;
 
   AuthResponse({
     required this.userId,
@@ -57,6 +58,7 @@ class AuthResponse {
     required this.email,
     this.profileImageUrl,
     required this.token,
+    required this.hasActiveMembership,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
@@ -68,6 +70,7 @@ class AuthResponse {
       email: json['email'] as String,
       profileImageUrl: json['profileImageUrl'] as String?,
       token: json['token'] as String,
+      hasActiveMembership: json['hasActiveMembership'] as bool? ?? false,
     );
   }
 
