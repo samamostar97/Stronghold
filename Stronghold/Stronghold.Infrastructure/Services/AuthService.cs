@@ -8,6 +8,7 @@ using Stronghold.Application.DTOs.Auth;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Core.Exceptions;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services;
@@ -53,8 +54,13 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
     {
-        if (await _context.Users.AnyAsync(u => u.Username == request.Username || u.Email == request.Email))
-            return null;
+        var usernameExists = await _context.Users.AnyAsync(x => x.Username.ToLower() == request.Username.ToLower());
+        if (usernameExists) throw new ConflictException("Ovaj username je zauzet");
+        var emailExists = await _context.Users.AnyAsync(x => x.Email.ToLower() == request.Email.ToLower());
+        if (emailExists) throw new ConflictException("Ovaj email je zauzet");
+        var numberExists = await _context.Users.AnyAsync(x => x.PhoneNumber == request.PhoneNumber);
+        if (numberExists) throw new ConflictException("Ovaj broj je zauzet");
+        
 
         var user = new User
         {
@@ -62,6 +68,7 @@ public class AuthService : IAuthService
             LastName = request.LastName,
             Username = request.Username,
             Email = request.Email,
+            PhoneNumber = request.PhoneNumber,
             Role = Role.GymMember,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password)
         };
@@ -79,8 +86,11 @@ public class AuthService : IAuthService
         return new AuthResponse
         {
             UserId = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
             Username = user.Username,
             Email = user.Email,
+            ProfileImageUrl = user.ProfileImageUrl,
             Token = token
         };
     }

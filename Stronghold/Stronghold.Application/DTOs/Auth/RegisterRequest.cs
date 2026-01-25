@@ -21,6 +21,10 @@ public class RegisterRequest
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(6,ErrorMessage ="Password mora sadrzavati više od 6 karaktera")]
+    [Phone]
+    public string PhoneNumber { get; set; } = string.Empty;
+
+    [Required]
+    [MinLength(6,ErrorMessage ="Password mora sadrzavati viï¿½e od 6 karaktera")]
     public string Password { get; set; } = string.Empty;
 }

@@ -18,7 +18,8 @@ public class UserConfiguration : BaseEntityConfiguration<User>
         builder.Property(u => u.PasswordHash).IsRequired();
         builder.Property(u => u.ProfileImageUrl).HasMaxLength(500);
 
-        builder.HasIndex(u => u.Username).IsUnique();
-        builder.HasIndex(u => u.Email).IsUnique();
+        builder.HasIndex(u => u.PhoneNumber).IsUnique().HasFilter("[IsDeleted]= 0");
+        builder.HasIndex(u => u.Username).IsUnique().HasFilter("[IsDeleted] = 0");
+        builder.HasIndex(u => u.Email).IsUnique().HasFilter("[IsDeleted] = 0");
     }
 }
