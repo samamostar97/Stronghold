@@ -6,6 +6,8 @@ import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
 import 'login_screen.dart';
 import 'membership_history_screen.dart';
+import 'order_history_screen.dart';
+import 'review_history_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -479,6 +481,32 @@ class _HomeScreenState extends State<HomeScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => const MembershipHistoryScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.shopping_bag_outlined,
+                                  title: 'Historija narudžbi',
+                                  subtitle: 'Pregledaj sve narudžbe',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const OrderHistoryScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.rate_review_outlined,
+                                  title: 'Moje recenzije',
+                                  subtitle: 'Pregledaj svoje recenzije',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const ReviewHistoryScreen(),
                                       ),
                                     );
                                   },

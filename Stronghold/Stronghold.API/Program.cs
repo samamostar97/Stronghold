@@ -48,6 +48,10 @@ builder.Services.AddScoped<IAdminReviewService, AdminReviewService>();
 builder.Services.AddScoped<IAdminFaqService, AdminFaqService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
+builder.Services.AddScoped<IUserOrderService, UserOrderService>();
+builder.Services.AddScoped<IUserReviewService, UserReviewService>();
+
+
 
 
 
