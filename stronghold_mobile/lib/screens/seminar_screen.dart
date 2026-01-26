@@ -1,37 +1,38 @@
 import 'package:flutter/material.dart';
-import '../models/review_models.dart';
-import '../services/review_service.dart';
+import 'package:intl/intl.dart';
+import '../models/seminar.dart';
+import '../services/seminar_service.dart';
 
-class ReviewHistoryScreen extends StatefulWidget {
-  const ReviewHistoryScreen({super.key});
+class SeminarScreen extends StatefulWidget {
+  const SeminarScreen({super.key});
 
   @override
-  State<ReviewHistoryScreen> createState() => _ReviewHistoryScreenState();
+  State<SeminarScreen> createState() => _SeminarScreenState();
 }
 
-class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
-  List<Review>? _reviews;
+class _SeminarScreenState extends State<SeminarScreen> {
+  List<Seminar>? _seminars;
   bool _isLoading = true;
   String? _error;
-  int? _deletingReviewId;
+  final Set<int> _attendingIds = {};
 
   @override
   void initState() {
     super.initState();
-    _loadReviewHistory();
+    _loadSeminars();
   }
 
-  Future<void> _loadReviewHistory() async {
+  Future<void> _loadSeminars() async {
     setState(() {
       _isLoading = true;
       _error = null;
     });
 
     try {
-      final reviews = await ReviewService.getReviewHistory();
+      final seminars = await SeminarService.getSeminars();
       if (mounted) {
         setState(() {
-          _reviews = reviews;
+          _seminars = seminars;
           _isLoading = false;
         });
       }
@@ -45,76 +46,24 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
     }
   }
 
-  void _onDeleteReview(Review review) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1a1a2e),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-          side: BorderSide(
-            color: const Color(0xFFe63946).withValues(alpha: 0.3),
-          ),
-        ),
-        title: const Text(
-          'Obrisi recenziju',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        content: Text(
-          'Da li ste sigurni da zelite obrisati recenziju za "${review.supplementName}"?',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(
-              'Odustani',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.6),
-              ),
-            ),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _deleteReview(review);
-            },
-            child: const Text(
-              'Obrisi',
-              style: TextStyle(
-                color: Color(0xFFe63946),
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _deleteReview(Review review) async {
+  Future<void> _attendSeminar(int seminarId) async {
     setState(() {
-      _deletingReviewId = review.id;
+      _attendingIds.add(seminarId);
     });
 
     try {
-      await ReviewService.deleteReview(review.id);
+      await SeminarService.attendSeminar(seminarId);
       if (mounted) {
         setState(() {
-          _reviews?.removeWhere((r) => r.id == review.id);
-          _deletingReviewId = null;
+          _attendingIds.remove(seminarId);
         });
-        await _showSuccessFeedback('Recenzija uspjesno obrisana');
+        await _showSuccessFeedback('Uspjesno ste se prijavili na seminar');
+        await _loadSeminars();
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _deletingReviewId = null;
+          _attendingIds.remove(seminarId);
         });
         await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
       }
@@ -175,6 +124,10 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
     );
   }
 
+  String _formatDate(DateTime date) {
+    return DateFormat('dd.MM.yyyy').format(date);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -187,7 +140,7 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Moje recenzije',
+          'Seminari',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -224,11 +177,11 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
       return _buildErrorState();
     }
 
-    if (_reviews == null || _reviews!.isEmpty) {
+    if (_seminars == null || _seminars!.isEmpty) {
       return _buildEmptyState();
     }
 
-    return _buildReviewList();
+    return _buildSeminarList();
   }
 
   Widget _buildErrorState() {
@@ -254,7 +207,7 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
             ),
             const SizedBox(height: 24),
             GestureDetector(
-              onTap: _loadReviewHistory,
+              onTap: _loadSeminars,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 decoration: BoxDecoration(
@@ -285,26 +238,17 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              Icons.rate_review_outlined,
+              Icons.event_outlined,
               size: 64,
               color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
             Text(
-              'Nemate recenzija',
+              'Nema dostupnih seminara',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: Colors.white.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Vase recenzije ce se prikazati ovdje',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.5),
               ),
               textAlign: TextAlign.center,
             ),
@@ -314,21 +258,24 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
     );
   }
 
-  Widget _buildReviewList() {
+  Widget _buildSeminarList() {
     return RefreshIndicator(
-      onRefresh: _loadReviewHistory,
+      onRefresh: _loadSeminars,
       color: const Color(0xFFe63946),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _reviews!.length,
+        itemCount: _seminars!.length,
         itemBuilder: (context, index) {
-          return _buildReviewCard(_reviews![index]);
+          return _buildSeminarCard(_seminars![index]);
         },
       ),
     );
   }
 
-  Widget _buildReviewCard(Review review) {
+  Widget _buildSeminarCard(Seminar seminar) {
+    final isLoading = _attendingIds.contains(seminar.id);
+    final isAlreadyRegistered = seminar.isAttending;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
@@ -344,12 +291,11 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Text(
-                  review.supplementName,
+                  seminar.topic,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -357,106 +303,125 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
-              _buildRatingStars(review.rating),
+              if (isAlreadyRegistered)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.check_circle_outline,
+                        size: 14,
+                        color: Color(0xFF4CAF50),
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        'Prijavljen',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF4CAF50),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
             ],
           ),
           const SizedBox(height: 12),
-          if (review.comment != null && review.comment!.isNotEmpty) ...[
-            Text(
-              review.comment!,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.7),
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.star,
-                    size: 16,
-                    color: const Color(0xFFFFD700).withValues(alpha: 0.8),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${review.rating}/5',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.person_outline,
+                size: 16,
+                color: Colors.white.withValues(alpha: 0.5),
               ),
-              GestureDetector(
-                onTap: _deletingReviewId == review.id
-                    ? null
-                    : () => _onDeleteReview(review),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFe63946).withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: const Color(0xFFe63946).withValues(alpha: 0.3),
-                      width: 1,
-                    ),
+              const SizedBox(width: 8),
+              Text(
+                'Predavac: ',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
+              ),
+              Expanded(
+                child: Text(
+                  seminar.speakerName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withValues(alpha: 0.7),
                   ),
-                  child: _deletingReviewId == review.id
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFFe63946),
-                          ),
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.delete_outline,
-                              size: 16,
-                              color: const Color(0xFFe63946).withValues(alpha: 0.8),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              'Obrisi',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFFe63946).withValues(alpha: 0.8),
-                              ),
-                            ),
-                          ],
-                        ),
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Icon(
+                Icons.calendar_today_outlined,
+                size: 16,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                'Datum: ',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.5),
+                ),
+              ),
+              Text(
+                _formatDate(seminar.eventDate),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.white.withValues(alpha: 0.7),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (!isAlreadyRegistered)
+            SizedBox(
+              width: double.infinity,
+              child: GestureDetector(
+                onTap: isLoading ? null : () => _attendSeminar(seminar.id),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isLoading
+                        ? const Color(0xFFe63946).withValues(alpha: 0.5)
+                        : const Color(0xFFe63946),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Prijavi se',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
-    );
-  }
-
-  Widget _buildRatingStars(int rating) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (index) {
-        return Icon(
-          index < rating ? Icons.star : Icons.star_border,
-          size: 18,
-          color: index < rating
-              ? const Color(0xFFFFD700)
-              : Colors.white.withValues(alpha: 0.3),
-        );
-      }),
     );
   }
 }

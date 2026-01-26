@@ -50,6 +50,8 @@ builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 builder.Services.AddScoped<IUserMembershipService, UserMembershipService>();
 builder.Services.AddScoped<IUserOrderService, UserOrderService>();
 builder.Services.AddScoped<IUserReviewService, UserReviewService>();
+builder.Services.AddScoped<IUserSeminarService, UserSeminarService>();
+
 
 
 

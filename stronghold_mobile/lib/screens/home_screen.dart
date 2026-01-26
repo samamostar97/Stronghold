@@ -8,6 +8,7 @@ import 'login_screen.dart';
 import 'membership_history_screen.dart';
 import 'order_history_screen.dart';
 import 'review_history_screen.dart';
+import 'seminar_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -507,6 +508,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => const ReviewHistoryScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.event_outlined,
+                                  title: 'Seminari',
+                                  subtitle: 'Pregledaj i prijavi se',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const SeminarScreen(),
                                       ),
                                     );
                                   },
