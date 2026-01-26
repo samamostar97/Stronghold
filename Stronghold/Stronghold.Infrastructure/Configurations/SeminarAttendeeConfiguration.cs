@@ -22,6 +22,6 @@ public class SeminarAttendeeConfiguration : BaseEntityConfiguration<SeminarAtten
             .HasForeignKey(sa => sa.SeminarId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(sa => new { sa.UserId, sa.SeminarId }).IsUnique();
+        builder.HasIndex(sa => new { sa.UserId, sa.SeminarId }).IsUnique().HasFilter("[IsDeleted] = 0");
     }
 }

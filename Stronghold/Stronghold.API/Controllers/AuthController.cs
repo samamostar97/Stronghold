@@ -31,9 +31,6 @@ public class AuthController : ControllerBase
     {
         var response = await _authService.RegisterAsync(request);
 
-        if (response == null)
-            return BadRequest(new { message = "Username ili email već postoje" });
-
         return CreatedAtAction(nameof(Login), response);
     }
 }

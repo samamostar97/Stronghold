@@ -38,6 +38,15 @@ namespace Stronghold.Infrastructure.Services
             
         }
 
+        public async Task CancelSeminarAttendAsync(int userId, int seminarId)
+        {
+            var hasSeminarEnded = await _seminarRepository.AsQueryable().AnyAsync(x => x.Id == seminarId&&x.EventDate<DateTime.UtcNow);
+            if (hasSeminarEnded) throw new InvalidOperationException("Nemoguce otkazati seminar u proslosti");
+            var isAttending = await _attendeeRepository.AsQueryable().FirstOrDefaultAsync(x=>x.UserId==userId&&x.SeminarId==seminarId);
+            if (isAttending==null) throw new InvalidOperationException("Niste prijavljeni na ovaj seminar");
+            await _attendeeRepository.DeleteAsync(isAttending);
+        }
+
         public async Task<IEnumerable<UserSeminarDTO>> GetSeminarListAsync(int userId)
         {
             var userAttendances = _attendeeRepository.AsQueryable()

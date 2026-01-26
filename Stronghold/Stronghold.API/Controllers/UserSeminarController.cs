@@ -33,7 +33,15 @@ namespace Stronghold.API.Controllers
                 return Unauthorized();
             await _userSeminarService.AttendSeminarAsync(userId.Value, Id);
             return NoContent();
-
+        }
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> CancelAttendment(int id)
+        {
+            var userId= GetCurrentUserId();
+            if(userId==null)
+                return Unauthorized();
+            await _userSeminarService.CancelSeminarAttendAsync(userId.Value, id);
+            return NoContent();
         }
     }
 }

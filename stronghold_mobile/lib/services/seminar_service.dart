@@ -53,4 +53,28 @@ class SeminarService {
       throw Exception('Greska prilikom prijave na seminar');
     }
   }
+
+  static Future<void> cancelAttendance(int seminarId) async {
+    final token = await TokenStorage.getToken();
+    if (token == null) {
+      throw Exception('Niste prijavljeni');
+    }
+
+    final response = await http.delete(
+      ApiConfig.uri('/api/user/seminar/$seminarId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      return;
+    } else if (response.statusCode == 401) {
+      throw Exception('Sesija je istekla. Prijavite se ponovo.');
+    } else if (response.statusCode == 400) {
+      throw Exception('Niste prijavljeni na ovaj seminar');
+    } else {
+      throw Exception('Greska prilikom odjave sa seminara');
+    }
+  }
 }

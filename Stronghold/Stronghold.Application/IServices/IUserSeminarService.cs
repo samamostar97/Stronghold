@@ -12,5 +12,6 @@ namespace Stronghold.Application.IServices
     {
         Task<IEnumerable<UserSeminarDTO>> GetSeminarListAsync(int userId);
         Task AttendSeminarAsync(int userId, int seminarId);
+        Task CancelSeminarAttendAsync(int userId, int seminarId);
     }
 }

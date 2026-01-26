@@ -15,6 +15,7 @@ class _SeminarScreenState extends State<SeminarScreen> {
   bool _isLoading = true;
   String? _error;
   final Set<int> _attendingIds = {};
+  final Set<int> _cancelingIds = {};
 
   @override
   void initState() {
@@ -64,6 +65,30 @@ class _SeminarScreenState extends State<SeminarScreen> {
       if (mounted) {
         setState(() {
           _attendingIds.remove(seminarId);
+        });
+        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+      }
+    }
+  }
+
+  Future<void> _cancelAttendance(int seminarId) async {
+    setState(() {
+      _cancelingIds.add(seminarId);
+    });
+
+    try {
+      await SeminarService.cancelAttendance(seminarId);
+      if (mounted) {
+        setState(() {
+          _cancelingIds.remove(seminarId);
+        });
+        await _showSuccessFeedback('Uspjesno ste se odjavili sa seminara');
+        await _loadSeminars();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _cancelingIds.remove(seminarId);
         });
         await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
       }
@@ -273,7 +298,8 @@ class _SeminarScreenState extends State<SeminarScreen> {
   }
 
   Widget _buildSeminarCard(Seminar seminar) {
-    final isLoading = _attendingIds.contains(seminar.id);
+    final isAttendLoading = _attendingIds.contains(seminar.id);
+    final isCancelLoading = _cancelingIds.contains(seminar.id);
     final isAlreadyRegistered = seminar.isAttending;
 
     return Container(
@@ -385,21 +411,62 @@ class _SeminarScreenState extends State<SeminarScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          if (!isAlreadyRegistered)
+          if (isAlreadyRegistered)
             SizedBox(
               width: double.infinity,
               child: GestureDetector(
-                onTap: isLoading ? null : () => _attendSeminar(seminar.id),
+                onTap: isCancelLoading ? null : () => _cancelAttendance(seminar.id),
                 child: Container(
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   decoration: BoxDecoration(
-                    color: isLoading
+                    color: isCancelLoading
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isCancelLoading
+                          ? Colors.white.withValues(alpha: 0.2)
+                          : Colors.white.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: isCancelLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text(
+                            'Odjavi se',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white.withValues(alpha: 0.8),
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: GestureDetector(
+                onTap: isAttendLoading ? null : () => _attendSeminar(seminar.id),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: isAttendLoading
                         ? const Color(0xFFe63946).withValues(alpha: 0.5)
                         : const Color(0xFFe63946),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: isLoading
+                    child: isAttendLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
