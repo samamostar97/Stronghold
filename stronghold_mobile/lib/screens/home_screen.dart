@@ -4,11 +4,14 @@ import 'package:image_picker/image_picker.dart';
 import '../config/api_config.dart';
 import '../services/auth_service.dart';
 import '../services/user_profile_service.dart';
+import 'appointment_screen.dart';
 import 'login_screen.dart';
 import 'membership_history_screen.dart';
+import 'nutritionist_list_screen.dart';
 import 'order_history_screen.dart';
 import 'review_history_screen.dart';
 import 'seminar_screen.dart';
+import 'trainer_list_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -521,6 +524,45 @@ class _HomeScreenState extends State<HomeScreen> {
                                       context,
                                       MaterialPageRoute(
                                         builder: (_) => const SeminarScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.calendar_today_outlined,
+                                  title: 'Termini',
+                                  subtitle: 'Pregledaj zakazane termine',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const AppointmentScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.fitness_center,
+                                  title: 'Treneri',
+                                  subtitle: 'Zakazi termin sa trenerom',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const TrainerListScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.restaurant_menu,
+                                  title: 'Nutricionisti',
+                                  subtitle: 'Zakazi termin sa nutricionistom',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const NutritionistListScreen(),
                                       ),
                                     );
                                   },
