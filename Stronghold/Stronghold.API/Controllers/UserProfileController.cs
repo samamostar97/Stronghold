@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stronghold.Application.Common;
 using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers;
@@ -10,12 +11,10 @@ namespace Stronghold.API.Controllers;
 public class UserProfileController : UserControllerBase
 {
     private readonly IUserProfileService _profileService;
-    private readonly IWebHostEnvironment _environment;
 
-    public UserProfileController(IUserProfileService profileService, IWebHostEnvironment environment)
+    public UserProfileController(IUserProfileService profileService)
     {
         _profileService = profileService;
-        _environment = environment;
     }
 
     [HttpPost("picture")]
@@ -27,42 +26,17 @@ public class UserProfileController : UserControllerBase
         if (file == null || file.Length == 0)
             return BadRequest("Nije odabrana slika");
 
-        // Validate file type
-        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-        var extension = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!allowedExtensions.Contains(extension))
-            return BadRequest("Dozvoljeni formati: JPG, PNG, GIF");
-
-        // Validate file size (max 5MB)
-        if (file.Length > 5 * 1024 * 1024)
-            return BadRequest("Maksimalna velicina slike je 5MB");
-
-        // Create uploads directory if it doesn't exist
-        var uploadsFolder = Path.Combine(_environment.WebRootPath ?? Path.Combine(_environment.ContentRootPath, "wwwroot"), "uploads", "profile-pictures");
-        Directory.CreateDirectory(uploadsFolder);
-
-        // Generate unique filename
-        var fileName = $"{userId.Value}_{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(uploadsFolder, fileName);
-
-        // Save the file
-        using (var stream = new FileStream(filePath, FileMode.Create))
+        var fileRequest = new FileUploadRequest
         {
-            await file.CopyToAsync(stream);
-        }
+            FileStream = file.OpenReadStream(),
+            FileName = file.FileName,
+            ContentType = file.ContentType,
+            FileSize = file.Length
+        };
 
-        // Generate the URL
-        var imageUrl = $"/uploads/profile-pictures/{fileName}";
-
-        // Update user's profile image URL in database
-        var success = await _profileService.UpdateProfilePictureAsync(userId.Value, imageUrl);
-        if (!success)
-        {
-            // Clean up the uploaded file if database update fails
-            if (System.IO.File.Exists(filePath))
-                System.IO.File.Delete(filePath);
+        var imageUrl = await _profileService.UploadProfilePictureAsync(userId.Value, fileRequest);
+        if (imageUrl == null)
             return BadRequest("Greska prilikom azuriranja slike");
-        }
 
         return Ok(new { profileImageUrl = imageUrl });
     }
@@ -73,7 +47,7 @@ public class UserProfileController : UserControllerBase
         var userId = GetCurrentUserId();
         if (userId == null) return Unauthorized();
 
-        var success = await _profileService.UpdateProfilePictureAsync(userId.Value, null);
+        var success = await _profileService.DeleteProfilePictureAsync(userId.Value);
         if (!success)
             return BadRequest("Greska prilikom brisanja slike");
 
