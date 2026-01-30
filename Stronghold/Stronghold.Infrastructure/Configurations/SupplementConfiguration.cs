@@ -13,6 +13,8 @@ public class SupplementConfiguration : BaseEntityConfiguration<Supplement>
         builder.Property(s => s.Name).HasMaxLength(100).IsRequired();
         builder.Property(s => s.Price).HasPrecision(18, 2).IsRequired();
         builder.Property(s => s.Description).HasMaxLength(1000);
+        builder.Property(u => u.SupplementImageUrl).HasMaxLength(500);
+
 
         builder.HasOne(s => s.SupplementCategory)
             .WithMany(c => c.Supplements)

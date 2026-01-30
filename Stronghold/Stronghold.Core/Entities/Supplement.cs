@@ -8,6 +8,8 @@ public class Supplement : BaseEntity
 
     public int SupplementCategoryId { get; set; }
     public int SupplierId { get; set; }
+    public string? SupplementImageUrl { get; set; }
+
 
     // Navigation properties
     public SupplementCategory SupplementCategory { get; set; } = null!;

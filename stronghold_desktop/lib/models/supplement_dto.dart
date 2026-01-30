@@ -7,6 +7,7 @@ class SupplementDTO {
   final int supplierId;
   final String? supplementCategoryName;
   final String? supplierName;
+  final String? supplementImageUrl;
 
   const SupplementDTO({
     required this.id,
@@ -17,6 +18,7 @@ class SupplementDTO {
     required this.supplierId,
     this.supplementCategoryName,
     this.supplierName,
+    this.supplementImageUrl,
   });
 
   factory SupplementDTO.fromJson(Map<String, dynamic> json) {
@@ -29,6 +31,7 @@ class SupplementDTO {
       supplierId: (json['supplierId'] ?? 0) as int,
       supplementCategoryName: json['supplementCategoryName'] as String?,
       supplierName: json['supplierName'] as String?,
+      supplementImageUrl: json['supplementImageUrl'] as String?,
     );
   }
 }

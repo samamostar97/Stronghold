@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import '../models/supplement_dto.dart';
 import '../models/supplement_category_dto.dart';
 import '../models/supplier_dto.dart';
@@ -8,6 +10,7 @@ import '../services/supplements_api.dart';
 import '../widgets/success_animation.dart';
 import '../widgets/error_animation.dart';
 import '../utils/error_handler.dart';
+import '../config/api_config.dart';
 
 class SupplementsManagementScreen extends StatefulWidget {
   const SupplementsManagementScreen({super.key});
@@ -769,9 +772,10 @@ class _PaginationButtonState extends State<_PaginationButton> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 abstract class _TableFlex {
-  static const int name = 3;
+  static const int image = 1;
+  static const int name = 2;
   static const int price = 2;
-  static const int description = 4;
+  static const int description = 3;
   static const int actions = 2;
 }
 
@@ -787,6 +791,7 @@ class _TableHeader extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       child: const Row(
         children: [
+          _HeaderCell(text: 'Slika', flex: _TableFlex.image),
           _HeaderCell(text: 'Naziv', flex: _TableFlex.name),
           _HeaderCell(text: 'Cijena', flex: _TableFlex.price),
           _HeaderCell(text: 'Opis', flex: _TableFlex.description),
@@ -856,6 +861,34 @@ class _SupplementTableRowState extends State<_SupplementTableRow> {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Row(
           children: [
+            Expanded(
+              flex: _TableFlex.image,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: _AppColors.panel,
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: widget.supplement.supplementImageUrl != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(6),
+                          child: Image.network(
+                            '${ApiConfig.baseUrl}${widget.supplement.supplementImageUrl}',
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                              Icons.image,
+                              color: _AppColors.muted,
+                              size: 20,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.image, color: _AppColors.muted, size: 20),
+                ),
+              ),
+            ),
             _DataCell(text: widget.supplement.name, flex: _TableFlex.name),
             _DataCell(
               text: '${widget.supplement.price.toStringAsFixed(2)} KM',
@@ -977,6 +1010,7 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
   SupplierDTO? _selectedSupplier;
   bool _isLoadingData = true;
   bool _isSaving = false;
+  String? _selectedImagePath;
 
   @override
   void initState() {
@@ -1024,6 +1058,19 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _selectedImagePath = result.files.first.path;
+      });
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -1044,7 +1091,12 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
         supplierId: _selectedSupplier!.id,
       );
 
-      await SupplementsApi.createSupplement(dto);
+      final supplementId = await SupplementsApi.createSupplement(dto);
+
+      // Upload image if selected
+      if (_selectedImagePath != null) {
+        await SupplementsApi.uploadImage(supplementId, _selectedImagePath!);
+      }
 
       if (mounted) {
         Navigator.of(context).pop(true);
@@ -1215,6 +1267,79 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
                     maxLines: 3,
                   ),
                   const SizedBox(height: 16),
+                  // Image picker section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _AppColors.panel,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: _AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Slika (opcionalno)',
+                          style: TextStyle(color: _AppColors.muted, fontSize: 14),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: _AppColors.card,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: _selectedImagePath != null
+                                  ? ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        File(_selectedImagePath!),
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.broken_image,
+                                          color: _AppColors.muted,
+                                          size: 32,
+                                        ),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.image,
+                                      color: _AppColors.muted,
+                                      size: 32,
+                                    ),
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: _pickImage,
+                                  icon: const Icon(Icons.upload, size: 18),
+                                  label: Text(_selectedImagePath != null ? 'Promijeni sliku' : 'Odaberi sliku'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: _AppColors.editBlue,
+                                  ),
+                                ),
+                                if (_selectedImagePath != null)
+                                  TextButton.icon(
+                                    onPressed: () => setState(() => _selectedImagePath = null),
+                                    icon: const Icon(Icons.delete, size: 18),
+                                    label: const Text('Ukloni'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: _AppColors.accent,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   if (_isLoadingData)
                     const Center(
                       child: Padding(
@@ -1306,6 +1431,9 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
   late final TextEditingController _priceController;
   late final TextEditingController _descriptionController;
   bool _isSaving = false;
+  String? _selectedImagePath;
+  String? _currentImageUrl;
+  bool _imageDeleted = false;
 
   @override
   void initState() {
@@ -1313,6 +1441,7 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
     _nameController = TextEditingController(text: widget.supplement.name);
     _priceController = TextEditingController(text: widget.supplement.price.toString());
     _descriptionController = TextEditingController(text: widget.supplement.description ?? '');
+    _currentImageUrl = widget.supplement.supplementImageUrl;
   }
 
   @override
@@ -1321,6 +1450,27 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
     _priceController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.image,
+      allowMultiple: false,
+    );
+
+    if (result != null && result.files.isNotEmpty) {
+      setState(() {
+        _selectedImagePath = result.files.first.path;
+        _imageDeleted = false;
+      });
+    }
+  }
+
+  Future<void> _deleteImage() async {
+    setState(() {
+      _selectedImagePath = null;
+      _imageDeleted = true;
+    });
   }
 
   Future<void> _save() async {
@@ -1338,6 +1488,13 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
       );
 
       await SupplementsApi.updateSupplement(widget.supplement.id, dto);
+
+      // Handle image changes
+      if (_imageDeleted && _currentImageUrl != null) {
+        await SupplementsApi.deleteImage(widget.supplement.id);
+      } else if (_selectedImagePath != null) {
+        await SupplementsApi.uploadImage(widget.supplement.id, _selectedImagePath!);
+      }
 
       if (mounted) {
         Navigator.of(context).pop(true);
@@ -1419,6 +1576,62 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
                     label: 'Opis (opcionalno)',
                     maxLines: 3,
                   ),
+                  const SizedBox(height: 16),
+                  // Image section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _AppColors.panel,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: _AppColors.border),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Slika',
+                          style: TextStyle(color: _AppColors.muted, fontSize: 14),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                color: _AppColors.card,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: _buildImagePreview(),
+                            ),
+                            const SizedBox(width: 16),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                TextButton.icon(
+                                  onPressed: _pickImage,
+                                  icon: const Icon(Icons.upload, size: 18),
+                                  label: const Text('Promijeni sliku'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: _AppColors.editBlue,
+                                  ),
+                                ),
+                                if (_hasImage())
+                                  TextButton.icon(
+                                    onPressed: _deleteImage,
+                                    icon: const Icon(Icons.delete, size: 18),
+                                    label: const Text('Obriši sliku'),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: _AppColors.accent,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -1457,6 +1670,62 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
           ),
         ),
       ),
+    );
+  }
+
+  bool _hasImage() {
+    if (_selectedImagePath != null) return true;
+    if (_imageDeleted) return false;
+    return _currentImageUrl != null;
+  }
+
+  Widget _buildImagePreview() {
+    // Show newly selected image
+    if (_selectedImagePath != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.file(
+          File(_selectedImagePath!),
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Icon(
+            Icons.broken_image,
+            color: _AppColors.muted,
+            size: 32,
+          ),
+        ),
+      );
+    }
+
+    // Show placeholder if image was deleted
+    if (_imageDeleted) {
+      return const Icon(
+        Icons.image,
+        color: _AppColors.muted,
+        size: 32,
+      );
+    }
+
+    // Show current image from server
+    if (_currentImageUrl != null) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          '${ApiConfig.baseUrl}$_currentImageUrl',
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => const Icon(
+            Icons.broken_image,
+            color: _AppColors.muted,
+            size: 32,
+          ),
+        ),
+      );
+    }
+
+    // No image
+    return const Icon(
+      Icons.image,
+      color: _AppColors.muted,
+      size: 32,
     );
   }
 }

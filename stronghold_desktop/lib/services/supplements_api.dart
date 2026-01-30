@@ -131,4 +131,35 @@ class SupplementsApi {
 
     throw Exception(extractErrorMessage(res));
   }
+
+  /// Upload an image for a supplement
+  static Future<SupplementDTO> uploadImage(int id, String filePath) async {
+    final token = await TokenStorage.accessToken();
+    final request = http.MultipartRequest(
+      'POST',
+      ApiConfig.uri('/api/admin/supplements/$id/image'),
+    );
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(await http.MultipartFile.fromPath('file', filePath));
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      return SupplementDTO.fromJson(jsonDecode(response.body));
+    }
+    throw Exception(extractErrorMessage(response));
+  }
+
+  /// Delete the image for a supplement
+  static Future<void> deleteImage(int id) async {
+    final res = await http.delete(
+      ApiConfig.uri('/api/admin/supplements/$id/image'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode != 200 && res.statusCode != 204) {
+      throw Exception(extractErrorMessage(res));
+    }
+  }
 }

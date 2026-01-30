@@ -1,5 +1,6 @@
 ﻿using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.AdminSupplementsDTO;
 using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
@@ -14,11 +15,13 @@ namespace Stronghold.Infrastructure.Services
     {
         private readonly IRepository<SupplementCategory, int> _supplementCategoryRepo;
         private readonly IRepository<Supplier, int> _supplierRepo;
+        private readonly IFileStorageService _fileStorageService;
 
-        public AdminSupplementService(IRepository<SupplementCategory, int> supplementCategoryRepo,IRepository<Supplier, int> supplierRepo,IRepository<Supplement, int> repository, IMapper mapper) : base(repository, mapper)
+        public AdminSupplementService(IRepository<SupplementCategory, int> supplementCategoryRepo, IRepository<Supplier, int> supplierRepo, IRepository<Supplement, int> repository, IMapper mapper, IFileStorageService fileStorageService) : base(repository, mapper)
         {
             _supplementCategoryRepo = supplementCategoryRepo;
             _supplierRepo = supplierRepo;
+            _fileStorageService = fileStorageService;
         }
         protected override async Task BeforeCreateAsync(Supplement entity, CreateSupplementDTO dto)
         {
@@ -61,6 +64,50 @@ namespace Stronghold.Infrastructure.Services
             }
             query = query.OrderBy(x => x.CreatedAt);
             return query;
+        }
+
+        public async Task<SupplementDTO> UploadImageAsync(int supplementId, FileUploadRequest fileRequest)
+        {
+            var supplement = await _repository.AsQueryable()
+                .Include(x => x.Supplier)
+                .Include(x => x.SupplementCategory)
+                .FirstOrDefaultAsync(x => x.Id == supplementId);
+
+            if (supplement == null)
+                throw new KeyNotFoundException("Supplement nije pronađen");
+
+            if (!string.IsNullOrEmpty(supplement.SupplementImageUrl))
+            {
+                await _fileStorageService.DeleteAsync(supplement.SupplementImageUrl);
+            }
+
+            var uploadResult = await _fileStorageService.UploadAsync(fileRequest, "supplements", supplementId.ToString());
+
+            if (!uploadResult.Success)
+                throw new InvalidOperationException(uploadResult.ErrorMessage);
+
+            supplement.SupplementImageUrl = uploadResult.FileUrl;
+            await _repository.UpdateAsync(supplement);
+
+            return _mapper.Map<SupplementDTO>(supplement);
+        }
+
+        public async Task<bool> DeleteImageAsync(int supplementId)
+        {
+            var supplement = await _repository.GetByIdAsync(supplementId);
+
+            if (supplement == null)
+                throw new KeyNotFoundException("Supplement nije pronađen");
+
+            if (string.IsNullOrEmpty(supplement.SupplementImageUrl))
+                return false;
+
+            var deleted = await _fileStorageService.DeleteAsync(supplement.SupplementImageUrl);
+
+            supplement.SupplementImageUrl = null;
+            await _repository.UpdateAsync(supplement);
+
+            return deleted;
         }
     }
 }

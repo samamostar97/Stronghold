@@ -52,6 +52,11 @@ builder.Services.AddScoped<IUserOrderService, UserOrderService>();
 builder.Services.AddScoped<IUserReviewService, UserReviewService>();
 builder.Services.AddScoped<IUserSeminarService, UserSeminarService>();
 builder.Services.AddScoped<IUserAppointmentService, UserAppointmentService>();
+builder.Services.AddScoped<IFileStorageService>(sp =>
+{
+    var env = sp.GetRequiredService<IWebHostEnvironment>();
+    return new FileStorageService(env.WebRootPath ?? Path.Combine(env.ContentRootPath, "wwwroot"));
+});
 
 
 

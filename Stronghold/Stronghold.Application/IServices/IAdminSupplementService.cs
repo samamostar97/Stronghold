@@ -1,4 +1,5 @@
-﻿using Stronghold.Application.DTOs.AdminSupplementsDTO;
+﻿using Stronghold.Application.Common;
+using Stronghold.Application.DTOs.AdminSupplementsDTO;
 using Stronghold.Application.Filters;
 using Stronghold.Core.Entities;
 using System;
@@ -11,5 +12,7 @@ namespace Stronghold.Application.IServices
 {
     public interface IAdminSupplementService:IService<Supplement,SupplementDTO,CreateSupplementDTO,UpdateSupplementDTO,SupplementQueryFilter,int>
     {
+        Task<SupplementDTO> UploadImageAsync(int supplementId, FileUploadRequest fileRequest);
+        Task<bool> DeleteImageAsync(int supplementId);
     }
 }
