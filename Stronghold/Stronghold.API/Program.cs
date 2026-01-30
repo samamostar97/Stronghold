@@ -52,6 +52,8 @@ builder.Services.AddScoped<IUserOrderService, UserOrderService>();
 builder.Services.AddScoped<IUserReviewService, UserReviewService>();
 builder.Services.AddScoped<IUserSeminarService, UserSeminarService>();
 builder.Services.AddScoped<IUserAppointmentService, UserAppointmentService>();
+builder.Services.AddScoped<IUserSupplementService, UserSupplementService>();
+builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IFileStorageService>(sp =>
 {
     var env = sp.GetRequiredService<IWebHostEnvironment>();
@@ -61,17 +63,9 @@ builder.Services.AddScoped<IFileStorageService>(sp =>
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+// Configure Stripe
+Stripe.StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
+    ?? throw new InvalidOperationException("STRIPE_SECRET_KEY nije konfigurisan");
 
 // Configure JWT authentication
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")

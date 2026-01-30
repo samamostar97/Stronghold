@@ -333,7 +333,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                       Row(
                         children: [
                           Text(
-                            '${order.orderItems.length} artikl${order.orderItems.length == 1 ? '' : 'a'}',
+                            () {
+                              final totalQty = order.orderItems.fold<int>(0, (sum, item) => sum + item.quantity);
+                              return '$totalQty artikl${totalQty == 1 ? '' : 'a'}';
+                            }(),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.white.withValues(alpha: 0.5),

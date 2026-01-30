@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
+import 'config/stripe_config.dart';
 import 'screens/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Stripe
+  Stripe.publishableKey = StripeConfig.publishableKey;
 
   // Set preferred orientations for mobile
   SystemChrome.setPreferredOrientations([
