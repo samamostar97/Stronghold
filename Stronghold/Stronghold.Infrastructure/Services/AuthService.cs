@@ -120,7 +120,7 @@ public class AuthService : IAuthService
             .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
 
         if (user == null)
-            return;
+            throw new KeyNotFoundException("Korisnik sa ovim emailom ne postoji");
 
         var existingTokens = _context.PasswordResetTokens
             .Where(t => t.UserId == user.Id);

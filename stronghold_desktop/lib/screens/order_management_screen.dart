@@ -7,6 +7,7 @@ import '../services/orders_api.dart';
 import '../utils/error_handler.dart';
 import '../widgets/error_animation.dart';
 import '../widgets/success_animation.dart';
+import '../widgets/shared_admin_header.dart';
 
 class OrderManagementScreen extends StatefulWidget {
   const OrderManagementScreen({super.key});
@@ -446,9 +447,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                   itemBuilder: (context, i) => _OrderTableRow(
                     order: _orders[i],
                     isLast: i == _orders.length - 1,
-                    isDelivering: _deliveringOrders.contains(_orders[i].id),
                     onViewDetails: () => _viewOrderDetails(_orders[i]),
-                    onMarkDelivered: () => _markAsDelivered(_orders[i]),
                   ),
                 ),
               ),
@@ -487,49 +486,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 400;
-
-        return Row(
-          children: [
-            Row(
-              children: [
-                const Text('🏋️', style: TextStyle(fontSize: 32)),
-                const SizedBox(width: 10),
-                Text(
-                  'STRONGHOLD',
-                  style: TextStyle(
-                    fontSize: isCompact ? 18 : 24,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _AppColors.panel,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('👤'),
-                  SizedBox(width: 8),
-                  Text(
-                    'Admin',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
+    return const SharedAdminHeader();
   }
 }
 
@@ -774,16 +731,12 @@ class _OrderTableRow extends StatefulWidget {
   const _OrderTableRow({
     required this.order,
     required this.isLast,
-    required this.isDelivering,
     required this.onViewDetails,
-    required this.onMarkDelivered,
   });
 
   final OrderDTO order;
   final bool isLast;
-  final bool isDelivering;
   final VoidCallback onViewDetails;
-  final VoidCallback onMarkDelivered;
 
   @override
   State<_OrderTableRow> createState() => _OrderTableRowState();
@@ -811,8 +764,6 @@ class _OrderTableRowState extends State<_OrderTableRow> {
 
   @override
   Widget build(BuildContext context) {
-    final canMarkDelivered = widget.order.status != OrderStatus.delivered;
-
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -864,39 +815,6 @@ class _OrderTableRowState extends State<_OrderTableRow> {
                     color: _AppColors.editBlue,
                     onTap: widget.onViewDetails,
                   ),
-                  if (canMarkDelivered) ...[
-                    const SizedBox(width: 8),
-                    if (widget.isDelivering)
-                      const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: _AppColors.success,
-                        ),
-                      )
-                    else
-                      Tooltip(
-                        message: 'Označi kao dostavljeno',
-                        child: GestureDetector(
-                          onTap: widget.onMarkDelivered,
-                          child: Container(
-                            width: 28,
-                            height: 28,
-                            decoration: BoxDecoration(
-                              color: _AppColors.success.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: _AppColors.success),
-                            ),
-                            child: const Icon(
-                              Icons.check,
-                              color: _AppColors.success,
-                              size: 18,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
                 ],
               ),
             ),

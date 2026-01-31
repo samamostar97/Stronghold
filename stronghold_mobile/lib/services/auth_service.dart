@@ -85,7 +85,8 @@ class AuthService {
     if (response.statusCode == 200) {
       return;
     } else {
-      throw AuthException('Greska prilikom slanja koda. Pokusajte ponovo.');
+      final body = jsonDecode(response.body);
+      throw AuthException(body['error'] ?? 'Greska prilikom slanja koda. Pokusajte ponovo.');
     }
   }
 

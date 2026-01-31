@@ -7,6 +7,7 @@ import '../services/cart_service.dart';
 import '../services/user_profile_service.dart';
 import 'appointment_screen.dart';
 import 'faq_screen.dart';
+import 'leaderboard_screen.dart';
 import 'profile_settings_screen.dart';
 import 'login_screen.dart';
 import 'membership_history_screen.dart';
@@ -16,6 +17,7 @@ import 'review_history_screen.dart';
 import 'seminar_screen.dart';
 import 'supplement_shop_screen.dart';
 import 'trainer_list_screen.dart';
+import 'user_progress_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String userName;
@@ -520,6 +522,32 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: SingleChildScrollView(
                             child: Column(
                               children: [
+                                _buildQuickAccessCard(
+                                  icon: Icons.trending_up,
+                                  title: 'Personalni napredak',
+                                  subtitle: 'Prati svoj napredak i XP',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const UserProgressScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
+                                _buildQuickAccessCard(
+                                  icon: Icons.emoji_events,
+                                  title: 'Hall of Fame',
+                                  subtitle: 'Rang lista najboljih clanova',
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const LeaderboardScreen(),
+                                      ),
+                                    );
+                                  },
+                                ),
                                 _buildQuickAccessCard(
                                   icon: Icons.store_outlined,
                                   title: 'Prodavnica',

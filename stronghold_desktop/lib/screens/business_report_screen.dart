@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/business_report_dto.dart';
 import '../services/reports_api.dart';
+import '../widgets/shared_admin_header.dart';
 
 class BusinessReportScreen extends StatefulWidget {
   const BusinessReportScreen({super.key, this.onBack});
@@ -125,7 +126,7 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                    const _Header(accent: _accent, badgeColor: _badge),
+                    const _Header(),
                     const SizedBox(height: 20),
 
                     _BackButton(
@@ -245,55 +246,14 @@ class _BarData {
   });
 }
 class _Header extends StatelessWidget {
-  const _Header({required this.accent, required this.badgeColor});
-
-  final Color accent;
-  final Color badgeColor;
+  const _Header();
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Row(
-          children: [
-            Text('🏋️', style: TextStyle(fontSize: 32, color: accent)),
-            const SizedBox(width: 10),
-            const Text(
-              'STRONGHOLD',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-        const Spacer(),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: badgeColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: const Row(
-            children: [
-              Text('👤'),
-              SizedBox(width: 8),
-              Text(
-                'Admin',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
+    return const SharedAdminHeader();
   }
 }
-class _BackButton extends StatefulWidget {
+class _BackButton extends StatelessWidget {
   const _BackButton({
     required this.onTap,
     required this.accent,
@@ -305,10 +265,37 @@ class _BackButton extends StatefulWidget {
   final Color accent2;
 
   @override
-  State<_BackButton> createState() => _BackButtonState();
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: _GradientButton(
+        text: '← Nazad',
+        onTap: onTap,
+        accent: accent,
+        accent2: accent2,
+      ),
+    );
+  }
 }
 
-class _BackButtonState extends State<_BackButton> {
+class _GradientButton extends StatefulWidget {
+  const _GradientButton({
+    required this.text,
+    required this.onTap,
+    required this.accent,
+    required this.accent2,
+  });
+
+  final String text;
+  final VoidCallback onTap;
+  final Color accent;
+  final Color accent2;
+
+  @override
+  State<_GradientButton> createState() => _GradientButtonState();
+}
+
+class _GradientButtonState extends State<_GradientButton> {
   bool _hover = false;
 
   @override
@@ -330,13 +317,9 @@ class _BackButtonState extends State<_BackButton> {
             ),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: const Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('←', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-              SizedBox(width: 8),
-              Text('Nazad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
-            ],
+          child: Text(
+            widget.text,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
           ),
         ),
       ),

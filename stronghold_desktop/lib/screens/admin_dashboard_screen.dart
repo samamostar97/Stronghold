@@ -15,6 +15,7 @@ import 'package:stronghold_desktop/services/token_storage.dart';
 import 'package:stronghold_desktop/screens/login_screen.dart';
 import 'package:stronghold_desktop/screens/users_management_screen.dart';
 import 'package:stronghold_desktop/screens/membership_extension_screen.dart';
+import 'package:stronghold_desktop/screens/leaderboard_management_screen.dart';
 
 
 class AdminDashboardScreen extends StatelessWidget {
@@ -211,12 +212,20 @@ class AdminDashboardScreen extends StatelessWidget {
                           title: "Izvještaji",
                           items: const [
                             _MenuItemData(icon: "📈", text: "Biznis report"),
+                            _MenuItemData(icon: "🏆", text: "Rang lista"),
                           ],
                           onTapIndex: (i) {
                             if (i == 0) {
                               Navigator.of(context).push(
                                 MaterialPageRoute(
                                   builder: (_) => const BusinessReportScreen(),
+                                ),
+                              );
+                            }
+                            if (i == 1) {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => const LeaderboardManagementScreen(),
                                 ),
                               );
                             }

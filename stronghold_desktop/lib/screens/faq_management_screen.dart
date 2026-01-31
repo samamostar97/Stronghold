@@ -6,6 +6,7 @@ import '../services/faq_api.dart';
 import '../utils/error_handler.dart';
 import '../widgets/error_animation.dart';
 import '../widgets/success_animation.dart';
+import '../widgets/shared_admin_header.dart';
 
 class FaqManagementScreen extends StatefulWidget {
   const FaqManagementScreen({super.key});
@@ -475,49 +476,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 400;
-
-        return Row(
-          children: [
-            Row(
-              children: [
-                const Text('🏋️', style: TextStyle(fontSize: 32)),
-                const SizedBox(width: 10),
-                Text(
-                  'STRONGHOLD',
-                  style: TextStyle(
-                    fontSize: isCompact ? 18 : 24,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _AppColors.panel,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('👤'),
-                  SizedBox(width: 8),
-                  Text(
-                    'Admin',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
+    return const SharedAdminHeader();
   }
 }
 
