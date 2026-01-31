@@ -97,6 +97,7 @@ public class AuthService : IAuthService
             Email = user.Email,
             ProfileImageUrl = user.ProfileImageUrl,
             Token = token,
+            Role = user.Role.ToString(),
             HasActiveMembership = hasActiveMembership
         };
     }

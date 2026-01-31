@@ -24,6 +24,24 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [HttpPost("login/admin")]
+    public async Task<IActionResult> AdminLogin([FromBody] LoginRequest request)
+    {
+        var response = await _authService.LoginAsync(request);
+        if (response.Role != "Admin")
+            return StatusCode(403, new { error = "Pristup odbijen. Samo administratori mogu pristupiti." });
+        return Ok(response);
+    }
+
+    [HttpPost("login/member")]
+    public async Task<IActionResult> MemberLogin([FromBody] LoginRequest request)
+    {
+        var response = await _authService.LoginAsync(request);
+        if (response.Role == "Admin")
+            return StatusCode(403, new { error = "Administratori koriste desktop aplikaciju." });
+        return Ok(response);
+    }
+
     [HttpPost("register")]
     public async Task<ActionResult> Register([FromBody] RegisterRequest request)
     {

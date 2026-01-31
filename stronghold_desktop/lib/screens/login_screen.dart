@@ -62,8 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
         _isLoading = false;
         if (e.toString().contains('ACCESS_DENIED')) {
           _errorMessage = 'Pristup odbijen. Samo administratori mogu pristupiti.';
+        } else if (e.toString().contains('INVALID_CREDENTIALS')) {
+          _errorMessage = 'Neispravan username ili lozinka.';
         } else {
-          _errorMessage = 'Neuspješna prijava. Provjerite podatke.';
+          _errorMessage = 'Greška prilikom prijave. Pokušajte ponovo.';
         }
       });
     }

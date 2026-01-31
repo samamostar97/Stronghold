@@ -10,7 +10,7 @@ class AuthService {
     required String password,
   }) async {
     final response = await http.post(
-      ApiConfig.uri('/api/Auth/login'),
+      ApiConfig.uri('/api/Auth/login/member'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(LoginRequest(
         username: username,
@@ -23,6 +23,8 @@ class AuthService {
       final authResponse = AuthResponse.fromJson(data);
       await TokenStorage.saveAuthData(authResponse);
       return authResponse;
+    } else if (response.statusCode == 403) {
+      throw AuthException('Administratori koriste desktop aplikaciju.');
     } else if (response.statusCode == 401) {
       throw AuthException('Neispravan username ili lozinka');
     } else {
