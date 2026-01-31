@@ -55,6 +55,7 @@ builder.Services.AddScoped<IUserAppointmentService, UserAppointmentService>();
 builder.Services.AddScoped<IUserSupplementService, UserSupplementService>();
 builder.Services.AddScoped<ICheckoutService, CheckoutService>();
 builder.Services.AddScoped<IUserFaqService, UserFaqService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IFileStorageService>(sp =>
 {
     var env = sp.GetRequiredService<IWebHostEnvironment>();

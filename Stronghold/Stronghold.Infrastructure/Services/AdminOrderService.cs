@@ -14,11 +14,13 @@ namespace Stronghold.Infrastructure.Services
     {
         private readonly IRepository<Order, int> _repository;
         private readonly IMapper _mapper;
+        private readonly IEmailService _emailService;
 
-        public AdminOrderService(IRepository<Order, int> repository, IMapper mapper)
+        public AdminOrderService(IRepository<Order, int> repository, IMapper mapper, IEmailService emailService)
         {
             _repository = repository;
             _mapper = mapper;
+            _emailService = emailService;
         }
 
         public async Task<IEnumerable<OrdersDTO>> GetAllAsync(OrderQueryFilter? filter)
@@ -74,6 +76,23 @@ namespace Stronghold.Infrastructure.Services
 
             order.Status = OrderStatus.Delivered;
             await _repository.UpdateAsync(order);
+
+            var itemsList = string.Join("", order.OrderItems.Select(oi =>
+                $"<li>{oi.Supplement.Name} x{oi.Quantity} — {oi.UnitPrice:F2} KM</li>"));
+
+            var emailBody = $@"
+                <h2>Vaša narudžba #{order.Id} je isporučena!</h2>
+                <p>Poštovani/a {order.User.FirstName},</p>
+                <p>Vaša narudžba je uspješno isporučena.</p>
+                <h3>Detalji narudžbe:</h3>
+                <ul>{itemsList}</ul>
+                <p><strong>Ukupno: {order.TotalAmount:F2} KM</strong></p>
+                <p>Hvala Vam na povjerenju!</p>";
+
+            await _emailService.SendEmailAsync(
+                order.User.Email,
+                $"Narudžba #{order.Id} — Isporučena",
+                emailBody);
 
             return _mapper.Map<OrdersDTO>(order);
         }
