@@ -11,5 +11,7 @@ namespace Stronghold.Application.IServices
     {
         Task<IEnumerable<UserReviewsDTO>> GetReviewList(int userId);
         Task DeleteReviewAsync(int userId, int reviewId);
+        Task CreateReviewAsync(int userId, CreateReviewRequestDTO dto);
+        Task<IEnumerable<PurchasedSupplementDTO>> GetPurchasedSupplementsForReviewAsync(int userId);
     }
 }

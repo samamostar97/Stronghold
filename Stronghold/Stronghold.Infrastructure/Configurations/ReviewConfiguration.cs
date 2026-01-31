@@ -23,6 +23,6 @@ public class ReviewConfiguration : BaseEntityConfiguration<Review>
             .HasForeignKey(r => r.SupplementId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        builder.HasIndex(r => new { r.UserId, r.SupplementId }).IsUnique();
+        builder.HasIndex(r => new { r.UserId, r.SupplementId }).IsUnique().HasFilter("[IsDeleted] = 0");
     }
 }
