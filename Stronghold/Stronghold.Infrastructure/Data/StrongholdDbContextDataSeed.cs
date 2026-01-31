@@ -43,6 +43,10 @@ public static class StrongholdDbContextDataSeed
         context.GymVisits.RemoveRange(gymVisits);
         await context.SaveChangesAsync();
 
+        var passwordResetTokens = await context.PasswordResetTokens.IgnoreQueryFilters().ToListAsync();
+        context.PasswordResetTokens.RemoveRange(passwordResetTokens);
+        await context.SaveChangesAsync();
+
         var users = await context.Users.IgnoreQueryFilters().ToListAsync();
         context.Users.RemoveRange(users);
         await context.SaveChangesAsync();
@@ -95,6 +99,8 @@ public static class StrongholdDbContextDataSeed
         await SeedFAQsAsync(context);
         await SeedSeminarsAsync(context);
         await SeedUsersAsync(context);
+        await SeedGymVisitsAsync(context);
+        await SeedSeminarAttendeesAsync(context);
         await SeedMembershipsAsync(context);
         await SeedAppointmentsAsync(context);
         await SeedOrdersAsync(context);
@@ -172,43 +178,43 @@ public static class StrongholdDbContextDataSeed
         var supplements = new List<Supplement>
         {
             // Proteini
-            new() { Name = "Whey Protein Gold 2kg", Price = 89.00m, Description = "Premium whey protein izolat sa 24g proteina po porciji", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id },
-            new() { Name = "Casein Protein 1kg", Price = 65.00m, Description = "Sporo oslobađajući kazein protein idealan za noć", SupplementCategoryId = proteini, SupplierId = suppliers[1].Id },
-            new() { Name = "Vegan Protein Mix 1kg", Price = 55.00m, Description = "Biljni protein od graška i riže", SupplementCategoryId = proteini, SupplierId = suppliers[2].Id },
-            new() { Name = "Whey Isolate 1kg", Price = 75.00m, Description = "Čisti whey izolat sa minimalnim mastima i ugljikohidratima", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id },
-            new() { Name = "Egg Protein 900g", Price = 60.00m, Description = "Protein iz jaja, odličan za one sa intolerancijom na laktozu", SupplementCategoryId = proteini, SupplierId = suppliers[3].Id },
+            new() { Name = "Whey Protein Gold 2kg", Price = 89.00m, Description = "Premium whey protein izolat sa 24g proteina po porciji", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/whey-protein-gold.png" },
+            new() { Name = "Casein Protein 1kg", Price = 65.00m, Description = "Sporo oslobađajući kazein protein idealan za noć", SupplementCategoryId = proteini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/casein-protein.png" },
+            new() { Name = "Vegan Protein Mix 1kg", Price = 55.00m, Description = "Biljni protein od graška i riže", SupplementCategoryId = proteini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/vegan-protein-mix.png" },
+            new() { Name = "Whey Isolate 1kg", Price = 75.00m, Description = "Čisti whey izolat sa minimalnim mastima i ugljikohidratima", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/whey-isolate.png" },
+            new() { Name = "Egg Protein 900g", Price = 60.00m, Description = "Protein iz jaja, odličan za one sa intolerancijom na laktozu", SupplementCategoryId = proteini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/egg-protein.png" },
 
             // Kreatin
-            new() { Name = "Kreatin Monohidrat 500g", Price = 35.00m, Description = "Čisti kreatin monohidrat za povećanje snage", SupplementCategoryId = kreatin, SupplierId = suppliers[1].Id },
-            new() { Name = "Kreatin HCL 120 kapsula", Price = 45.00m, Description = "Kreatin hidrohlorid za bolju apsorpciju", SupplementCategoryId = kreatin, SupplierId = suppliers[4].Id },
-            new() { Name = "Kre-Alkalyn 120 kapsula", Price = 50.00m, Description = "Puferovani kreatin bez potrebe za fazom punjenja", SupplementCategoryId = kreatin, SupplierId = suppliers[5].Id },
-            new() { Name = "Kreatin Monohidrat 1kg", Price = 55.00m, Description = "Ekonomično pakovanje kreatina za dugoročnu upotrebu", SupplementCategoryId = kreatin, SupplierId = suppliers[2].Id },
+            new() { Name = "Kreatin Monohidrat 500g", Price = 35.00m, Description = "Čisti kreatin monohidrat za povećanje snage", SupplementCategoryId = kreatin, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/kreatin-monohidrat-500.png" },
+            new() { Name = "Kreatin HCL 120 kapsula", Price = 45.00m, Description = "Kreatin hidrohlorid za bolju apsorpciju", SupplementCategoryId = kreatin, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/kreatin-hcl.png" },
+            new() { Name = "Kre-Alkalyn 120 kapsula", Price = 50.00m, Description = "Puferovani kreatin bez potrebe za fazom punjenja", SupplementCategoryId = kreatin, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/kre-alkalyn.png" },
+            new() { Name = "Kreatin Monohidrat 1kg", Price = 55.00m, Description = "Ekonomično pakovanje kreatina za dugoročnu upotrebu", SupplementCategoryId = kreatin, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/kreatin-monohidrat-1kg.png" },
 
             // Aminokiseline
-            new() { Name = "BCAA 2:1:1 400g", Price = 40.00m, Description = "Razgranati aminokiselinski lanac za oporavak mišića", SupplementCategoryId = amino, SupplierId = suppliers[0].Id },
-            new() { Name = "EAA 350g", Price = 48.00m, Description = "Esencijalne aminokiseline za kompletnu podršku mišićima", SupplementCategoryId = amino, SupplierId = suppliers[3].Id },
-            new() { Name = "Glutamin 500g", Price = 38.00m, Description = "L-Glutamin za oporavak i imunitet", SupplementCategoryId = amino, SupplierId = suppliers[1].Id },
-            new() { Name = "L-Karnitin 1000ml", Price = 32.00m, Description = "Tečni L-karnitin za sagorijevanje masti", SupplementCategoryId = amino, SupplierId = suppliers[4].Id },
-            new() { Name = "Beta Alanin 300g", Price = 35.00m, Description = "Za povećanje izdržljivosti tokom treninga", SupplementCategoryId = amino, SupplierId = suppliers[5].Id },
+            new() { Name = "BCAA 2:1:1 400g", Price = 40.00m, Description = "Razgranati aminokiselinski lanac za oporavak mišića", SupplementCategoryId = amino, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/bcaa.png" },
+            new() { Name = "EAA 350g", Price = 48.00m, Description = "Esencijalne aminokiseline za kompletnu podršku mišićima", SupplementCategoryId = amino, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/eaa.png" },
+            new() { Name = "Glutamin 500g", Price = 38.00m, Description = "L-Glutamin za oporavak i imunitet", SupplementCategoryId = amino, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/glutamin.png" },
+            new() { Name = "L-Karnitin 1000ml", Price = 32.00m, Description = "Tečni L-karnitin za sagorijevanje masti", SupplementCategoryId = amino, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/l-karnitin.png" },
+            new() { Name = "Beta Alanin 300g", Price = 35.00m, Description = "Za povećanje izdržljivosti tokom treninga", SupplementCategoryId = amino, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/beta-alanin.png" },
 
             // Vitamini i minerali
-            new() { Name = "Multivitamin kompleks 60 tableta", Price = 25.00m, Description = "Kompletan multivitamin za sportiste", SupplementCategoryId = vitamini, SupplierId = suppliers[2].Id },
-            new() { Name = "Vitamin D3 5000IU 120 kapsula", Price = 18.00m, Description = "Vitamin D3 za kosti i imunitet", SupplementCategoryId = vitamini, SupplierId = suppliers[0].Id },
-            new() { Name = "Omega 3 120 kapsula", Price = 28.00m, Description = "Riblje ulje sa EPA i DHA", SupplementCategoryId = vitamini, SupplierId = suppliers[1].Id },
-            new() { Name = "ZMA 90 kapsula", Price = 22.00m, Description = "Cink, magnezijum i vitamin B6 za bolji san i oporavak", SupplementCategoryId = vitamini, SupplierId = suppliers[3].Id },
-            new() { Name = "Magnezijum Citrat 120 tableta", Price = 15.00m, Description = "Magnezijum za mišiće i nervni sistem", SupplementCategoryId = vitamini, SupplierId = suppliers[4].Id },
+            new() { Name = "Multivitamin kompleks 60 tableta", Price = 25.00m, Description = "Kompletan multivitamin za sportiste", SupplementCategoryId = vitamini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/multivitamin.png" },
+            new() { Name = "Vitamin D3 5000IU 120 kapsula", Price = 18.00m, Description = "Vitamin D3 za kosti i imunitet", SupplementCategoryId = vitamini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/vitamin-d3.png" },
+            new() { Name = "Omega 3 120 kapsula", Price = 28.00m, Description = "Riblje ulje sa EPA i DHA", SupplementCategoryId = vitamini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/omega-3.png" },
+            new() { Name = "ZMA 90 kapsula", Price = 22.00m, Description = "Cink, magnezijum i vitamin B6 za bolji san i oporavak", SupplementCategoryId = vitamini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/zma.png" },
+            new() { Name = "Magnezijum Citrat 120 tableta", Price = 15.00m, Description = "Magnezijum za mišiće i nervni sistem", SupplementCategoryId = vitamini, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/magnezijum-citrat.png" },
 
             // Pre-workout
-            new() { Name = "Pre-Workout Extreme 300g", Price = 42.00m, Description = "Snažna pre-workout formula sa kofeinom i beta alaninom", SupplementCategoryId = preworkout, SupplierId = suppliers[5].Id },
-            new() { Name = "Pump Matrix 350g", Price = 38.00m, Description = "Pre-workout bez stimulansa za bolju pumpu", SupplementCategoryId = preworkout, SupplierId = suppliers[0].Id },
-            new() { Name = "Energy Boost 250g", Price = 30.00m, Description = "Lagani pre-workout za početnike", SupplementCategoryId = preworkout, SupplierId = suppliers[2].Id },
-            new() { Name = "Nitric Oxide Booster 200g", Price = 35.00m, Description = "Za poboljšanje protoka krvi i izdržljivosti", SupplementCategoryId = preworkout, SupplierId = suppliers[1].Id },
+            new() { Name = "Pre-Workout Extreme 300g", Price = 42.00m, Description = "Snažna pre-workout formula sa kofeinom i beta alaninom", SupplementCategoryId = preworkout, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/pre-workout-extreme.png" },
+            new() { Name = "Pump Matrix 350g", Price = 38.00m, Description = "Pre-workout bez stimulansa za bolju pumpu", SupplementCategoryId = preworkout, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/pump-matrix.png" },
+            new() { Name = "Energy Boost 250g", Price = 30.00m, Description = "Lagani pre-workout za početnike", SupplementCategoryId = preworkout, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/energy-boost.png" },
+            new() { Name = "Nitric Oxide Booster 200g", Price = 35.00m, Description = "Za poboljšanje protoka krvi i izdržljivosti", SupplementCategoryId = preworkout, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/nitric-oxide-booster.png" },
 
             // Mass gaineri
-            new() { Name = "Mass Gainer 3kg", Price = 70.00m, Description = "Visokokalorični gainer za povećanje mase", SupplementCategoryId = gaineri, SupplierId = suppliers[3].Id },
-            new() { Name = "Serious Mass 2.7kg", Price = 65.00m, Description = "Gainer sa kompleksnim ugljikohidratima", SupplementCategoryId = gaineri, SupplierId = suppliers[4].Id },
-            new() { Name = "Clean Gainer 2kg", Price = 58.00m, Description = "Gainer sa manje šećera i više proteina", SupplementCategoryId = gaineri, SupplierId = suppliers[5].Id },
-            new() { Name = "Weight Gainer Pro 4kg", Price = 85.00m, Description = "Profesionalni gainer za hard gainere", SupplementCategoryId = gaineri, SupplierId = suppliers[0].Id }
+            new() { Name = "Mass Gainer 3kg", Price = 70.00m, Description = "Visokokalorični gainer za povećanje mase", SupplementCategoryId = gaineri, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/mass-gainer.png" },
+            new() { Name = "Serious Mass 2.7kg", Price = 65.00m, Description = "Gainer sa kompleksnim ugljikohidratima", SupplementCategoryId = gaineri, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/serious-mass.png" },
+            new() { Name = "Clean Gainer 2kg", Price = 58.00m, Description = "Gainer sa manje šećera i više proteina", SupplementCategoryId = gaineri, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/clean-gainer.png" },
+            new() { Name = "Weight Gainer Pro 4kg", Price = 85.00m, Description = "Profesionalni gainer za hard gainere", SupplementCategoryId = gaineri, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/weight-gainer-pro.png" }
         };
 
         await context.Supplements.AddRangeAsync(supplements);
@@ -537,6 +543,107 @@ public static class StrongholdDbContextDataSeed
         };
 
         await context.Reviews.AddRangeAsync(reviews);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedGymVisitsAsync(StrongholdDbContext context)
+    {
+        if (await context.GymVisits.AnyAsync()) return;
+
+        var users = await context.Users.Where(u => u.Role == Role.GymMember).ToListAsync();
+        var haris = users.First(u => u.FirstName == "Haris");
+        var amela = users.First(u => u.FirstName == "Amela");
+        var dino = users.First(u => u.FirstName == "Dino");
+        var lejla = users.First(u => u.FirstName == "Lejla");
+        var armin = users.First(u => u.FirstName == "Armin");
+        var naida = users.First(u => u.FirstName == "Naida");
+
+        var now = DateTime.UtcNow;
+        var gymVisits = new List<GymVisit>();
+
+        // Helper to add a visit with check-in at a given date/hour and a duration in minutes
+        void AddVisit(int userId, DateTime date, int startHour, int durationMinutes)
+        {
+            var checkIn = date.Date.AddHours(startHour);
+            gymVisits.Add(new GymVisit
+            {
+                UserId = userId,
+                CheckInTime = checkIn,
+                CheckOutTime = checkIn.AddMinutes(durationMinutes)
+            });
+        }
+
+        // Generate visits for the last 45 days
+        for (int daysAgo = 45; daysAgo >= 0; daysAgo--)
+        {
+            var date = now.AddDays(-daysAgo);
+            var dayOfWeek = date.DayOfWeek;
+
+            // Haris: ~5-6 visits/week, 1.5-2h each (skips ~1 day/week, usually Sunday)
+            if (dayOfWeek != DayOfWeek.Sunday || daysAgo % 3 == 0)
+                AddVisit(haris.Id, date, 7, 90 + (daysAgo % 4) * 10); // 90-120 min
+
+            // Amela: ~4 visits/week, 1-1.5h each (skips Wed, Sat, sometimes Sun)
+            if (dayOfWeek != DayOfWeek.Wednesday && dayOfWeek != DayOfWeek.Saturday && dayOfWeek != DayOfWeek.Sunday)
+                AddVisit(amela.Id, date, 17, 60 + (daysAgo % 3) * 15); // 60-90 min
+
+            // Dino: ~3-4 visits/week, 1-2h each (Mon, Tue, Thu, Sat)
+            if (dayOfWeek is DayOfWeek.Monday or DayOfWeek.Tuesday or DayOfWeek.Thursday or DayOfWeek.Saturday)
+                AddVisit(dino.Id, date, 18, 60 + (daysAgo % 5) * 15); // 60-120 min
+
+            // Lejla: ~2-3 visits/week, 1h each (Mon, Wed, Fri but sometimes skips Fri)
+            if (dayOfWeek == DayOfWeek.Monday || dayOfWeek == DayOfWeek.Wednesday ||
+                (dayOfWeek == DayOfWeek.Friday && daysAgo % 3 != 0))
+                AddVisit(lejla.Id, date, 10, 55 + (daysAgo % 2) * 10); // 55-65 min
+
+            // Armin: ~1-2 visits/week, 0.5-1h each (scattered, mostly Tue and Sat)
+            if ((dayOfWeek == DayOfWeek.Tuesday && daysAgo % 2 == 0) ||
+                (dayOfWeek == DayOfWeek.Saturday))
+                AddVisit(armin.Id, date, 20, 30 + (daysAgo % 4) * 10); // 30-60 min
+
+            // Naida: ~4-5 visits/week, 1-1.5h each (skips Thu and sometimes Sun)
+            if (dayOfWeek != DayOfWeek.Thursday && (dayOfWeek != DayOfWeek.Sunday || daysAgo % 2 == 0))
+                AddVisit(naida.Id, date, 8, 60 + (daysAgo % 3) * 15); // 60-90 min
+        }
+
+        await context.GymVisits.AddRangeAsync(gymVisits);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedSeminarAttendeesAsync(StrongholdDbContext context)
+    {
+        if (await context.SeminarAttendees.AnyAsync()) return;
+
+        var users = await context.Users.Where(u => u.Role == Role.GymMember).ToListAsync();
+        var seminars = await context.Seminars.ToListAsync();
+
+        var attendees = new List<SeminarAttendee>();
+
+        // Seminar 0: 3 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-5) });
+        attendees.Add(new SeminarAttendee { UserId = users[1].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-4) });
+        attendees.Add(new SeminarAttendee { UserId = users[5].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-3) });
+
+        // Seminar 1: 4 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-4) });
+        attendees.Add(new SeminarAttendee { UserId = users[2].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-3) });
+        attendees.Add(new SeminarAttendee { UserId = users[3].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
+        attendees.Add(new SeminarAttendee { UserId = users[4].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+
+        // Seminar 2: 2 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[1].Id, SeminarId = seminars[2].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
+        attendees.Add(new SeminarAttendee { UserId = users[3].Id, SeminarId = seminars[2].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+
+        // Seminar 3: 3 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[2].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-3) });
+        attendees.Add(new SeminarAttendee { UserId = users[4].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
+        attendees.Add(new SeminarAttendee { UserId = users[5].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+
+        // Seminar 4: 2 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[4].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[5].Id, SeminarId = seminars[4].Id, RegisteredAt = DateTime.UtcNow });
+
+        await context.SeminarAttendees.AddRangeAsync(attendees);
         await context.SaveChangesAsync();
     }
 }

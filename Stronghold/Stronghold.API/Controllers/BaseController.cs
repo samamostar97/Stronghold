@@ -30,8 +30,6 @@ namespace Stronghold.API.Controllers
         public virtual async Task<ActionResult<TDto>> GetById(TKey id)
         {
             var result = await _service.GetByIdAsync(id);
-            if(result == null)
-                return NotFound();
             return Ok(result);
         }
         [HttpPost]
@@ -47,7 +45,6 @@ namespace Stronghold.API.Controllers
         public virtual async Task<ActionResult<TDto>> Update(TKey id, [FromBody] TUpdateDto dto)
         {
             var result = await _service.UpdateAsync(id, dto);
-            if (result is null) return NotFound();
             return Ok(result);
         }
         [HttpDelete("{id}")]

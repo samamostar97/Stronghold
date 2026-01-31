@@ -5,8 +5,8 @@ namespace Stronghold.Application.IServices;
 
 public interface IUserProfileService
 {
-    Task<UserProfileDTO?> GetProfileAsync(int userId);
+    Task<UserProfileDTO> GetProfileAsync(int userId);
     Task<bool> UpdateProfilePictureAsync(int userId, string? imageUrl);
-    Task<string?> UploadProfilePictureAsync(int userId, FileUploadRequest fileRequest);
-    Task<bool> DeleteProfilePictureAsync(int userId);
+    Task<string> UploadProfilePictureAsync(int userId, FileUploadRequest fileRequest);
+    Task DeleteProfilePictureAsync(int userId);
 }

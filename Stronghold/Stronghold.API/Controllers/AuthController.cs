@@ -21,10 +21,6 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var response = await _authService.LoginAsync(request);
-
-        if (response == null)
-            return Unauthorized(new { message = "Neispravan username ili password" });
-
         return Ok(response);
     }
 

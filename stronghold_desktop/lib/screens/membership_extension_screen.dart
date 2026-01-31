@@ -306,10 +306,8 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(child: _buildTable(constraints)),
-        if (_totalPages > 1) ...[
-          const SizedBox(height: 20),
-          _buildPagination(constraints),
-        ],
+        const SizedBox(height: 16),
+        _buildPaginationControls(),
       ],
     );
   }
@@ -399,79 +397,90 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
     );
   }
 
-  Widget _buildPagination(BoxConstraints constraints) {
-    final isNarrow = constraints.maxWidth < 500;
-
-    if (isNarrow) {
-      return Column(
-        children: [
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _PaginationButton(
-                  icon: Icons.chevron_left,
-                  enabled: _currentPage > 1,
-                  onTap: () => _goToPage(_currentPage - 1),
-                ),
-                const SizedBox(width: 8),
-                for (int i = 1; i <= _totalPages; i++) ...[
-                  _PaginationNumber(
-                    number: i,
-                    isActive: i == _currentPage,
-                    onTap: () => _goToPage(i),
-                  ),
-                  if (i < _totalPages) const SizedBox(width: 4),
-                ],
-                const SizedBox(width: 8),
-                _PaginationButton(
-                  icon: Icons.chevron_right,
-                  enabled: _currentPage < _totalPages,
-                  onTap: () => _goToPage(_currentPage + 1),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Ukupno: $_totalCount',
-            style: const TextStyle(color: _AppColors.muted, fontSize: 14),
-          ),
-        ],
-      );
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildPaginationControls() {
+    return Column(
       children: [
-        _PaginationButton(
-          icon: Icons.chevron_left,
-          enabled: _currentPage > 1,
-          onTap: () => _goToPage(_currentPage - 1),
-        ),
-        const SizedBox(width: 8),
-        for (int i = 1; i <= _totalPages; i++) ...[
-          _PaginationNumber(
-            number: i,
-            isActive: i == _currentPage,
-            onTap: () => _goToPage(i),
-          ),
-          if (i < _totalPages) const SizedBox(width: 4),
-        ],
-        const SizedBox(width: 8),
-        _PaginationButton(
-          icon: Icons.chevron_right,
-          enabled: _currentPage < _totalPages,
-          onTap: () => _goToPage(_currentPage + 1),
-        ),
-        const SizedBox(width: 16),
         Text(
-          'Ukupno: $_totalCount',
+          'Ukupno: $_totalCount | Stranica $_currentPage od $_totalPages',
           style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _PaginationButton(
+              text: '←',
+              enabled: _currentPage > 1,
+              onTap: () => _goToPage(_currentPage - 1),
+            ),
+            const SizedBox(width: 8),
+            ..._buildPageNumbers(),
+            const SizedBox(width: 8),
+            _PaginationButton(
+              text: '→',
+              enabled: _currentPage < _totalPages,
+              onTap: () => _goToPage(_currentPage + 1),
+            ),
+          ],
         ),
       ],
     );
+  }
+
+  List<Widget> _buildPageNumbers() {
+    final List<Widget> pageButtons = [];
+
+    // Show first page
+    if (_currentPage > 3) {
+      pageButtons.add(_PaginationButton(
+        text: '1',
+        enabled: true,
+        isActive: false,
+        onTap: () => _goToPage(1),
+      ));
+      if (_currentPage > 4) {
+        pageButtons.add(const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4),
+          child: Text('...', style: TextStyle(color: _AppColors.muted)),
+        ));
+      }
+      pageButtons.add(const SizedBox(width: 4));
+    }
+
+    // Show pages around current page
+    for (int i = _currentPage - 2; i <= _currentPage + 2; i++) {
+      if (i >= 1 && i <= _totalPages) {
+        pageButtons.add(_PaginationButton(
+          text: i.toString(),
+          enabled: true,
+          isActive: i == _currentPage,
+          onTap: () => _goToPage(i),
+        ));
+        if (i < _currentPage + 2 && i < _totalPages) {
+          pageButtons.add(const SizedBox(width: 4));
+        }
+      }
+    }
+
+    // Show last page
+    if (_currentPage < _totalPages - 2) {
+      pageButtons.add(const SizedBox(width: 4));
+      if (_currentPage < _totalPages - 3) {
+        pageButtons.add(const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 4),
+          child: Text('...', style: TextStyle(color: _AppColors.muted)),
+        ));
+      }
+      pageButtons.add(_PaginationButton(
+        text: _totalPages.toString(),
+        enabled: true,
+        isActive: false,
+        onTap: () => _goToPage(_totalPages),
+      ));
+    }
+
+    return pageButtons;
   }
 }
 
@@ -847,63 +856,53 @@ class _DataCell extends StatelessWidget {
 // PAGINATION WIDGETS
 // ─────────────────────────────────────────────────────────────────────────────
 
-class _PaginationButton extends StatelessWidget {
+class _PaginationButton extends StatefulWidget {
   const _PaginationButton({
-    required this.icon,
+    required this.text,
     required this.enabled,
     required this.onTap,
+    this.isActive = false,
   });
 
-  final IconData icon;
+  final String text;
   final bool enabled;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: enabled ? _AppColors.panel : _AppColors.panel.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(
-          icon,
-          size: 20,
-          color: enabled ? Colors.white : _AppColors.muted,
-        ),
-      ),
-    );
-  }
-}
-
-class _PaginationNumber extends StatelessWidget {
-  const _PaginationNumber({
-    required this.number,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  final int number;
   final bool isActive;
   final VoidCallback onTap;
 
   @override
+  State<_PaginationButton> createState() => _PaginationButtonState();
+}
+
+class _PaginationButtonState extends State<_PaginationButton> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? _AppColors.accent : _AppColors.panel,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Text(
-          '$number',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        onTap: widget.enabled ? widget.onTap : null,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: widget.isActive
+                ? _AppColors.accent
+                : widget.enabled && _hover
+                    ? _AppColors.panel
+                    : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: widget.enabled ? _AppColors.border : _AppColors.muted.withValues(alpha: 0.3),
+            ),
+          ),
+          child: Text(
+            widget.text,
+            style: TextStyle(
+              color: widget.enabled ? Colors.white : _AppColors.muted.withValues(alpha: 0.5),
+              fontSize: 14,
+              fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w500,
+            ),
           ),
         ),
       ),

@@ -17,7 +17,7 @@ public class UserProfileService : IUserProfileService
         _fileStorageService = fileStorageService;
     }
 
-    public async Task<UserProfileDTO?> GetProfileAsync(int userId)
+    public async Task<UserProfileDTO> GetProfileAsync(int userId)
     {
         var user = await _context.Users
             .Where(u => u.Id == userId)
@@ -33,6 +33,9 @@ public class UserProfileService : IUserProfileService
             })
             .FirstOrDefaultAsync();
 
+        if (user == null)
+            throw new KeyNotFoundException("Korisnik nije pronađen");
+
         return user;
     }
 
@@ -47,11 +50,11 @@ public class UserProfileService : IUserProfileService
         return true;
     }
 
-    public async Task<string?> UploadProfilePictureAsync(int userId, FileUploadRequest fileRequest)
+    public async Task<string> UploadProfilePictureAsync(int userId, FileUploadRequest fileRequest)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
-            return null;
+            throw new KeyNotFoundException("Korisnik nije pronađen");
 
         if (!string.IsNullOrEmpty(user.ProfileImageUrl))
         {
@@ -66,23 +69,21 @@ public class UserProfileService : IUserProfileService
         user.ProfileImageUrl = uploadResult.FileUrl;
         await _context.SaveChangesAsync();
 
-        return uploadResult.FileUrl;
+        return uploadResult.FileUrl!;
     }
 
-    public async Task<bool> DeleteProfilePictureAsync(int userId)
+    public async Task DeleteProfilePictureAsync(int userId)
     {
         var user = await _context.Users.FindAsync(userId);
         if (user == null)
-            return false;
+            throw new KeyNotFoundException("Korisnik nije pronađen");
 
         if (string.IsNullOrEmpty(user.ProfileImageUrl))
-            return true;
+            return;
 
         await _fileStorageService.DeleteAsync(user.ProfileImageUrl);
 
         user.ProfileImageUrl = null;
         await _context.SaveChangesAsync();
-
-        return true;
     }
 }

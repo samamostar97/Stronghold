@@ -104,10 +104,10 @@ class AppointmentService {
       throw Exception('Sesija je istekla. Prijavite se ponovo.');
     } else if (response.statusCode == 409) {
       final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Vec imate zakazan termin za taj dan');
+      throw Exception(body['error'] ?? 'Vec imate zakazan termin za taj dan');
     }else if (response.statusCode ==400){
       final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Trener nije dostupan u odabranom terminu');
+      throw Exception(body['error'] ?? 'Trener nije dostupan u odabranom terminu');
     }
      else {
       throw Exception('Greska prilikom zakazivanja termina');
@@ -138,10 +138,10 @@ class AppointmentService {
       throw Exception('Sesija je istekla. Prijavite se ponovo.');
     } else if (response.statusCode == 409) {
       final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Vec imate zakazan termin za taj dan');
+      throw Exception(body['error'] ?? 'Vec imate zakazan termin za taj dan');
     } else if (response.statusCode ==400){
       final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Nutricionist nije dostupan u odabranom terminu');
+      throw Exception(body['error'] ?? 'Nutricionist nije dostupan u odabranom terminu');
     }
     else {
       throw Exception('Greska prilikom zakazivanja termina');
@@ -194,7 +194,7 @@ class AppointmentService {
       throw Exception('Termin ne postoji');
     } else if (response.statusCode == 400) {
       final body = jsonDecode(response.body);
-      throw Exception(body['message'] ?? 'Nemoguce otkazati termin');
+      throw Exception(body['error'] ?? 'Nemoguce otkazati termin');
     } else {
       throw Exception('Greska prilikom otkazivanja termina');
     }

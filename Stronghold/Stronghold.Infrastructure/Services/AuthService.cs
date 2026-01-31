@@ -43,13 +43,13 @@ public class AuthService : IAuthService
 
         return Task.FromResult(isAdmin);
     }
-    public async Task<AuthResponse?> LoginAsync(LoginRequest request)
+    public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Username == request.Username);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            return null;
+            throw new UnauthorizedAccessException("Neispravan username ili password");
 
         return await GenerateAuthResponseAsync(user);
     }

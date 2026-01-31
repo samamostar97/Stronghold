@@ -82,8 +82,8 @@ class ReviewService {
       throw Exception('Sesija je istekla. Prijavite se ponovo.');
     } else {
       final body = jsonDecode(response.body);
-      final message = body is Map && body.containsKey('message')
-          ? body['message']
+      final message = body is Map && body.containsKey('error')
+          ? body['error']
           : 'Greska prilikom kreiranja recenzije';
       throw Exception(message);
     }

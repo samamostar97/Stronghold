@@ -29,8 +29,6 @@ namespace Stronghold.API.Controllers
         public async Task<ActionResult<ReviewDTO>> DeleteReview(int id)
         {
             var result = await _service.DeleteReviewAsync(id);
-            if (result == null)
-                return NotFound();
             return Ok(result);
         }
     }

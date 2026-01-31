@@ -59,7 +59,7 @@ class UserProfileService {
     }
   }
 
-  static Future<Map<String, dynamic>?> getProfile() async {
+  static Future<Map<String, dynamic>> getProfile() async {
     final token = await TokenStorage.getToken();
     if (token == null) {
       throw Exception('Niste prijavljeni');
@@ -74,7 +74,12 @@ class UserProfileService {
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
+    } else if (response.statusCode == 401) {
+      throw Exception('Sesija je istekla. Prijavite se ponovo.');
+    } else if (response.statusCode == 404) {
+      throw Exception('Profil nije pronađen');
+    } else {
+      throw Exception('Greska prilikom ucitavanja profila');
     }
-    return null;
   }
 }

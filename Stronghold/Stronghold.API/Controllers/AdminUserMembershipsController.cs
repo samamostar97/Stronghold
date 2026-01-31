@@ -21,9 +21,6 @@ namespace Stronghold.API.Controllers
         [HttpPost]
         public async Task<ActionResult<MembershipDTO>> AssignMembershipAsync([FromBody]AssignMembershipRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             var result = await _adminMembershipService.AssignMembership(request);
             return Ok(result);
         }

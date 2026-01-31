@@ -35,9 +35,6 @@ public class UserProfileController : UserControllerBase
         };
 
         var imageUrl = await _profileService.UploadProfilePictureAsync(userId.Value, fileRequest);
-        if (imageUrl == null)
-            return BadRequest("Greska prilikom azuriranja slike");
-
         return Ok(new { profileImageUrl = imageUrl });
     }
 
@@ -47,10 +44,7 @@ public class UserProfileController : UserControllerBase
         var userId = GetCurrentUserId();
         if (userId == null) return Unauthorized();
 
-        var success = await _profileService.DeleteProfilePictureAsync(userId.Value);
-        if (!success)
-            return BadRequest("Greska prilikom brisanja slike");
-
+        await _profileService.DeleteProfilePictureAsync(userId.Value);
         return Ok();
     }
 
@@ -61,9 +55,6 @@ public class UserProfileController : UserControllerBase
         if (userId == null) return Unauthorized();
 
         var profile = await _profileService.GetProfileAsync(userId.Value);
-        if (profile == null)
-            return NotFound();
-
         return Ok(profile);
     }
 }
