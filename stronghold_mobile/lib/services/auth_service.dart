@@ -78,6 +78,52 @@ class AuthService {
   static Future<void> logout() async {
     await TokenStorage.clear();
   }
+
+  static Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final token = await TokenStorage.getToken();
+    if (token == null) {
+      throw AuthException('Niste prijavljeni');
+    }
+
+    final response = await http.put(
+      ApiConfig.uri('/api/Auth/change-password'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 401) {
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final errorMessage = data['error'] as String? ?? 'Trenutna lozinka nije ispravna';
+        throw AuthException(errorMessage);
+      } catch (e) {
+        if (e is AuthException) rethrow;
+        throw AuthException('Trenutna lozinka nije ispravna');
+      }
+    } else if (response.statusCode == 400) {
+      try {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final errorMessage = data['error'] as String? ?? 'Neispravni podaci';
+        throw AuthException(errorMessage);
+      } catch (e) {
+        if (e is AuthException) rethrow;
+        throw AuthException('Neispravni podaci. Provjerite unos.');
+      }
+    } else {
+      throw AuthException('Greska prilikom promjene lozinke. Pokusajte ponovo.');
+    }
+  }
 }
 
 class AuthException implements Exception {

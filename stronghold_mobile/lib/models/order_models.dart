@@ -57,16 +57,10 @@ class Order {
 
   String get statusNameBosnian {
     switch (statusName.toLowerCase()) {
-      case 'pending':
-        return 'Na čekanju';
       case 'processing':
         return 'U obradi';
-      case 'shipped':
-        return 'Poslano';
       case 'delivered':
         return 'Dostavljeno';
-      case 'cancelled':
-        return 'Otkazano';
       default:
         return statusName;
     }

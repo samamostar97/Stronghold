@@ -7,6 +7,7 @@ import '../services/cart_service.dart';
 import '../services/user_profile_service.dart';
 import 'appointment_screen.dart';
 import 'faq_screen.dart';
+import 'profile_settings_screen.dart';
 import 'login_screen.dart';
 import 'membership_history_screen.dart';
 import 'nutritionist_list_screen.dart';
@@ -468,7 +469,12 @@ class _HomeScreenState extends State<HomeScreen> {
                           // Settings button
                           IconButton(
                             onPressed: () {
-                              // TODO: Navigate to settings
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const ProfileSettingsScreen(),
+                                ),
+                              );
                             },
                             icon: Icon(
                               Icons.settings_outlined,

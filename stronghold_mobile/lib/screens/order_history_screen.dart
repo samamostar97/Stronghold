@@ -56,15 +56,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Color _getStatusBackgroundColor(String statusName) {
     switch (statusName.toLowerCase()) {
-      case 'pending':
-        return Colors.white.withValues(alpha: 0.1);
       case 'processing':
-      case 'shipped':
         return const Color(0xFFFF9800).withValues(alpha: 0.2);
       case 'delivered':
         return const Color(0xFF4CAF50).withValues(alpha: 0.2);
-      case 'cancelled':
-        return const Color(0xFFe63946).withValues(alpha: 0.2);
       default:
         return Colors.white.withValues(alpha: 0.1);
     }
@@ -72,15 +67,10 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   Color _getStatusTextColor(String statusName) {
     switch (statusName.toLowerCase()) {
-      case 'pending':
-        return Colors.white.withValues(alpha: 0.7);
       case 'processing':
-      case 'shipped':
         return const Color(0xFFFF9800);
       case 'delivered':
         return const Color(0xFF4CAF50);
-      case 'cancelled':
-        return const Color(0xFFe63946);
       default:
         return Colors.white.withValues(alpha: 0.7);
     }

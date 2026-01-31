@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.DTOs.Auth;
 using Stronghold.Application.IServices;
 
@@ -32,5 +34,17 @@ public class AuthController : ControllerBase
         var response = await _authService.RegisterAsync(request);
 
         return CreatedAtAction(nameof(Login), response);
+    }
+
+    [Authorize]
+    [HttpPut("change-password")]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
+            return Unauthorized(new { message = "Nevalidan token" });
+
+        await _authService.ChangePasswordAsync(userId, request);
+        return Ok(new { message = "Lozinka uspješno promijenjena" });
     }
 }

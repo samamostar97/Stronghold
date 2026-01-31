@@ -70,7 +70,7 @@ namespace Stronghold.Infrastructure.Services
                 };
                 return query;
             }
-            query.OrderBy(x=> x.CreatedAt);
+            query = query.OrderBy(x=> x.CreatedAt);
             return query;
 
         }
