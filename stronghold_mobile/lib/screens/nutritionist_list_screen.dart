@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/appointment_models.dart';
 import '../services/appointment_service.dart';
+import '../widgets/app_error_state.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_loading_indicator.dart';
 import 'book_appointment_screen.dart';
 
 class NutritionistListScreen extends StatefulWidget {
@@ -83,96 +86,21 @@ class _NutritionistListScreenState extends State<NutritionistListScreen> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFFe63946),
-        ),
-      );
+      return const AppLoadingIndicator();
     }
 
     if (_error != null) {
-      return _buildErrorState();
+      return AppErrorState(message: _error!, onRetry: _loadNutritionists);
     }
 
     if (_nutritionists == null || _nutritionists!.isEmpty) {
-      return _buildEmptyState();
+      return const AppEmptyState(
+        icon: Icons.restaurant_menu,
+        title: 'Nema dostupnih nutricionista',
+      );
     }
 
     return _buildNutritionistList();
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: _loadNutritionists,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFe63946),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Pokusaj ponovo',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.restaurant_menu,
-              size: 64,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nema dostupnih nutricionista',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildNutritionistList() {

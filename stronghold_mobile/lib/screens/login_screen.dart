@@ -3,6 +3,7 @@ import 'register_screen.dart';
 import 'login_success_screen.dart';
 import 'forgot_password_screen.dart';
 import '../services/auth_service.dart';
+import '../utils/input_decoration_utils.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -161,46 +162,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: const TextStyle(color: Colors.white),
                             keyboardType: TextInputType.text,
                             textInputAction: TextInputAction.next,
-                            decoration: InputDecoration(
+                            decoration: buildStrongholdInputDecoration(
                               hintText: 'Unesite korisnicko ime',
-                              hintStyle: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.3),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF1a1a2e),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.person_outline,
-                                color: Colors.white.withValues(alpha: 0.5),
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  width: 1,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFe63946),
-                                  width: 1,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFe63946),
-                                  width: 1,
-                                ),
-                              ),
+                              prefixIcon: Icons.person_outline,
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -228,21 +192,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             style: const TextStyle(color: Colors.white),
                             textInputAction: TextInputAction.done,
                             onFieldSubmitted: (_) => _handleLogin(),
-                            decoration: InputDecoration(
+                            decoration: buildStrongholdInputDecoration(
                               hintText: 'Unesite lozinku',
-                              hintStyle: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.3),
-                              ),
-                              filled: true,
-                              fillColor: const Color(0xFF1a1a2e),
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 16,
-                              ),
-                              prefixIcon: Icon(
-                                Icons.lock_outline,
-                                color: Colors.white.withValues(alpha: 0.5),
-                              ),
+                              prefixIcon: Icons.lock_outline,
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
@@ -255,31 +207,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                     _obscurePassword = !_obscurePassword;
                                   });
                                 },
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: BorderSide(
-                                  color: Colors.white.withValues(alpha: 0.1),
-                                  width: 1,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFe63946),
-                                  width: 1,
-                                ),
-                              ),
-                              errorBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                  color: Color(0xFFe63946),
-                                  width: 1,
-                                ),
                               ),
                             ),
                             validator: (value) {

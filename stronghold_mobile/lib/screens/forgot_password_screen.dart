@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../widgets/feedback_dialog.dart';
+import '../utils/input_decoration_utils.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -34,24 +36,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     required bool isSuccess,
     required String message,
   }) async {
-    await showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierColor: Colors.black.withValues(alpha: 0.7),
-      transitionDuration: const Duration(milliseconds: 300),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return _FeedbackDialog(
-          isSuccess: isSuccess,
-          message: message,
-        );
-      },
-      transitionBuilder: (context, animation, secondaryAnimation, child) {
-        return ScaleTransition(
-          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-          child: FadeTransition(opacity: animation, child: child),
-        );
-      },
-    );
+    if (isSuccess) {
+      await showSuccessFeedback(context, message);
+    } else {
+      await showErrorFeedback(context, message);
+    }
   }
 
   Future<void> _handleSendCode() async {
@@ -159,55 +148,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     }
   }
 
-  InputDecoration _buildInputDecoration({
-    required String hint,
-    required IconData icon,
-    Widget? suffixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(
-        color: Colors.white.withValues(alpha: 0.3),
-      ),
-      filled: true,
-      fillColor: const Color(0xFF1a1a2e),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
-      prefixIcon: Icon(
-        icon,
-        color: Colors.white.withValues(alpha: 0.5),
-      ),
-      suffixIcon: suffixIcon,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Colors.white.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-    );
-  }
-
   Widget _buildEmailStep() {
     return Form(
       key: _emailFormKey,
@@ -230,9 +170,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _handleSendCode(),
-            decoration: _buildInputDecoration(
-              hint: 'Unesite email adresu',
-              icon: Icons.email_outlined,
+            decoration: buildStrongholdInputDecoration(
+              hintText: 'Unesite email adresu',
+              prefixIcon: Icons.email_outlined,
             ),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -307,9 +247,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             textInputAction: TextInputAction.next,
             textAlign: TextAlign.center,
             maxLength: 6,
-            decoration: _buildInputDecoration(
-              hint: '------',
-              icon: Icons.pin_outlined,
+            decoration: buildStrongholdInputDecoration(
+              hintText: '------',
+              prefixIcon: Icons.pin_outlined,
             ).copyWith(counterText: ''),
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -337,9 +277,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             obscureText: _obscurePassword,
             style: const TextStyle(color: Colors.white),
             textInputAction: TextInputAction.next,
-            decoration: _buildInputDecoration(
-              hint: 'Unesite novu lozinku',
-              icon: Icons.lock_outline,
+            decoration: buildStrongholdInputDecoration(
+              hintText: 'Unesite novu lozinku',
+              prefixIcon: Icons.lock_outline,
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePassword
@@ -381,9 +321,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             style: const TextStyle(color: Colors.white),
             textInputAction: TextInputAction.done,
             onFieldSubmitted: (_) => _handleResetPassword(),
-            decoration: _buildInputDecoration(
-              hint: 'Ponovite novu lozinku',
-              icon: Icons.lock_outline,
+            decoration: buildStrongholdInputDecoration(
+              hintText: 'Ponovite novu lozinku',
+              prefixIcon: Icons.lock_outline,
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscureConfirmPassword
@@ -554,144 +494,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _FeedbackDialog extends StatefulWidget {
-  final bool isSuccess;
-  final String message;
-
-  const _FeedbackDialog({
-    required this.isSuccess,
-    required this.message,
-  });
-
-  @override
-  State<_FeedbackDialog> createState() => _FeedbackDialogState();
-}
-
-class _FeedbackDialogState extends State<_FeedbackDialog>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 800),
-      vsync: this,
-    );
-
-    _scaleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.0, 0.5, curve: Curves.elasticOut),
-      ),
-    );
-
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.2, 0.5, curve: Curves.easeIn),
-      ),
-    );
-
-    _controller.forward();
-
-    Future.delayed(const Duration(milliseconds: 1800), () {
-      if (mounted) {
-        Navigator.of(context).pop();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final color =
-        widget.isSuccess ? const Color(0xFF4CAF50) : const Color(0xFFe63946);
-    final icon = widget.isSuccess ? Icons.check_rounded : Icons.close_rounded;
-
-    return Center(
-      child: Material(
-        color: Colors.transparent,
-        child: Container(
-          margin: const EdgeInsets.symmetric(horizontal: 40),
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1a1a2e),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: color.withValues(alpha: 0.3),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.2),
-                blurRadius: 20,
-                spreadRadius: 5,
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedBuilder(
-                animation: _controller,
-                builder: (context, child) {
-                  return Transform.scale(
-                    scale: _scaleAnimation.value,
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: color.withValues(alpha: 0.15),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: color,
-                          width: 3,
-                        ),
-                      ),
-                      child: Icon(
-                        icon,
-                        size: 40,
-                        color: color,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(height: 24),
-              AnimatedBuilder(
-                animation: _opacityAnimation,
-                builder: (context, child) {
-                  return Opacity(
-                    opacity: _opacityAnimation.value,
-                    child: Text(
-                      widget.message,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                },
               ),
             ],
           ),

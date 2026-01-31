@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import '../utils/date_format_utils.dart';
 import '../models/membership_models.dart';
 import '../services/membership_service.dart';
+import '../widgets/app_error_state.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_loading_indicator.dart';
 
 class MembershipHistoryScreen extends StatefulWidget {
   const MembershipHistoryScreen({super.key});
@@ -43,10 +46,6 @@ class _MembershipHistoryScreenState extends State<MembershipHistoryScreen> {
         });
       }
     }
-  }
-
-  String _formatDate(DateTime date) {
-    return DateFormat('dd.MM.yyyy').format(date);
   }
 
   String _formatCurrency(double amount) {
@@ -91,105 +90,22 @@ class _MembershipHistoryScreenState extends State<MembershipHistoryScreen> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFFe63946),
-        ),
-      );
+      return const AppLoadingIndicator();
     }
 
     if (_error != null) {
-      return _buildErrorState();
+      return AppErrorState(message: _error!, onRetry: _loadPaymentHistory);
     }
 
     if (_payments == null || _payments!.isEmpty) {
-      return _buildEmptyState();
+      return const AppEmptyState(
+        icon: Icons.receipt_long_outlined,
+        title: 'Nemate evidentirane uplate',
+        subtitle: 'Vasa historija placanja ce se prikazati ovdje',
+      );
     }
 
     return _buildPaymentList();
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: _loadPaymentHistory,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFe63946),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Pokusaj ponovo',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 64,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nemate evidentirane uplate',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Vasa historija placanja ce se prikazati ovdje',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildPaymentList() {
@@ -280,7 +196,7 @@ class _MembershipHistoryScreenState extends State<MembershipHistoryScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _formatDate(payment.paymentDate),
+                      formatDateDDMMYYYY(payment.paymentDate),
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.7),
@@ -302,7 +218,7 @@ class _MembershipHistoryScreenState extends State<MembershipHistoryScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '${_formatDate(payment.startDate)} - ${_formatDate(payment.endDate)}',
+                      '${formatDateDDMMYYYY(payment.startDate)} - ${formatDateDDMMYYYY(payment.endDate)}',
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.white.withValues(alpha: 0.7),

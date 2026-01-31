@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../utils/input_decoration_utils.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -67,69 +68,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         _errorMessage = 'Greska prilikom povezivanja. Provjerite internet konekciju.';
       });
     }
-  }
-
-  InputDecoration _buildInputDecoration({
-    required String hintText,
-    required IconData prefixIcon,
-    required bool obscureText,
-    required VoidCallback onToggleVisibility,
-  }) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: TextStyle(
-        color: Colors.white.withValues(alpha: 0.3),
-      ),
-      filled: true,
-      fillColor: const Color(0xFF1a1a2e),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
-      prefixIcon: Icon(
-        prefixIcon,
-        color: Colors.white.withValues(alpha: 0.5),
-      ),
-      suffixIcon: IconButton(
-        icon: Icon(
-          obscureText ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-          color: Colors.white.withValues(alpha: 0.5),
-        ),
-        onPressed: onToggleVisibility,
-      ),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Colors.white.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-    );
   }
 
   @override
@@ -265,15 +203,20 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               obscureText: _obscureCurrentPassword,
               style: const TextStyle(color: Colors.white),
               textInputAction: TextInputAction.next,
-              decoration: _buildInputDecoration(
+              decoration: buildStrongholdInputDecoration(
                 hintText: 'Unesite trenutnu lozinku',
                 prefixIcon: Icons.lock_outline,
-                obscureText: _obscureCurrentPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureCurrentPassword = !_obscureCurrentPassword;
-                  });
-                },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureCurrentPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureCurrentPassword = !_obscureCurrentPassword;
+                    });
+                  },
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -300,15 +243,20 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               obscureText: _obscureNewPassword,
               style: const TextStyle(color: Colors.white),
               textInputAction: TextInputAction.next,
-              decoration: _buildInputDecoration(
+              decoration: buildStrongholdInputDecoration(
                 hintText: 'Unesite novu lozinku',
                 prefixIcon: Icons.lock_reset,
-                obscureText: _obscureNewPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureNewPassword = !_obscureNewPassword;
-                  });
-                },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureNewPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureNewPassword = !_obscureNewPassword;
+                    });
+                  },
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -342,15 +290,20 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               style: const TextStyle(color: Colors.white),
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _handleChangePassword(),
-              decoration: _buildInputDecoration(
+              decoration: buildStrongholdInputDecoration(
                 hintText: 'Potvrdite novu lozinku',
                 prefixIcon: Icons.lock_reset,
-                obscureText: _obscureConfirmPassword,
-                onToggleVisibility: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _obscureConfirmPassword = !_obscureConfirmPassword;
+                    });
+                  },
+                ),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {

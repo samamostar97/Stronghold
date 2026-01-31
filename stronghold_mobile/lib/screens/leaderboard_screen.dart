@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../config/api_config.dart';
 import '../models/progress_models.dart';
 import '../services/progress_service.dart';
+import '../widgets/app_error_state.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_loading_indicator.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -85,13 +88,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               _buildHeader(),
               Expanded(
                 child: _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFe63946),
-                        ),
-                      )
+                    ? const AppLoadingIndicator()
                     : _error != null
-                        ? _buildError()
+                        ? AppErrorState(message: _error!, onRetry: _loadLeaderboard)
                         : _buildContent(),
               ),
             ],
@@ -191,14 +190,9 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
 
   Widget _buildContent() {
     if (_leaderboard == null || _leaderboard!.isEmpty) {
-      return Center(
-        child: Text(
-          'Nema podataka za prikaz',
-          style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.7),
-            fontSize: 16,
-          ),
-        ),
+      return const AppEmptyState(
+        icon: Icons.emoji_events,
+        title: 'Nema podataka za prikaz',
       );
     }
 

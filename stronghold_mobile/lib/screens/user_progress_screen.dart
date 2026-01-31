@@ -454,7 +454,7 @@ class _UserProgressScreenState extends State<UserProgressScreen>
           ),
           const SizedBox(height: 24),
           SizedBox(
-            height: 140,
+            height: 150,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -479,34 +479,45 @@ class _UserProgressScreenState extends State<UserProgressScreen>
       animation: _progressAnimation,
       builder: (context, child) {
         return Column(
-          mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            if (minutes > 0)
-              Text(
-                '${minutes}m',
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.white.withValues(alpha: 0.6),
+            // Minutes label - fixed height to reserve space
+            SizedBox(
+              height: 18,
+              child: minutes > 0
+                  ? Text(
+                      '${minutes}m',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
+                    )
+                  : null,
+            ),
+            // Bar area - expands to fill remaining space
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: FractionallySizedBox(
+                  heightFactor: (heightFactor * _progressAnimation.value).clamp(0.04, 1.0),
+                  child: Container(
+                    width: 32,
+                    decoration: BoxDecoration(
+                      gradient: minutes > 0
+                          ? const LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [Color(0xFFe63946), Color(0xFFf4a261)],
+                            )
+                          : null,
+                      color: minutes == 0 ? Colors.white.withValues(alpha: 0.1) : null,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
                 ),
-              ),
-            const SizedBox(height: 4),
-            Container(
-              width: 32,
-              height: (100 * heightFactor * _progressAnimation.value)
-                  .clamp(4.0, 100.0),
-              decoration: BoxDecoration(
-                gradient: minutes > 0
-                    ? const LinearGradient(
-                        begin: Alignment.bottomCenter,
-                        end: Alignment.topCenter,
-                        colors: [Color(0xFFe63946), Color(0xFFf4a261)],
-                      )
-                    : null,
-                color: minutes == 0 ? Colors.white.withValues(alpha: 0.1) : null,
-                borderRadius: BorderRadius.circular(6),
               ),
             ),
             const SizedBox(height: 8),
+            // Day label
             Text(
               day,
               style: TextStyle(

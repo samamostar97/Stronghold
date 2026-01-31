@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/faq_models.dart';
 import '../services/faq_service.dart';
+import '../widgets/app_error_state.dart';
+import '../widgets/app_empty_state.dart';
+import '../widgets/app_loading_indicator.dart';
 
 class FaqScreen extends StatefulWidget {
   const FaqScreen({super.key});
@@ -98,78 +101,17 @@ class _FaqScreenState extends State<FaqScreen> {
 
   Widget _buildContent() {
     if (_isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(
-          color: Color(0xFFe63946),
-        ),
-      );
+      return const AppLoadingIndicator();
     }
 
     if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                _error!,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: _loadFaqs,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFe63946),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Text(
-                    'Pokušaj ponovo',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+      return AppErrorState(message: _error!, onRetry: _loadFaqs);
     }
 
     if (_faqs == null || _faqs!.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.help_outline,
-              size: 48,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nema čestih pitanja',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-            ),
-          ],
-        ),
+      return const AppEmptyState(
+        icon: Icons.help_outline,
+        title: 'Nema čestih pitanja',
       );
     }
 

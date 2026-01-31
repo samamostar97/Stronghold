@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../utils/input_decoration_utils.dart';
 import 'login_success_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -116,55 +117,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  InputDecoration _buildInputDecoration({
-    required String hint,
-    required IconData icon,
-    Widget? suffixIcon,
-  }) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: TextStyle(
-        color: Colors.white.withValues(alpha: 0.3),
-      ),
-      filled: true,
-      fillColor: const Color(0xFF1a1a2e),
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 16,
-      ),
-      prefixIcon: Icon(
-        icon,
-        color: Colors.white.withValues(alpha: 0.5),
-      ),
-      suffixIcon: suffixIcon,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(
-          color: Colors.white.withValues(alpha: 0.1),
-          width: 1,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFe63946),
-          width: 1,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -270,9 +222,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: const TextStyle(color: Colors.white),
                                 textInputAction: TextInputAction.next,
                                 textCapitalization: TextCapitalization.words,
-                                decoration: _buildInputDecoration(
-                                  hint: 'Unesite vase ime',
-                                  icon: Icons.badge_outlined,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Unesite vase ime',
+                                  prefixIcon: Icons.badge_outlined,
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -299,9 +251,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: const TextStyle(color: Colors.white),
                                 textInputAction: TextInputAction.next,
                                 textCapitalization: TextCapitalization.words,
-                                decoration: _buildInputDecoration(
-                                  hint: 'Unesite vase prezime',
-                                  icon: Icons.badge_outlined,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Unesite vase prezime',
+                                  prefixIcon: Icons.badge_outlined,
                                 ),
                                 validator: (value) {
                                   if (value == null || value.isEmpty) {
@@ -328,9 +280,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: const TextStyle(color: Colors.white),
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
-                                decoration: _buildInputDecoration(
-                                  hint: 'Unesite email adresu',
-                                  icon: Icons.email_outlined,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Unesite email adresu',
+                                  prefixIcon: Icons.email_outlined,
                                 ),
                                 validator: (value) {
                                   if (_emailError != null) {
@@ -364,9 +316,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: const TextStyle(color: Colors.white),
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.next,
-                                decoration: _buildInputDecoration(
-                                  hint: 'Unesite broj telefona',
-                                  icon: Icons.phone_outlined,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Unesite broj telefona',
+                                  prefixIcon: Icons.phone_outlined,
                                 ),
                                 validator: (value) {
                                   if(_phoneError != null) {
@@ -395,9 +347,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 controller: _usernameController,
                                 style: const TextStyle(color: Colors.white),
                                 textInputAction: TextInputAction.next,
-                                decoration: _buildInputDecoration(
-                                  hint: 'Odaberite korisnicko ime',
-                                  icon: Icons.person_outline,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Odaberite korisnicko ime',
+                                  prefixIcon: Icons.person_outline,
                                 ),
                                 validator: (value) {
                                   if (_usernameError != null) {
@@ -430,9 +382,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 obscureText: _obscurePassword,
                                 style: const TextStyle(color: Colors.white),
                                 textInputAction: TextInputAction.next,
-                                decoration: _buildInputDecoration(
-                                  hint: 'Kreirajte lozinku',
-                                  icon: Icons.lock_outline,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Kreirajte lozinku',
+                                  prefixIcon: Icons.lock_outline,
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscurePassword
@@ -476,9 +428,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 style: const TextStyle(color: Colors.white),
                                 textInputAction: TextInputAction.done,
                                 onFieldSubmitted: (_) => _handleRegister(),
-                                decoration: _buildInputDecoration(
-                                  hint: 'Ponovite lozinku',
-                                  icon: Icons.lock_outline,
+                                decoration: buildStrongholdInputDecoration(
+                                  hintText: 'Ponovite lozinku',
+                                  prefixIcon: Icons.lock_outline,
                                   suffixIcon: IconButton(
                                     icon: Icon(
                                       _obscureConfirmPassword
