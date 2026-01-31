@@ -1,60 +1,39 @@
 /// Order status enum matching backend OrderStatus
 enum OrderStatus {
-  pending,
   processing,
-  shipped,
   delivered,
-  cancelled,
 }
 
 /// Helper extension for OrderStatus
 extension OrderStatusExtension on OrderStatus {
   String get displayName {
     switch (this) {
-      case OrderStatus.pending:
-        return 'Na čekanju';
       case OrderStatus.processing:
         return 'U obradi';
-      case OrderStatus.shipped:
-        return 'Poslano';
       case OrderStatus.delivered:
         return 'Dostavljeno';
-      case OrderStatus.cancelled:
-        return 'Otkazano';
     }
   }
 
   static OrderStatus fromInt(int value) {
     switch (value) {
       case 0:
-        return OrderStatus.pending;
-      case 1:
         return OrderStatus.processing;
-      case 2:
-        return OrderStatus.shipped;
-      case 3:
+      case 1:
         return OrderStatus.delivered;
-      case 4:
-        return OrderStatus.cancelled;
       default:
-        return OrderStatus.pending;
+        return OrderStatus.processing;
     }
   }
 
   static OrderStatus fromString(String value) {
     switch (value.toLowerCase()) {
-      case 'pending':
-        return OrderStatus.pending;
       case 'processing':
         return OrderStatus.processing;
-      case 'shipped':
-        return OrderStatus.shipped;
       case 'delivered':
         return OrderStatus.delivered;
-      case 'cancelled':
-        return OrderStatus.cancelled;
       default:
-        return OrderStatus.pending;
+        return OrderStatus.processing;
     }
   }
 }
@@ -128,7 +107,7 @@ class OrderDTO {
     } else if (statusValue is String) {
       parsedStatus = OrderStatusExtension.fromString(statusValue);
     } else {
-      parsedStatus = OrderStatus.pending;
+      parsedStatus = OrderStatus.processing;
     }
 
     return OrderDTO(

@@ -468,7 +468,7 @@ public static class StrongholdDbContextDataSeed
                 UserId = users[1].Id,
                 TotalAmount = 89.00m,
                 PurchaseDate = DateTime.UtcNow.AddDays(-5),
-                Status = OrderStatus.Shipped,
+                Status = OrderStatus.Delivered,
                 OrderItems = new List<OrderItem>
                 {
                     new() { SupplementId = supplements[0].Id, Quantity = 1, UnitPrice = supplements[0].Price }
@@ -492,7 +492,7 @@ public static class StrongholdDbContextDataSeed
                 UserId = users[3].Id,
                 TotalAmount = 70.00m,
                 PurchaseDate = DateTime.UtcNow.AddDays(-1),
-                Status = OrderStatus.Pending,
+                Status = OrderStatus.Processing,
                 OrderItems = new List<OrderItem>
                 {
                     new() { SupplementId = supplements[23].Id, Quantity = 1, UnitPrice = supplements[23].Price }

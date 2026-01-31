@@ -72,9 +72,6 @@ namespace Stronghold.Infrastructure.Services
             if (order.Status == OrderStatus.Delivered)
                 throw new InvalidOperationException("Narudžba je već označena kao isporučena.");
 
-            if (order.Status == OrderStatus.Cancelled)
-                throw new InvalidOperationException("Otkazana narudžba ne može biti označena kao isporučena.");
-
             order.Status = OrderStatus.Delivered;
             await _repository.UpdateAsync(order);
 

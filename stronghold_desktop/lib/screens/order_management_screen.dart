@@ -802,23 +802,16 @@ class _OrderTableRowState extends State<_OrderTableRow> {
 
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
-      case OrderStatus.pending:
-        return _AppColors.warning;
       case OrderStatus.processing:
         return _AppColors.editBlue;
-      case OrderStatus.shipped:
-        return _AppColors.purple;
       case OrderStatus.delivered:
         return _AppColors.success;
-      case OrderStatus.cancelled:
-        return _AppColors.muted;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final canMarkDelivered = widget.order.status != OrderStatus.delivered &&
-        widget.order.status != OrderStatus.cancelled;
+    final canMarkDelivered = widget.order.status != OrderStatus.delivered;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -986,23 +979,16 @@ class _OrderDetailsDialog extends StatelessWidget {
 
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
-      case OrderStatus.pending:
-        return _AppColors.warning;
       case OrderStatus.processing:
         return _AppColors.editBlue;
-      case OrderStatus.shipped:
-        return _AppColors.purple;
       case OrderStatus.delivered:
         return _AppColors.success;
-      case OrderStatus.cancelled:
-        return _AppColors.muted;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final canMarkDelivered = order.status != OrderStatus.delivered &&
-        order.status != OrderStatus.cancelled;
+    final canMarkDelivered = order.status != OrderStatus.delivered;
 
     return Dialog(
       backgroundColor: _AppColors.card,

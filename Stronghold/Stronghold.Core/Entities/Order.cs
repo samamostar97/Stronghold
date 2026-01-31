@@ -7,7 +7,7 @@ public class Order : BaseEntity
     public int UserId { get; set; }
     public decimal TotalAmount { get; set; }
     public DateTime PurchaseDate { get; set; }
-    public OrderStatus Status { get; set; } = OrderStatus.Pending;
+    public OrderStatus Status { get; set; } = OrderStatus.Processing;
     public string? StripePaymentId { get; set; }
 
     // Navigation properties
