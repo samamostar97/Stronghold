@@ -16,13 +16,15 @@ namespace Stronghold.Infrastructure.Services
     {
         private readonly IRepository<GymVisit, int> _visitRepository;
         private readonly IRepository<User, int> _userRepository;
+        private readonly IRepository<Membership,int> _membershipRepository;
         private readonly IMapper _mapper;
 
-        public AdminVisitService(IRepository<User, int> userRepository,IRepository<GymVisit, int> visitRepository, IMapper mapper)
+        public AdminVisitService(IRepository<User, int> userRepository,IRepository<GymVisit, int> visitRepository, IMapper mapper,IRepository<Membership, int> membershipRepository)
         {
             _userRepository= userRepository;
             _visitRepository= visitRepository;
             _mapper= mapper;
+            _membershipRepository = membershipRepository;
         }
 
         public async Task<IEnumerable<VisitDTO>> GetCurrentVisitorsAsync()
@@ -49,9 +51,10 @@ namespace Stronghold.Infrastructure.Services
 
             if (user == null)
                 throw new KeyNotFoundException($"Korisnik sa ID '{request.UserId}' nije pronađen.");
-
             var existingActiveVisit = await _visitRepository.AsQueryable().AnyAsync(x=>x.UserId == request.UserId&& x.CheckOutTime==null);
-
+            var hasActiveMembership = await _membershipRepository.AsQueryable().AnyAsync(x => x.UserId == request.UserId && x.EndDate < DateTime.UtcNow);
+            if (!hasActiveMembership)
+                throw new InvalidOperationException($"Korisnik '{user.FirstName} {user.LastName}' nema aktivnu članarinu.");
             if (existingActiveVisit)
                 throw new InvalidOperationException($"Korisnik '{user.FirstName} {user.LastName}' je već prijavljen u teretanu.");
 

@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../models/user_dto.dart';
 import '../models/membership_dto.dart';
 import '../services/memberships_api.dart';
-import '../widgets/shared_admin_header.dart';
 
 /// Screen for viewing a user's membership payment history
 class MemberPaymentHistoryScreen extends StatefulWidget {

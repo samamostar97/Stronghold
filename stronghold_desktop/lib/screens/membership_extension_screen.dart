@@ -178,7 +178,7 @@ class _MembershipManagementScreenState extends State<MembershipManagementScreen>
       builder: (ctx) => _AddPaymentDialog(user: user),
     );
 
-    if (result == true) {
+    if (result == true && mounted) {
       // Payment was added successfully, show success animation
       showSuccessAnimation(context);
 

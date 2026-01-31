@@ -506,7 +506,7 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
                           ? Image.network(
                               _getFullImageUrl(widget.entry.profileImageUrl),
                               fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) =>
+                              errorBuilder: (_, _, _) =>
                                   _buildInitialsAvatar(),
                             )
                           : _buildInitialsAvatar(),

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 
 /// Utility class that prevents exposing internal implementation details to users
 class ErrorHandler {
@@ -7,7 +8,7 @@ class ErrorHandler {
     final errorString = error.toString().replaceAll('Exception: ', '');
 
     // Log the actual error for debugging (you can replace print with proper logging)
-    print('ERROR [$context]: $errorString');
+    debugPrint('ERROR [$context]: $errorString');
 
     // Check for common error patterns and return user-friendly messages
 
@@ -75,7 +76,7 @@ class ErrorHandler {
     final errorString = error.toString().replaceAll('Exception: ', '');
 
     // Log the actual error
-    print('ERROR [$operation]: $errorString');
+    debugPrint('ERROR [$operation]: $errorString');
 
     // Try to extract validation errors from the response body
     final validationError = _extractValidationError(errorString);

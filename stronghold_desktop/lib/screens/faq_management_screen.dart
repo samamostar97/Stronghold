@@ -503,7 +503,7 @@ class _BackButtonState extends State<_BackButton> {
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+            transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -589,7 +589,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -636,7 +636,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,
@@ -1144,14 +1144,12 @@ class _DialogTextField extends StatelessWidget {
     required this.controller,
     required this.label,
     this.validator,
-    this.keyboardType,
     this.maxLines = 1,
   });
 
   final TextEditingController controller;
   final String label;
   final String? Function(String?)? validator;
-  final TextInputType? keyboardType;
   final int maxLines;
 
   @override
@@ -1159,7 +1157,6 @@ class _DialogTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       validator: validator,
-      keyboardType: keyboardType,
       maxLines: maxLines,
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(

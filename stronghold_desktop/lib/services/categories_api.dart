@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:stronghold_desktop/models/category_dto.dart';
 import '../config/api_config.dart';
-import '../models/supplement_dto.dart';
 import 'token_storage.dart';
 import 'api_helper.dart';
 

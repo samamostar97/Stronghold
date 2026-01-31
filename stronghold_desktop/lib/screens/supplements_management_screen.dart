@@ -605,7 +605,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -652,7 +652,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,
@@ -837,7 +837,7 @@ class _SupplementTableRowState extends State<_SupplementTableRow> {
                           child: Image.network(
                             '${ApiConfig.baseUrl}${widget.supplement.supplementImageUrl}',
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
+                            errorBuilder: (_, _, _) => const Icon(
                               Icons.image,
                               color: _AppColors.muted,
                               size: 20,
@@ -1081,7 +1081,7 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
 
   Widget _buildCategoryDropdown() {
     return DropdownButtonFormField<SupplementCategoryDTO>(
-      value: _selectedCategory,
+      initialValue: _selectedCategory,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'Kategorija',
@@ -1125,7 +1125,7 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
 
   Widget _buildSupplierDropdown() {
     return DropdownButtonFormField<SupplierDTO>(
-      value: _selectedSupplier,
+      initialValue: _selectedSupplier,
       isExpanded: true,
       decoration: InputDecoration(
         labelText: 'Dobavljač',
@@ -1257,7 +1257,7 @@ class _AddSupplementDialogState extends State<_AddSupplementDialog> {
                                       child: Image.file(
                                         File(_selectedImagePath!),
                                         fit: BoxFit.cover,
-                                        errorBuilder: (_, __, ___) => const Icon(
+                                        errorBuilder: (_, _, _) => const Icon(
                                           Icons.broken_image,
                                           color: _AppColors.muted,
                                           size: 32,
@@ -1646,7 +1646,7 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
         child: Image.file(
           File(_selectedImagePath!),
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(
+          errorBuilder: (_, _, _) => const Icon(
             Icons.broken_image,
             color: _AppColors.muted,
             size: 32,
@@ -1671,7 +1671,7 @@ class _EditSupplementDialogState extends State<_EditSupplementDialog> {
         child: Image.network(
           '${ApiConfig.baseUrl}$_currentImageUrl',
           fit: BoxFit.cover,
-          errorBuilder: (_, __, ___) => const Icon(
+          errorBuilder: (_, _, _) => const Icon(
             Icons.broken_image,
             color: _AppColors.muted,
             size: 32,
@@ -1699,7 +1699,6 @@ class _DialogTextField extends StatelessWidget {
     required this.label,
     this.validator,
     this.keyboardType,
-    this.obscureText = false,
     this.maxLines = 1,
   });
 
@@ -1707,7 +1706,6 @@ class _DialogTextField extends StatelessWidget {
   final String label;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
-  final bool obscureText;
   final int maxLines;
 
   @override
@@ -1716,7 +1714,6 @@ class _DialogTextField extends StatelessWidget {
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
-      obscureText: obscureText,
       maxLines: maxLines,
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(

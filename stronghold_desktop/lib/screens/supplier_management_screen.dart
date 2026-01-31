@@ -600,7 +600,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -647,7 +647,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,
@@ -701,12 +701,10 @@ class _TableHeader extends StatelessWidget {
 }
 
 class _HeaderCell extends StatelessWidget {
-  const _HeaderCell({required this.text, required this.flex, this.alignRight = false});
-  
+  const _HeaderCell({required this.text, required this.flex});
 
   final String text;
   final int flex;
-  final bool alignRight;
 
   @override
   Widget build(BuildContext context) {
@@ -714,7 +712,7 @@ class _HeaderCell extends StatelessWidget {
       flex: flex,
       child: Text(
         text,
-        textAlign: alignRight ? TextAlign.right : TextAlign.left,
+        textAlign: TextAlign.left,
         style: const TextStyle(
           fontSize: 14,
           fontWeight: FontWeight.w600,
@@ -1167,16 +1165,12 @@ class _DialogTextField extends StatelessWidget {
     required this.controller,
     required this.label,
     this.validator,
-    this.keyboardType,
-    this.obscureText = false,
     this.maxLines = 1,
   });
 
   final TextEditingController controller;
   final String label;
   final String? Function(String?)? validator;
-  final TextInputType? keyboardType;
-  final bool obscureText;
   final int maxLines;
 
   @override
@@ -1184,8 +1178,6 @@ class _DialogTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       validator: validator,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
       maxLines: maxLines,
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(

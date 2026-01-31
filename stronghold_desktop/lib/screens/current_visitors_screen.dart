@@ -202,8 +202,6 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
   }
 
   Widget _buildTitleRow(BoxConstraints constraints) {
-    // Show "X of Y" when filtering, otherwise just "X"
-    final isFiltering = _searchController.text.isNotEmpty;
     final countText = '${_visitors.length} korisnika';
 
     return Row(
@@ -500,7 +498,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -547,7 +545,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,
@@ -806,7 +804,6 @@ class _CheckInDialogState extends State<_CheckInDialog> {
   List<UserTableRowDTO> _searchResults = [];
   bool _searching = false;
   bool _checkingIn = false;
-  String? _error;
 
   @override
   void dispose() {
@@ -827,7 +824,6 @@ class _CheckInDialogState extends State<_CheckInDialog> {
 
     setState(() {
       _searching = true;
-      _error = null;
     });
 
     try {
@@ -838,10 +834,9 @@ class _CheckInDialogState extends State<_CheckInDialog> {
         _searchResults = result.items;
         _searching = false;
       });
-    } catch (e) {
+    } catch (_) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
         _searching = false;
       });
     }
@@ -850,7 +845,6 @@ class _CheckInDialogState extends State<_CheckInDialog> {
   Future<void> _checkInUser(UserTableRowDTO user) async {
     setState(() {
       _checkingIn = true;
-      _error = null;
     });
 
     try {
@@ -860,10 +854,11 @@ class _CheckInDialogState extends State<_CheckInDialog> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _checkingIn = false;
-      });
+      Navigator.pop(context, false);
+      showErrorAnimation(
+        context,
+        message: e.toString().replaceFirst('Exception: ', ''),
+      );
     }
   }
 
@@ -924,30 +919,6 @@ class _CheckInDialogState extends State<_CheckInDialog> {
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Error message
-              if (_error != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: _AppColors.accent.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: _AppColors.accent.withValues(alpha: 0.5)),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: _AppColors.accent, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(color: _AppColors.accent, fontSize: 13),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
               // Results
               Flexible(child: _buildResults()),

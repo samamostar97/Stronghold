@@ -473,8 +473,6 @@ abstract class _AppColors {
   static const accentLight = Color(0xFFFF6B6B);
   static const editBlue = Color(0xFF4A9EFF);
   static const success = Color(0xFF2ECC71);
-  static const warning = Color(0xFFF39C12);
-  static const purple = Color(0xFF9B59B6);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -513,7 +511,7 @@ class _BackButtonState extends State<_BackButton> {
           onTap: widget.onTap,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+            transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -599,7 +597,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -646,7 +644,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,

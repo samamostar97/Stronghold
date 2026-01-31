@@ -84,7 +84,6 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
     // Tvoje boje ostaju iste
     const _bg1 = Color(0xFF1A1D2E);
     const _bg2 = Color(0xFF16192B);
-    const _badge = Color(0xFF2A2D3E);
     const _muted = Color(0xFF8A8D9E);
     const _accent = Color(0xFFFF5757);
     const _accent2 = Color(0xFFFF6B6B);
@@ -307,7 +306,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: LinearGradient(

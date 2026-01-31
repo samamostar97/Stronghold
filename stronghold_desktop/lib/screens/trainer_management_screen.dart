@@ -603,7 +603,7 @@ class _GradientButtonState extends State<_GradientButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
@@ -650,7 +650,7 @@ class _SmallButtonState extends State<_SmallButton> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..translate(0.0, _hover ? -2.0 : 0.0),
+          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.color,
@@ -766,7 +766,7 @@ class _TrainerTableRowState extends State<_TrainerTableRow> {
           children: [
             _DataCell(text: widget.trainer.firstName, flex: _TableFlex.firstName),
             _DataCell(text: widget.trainer.lastName, flex: _TableFlex.lastName),
-            _DataCell(text: widget.trainer.phoneNumber ?? '-', flex: _TableFlex.phone),
+            _DataCell(text: widget.trainer.phoneNumber, flex: _TableFlex.phone),
             
             Expanded(
               flex: _TableFlex.actions,
@@ -1231,16 +1231,12 @@ class _DialogTextField extends StatelessWidget {
     required this.label,
     this.validator,
     this.keyboardType,
-    this.obscureText = false,
-    this.maxLines = 1,
   });
 
   final TextEditingController controller;
   final String label;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
-  final bool obscureText;
-  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -1248,8 +1244,7 @@ class _DialogTextField extends StatelessWidget {
       controller: controller,
       validator: validator,
       keyboardType: keyboardType,
-      obscureText: obscureText,
-      maxLines: maxLines,
+      maxLines: 1,
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
