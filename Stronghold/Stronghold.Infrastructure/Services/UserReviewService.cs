@@ -52,7 +52,7 @@ namespace Stronghold.Infrastructure.Services
                 .ToListAsync();
 
             var reviewedSupplementIds = await _reviewRepository.AsQueryable()
-                .Where(r => r.UserId == userId)
+                .Where(r => r.UserId == userId&&!r.IsDeleted)
                 .Select(r => r.SupplementId)
                 .ToListAsync();
 

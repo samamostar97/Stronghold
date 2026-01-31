@@ -52,7 +52,7 @@ namespace Stronghold.Infrastructure.Services
             if (user == null)
                 throw new KeyNotFoundException($"Korisnik sa ID '{request.UserId}' nije pronađen.");
             var existingActiveVisit = await _visitRepository.AsQueryable().AnyAsync(x=>x.UserId == request.UserId&& x.CheckOutTime==null);
-            var hasActiveMembership = await _membershipRepository.AsQueryable().AnyAsync(x => x.UserId == request.UserId && x.EndDate < DateTime.UtcNow);
+            var hasActiveMembership = await _membershipRepository.AsQueryable().AnyAsync(x => x.UserId == request.UserId && x.EndDate > DateTime.UtcNow);
             if (!hasActiveMembership)
                 throw new InvalidOperationException($"Korisnik '{user.FirstName} {user.LastName}' nema aktivnu članarinu.");
             if (existingActiveVisit)

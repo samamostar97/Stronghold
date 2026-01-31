@@ -41,7 +41,7 @@ namespace Stronghold.Infrastructure.Services
             if(!string.IsNullOrEmpty(dto.Username))
             { 
             var usernameExists = await _repository.AsQueryable()
-                                                  .AnyAsync(x => x.Username == dto.Username && x.Id != entity.Id);
+                                                  .AnyAsync(x => x.Username.ToLower() == dto.Username.ToLower() && x.Id != entity.Id);
                 if (usernameExists)
                     throw new ConflictException("Username zauzet");
             }
