@@ -148,6 +148,31 @@ class AppointmentService {
     }
   }
 
+  static Future<List<int>> getAvailableHours(int staffId, DateTime date, bool isTrainer) async {
+    final token = await TokenStorage.getToken();
+    if (token == null) {
+      throw Exception('Niste prijavljeni');
+    }
+
+    final queryString = 'staffId=$staffId&date=${Uri.encodeComponent(date.toIso8601String())}&isTrainer=$isTrainer';
+
+    final response = await http.get(
+      ApiConfig.uri('/api/user/appointment/available-hours?$queryString'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body) as List<dynamic>;
+      return data.map((e) => e as int).toList();
+    } else if (response.statusCode == 401) {
+      throw Exception('Sesija je istekla. Prijavite se ponovo.');
+    } else {
+      throw Exception('Greska prilikom ucitavanja dostupnih termina');
+    }
+  }
+
   static Future<void> cancelAppointment(int appointmentId) async {
     final token = await TokenStorage.getToken();
     if (token == null) {

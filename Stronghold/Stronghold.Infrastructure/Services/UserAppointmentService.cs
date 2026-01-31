@@ -43,6 +43,7 @@ namespace Stronghold.Infrastructure.Services
         {
             if (date < DateTime.UtcNow) throw new ArgumentException("Nemoguce unijeti datum u proslosti");
             if (date.Date==DateTime.Today) throw new ArgumentException("Nemoguce napraviti termin na isti dan");
+            if (date.Hour < 9 || date.Hour >= 17) throw new ArgumentException("Termini su mogući samo između 9:00 i 17:00");
 
 
             var trainer = await _trainerRepository.GetByIdAsync(trainerId);
@@ -79,6 +80,7 @@ namespace Stronghold.Infrastructure.Services
         {
             if (date < DateTime.UtcNow) throw new ArgumentException("Nemoguce unijeti datum u proslosti");
             if (date.Date == DateTime.Today) throw new ArgumentException("Nemoguce napraviti termin na isti dan");
+            if (date.Hour < 9 || date.Hour >= 17) throw new ArgumentException("Termini su mogući samo između 9:00 i 17:00");
 
 
             var nutritionist = await _nutritionistRepository.GetByIdAsync(nutritionistId);
@@ -144,6 +146,41 @@ namespace Stronghold.Infrastructure.Services
             if (appointment == null) throw new KeyNotFoundException("Termin ne postoji");
             if (appointment.AppointmentDate < DateTime.UtcNow) throw new InvalidOperationException("Nemoguce otkazati zavrseni termin");
             await _appointmentRepository.DeleteAsync(appointment);
+        }
+
+        public async Task<IEnumerable<int>> GetAvailableHoursAsync(int staffId, DateTime date, bool isTrainer)
+        {
+            const int workStartHour = 9;
+            const int workEndHour = 17;
+
+            // Get all appointments for this staff member on the given date
+            List<int> bookedHours;
+            if (isTrainer)
+            {
+                bookedHours = await _appointmentRepository.AsQueryable()
+                    .Where(x => x.TrainerId == staffId && x.AppointmentDate.Date == date.Date)
+                    .Select(x => x.AppointmentDate.Hour)
+                    .ToListAsync();
+            }
+            else
+            {
+                bookedHours = await _appointmentRepository.AsQueryable()
+                    .Where(x => x.NutritionistId == staffId && x.AppointmentDate.Date == date.Date)
+                    .Select(x => x.AppointmentDate.Hour)
+                    .ToListAsync();
+            }
+
+            // Generate available hours (9:00 - 17:00, excluding booked ones)
+            var availableHours = new List<int>();
+            for (int hour = workStartHour; hour < workEndHour; hour++)
+            {
+                if (!bookedHours.Contains(hour))
+                {
+                    availableHours.Add(hour);
+                }
+            }
+
+            return availableHours;
         }
     }
 }

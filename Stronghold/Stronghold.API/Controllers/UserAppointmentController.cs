@@ -72,5 +72,15 @@ namespace Stronghold.API.Controllers
             await _userAppointmentService.CancelAppointmentAsync(userId.Value, id);
             return NoContent();
         }
+
+        [HttpGet("available-hours")]
+        public async Task<ActionResult<IEnumerable<int>>> GetAvailableHoursAsync([FromQuery] int staffId, [FromQuery] DateTime date, [FromQuery] bool isTrainer)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Unauthorized();
+            var result = await _userAppointmentService.GetAvailableHoursAsync(staffId, date, isTrainer);
+            return Ok(result);
+        }
     }
 }

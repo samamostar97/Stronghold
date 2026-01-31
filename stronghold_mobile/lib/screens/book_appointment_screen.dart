@@ -22,8 +22,10 @@ class BookAppointmentScreen extends StatefulWidget {
 
 class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
   DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
+  int? _selectedHour;
   bool _isSubmitting = false;
+  bool _isLoadingHours = false;
+  List<int> _availableHours = [];
 
   String get _staffTypeLabel =>
       widget.staffType == StaffType.trainer ? 'Trener' : 'Nutricionist';
@@ -33,10 +35,11 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
   Future<void> _selectDate() async {
     final now = DateTime.now();
+    final tomorrow = now.add(const Duration(days: 1));
     final picked = await showDatePicker(
       context: context,
-      initialDate: _selectedDate ?? now,
-      firstDate: now,
+      initialDate: _selectedDate ?? tomorrow,
+      firstDate: tomorrow,
       lastDate: now.add(const Duration(days: 90)),
       builder: (context, child) {
         return Theme(
@@ -57,39 +60,44 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
     if (picked != null && mounted) {
       setState(() {
         _selectedDate = picked;
+        _selectedHour = null;
+        _availableHours = [];
       });
+      await _loadAvailableHours();
     }
   }
 
-  Future<void> _selectTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: _selectedTime ?? TimeOfDay.now(),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFe63946),
-              onPrimary: Colors.white,
-              surface: Color(0xFF1a1a2e),
-              onSurface: Colors.white,
-            ),
-            dialogBackgroundColor: const Color(0xFF1a1a2e),
-          ),
-          child: child!,
-        );
-      },
-    );
+  Future<void> _loadAvailableHours() async {
+    if (_selectedDate == null) return;
 
-    if (picked != null && mounted) {
-      setState(() {
-        _selectedTime = picked;
-      });
+    setState(() {
+      _isLoadingHours = true;
+    });
+
+    try {
+      final hours = await AppointmentService.getAvailableHours(
+        widget.staffId,
+        _selectedDate!,
+        widget.staffType == StaffType.trainer,
+      );
+      if (mounted) {
+        setState(() {
+          _availableHours = hours;
+          _isLoadingHours = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingHours = false;
+        });
+        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+      }
     }
   }
 
   Future<void> _submitAppointment() async {
-    if (_selectedDate == null || _selectedTime == null) {
+    if (_selectedDate == null || _selectedHour == null) {
       return;
     }
 
@@ -102,8 +110,8 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         _selectedDate!.year,
         _selectedDate!.month,
         _selectedDate!.day,
-        _selectedTime!.hour,
-        _selectedTime!.minute,
+        _selectedHour!,
+        0,
       );
 
       if (widget.staffType == StaffType.trainer) {
@@ -342,10 +350,9 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                // Time picker
-                GestureDetector(
-                  onTap: _selectTime,
-                  child: Container(
+                // Available hours section
+                if (_selectedDate != null) ...[
+                  Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: const Color(0xFF1a1a2e).withValues(alpha: 0.5),
@@ -355,57 +362,107 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                         width: 1,
                       ),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFe63946).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.access_time,
-                            color: Color(0xFFe63946),
-                            size: 24,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFe63946).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.access_time,
+                                color: Color(0xFFe63946),
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Text(
+                              'Odaberi sat',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Odaberi sat',
+                        const SizedBox(height: 16),
+                        if (_isLoadingHours)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(
+                                color: Color(0xFFe63946),
+                              ),
+                            ),
+                          )
+                        else if (_availableHours.isEmpty)
+                          Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                'Nema dostupnih termina za ovaj datum',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white.withValues(alpha: 0.5),
                                 ),
+                                textAlign: TextAlign.center,
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                _selectedTime != null
-                                    ? _selectedTime!.format(context)
-                                    : 'Nije odabran',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: _selectedTime != null
-                                      ? Colors.white
-                                      : Colors.white.withValues(alpha: 0.5),
+                            ),
+                          )
+                        else
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 10,
+                            children: _availableHours.map((hour) {
+                              final isSelected = _selectedHour == hour;
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    _selectedHour = hour;
+                                  });
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFFe63946)
+                                        : const Color(0xFFe63946).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: Border.all(
+                                      color: isSelected
+                                          ? const Color(0xFFe63946)
+                                          : const Color(0xFFe63946).withValues(alpha: 0.3),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    '${hour.toString().padLeft(2, '0')}:00',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                      color: isSelected
+                                          ? Colors.white
+                                          : Colors.white.withValues(alpha: 0.7),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ],
+                              );
+                            }).toList(),
                           ),
-                        ),
-                        Icon(
-                          Icons.chevron_right,
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
+                  const SizedBox(height: 24),
+                ] else
+                  const SizedBox(height: 24),
 
                 // Info text
                 Container(
@@ -428,7 +485,7 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'Termini traju 1 sat. Mozete imati samo jedan termin dnevno.',
+                          'Termini traju 1 sat (9:00 - 17:00). Mozete imati samo jedan termin dnevno.',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.white.withValues(alpha: 0.7),
@@ -443,13 +500,13 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
                 // Submit button
                 GestureDetector(
-                  onTap: (_selectedDate != null && _selectedTime != null && !_isSubmitting)
+                  onTap: (_selectedDate != null && _selectedHour != null && !_isSubmitting)
                       ? _submitAppointment
                       : null,
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     decoration: BoxDecoration(
-                      color: (_selectedDate != null && _selectedTime != null && !_isSubmitting)
+                      color: (_selectedDate != null && _selectedHour != null && !_isSubmitting)
                           ? const Color(0xFFe63946)
                           : const Color(0xFFe63946).withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),

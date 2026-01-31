@@ -18,5 +18,6 @@ namespace Stronghold.Application.IServices
         Task<UserAppointmentDTO> MakeNutritionistAppointmentAsync(int userId, int nutritionistId, DateTime date);
         Task<IEnumerable<TrainerDTO>> GetTrainerListAsync();
         Task<IEnumerable<NutritionistDTO>> GetNutritionistListAsync();
+        Task<IEnumerable<int>> GetAvailableHoursAsync(int staffId, DateTime date, bool isTrainer);
     }
 }
