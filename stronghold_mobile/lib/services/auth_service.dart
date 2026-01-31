@@ -75,6 +75,44 @@ class AuthService {
     }
   }
 
+  static Future<void> forgotPassword({required String email}) async {
+    final response = await http.post(
+      ApiConfig.uri('/api/Auth/forgot-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else {
+      throw AuthException('Greska prilikom slanja koda. Pokusajte ponovo.');
+    }
+  }
+
+  static Future<void> resetPassword({
+    required String email,
+    required String code,
+    required String newPassword,
+  }) async {
+    final response = await http.post(
+      ApiConfig.uri('/api/Auth/reset-password'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': email,
+        'code': code,
+        'newPassword': newPassword,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 401) {
+      throw AuthException('Kod je nevažeći ili je istekao');
+    } else {
+      throw AuthException('Greska prilikom resetovanja lozinke. Pokusajte ponovo.');
+    }
+  }
+
   static Future<void> logout() async {
     await TokenStorage.clear();
   }

@@ -16,12 +16,14 @@ namespace Stronghold.Infrastructure.Services;
 public class AuthService : IAuthService
 {
     private readonly StrongholdDbContext _context;
+    private readonly IEmailService _emailService;
     private readonly string _jwtSecret;
     private readonly string _jwtIssuer;
     private readonly string _jwtAudience;
-    public AuthService(StrongholdDbContext context)
+    public AuthService(StrongholdDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
         _jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
             ?? throw new InvalidOperationException("JWT_SECRET nije konfigurisan");
         _jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
@@ -109,6 +111,57 @@ public class AuthService : IAuthService
             throw new UnauthorizedAccessException("Trenutna lozinka nije ispravna");
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+
+        if (user == null)
+            return;
+
+        var existingTokens = _context.PasswordResetTokens
+            .Where(t => t.UserId == user.Id);
+        _context.PasswordResetTokens.RemoveRange(existingTokens);
+
+        var code = Random.Shared.Next(100000, 999999).ToString();
+
+        var resetToken = new PasswordResetToken
+        {
+            UserId = user.Id,
+            Token = code,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
+        };
+
+        _context.PasswordResetTokens.Add(resetToken);
+        await _context.SaveChangesAsync();
+
+        await _emailService.SendEmailAsync(
+            user.Email,
+            "Stronghold - Reset lozinke",
+            $"Vaš kod za reset lozinke je: {code}\n\nKod ističe za 15 minuta.");
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+
+        if (user == null)
+            throw new KeyNotFoundException("Korisnik nije pronađen");
+
+        var token = await _context.PasswordResetTokens
+            .FirstOrDefaultAsync(t => t.UserId == user.Id
+                && t.Token == request.Code
+                && t.ExpiresAt > DateTime.UtcNow);
+
+        if (token == null)
+            throw new UnauthorizedAccessException("Kod je nevažeći ili je istekao");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
+        _context.PasswordResetTokens.Remove(token);
         await _context.SaveChangesAsync();
     }
 
