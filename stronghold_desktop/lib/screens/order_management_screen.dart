@@ -1,13 +1,20 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../constants/app_colors.dart';
 import '../models/order_dto.dart';
 import '../services/orders_api.dart';
+import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
+import '../widgets/back_button.dart';
 import '../widgets/error_animation.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/search_input.dart';
 import '../widgets/shared_admin_header.dart';
+import '../widgets/small_button.dart';
+import '../widgets/success_animation.dart';
+
+// Local color extension for success color not in shared AppColors
+const _successColor = Color(0xFF2ECC71);
 
 class OrderManagementScreen extends StatefulWidget {
   const OrderManagementScreen({super.key});
@@ -18,7 +25,7 @@ class OrderManagementScreen extends StatefulWidget {
 
 class _OrderManagementScreenState extends State<OrderManagementScreen> {
   final _searchController = TextEditingController();
-  final _debouncer = _Debouncer(milliseconds: 400);
+  final _debouncer = Debouncer(milliseconds: 400);
 
   List<OrderDTO> _orders = [];
   bool _isLoading = true;
@@ -150,7 +157,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_AppColors.bg1, _AppColors.bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
         child: SafeArea(
@@ -170,9 +177,9 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const _Header(),
+                    const SharedAdminHeader(),
                     const SizedBox(height: 20),
-                    _BackButton(onTap: () => Navigator.of(context).maybePop()),
+                    AppBackButton(onTap: () => Navigator.of(context).maybePop()),
                     const SizedBox(height: 20),
                     Expanded(child: _buildMainContent(constraints)),
                   ],
@@ -189,7 +196,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
     return Container(
       padding: EdgeInsets.all(constraints.maxWidth > 600 ? 30 : 16),
       decoration: BoxDecoration(
-        color: _AppColors.card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -219,7 +226,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _SearchInput(
+          SearchInput(
             controller: _searchController,
             onSubmitted: (_) => _onSearch(),
             hintText: 'Pretraži po korisniku ili email-u...',
@@ -233,7 +240,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
     return Row(
       children: [
         Expanded(
-          child: _SearchInput(
+          child: SearchInput(
             controller: _searchController,
             onSubmitted: (_) => _onSearch(),
             hintText: 'Pretraži po korisniku ili email-u...',
@@ -255,20 +262,20 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _AppColors.border),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: dropdownValue,
           hint: const Text(
             'Sortiraj',
-            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+            style: TextStyle(color: AppColors.muted, fontSize: 14),
           ),
-          dropdownColor: _AppColors.panel,
+          dropdownColor: AppColors.panel,
           style: const TextStyle(color: Colors.white, fontSize: 14),
-          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          icon: const Icon(Icons.sort, color: AppColors.muted, size: 20),
           items: const [
             DropdownMenuItem<String?>(
               value: null,
@@ -317,7 +324,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   Widget _buildContent(BoxConstraints constraints) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: _AppColors.accent),
+        child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
 
@@ -333,11 +340,11 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+              style: const TextStyle(color: AppColors.muted, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            _GradientButton(text: 'Pokušaj ponovo', onTap: _loadOrders),
+            GradientButton(text: 'Pokušaj ponovo', onTap: _loadOrders),
           ],
         ),
       );
@@ -359,7 +366,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       children: [
         Text(
           'Ukupno: $_totalCount',
-          style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+          style: const TextStyle(color: AppColors.muted, fontSize: 14),
         ),
         const SizedBox(width: 24),
         _PaginationButton(
@@ -390,7 +397,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       if (start > 2) {
         pages.add(const Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text('...', style: TextStyle(color: _AppColors.muted)),
+          child: Text('...', style: TextStyle(color: AppColors.muted)),
         ));
       }
     }
@@ -407,7 +414,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
       if (end < _totalPages - 1) {
         pages.add(const Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text('...', style: TextStyle(color: _AppColors.muted)),
+          child: Text('...', style: TextStyle(color: AppColors.muted)),
         ));
       }
       pages.add(_PageNumber(
@@ -423,7 +430,7 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
   Widget _buildTable(BoxConstraints constraints) {
     return Container(
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -459,212 +466,6 @@ class _OrderManagementScreenState extends State<OrderManagementScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THEME COLORS
-// ─────────────────────────────────────────────────────────────────────────────
-
-abstract class _AppColors {
-  static const bg1 = Color(0xFF1A1D2E);
-  static const bg2 = Color(0xFF16192B);
-  static const card = Color(0xFF22253A);
-  static const panel = Color(0xFF2A2D3E);
-  static const border = Color(0xFF3A3D4E);
-  static const muted = Color(0xFF8A8D9E);
-  static const accent = Color(0xFFFF5757);
-  static const accentLight = Color(0xFFFF6B6B);
-  static const editBlue = Color(0xFF4A9EFF);
-  static const success = Color(0xFF2ECC71);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// REUSABLE WIDGETS
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SharedAdminHeader();
-  }
-}
-
-class _BackButton extends StatefulWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  State<_BackButton> createState() => _BackButtonState();
-}
-
-class _BackButtonState extends State<_BackButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [_AppColors.accent, _AppColors.accentLight],
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              '← Nazad',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchInput extends StatelessWidget {
-  const _SearchInput({
-    required this.controller,
-    required this.onSubmitted,
-    required this.hintText,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onSubmitted;
-  final String hintText;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onSubmitted: onSubmitted,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: _AppColors.muted, fontSize: 14),
-        filled: true,
-        fillColor: _AppColors.panel,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: _AppColors.border),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.search, color: _AppColors.muted),
-          onPressed: () => onSubmitted(controller.text),
-        ),
-      ),
-    );
-  }
-}
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({
-    required this.text,
-    required this.onTap,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_AppColors.accent, _AppColors.accentLight],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SmallButton extends StatefulWidget {
-  const _SmallButton({
-    required this.text,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String text;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  State<_SmallButton> createState() => _SmallButtonState();
-}
-
-class _SmallButtonState extends State<_SmallButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // TABLE WIDGETS
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -684,7 +485,7 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _AppColors.border, width: 2)),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       child: const Row(
@@ -754,9 +555,9 @@ class _OrderTableRowState extends State<_OrderTableRow> {
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
       case OrderStatus.processing:
-        return _AppColors.editBlue;
+        return AppColors.editBlue;
       case OrderStatus.delivered:
-        return _AppColors.success;
+        return _successColor;
     }
   }
 
@@ -767,10 +568,10 @@ class _OrderTableRowState extends State<_OrderTableRow> {
       onExit: (_) => setState(() => _hover = false),
       child: Container(
         decoration: BoxDecoration(
-          color: _hover ? _AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
+          color: _hover ? AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
           border: widget.isLast
               ? null
-              : const Border(bottom: BorderSide(color: _AppColors.border)),
+              : const Border(bottom: BorderSide(color: AppColors.border)),
         ),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Row(
@@ -788,7 +589,7 @@ class _OrderTableRowState extends State<_OrderTableRow> {
                   ),
                   Text(
                     widget.order.userEmail,
-                    style: const TextStyle(fontSize: 12, color: _AppColors.muted),
+                    style: const TextStyle(fontSize: 12, color: AppColors.muted),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -808,9 +609,9 @@ class _OrderTableRowState extends State<_OrderTableRow> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _SmallButton(
+                  SmallButton(
                     text: 'Detalji',
-                    color: _AppColors.editBlue,
+                    color: AppColors.editBlue,
                     onTap: widget.onViewDetails,
                   ),
                 ],
@@ -896,9 +697,9 @@ class _OrderDetailsDialog extends StatelessWidget {
   Color _getStatusColor(OrderStatus status) {
     switch (status) {
       case OrderStatus.processing:
-        return _AppColors.editBlue;
+        return AppColors.editBlue;
       case OrderStatus.delivered:
-        return _AppColors.success;
+        return _successColor;
     }
   }
 
@@ -907,7 +708,7 @@ class _OrderDetailsDialog extends StatelessWidget {
     final canMarkDelivered = order.status != OrderStatus.delivered;
 
     return Dialog(
-      backgroundColor: _AppColors.card,
+      backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 700, maxHeight: 600),
@@ -935,7 +736,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, color: _AppColors.muted),
+                    icon: const Icon(Icons.close, color: AppColors.muted),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -946,7 +747,7 @@ class _OrderDetailsDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: _AppColors.panel,
+                  color: AppColors.panel,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -980,7 +781,7 @@ class _OrderDetailsDialog extends StatelessWidget {
               Flexible(
                 child: Container(
                   decoration: BoxDecoration(
-                    color: _AppColors.panel,
+                    color: AppColors.panel,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -990,7 +791,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                         decoration: const BoxDecoration(
-                          border: Border(bottom: BorderSide(color: _AppColors.border)),
+                          border: Border(bottom: BorderSide(color: AppColors.border)),
                         ),
                         child: const Row(
                           children: [
@@ -1012,7 +813,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                             return Container(
                               padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                               decoration: BoxDecoration(
-                                border: isLast ? null : const Border(bottom: BorderSide(color: _AppColors.border)),
+                                border: isLast ? null : const Border(bottom: BorderSide(color: AppColors.border)),
                               ),
                               child: Row(
                                 children: [
@@ -1036,7 +837,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                                     flex: 2,
                                     child: Text(
                                       _formatCurrency(item.unitPrice),
-                                      style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+                                      style: const TextStyle(color: AppColors.muted, fontSize: 14),
                                       textAlign: TextAlign.right,
                                     ),
                                   ),
@@ -1058,7 +859,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
                         decoration: const BoxDecoration(
-                          border: Border(top: BorderSide(color: _AppColors.border, width: 2)),
+                          border: Border(top: BorderSide(color: AppColors.border, width: 2)),
                         ),
                         child: Row(
                           children: [
@@ -1068,7 +869,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                               child: Text(
                                 _formatCurrency(order.totalAmount),
                                 style: const TextStyle(
-                                  color: _AppColors.accent,
+                                  color: AppColors.accent,
                                   fontWeight: FontWeight.w700,
                                   fontSize: 16,
                                 ),
@@ -1090,7 +891,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                 children: [
                   TextButton(
                     onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('Zatvori', style: TextStyle(color: _AppColors.muted)),
+                    child: const Text('Zatvori', style: TextStyle(color: AppColors.muted)),
                   ),
                   if (canMarkDelivered) ...[
                     const SizedBox(width: 12),
@@ -1099,7 +900,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                       icon: const Icon(Icons.check, size: 18),
                       label: const Text('Označi kao dostavljeno'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _AppColors.success,
+                        backgroundColor: _successColor,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
@@ -1131,7 +932,7 @@ class _InfoRow extends StatelessWidget {
           width: 120,
           child: Text(
             label,
-            style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+            style: const TextStyle(color: AppColors.muted, fontSize: 14),
           ),
         ),
         Expanded(
@@ -1179,13 +980,13 @@ class _PaginationButtonState extends State<_PaginationButton> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: _hover && isEnabled ? _AppColors.accent : _AppColors.panel,
+            color: _hover && isEnabled ? AppColors.accent : AppColors.panel,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _AppColors.border),
+            border: Border.all(color: AppColors.border),
           ),
           child: Icon(
             widget.icon,
-            color: isEnabled ? Colors.white : _AppColors.muted,
+            color: isEnabled ? Colors.white : AppColors.muted,
             size: 20,
           ),
         ),
@@ -1226,18 +1027,18 @@ class _PageNumberState extends State<_PageNumber> {
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: widget.isActive
-                ? _AppColors.accent
+                ? AppColors.accent
                 : _hover
-                    ? _AppColors.panel
+                    ? AppColors.panel
                     : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            border: widget.isActive ? null : Border.all(color: _AppColors.border),
+            border: widget.isActive ? null : Border.all(color: AppColors.border),
           ),
           child: Center(
             child: Text(
               '${widget.page}',
               style: TextStyle(
-                color: widget.isActive ? Colors.white : _AppColors.muted,
+                color: widget.isActive ? Colors.white : AppColors.muted,
                 fontWeight: widget.isActive ? FontWeight.bold : FontWeight.normal,
                 fontSize: 14,
               ),
@@ -1246,25 +1047,5 @@ class _PageNumberState extends State<_PageNumber> {
         ),
       ),
     );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DEBOUNCER
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Debouncer {
-  _Debouncer({required this.milliseconds});
-
-  final int milliseconds;
-  Timer? _timer;
-
-  void run(VoidCallback action) {
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: milliseconds), action);
-  }
-
-  void dispose() {
-    _timer?.cancel();
   }
 }

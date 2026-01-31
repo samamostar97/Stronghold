@@ -1,12 +1,18 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+
+import '../constants/app_colors.dart';
 import '../models/review_dto.dart';
 import '../services/reviews_api.dart';
+import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
+import '../widgets/back_button.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/error_animation.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/search_input.dart';
 import '../widgets/shared_admin_header.dart';
+import '../widgets/small_button.dart';
+import '../widgets/success_animation.dart';
 
 class ReviewsManagementScreen extends StatefulWidget {
   const ReviewsManagementScreen({super.key});
@@ -17,7 +23,7 @@ class ReviewsManagementScreen extends StatefulWidget {
 
 class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
   final _searchController = TextEditingController();
-  final _debouncer = _Debouncer(milliseconds: 400);
+  final _debouncer = Debouncer(milliseconds: 400);
 
   List<ReviewDTO> _reviews = [];
   bool _isLoading = true;
@@ -98,7 +104,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
   Future<void> _deleteReview(ReviewDTO review) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => _ConfirmDialog(
+      builder: (ctx) => ConfirmDialog(
         title: 'Potvrda brisanja',
         message: 'Jeste li sigurni da želite obrisati recenziju korisnika "${review.userName}" za proizvod "${review.supplementName}"?',
       ),
@@ -131,7 +137,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_AppColors.bg1, _AppColors.bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
         child: SafeArea(
@@ -151,9 +157,9 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const _Header(),
+                    const SharedAdminHeader(),
                     const SizedBox(height: 20),
-                    _BackButton(onTap: () => Navigator.of(context).maybePop()),
+                    AppBackButton(onTap: () => Navigator.of(context).maybePop()),
                     const SizedBox(height: 20),
                     Expanded(child: _buildMainContent(constraints)),
                   ],
@@ -170,7 +176,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
     return Container(
       padding: EdgeInsets.all(constraints.maxWidth > 600 ? 30 : 16),
       decoration: BoxDecoration(
-        color: _AppColors.card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -200,7 +206,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _SearchInput(
+          SearchInput(
             controller: _searchController,
             onSubmitted: (_) => _onSearch(),
             hintText: 'Pretraži po korisniku ili proizvodu...',
@@ -214,7 +220,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
     return Row(
       children: [
         Expanded(
-          child: _SearchInput(
+          child: SearchInput(
             controller: _searchController,
             onSubmitted: (_) => _onSearch(),
             hintText: 'Pretraži po korisniku ili proizvodu...',
@@ -230,20 +236,20 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: _AppColors.border),
+        border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: _selectedOrderBy,
           hint: const Text(
             'Sortiraj',
-            style: TextStyle(color: _AppColors.muted, fontSize: 14),
+            style: TextStyle(color: AppColors.muted, fontSize: 14),
           ),
-          dropdownColor: _AppColors.panel,
+          dropdownColor: AppColors.panel,
           style: const TextStyle(color: Colors.white, fontSize: 14),
-          icon: const Icon(Icons.sort, color: _AppColors.muted, size: 20),
+          icon: const Icon(Icons.sort, color: AppColors.muted, size: 20),
           items: const [
             DropdownMenuItem<String?>(
               value: null,
@@ -277,7 +283,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
   Widget _buildContent(BoxConstraints constraints) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: _AppColors.accent),
+        child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
 
@@ -293,11 +299,11 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+              style: const TextStyle(color: AppColors.muted, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            _GradientButton(text: 'Pokušaj ponovo', onTap: _loadReviews),
+            GradientButton(text: 'Pokušaj ponovo', onTap: _loadReviews),
           ],
         ),
       );
@@ -319,7 +325,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
       children: [
         Text(
           'Ukupno: $_totalCount',
-          style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+          style: const TextStyle(color: AppColors.muted, fontSize: 14),
         ),
         const SizedBox(width: 24),
         _PaginationButton(
@@ -350,7 +356,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
       if (start > 2) {
         pages.add(const Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text('...', style: TextStyle(color: _AppColors.muted)),
+          child: Text('...', style: TextStyle(color: AppColors.muted)),
         ));
       }
     }
@@ -367,7 +373,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
       if (end < _totalPages - 1) {
         pages.add(const Padding(
           padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text('...', style: TextStyle(color: _AppColors.muted)),
+          child: Text('...', style: TextStyle(color: AppColors.muted)),
         ));
       }
       pages.add(_PageNumber(
@@ -383,7 +389,7 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
   Widget _buildTable(BoxConstraints constraints) {
     return Container(
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -419,214 +425,11 @@ class _ReviewsManagementScreenState extends State<ReviewsManagementScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THEME COLORS
+// STAR RATING WIDGET (screen-specific colors)
 // ─────────────────────────────────────────────────────────────────────────────
 
-abstract class _AppColors {
-  static const bg1 = Color(0xFF1A1D2E);
-  static const bg2 = Color(0xFF16192B);
-  static const card = Color(0xFF22253A);
-  static const panel = Color(0xFF2A2D3E);
-  static const border = Color(0xFF3A3D4E);
-  static const muted = Color(0xFF8A8D9E);
-  static const accent = Color(0xFFFF5757);
-  static const accentLight = Color(0xFFFF6B6B);
-  static const starGold = Color(0xFFFFD700);
-  static const starEmpty = Color(0xFF4A4D5E);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// REUSABLE WIDGETS
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SharedAdminHeader();
-  }
-}
-
-class _BackButton extends StatefulWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  State<_BackButton> createState() => _BackButtonState();
-}
-
-class _BackButtonState extends State<_BackButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: MouseRegion(
-        onEnter: (_) => setState(() => _hover = true),
-        onExit: (_) => setState(() => _hover = false),
-        child: GestureDetector(
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [_AppColors.accent, _AppColors.accentLight],
-              ),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Text(
-              '← Nazad',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchInput extends StatelessWidget {
-  const _SearchInput({
-    required this.controller,
-    required this.onSubmitted,
-    required this.hintText,
-  });
-
-  final TextEditingController controller;
-  final ValueChanged<String> onSubmitted;
-  final String hintText;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      onSubmitted: onSubmitted,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: const TextStyle(color: _AppColors.muted, fontSize: 14),
-        filled: true,
-        fillColor: _AppColors.panel,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: _AppColors.border),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        suffixIcon: IconButton(
-          icon: const Icon(Icons.search, color: _AppColors.muted),
-          onPressed: () => onSubmitted(controller.text),
-        ),
-      ),
-    );
-  }
-}
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({
-    required this.text,
-    required this.onTap,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_AppColors.accent, _AppColors.accentLight],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SmallButton extends StatefulWidget {
-  const _SmallButton({
-    required this.text,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String text;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  State<_SmallButton> createState() => _SmallButtonState();
-}
-
-class _SmallButtonState extends State<_SmallButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STAR RATING WIDGET
-// ─────────────────────────────────────────────────────────────────────────────
+const _starGold = Color(0xFFFFD700);
+const _starEmpty = Color(0xFF4A4D5E);
 
 class _StarRating extends StatelessWidget {
   const _StarRating({required this.rating});
@@ -643,7 +446,7 @@ class _StarRating extends StatelessWidget {
           padding: const EdgeInsets.only(right: 2),
           child: Icon(
             isFilled ? Icons.star_rounded : Icons.star_outline_rounded,
-            color: isFilled ? _AppColors.starGold : _AppColors.starEmpty,
+            color: isFilled ? _starGold : _starEmpty,
             size: 18,
           ),
         );
@@ -671,7 +474,7 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _AppColors.border, width: 2)),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       child: const Row(
@@ -736,10 +539,10 @@ class _ReviewTableRowState extends State<_ReviewTableRow> {
       onExit: (_) => setState(() => _hover = false),
       child: Container(
         decoration: BoxDecoration(
-          color: _hover ? _AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
+          color: _hover ? AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
           border: widget.isLast
               ? null
-              : const Border(bottom: BorderSide(color: _AppColors.border)),
+              : const Border(bottom: BorderSide(color: AppColors.border)),
         ),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         child: Row(
@@ -770,7 +573,7 @@ class _ReviewTableRowState extends State<_ReviewTableRow> {
                 message: widget.review.comment ?? '',
                 child: Text(
                   widget.review.comment ?? '-',
-                  style: const TextStyle(fontSize: 14, color: _AppColors.muted),
+                  style: const TextStyle(fontSize: 14, color: AppColors.muted),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                 ),
@@ -781,9 +584,9 @@ class _ReviewTableRowState extends State<_ReviewTableRow> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _SmallButton(
+                  SmallButton(
                     text: 'Obriši',
-                    color: _AppColors.accent,
+                    color: AppColors.accent,
                     onTap: widget.onDelete,
                   ),
                 ],
@@ -792,50 +595,6 @@ class _ReviewTableRowState extends State<_ReviewTableRow> {
           ],
         ),
       ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CONFIRM DIALOG
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ConfirmDialog extends StatelessWidget {
-  const _ConfirmDialog({
-    required this.title,
-    required this.message,
-  });
-
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: _AppColors.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-      content: Text(
-        message,
-        style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Odustani', style: TextStyle(color: _AppColors.muted)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: TextButton.styleFrom(
-            backgroundColor: _AppColors.accent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          ),
-          child: const Text('Obriši', style: TextStyle(color: Colors.white)),
-        ),
-      ],
     );
   }
 }
@@ -874,13 +633,13 @@ class _PaginationButtonState extends State<_PaginationButton> {
           width: 36,
           height: 36,
           decoration: BoxDecoration(
-            color: _hover && isEnabled ? _AppColors.accent : _AppColors.panel,
+            color: _hover && isEnabled ? AppColors.accent : AppColors.panel,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: _AppColors.border),
+            border: Border.all(color: AppColors.border),
           ),
           child: Icon(
             widget.icon,
-            color: isEnabled ? Colors.white : _AppColors.muted,
+            color: isEnabled ? Colors.white : AppColors.muted,
             size: 20,
           ),
         ),
@@ -921,18 +680,18 @@ class _PageNumberState extends State<_PageNumber> {
           margin: const EdgeInsets.symmetric(horizontal: 2),
           decoration: BoxDecoration(
             color: widget.isActive
-                ? _AppColors.accent
+                ? AppColors.accent
                 : _hover
-                    ? _AppColors.panel
+                    ? AppColors.panel
                     : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            border: widget.isActive ? null : Border.all(color: _AppColors.border),
+            border: widget.isActive ? null : Border.all(color: AppColors.border),
           ),
           child: Center(
             child: Text(
               '${widget.page}',
               style: TextStyle(
-                color: widget.isActive ? Colors.white : _AppColors.muted,
+                color: widget.isActive ? Colors.white : AppColors.muted,
                 fontWeight: widget.isActive ? FontWeight.bold : FontWeight.normal,
                 fontSize: 14,
               ),
@@ -941,25 +700,5 @@ class _PageNumberState extends State<_PageNumber> {
         ),
       ),
     );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DEBOUNCER
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Debouncer {
-  _Debouncer({required this.milliseconds});
-
-  final int milliseconds;
-  Timer? _timer;
-
-  void run(VoidCallback action) {
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: milliseconds), action);
-  }
-
-  void dispose() {
-    _timer?.cancel();
   }
 }

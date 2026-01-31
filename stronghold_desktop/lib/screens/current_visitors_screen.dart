@@ -1,10 +1,15 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 import '../models/gym_visit_dto.dart';
 import '../models/user_dto.dart';
 import '../services/gym_visits_api.dart';
 import '../services/users_api.dart';
+import '../utils/debouncer.dart';
+import '../widgets/back_button.dart';
+import '../widgets/confirm_dialog.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/hover_icon_button.dart';
+import '../widgets/small_button.dart';
 import '../widgets/success_animation.dart';
 import '../widgets/error_animation.dart';
 import '../widgets/shared_admin_header.dart';
@@ -89,7 +94,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
   Future<void> _handleCheckOut(CurrentVisitorDTO visitor) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (ctx) => _ConfirmDialog(
+      builder: (ctx) => ConfirmDialog(
         title: 'Potvrda check-out',
         message: 'Želite li odjaviti korisnika "${visitor.fullName}"?',
         confirmText: 'Check-out',
@@ -146,7 +151,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_AppColors.bg1, _AppColors.bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
         child: SafeArea(
@@ -166,9 +171,9 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const _Header(),
+                    const SharedAdminHeader(),
                     const SizedBox(height: 20),
-                    _BackButton(onTap: () => Navigator.of(context).maybePop()),
+                    AppBackButton(onTap: () => Navigator.of(context).maybePop()),
                     const SizedBox(height: 20),
                     Expanded(child: _buildMainContent(constraints)),
                   ],
@@ -185,7 +190,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
     return Container(
       padding: EdgeInsets.all(constraints.maxWidth > 600 ? 30 : 16),
       decoration: BoxDecoration(
-        color: _AppColors.card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -220,7 +225,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [_AppColors.accent, _AppColors.accentLight],
+              colors: [AppColors.accent, AppColors.accentLight],
             ),
             borderRadius: BorderRadius.circular(20),
           ),
@@ -240,7 +245,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        _IconButton(
+        HoverIconButton(
           icon: Icons.refresh,
           onTap: _loadVisitors,
           tooltip: 'Osvježi',
@@ -261,7 +266,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
             hintText: 'Pretraži trenutne korisnike...',
           ),
           const SizedBox(height: 12),
-          _GradientButton(
+          GradientButton(
             text: '+ Check-in korisnika',
             onTap: _openCheckInDialog,
           ),
@@ -278,7 +283,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
           ),
         ),
         const SizedBox(width: 16),
-        _GradientButton(
+        GradientButton(
           text: '+ Check-in korisnika',
           onTap: _openCheckInDialog,
         ),
@@ -289,7 +294,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
   Widget _buildContent(BoxConstraints constraints) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: _AppColors.accent),
+        child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
 
@@ -305,11 +310,11 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+              style: const TextStyle(color: AppColors.muted, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            _GradientButton(text: 'Pokušaj ponovo', onTap: _loadVisitors),
+            GradientButton(text: 'Pokušaj ponovo', onTap: _loadVisitors),
           ],
         ),
       );
@@ -320,7 +325,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.people_outline, size: 64, color: _AppColors.muted),
+            Icon(Icons.people_outline, size: 64, color: AppColors.muted),
             const SizedBox(height: 16),
             Text(
               'Nema korisnika u teretani',
@@ -337,7 +342,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.search_off, size: 64, color: _AppColors.muted),
+            Icon(Icons.search_off, size: 64, color: AppColors.muted),
             const SizedBox(height: 16),
             Text(
               'Nema rezultata za "${_searchController.text}"',
@@ -354,7 +359,7 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
   Widget _buildTable() {
     return Container(
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -380,21 +385,6 @@ class _CurrentVisitorsScreenState extends State<CurrentVisitorsScreen> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THEME COLORS
-// ─────────────────────────────────────────────────────────────────────────────
-
-abstract class _AppColors {
-  static const bg1 = Color(0xFF1A1D2E);
-  static const bg2 = Color(0xFF16192B);
-  static const card = Color(0xFF22253A);
-  static const panel = Color(0xFF2A2D3E);
-  static const border = Color(0xFF3A3D4E);
-  static const muted = Color(0xFF8A8D9E);
-  static const accent = Color(0xFFFF5757);
-  static const accentLight = Color(0xFFFF6B6B);
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // TABLE COLUMN FLEX VALUES
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -407,31 +397,8 @@ abstract class _TableFlex {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// REUSABLE WIDGETS
+// SCREEN-SPECIFIC WIDGETS
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _Header extends StatelessWidget {
-  const _Header();
-
-  @override
-  Widget build(BuildContext context) {
-    return const SharedAdminHeader();
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: _GradientButton(text: '← Nazad', onTap: onTap),
-    );
-  }
-}
 
 class _SearchInput extends StatelessWidget {
   const _SearchInput({
@@ -449,167 +416,27 @@ class _SearchInput extends StatelessWidget {
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: _AppColors.muted, fontSize: 14),
+        hintStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
         filled: true,
-        fillColor: _AppColors.panel,
+        fillColor: AppColors.panel,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: _AppColors.border),
+          borderSide: const BorderSide(color: AppColors.border),
           borderRadius: BorderRadius.circular(8),
         ),
         focusedBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: Colors.white24),
           borderRadius: BorderRadius.circular(8),
         ),
-        prefixIcon: const Icon(Icons.search, color: _AppColors.muted),
+        prefixIcon: const Icon(Icons.search, color: AppColors.muted),
         suffixIcon: controller.text.isNotEmpty
             ? IconButton(
-                icon: const Icon(Icons.clear, color: _AppColors.muted, size: 20),
+                icon: const Icon(Icons.clear, color: AppColors.muted, size: 20),
                 onPressed: () => controller.clear(),
               )
             : null,
       ),
     );
-  }
-}
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({
-    required this.text,
-    required this.onTap,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_AppColors.accent, _AppColors.accentLight],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _SmallButton extends StatefulWidget {
-  const _SmallButton({
-    required this.text,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String text;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  State<_SmallButton> createState() => _SmallButtonState();
-}
-
-class _SmallButtonState extends State<_SmallButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _IconButton extends StatefulWidget {
-  const _IconButton({
-    required this.icon,
-    required this.onTap,
-    this.tooltip,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-
-  @override
-  State<_IconButton> createState() => _IconButtonState();
-}
-
-class _IconButtonState extends State<_IconButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final button = MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: _hover ? _AppColors.accent : _AppColors.panel,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            widget.icon,
-            size: 20,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-
-    if (widget.tooltip != null) {
-      return Tooltip(message: widget.tooltip!, child: button);
-    }
-    return button;
   }
 }
 
@@ -624,7 +451,7 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _AppColors.border, width: 2)),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       child: const Row(
@@ -689,10 +516,10 @@ class _VisitorTableRowState extends State<_VisitorTableRow> {
       onExit: (_) => setState(() => _hover = false),
       child: Container(
         decoration: BoxDecoration(
-          color: _hover ? _AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
+          color: _hover ? AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
           border: widget.isLast
               ? null
-              : const Border(bottom: BorderSide(color: _AppColors.border)),
+              : const Border(bottom: BorderSide(color: AppColors.border)),
         ),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Row(
@@ -706,9 +533,9 @@ class _VisitorTableRowState extends State<_VisitorTableRow> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _SmallButton(
+                  SmallButton(
                     text: 'Check-out',
-                    color: _AppColors.accent,
+                    color: AppColors.accent,
                     onTap: widget.onCheckOut,
                   ),
                 ],
@@ -741,52 +568,6 @@ class _DataCell extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DIALOGS
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _ConfirmDialog extends StatelessWidget {
-  const _ConfirmDialog({
-    required this.title,
-    required this.message,
-    required this.confirmText,
-  });
-
-  final String title;
-  final String message;
-  final String confirmText;
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: _AppColors.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: Text(
-        title,
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-      content: Text(
-        message,
-        style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('Odustani', style: TextStyle(color: _AppColors.muted)),
-        ),
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(true),
-          style: TextButton.styleFrom(
-            backgroundColor: _AppColors.accent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-          ),
-          child: Text(confirmText, style: const TextStyle(color: Colors.white)),
-        ),
-      ],
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // CHECK-IN DIALOG
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -799,7 +580,7 @@ class _CheckInDialog extends StatefulWidget {
 
 class _CheckInDialogState extends State<_CheckInDialog> {
   final _searchController = TextEditingController();
-  final _debouncer = _Debouncer(milliseconds: 400);
+  final _debouncer = Debouncer(milliseconds: 400);
 
   List<UserTableRowDTO> _searchResults = [];
   bool _searching = false;
@@ -865,7 +646,7 @@ class _CheckInDialogState extends State<_CheckInDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: _AppColors.card,
+      backgroundColor: AppColors.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 500),
@@ -888,7 +669,7 @@ class _CheckInDialogState extends State<_CheckInDialog> {
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.close, color: _AppColors.muted),
+                    icon: const Icon(Icons.close, color: AppColors.muted),
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                 ],
@@ -903,19 +684,19 @@ class _CheckInDialogState extends State<_CheckInDialog> {
                 style: const TextStyle(color: Colors.white, fontSize: 14),
                 decoration: InputDecoration(
                   hintText: 'Pretraži po imenu ili korisničkom imenu...',
-                  hintStyle: const TextStyle(color: _AppColors.muted, fontSize: 14),
+                  hintStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
                   filled: true,
-                  fillColor: _AppColors.panel,
+                  fillColor: AppColors.panel,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   enabledBorder: OutlineInputBorder(
-                    borderSide: const BorderSide(color: _AppColors.border),
+                    borderSide: const BorderSide(color: AppColors.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderSide: const BorderSide(color: Colors.white24),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  prefixIcon: const Icon(Icons.search, color: _AppColors.muted),
+                  prefixIcon: const Icon(Icons.search, color: AppColors.muted),
                 ),
               ),
               const SizedBox(height: 16),
@@ -934,7 +715,7 @@ class _CheckInDialogState extends State<_CheckInDialog> {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(32),
-          child: CircularProgressIndicator(color: _AppColors.accent),
+          child: CircularProgressIndicator(color: AppColors.accent),
         ),
       );
     }
@@ -946,7 +727,7 @@ class _CheckInDialogState extends State<_CheckInDialog> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircularProgressIndicator(color: _AppColors.accent),
+              CircularProgressIndicator(color: AppColors.accent),
               SizedBox(height: 16),
               Text(
                 'Prijava u tijeku...',
@@ -964,7 +745,7 @@ class _CheckInDialogState extends State<_CheckInDialog> {
           padding: const EdgeInsets.all(32),
           child: Text(
             'Nema rezultata za "${_searchController.text}"',
-            style: const TextStyle(color: _AppColors.muted),
+            style: const TextStyle(color: AppColors.muted),
           ),
         ),
       );
@@ -976,7 +757,7 @@ class _CheckInDialogState extends State<_CheckInDialog> {
           padding: EdgeInsets.all(32),
           child: Text(
             'Unesite ime ili korisničko ime za pretragu',
-            style: TextStyle(color: _AppColors.muted),
+            style: TextStyle(color: AppColors.muted),
           ),
         ),
       );
@@ -1021,10 +802,10 @@ class _UserSearchResultTileState extends State<_UserSearchResultTile> {
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: _hover ? _AppColors.panel : _AppColors.panel.withValues(alpha: 0.5),
+          color: _hover ? AppColors.panel : AppColors.panel.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: _hover ? _AppColors.border : Colors.transparent,
+            color: _hover ? AppColors.border : Colors.transparent,
           ),
         ),
         child: Row(
@@ -1034,7 +815,7 @@ class _UserSearchResultTileState extends State<_UserSearchResultTile> {
               height: 40,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [_AppColors.accent, _AppColors.accentLight],
+                  colors: [AppColors.accent, AppColors.accentLight],
                 ),
                 borderRadius: BorderRadius.circular(20),
               ),
@@ -1065,41 +846,21 @@ class _UserSearchResultTileState extends State<_UserSearchResultTile> {
                   Text(
                     widget.user.username,
                     style: const TextStyle(
-                      color: _AppColors.muted,
+                      color: AppColors.muted,
                       fontSize: 12,
                     ),
                   ),
                 ],
               ),
             ),
-            _SmallButton(
+            SmallButton(
               text: 'Check-in',
-              color: _AppColors.accent,
+              color: AppColors.accent,
               onTap: widget.onCheckIn,
             ),
           ],
         ),
       ),
     );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// DEBOUNCER
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _Debouncer {
-  _Debouncer({required this.milliseconds});
-
-  final int milliseconds;
-  Timer? _timer;
-
-  void run(VoidCallback action) {
-    _timer?.cancel();
-    _timer = Timer(Duration(milliseconds: milliseconds), action);
-  }
-
-  void dispose() {
-    _timer?.cancel();
   }
 }

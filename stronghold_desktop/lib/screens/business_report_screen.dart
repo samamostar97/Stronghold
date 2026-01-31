@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 import '../models/business_report_dto.dart';
 import '../services/reports_api.dart';
+import '../widgets/back_button.dart';
 import '../widgets/shared_admin_header.dart';
 
 class BusinessReportScreen extends StatefulWidget {
@@ -81,14 +83,6 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Tvoje boje ostaju iste
-    const _bg1 = Color(0xFF1A1D2E);
-    const _bg2 = Color(0xFF16192B);
-    const _muted = Color(0xFF8A8D9E);
-    const _accent = Color(0xFFFF5757);
-    const _accent2 = Color(0xFFFF6B6B);
-    const _border = Color(0xFF3A3D4E);
-
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
@@ -96,7 +90,7 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_bg1, _bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
         child: SafeArea(
@@ -128,10 +122,8 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                     const _Header(),
                     const SizedBox(height: 20),
 
-                    _BackButton(
+                    AppBackButton(
                       onTap: widget.onBack ?? () => Navigator.of(context).maybePop(),
-                      accent: _accent,
-                      accent2: _accent2,
                     ),
                     const SizedBox(height: 20),
 
@@ -201,18 +193,18 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                           _ChartCard(
                             title: 'Sedmična posjećenost po danima',
                             child: _BarChart(
-                              accent: _accent,
-                              accent2: _accent2,
-                              muted: _muted,
+                              accent: AppColors.accent,
+                              accent2: AppColors.accentLight,
+                              muted: AppColors.muted,
                               bars: _mapBars(_report!.visitsByWeekday),
                             ),
                           ),
                           _ChartCard(
                             title: 'Bestseller suplement',
                             child: _BestSeller(
-                              border: _border,
-                              muted: _muted,
-                              accent: _accent,
+                              border: AppColors.border,
+                              muted: AppColors.muted,
+                              accent: AppColors.accent,
                               productEmoji: '💊',
                               productName: _report!.bestsellerLast30Days?.name ?? 'N/A',
                               category: 'Suplement',
@@ -250,79 +242,6 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SharedAdminHeader();
-  }
-}
-class _BackButton extends StatelessWidget {
-  const _BackButton({
-    required this.onTap,
-    required this.accent,
-    required this.accent2,
-  });
-
-  final VoidCallback onTap;
-  final Color accent;
-  final Color accent2;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: _GradientButton(
-        text: '← Nazad',
-        onTap: onTap,
-        accent: accent,
-        accent2: accent2,
-      ),
-    );
-  }
-}
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({
-    required this.text,
-    required this.onTap,
-    required this.accent,
-    required this.accent2,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-  final Color accent;
-  final Color accent2;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [widget.accent, widget.accent2],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
   }
 }
 // ===================
@@ -376,29 +295,25 @@ class _StatCard extends StatelessWidget {
   final String changeText;
   final Color changeColor;
 
-  static const _card = Color(0xFF22253A);
-  static const _muted = Color(0xFF8A8D9E);
-  static const _accent = Color(0xFFFF5757);
-
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        color: _card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(color: _muted, fontSize: 14)),
+          Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 14)),
           const SizedBox(height: 10),
           Text(
             value,
             style: const TextStyle(
               fontSize: 32,
               fontWeight: FontWeight.w800,
-              color: _accent,
+              color: AppColors.accent,
             ),
           ),
           const SizedBox(height: 10),
@@ -448,14 +363,12 @@ class _ChartCard extends StatelessWidget {
   final String title;
   final Widget child;
 
-  static const _card = Color(0xFF22253A);
-
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(25),
       decoration: BoxDecoration(
-        color: _card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(

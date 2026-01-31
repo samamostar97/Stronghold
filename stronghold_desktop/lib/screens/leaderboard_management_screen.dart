@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 import '../models/leaderboard_dto.dart';
 import '../services/leaderboard_api.dart';
 import '../config/api_config.dart';
+import '../widgets/back_button.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/hover_icon_button.dart';
 import '../widgets/shared_admin_header.dart';
 
 class LeaderboardManagementScreen extends StatefulWidget {
@@ -53,7 +57,7 @@ class _LeaderboardManagementScreenState
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_AppColors.bg1, _AppColors.bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
         child: SafeArea(
@@ -75,7 +79,7 @@ class _LeaderboardManagementScreenState
                   children: [
                     const _Header(),
                     const SizedBox(height: 20),
-                    _BackButton(onTap: () => Navigator.of(context).maybePop()),
+                    AppBackButton(onTap: () => Navigator.of(context).maybePop()),
                     const SizedBox(height: 20),
                     Expanded(child: _buildMainContent(constraints)),
                   ],
@@ -92,7 +96,7 @@ class _LeaderboardManagementScreenState
     return Container(
       padding: EdgeInsets.all(constraints.maxWidth > 600 ? 30 : 16),
       decoration: BoxDecoration(
-        color: _AppColors.card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -114,7 +118,7 @@ class _LeaderboardManagementScreenState
                 ),
               ),
               const Spacer(),
-              _IconButton(
+              HoverIconButton(
                 icon: Icons.refresh,
                 onTap: _loadLeaderboard,
                 tooltip: 'Osvježi',
@@ -131,7 +135,7 @@ class _LeaderboardManagementScreenState
   Widget _buildContent(BoxConstraints constraints) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: _AppColors.accent),
+        child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
 
@@ -148,11 +152,11 @@ class _LeaderboardManagementScreenState
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+              style: const TextStyle(color: AppColors.muted, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            _GradientButton(text: 'Pokušaj ponovo', onTap: _loadLeaderboard),
+            GradientButton(text: 'Pokušaj ponovo', onTap: _loadLeaderboard),
           ],
         ),
       );
@@ -164,7 +168,7 @@ class _LeaderboardManagementScreenState
   Widget _buildTable(BoxConstraints constraints) {
     return Container(
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -199,22 +203,12 @@ class _LeaderboardManagementScreenState
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// THEME COLORS
+// EXTRA COLORS (not in shared AppColors)
 // ─────────────────────────────────────────────────────────────────────────────
 
-abstract class _AppColors {
-  static const bg1 = Color(0xFF1A1D2E);
-  static const bg2 = Color(0xFF16192B);
-  static const card = Color(0xFF22253A);
-  static const panel = Color(0xFF2A2D3E);
-  static const border = Color(0xFF3A3D4E);
-  static const muted = Color(0xFF8A8D9E);
-  static const accent = Color(0xFFFF5757);
-  static const accentLight = Color(0xFFFF6B6B);
-  static const gold = Color(0xFFFFD700);
-  static const silver = Color(0xFFC0C0C0);
-  static const bronze = Color(0xFFCD7F32);
-}
+const _gold = Color(0xFFFFD700);
+const _silver = Color(0xFFC0C0C0);
+const _bronze = Color(0xFFCD7F32);
 
 // ─────────────────────────────────────────────────────────────────────────────
 // REUSABLE WIDGETS
@@ -226,114 +220,6 @@ class _Header extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const SharedAdminHeader();
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: _GradientButton(text: '← Nazad', onTap: onTap),
-    );
-  }
-}
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({
-    required this.text,
-    required this.onTap,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_AppColors.accent, _AppColors.accentLight],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _IconButton extends StatefulWidget {
-  const _IconButton({
-    required this.icon,
-    required this.onTap,
-    this.tooltip,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-  final String? tooltip;
-
-  @override
-  State<_IconButton> createState() => _IconButtonState();
-}
-
-class _IconButtonState extends State<_IconButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final button = MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: _hover ? _AppColors.accent : _AppColors.panel,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Icon(
-            widget.icon,
-            size: 20,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-
-    if (widget.tooltip != null) {
-      return Tooltip(message: widget.tooltip!, child: button);
-    }
-    return button;
   }
 }
 
@@ -355,7 +241,7 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _AppColors.border, width: 2)),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       child: const Row(
@@ -414,13 +300,13 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
   Color _getRankColor(int rank) {
     switch (rank) {
       case 1:
-        return _AppColors.gold;
+        return _gold;
       case 2:
-        return _AppColors.silver;
+        return _silver;
       case 3:
-        return _AppColors.bronze;
+        return _bronze;
       default:
-        return _AppColors.muted;
+        return AppColors.muted;
     }
   }
 
@@ -454,11 +340,11 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
       child: Container(
         decoration: BoxDecoration(
           color: _hover
-              ? _AppColors.panel.withValues(alpha: 0.5)
+              ? AppColors.panel.withValues(alpha: 0.5)
               : Colors.transparent,
           border: widget.isLast
               ? null
-              : const Border(bottom: BorderSide(color: _AppColors.border)),
+              : const Border(bottom: BorderSide(color: AppColors.border)),
         ),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
         child: Row(
@@ -496,7 +382,7 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
                       border: Border.all(
                         color: widget.entry.rank <= 3
                             ? rankColor
-                            : _AppColors.border,
+                            : AppColors.border,
                         width: 2,
                       ),
                     ),
@@ -534,7 +420,7 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: _AppColors.accent.withValues(alpha: 0.15),
+                  color: AppColors.accent.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -542,7 +428,7 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
-                    color: _AppColors.accent,
+                    color: AppColors.accent,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -578,14 +464,14 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
     }
 
     return Container(
-      color: _AppColors.bg1,
+      color: AppColors.bg1,
       child: Center(
         child: Text(
           initials.isNotEmpty ? initials : '?',
           style: const TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w700,
-            color: _AppColors.accent,
+            color: AppColors.accent,
           ),
         ),
       ),

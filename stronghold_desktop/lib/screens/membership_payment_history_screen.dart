@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../constants/app_colors.dart';
 import '../models/user_dto.dart';
 import '../models/membership_dto.dart';
 import '../services/memberships_api.dart';
+import '../widgets/back_button.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/shared_admin_header.dart';
 
 /// Screen for viewing a user's membership payment history
 class MemberPaymentHistoryScreen extends StatefulWidget {
@@ -77,7 +81,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_AppColors.bg1, _AppColors.bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
         child: SafeArea(
@@ -99,7 +103,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
                   children: [
                     const _Header(),
                     const SizedBox(height: 20),
-                    _BackButton(onTap: () => Navigator.of(context).maybePop()),
+                    AppBackButton(onTap: () => Navigator.of(context).maybePop()),
                     const SizedBox(height: 20),
                     Expanded(child: _buildMainContent(constraints)),
                   ],
@@ -116,7 +120,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
     return Container(
       padding: EdgeInsets.all(constraints.maxWidth > 600 ? 30 : 16),
       decoration: BoxDecoration(
-        color: _AppColors.card,
+        color: AppColors.card,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -139,7 +143,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
           'Pregled uplata za:',
           style: TextStyle(
             fontSize: constraints.maxWidth > 600 ? 16 : 14,
-            color: _AppColors.muted,
+            color: AppColors.muted,
           ),
         ),
         const SizedBox(height: 8),
@@ -158,7 +162,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
           '@${widget.user.username}',
           style: TextStyle(
             fontSize: constraints.maxWidth > 600 ? 14 : 12,
-            color: _AppColors.muted,
+            color: AppColors.muted,
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -170,7 +174,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
   Widget _buildContent(BoxConstraints constraints) {
     if (_isLoading) {
       return const Center(
-        child: CircularProgressIndicator(color: _AppColors.accent),
+        child: CircularProgressIndicator(color: AppColors.accent),
       );
     }
 
@@ -186,11 +190,11 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
             const SizedBox(height: 8),
             Text(
               _error!,
-              style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+              style: const TextStyle(color: AppColors.muted, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            _GradientButton(text: 'Pokusaj ponovo', onTap: _loadPayments),
+            GradientButton(text: 'Pokusaj ponovo', onTap: _loadPayments),
           ],
         ),
       );
@@ -214,7 +218,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
 
     return Container(
       decoration: BoxDecoration(
-        color: _AppColors.panel,
+        color: AppColors.panel,
         borderRadius: BorderRadius.circular(12),
       ),
       child: ClipRRect(
@@ -316,7 +320,7 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
           const SizedBox(height: 12),
           Text(
             'Ukupno: $_totalCount',
-            style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+            style: const TextStyle(color: AppColors.muted, fontSize: 14),
           ),
         ],
       );
@@ -348,24 +352,11 @@ class _MemberPaymentHistoryScreenState extends State<MemberPaymentHistoryScreen>
         const SizedBox(width: 16),
         Text(
           'Ukupno: $_totalCount',
-          style: const TextStyle(color: _AppColors.muted, fontSize: 14),
+          style: const TextStyle(color: AppColors.muted, fontSize: 14),
         ),
       ],
     );
   }
-}
-
-// THEME COLORS
-
-abstract class _AppColors {
-  static const bg1 = Color(0xFF1A1D2E);
-  static const bg2 = Color(0xFF16192B);
-  static const card = Color(0xFF22253A);
-  static const panel = Color(0xFF2A2D3E);
-  static const border = Color(0xFF3A3D4E);
-  static const muted = Color(0xFF8A8D9E);
-  static const accent = Color(0xFFFF5757);
-  static const accentLight = Color(0xFFFF6B6B);
 }
 
 // REUSABLE WIDGETS
@@ -375,108 +366,7 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 400;
-
-        return Row(
-          children: [
-            Row(
-              children: [
-                const Text('🏋️', style: TextStyle(fontSize: 32)),
-                const SizedBox(width: 10),
-                Text(
-                  'STRONGHOLD',
-                  style: TextStyle(
-                    fontSize: isCompact ? 18 : 24,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              decoration: BoxDecoration(
-                color: _AppColors.panel,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('👤'),
-                  SizedBox(width: 8),
-                  Text(
-                    'Admin',
-                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _BackButton extends StatelessWidget {
-  const _BackButton({required this.onTap});
-
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: _GradientButton(text: '← Nazad', onTap: onTap),
-    );
-  }
-}
-
-class _GradientButton extends StatefulWidget {
-  const _GradientButton({
-    required this.text,
-    required this.onTap,
-  });
-
-  final String text;
-  final VoidCallback onTap;
-
-  @override
-  State<_GradientButton> createState() => _GradientButtonState();
-}
-
-class _GradientButtonState extends State<_GradientButton> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          transform: Matrix4.identity()..setTranslationRaw(0.0, _hover ? -2.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [_AppColors.accent, _AppColors.accentLight],
-            ),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            widget.text,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
-    );
+    return const SharedAdminHeader();
   }
 }
 
@@ -498,7 +388,7 @@ class _TableHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: _AppColors.border, width: 2)),
+        border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
       child: const Row(
@@ -561,10 +451,10 @@ class _PaymentTableRowState extends State<_PaymentTableRow> {
       onExit: (_) => setState(() => _hover = false),
       child: Container(
         decoration: BoxDecoration(
-          color: _hover ? _AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
+          color: _hover ? AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
           border: widget.isLast
               ? null
-              : const Border(bottom: BorderSide(color: _AppColors.border)),
+              : const Border(bottom: BorderSide(color: AppColors.border)),
         ),
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
         child: Row(
@@ -633,13 +523,13 @@ class _PaginationButton extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: enabled ? _AppColors.panel : _AppColors.panel.withValues(alpha: 0.5),
+          color: enabled ? AppColors.panel : AppColors.panel.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Icon(
           icon,
           size: 20,
-          color: enabled ? Colors.white : _AppColors.muted,
+          color: enabled ? Colors.white : AppColors.muted,
         ),
       ),
     );
@@ -664,7 +554,7 @@ class _PaginationNumber extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? _AppColors.accent : _AppColors.panel,
+          color: isActive ? AppColors.accent : AppColors.panel,
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
