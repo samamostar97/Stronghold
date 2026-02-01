@@ -16,286 +16,314 @@ import 'package:stronghold_desktop/screens/login_screen.dart';
 import 'package:stronghold_desktop/screens/users_management_screen.dart';
 import 'package:stronghold_desktop/screens/membership_extension_screen.dart';
 import 'package:stronghold_desktop/screens/leaderboard_management_screen.dart';
+import '../constants/app_colors.dart';
 
+/// Enum representing all available admin screens
+enum AdminScreen {
+  currentVisitors,
+  membershipExtension,
+  membershipPackages,
+  users,
+  trainers,
+  nutritionists,
+  supplements,
+  categories,
+  suppliers,
+  orders,
+  faq,
+  reviews,
+  seminars,
+  businessReport,
+  leaderboard,
+}
 
-class AdminDashboardScreen extends StatelessWidget {
+/// Navigation item data for the sidebar
+class _NavItemData {
+  final AdminScreen screen;
+  final IconData icon;
+  final String label;
+
+  const _NavItemData({
+    required this.screen,
+    required this.icon,
+    required this.label,
+  });
+}
+
+/// All navigation items in order
+const List<_NavItemData> _navItems = [
+  _NavItemData(
+    screen: AdminScreen.currentVisitors,
+    icon: Icons.directions_run,
+    label: 'Trenutno u teretani',
+  ),
+  _NavItemData(
+    screen: AdminScreen.membershipExtension,
+    icon: Icons.add_circle_outline,
+    label: 'Produžavanje članarine',
+  ),
+  _NavItemData(
+    screen: AdminScreen.membershipPackages,
+    icon: Icons.inventory_2_outlined,
+    label: 'Upravljanje paketima',
+  ),
+  _NavItemData(
+    screen: AdminScreen.users,
+    icon: Icons.person_outline,
+    label: 'Upravljanje korisnicima',
+  ),
+  _NavItemData(
+    screen: AdminScreen.trainers,
+    icon: Icons.fitness_center,
+    label: 'Treneri',
+  ),
+  _NavItemData(
+    screen: AdminScreen.nutritionists,
+    icon: Icons.restaurant_menu,
+    label: 'Nutricionisti',
+  ),
+  _NavItemData(
+    screen: AdminScreen.supplements,
+    icon: Icons.medication_outlined,
+    label: 'Suplementi',
+  ),
+  _NavItemData(
+    screen: AdminScreen.categories,
+    icon: Icons.category_outlined,
+    label: 'Kategorije',
+  ),
+  _NavItemData(
+    screen: AdminScreen.suppliers,
+    icon: Icons.local_shipping_outlined,
+    label: 'Dobavljači',
+  ),
+  _NavItemData(
+    screen: AdminScreen.orders,
+    icon: Icons.shopping_bag_outlined,
+    label: 'Kupovine',
+  ),
+  _NavItemData(
+    screen: AdminScreen.faq,
+    icon: Icons.help_outline,
+    label: 'FAQ',
+  ),
+  _NavItemData(
+    screen: AdminScreen.reviews,
+    icon: Icons.rate_review_outlined,
+    label: 'Recenzije',
+  ),
+  _NavItemData(
+    screen: AdminScreen.seminars,
+    icon: Icons.school_outlined,
+    label: 'Seminari',
+  ),
+  _NavItemData(
+    screen: AdminScreen.businessReport,
+    icon: Icons.trending_up,
+    label: 'Biznis izvještaji',
+  ),
+  _NavItemData(
+    screen: AdminScreen.leaderboard,
+    icon: Icons.emoji_events,
+    label: 'Rang lista',
+  ),
+];
+
+class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
 
-  static const _bg1 = Color(0xFF1A1D2E);
-  static const _bg2 = Color(0xFF16192B);
+  @override
+  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+}
 
+class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+  AdminScreen _selectedScreen = AdminScreen.currentVisitors;
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
+  void _onScreenSelected(AdminScreen screen) {
+    setState(() => _selectedScreen = screen);
+    // Close drawer on mobile after selection
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: Colors.transparent,
+      drawer: null, // We'll conditionally add this in the builder
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [_bg1, _bg2],
+            colors: [AppColors.bg1, AppColors.bg2],
           ),
         ),
-        child: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final width = constraints.maxWidth;
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final isMobile = width < 800;
+            final isCompact = width < 1200;
 
-              // mimic CSS breakpoints:
-              // >1200 => 3 cols, <=1200 => 2 cols, <=800 => 1 col
-              final cols = width <= 800 ? 1 : (width <= 1200 ? 2 : 3);
-
-              return SingleChildScrollView(
-                padding: EdgeInsets.symmetric(
-                  horizontal: width < 700 ? 16 : 50,
-                  vertical: width < 700 ? 16 : 30,
+            if (isMobile) {
+              // Mobile: Drawer-based sidebar
+              return Scaffold(
+                key: GlobalKey<ScaffoldState>(),
+                backgroundColor: Colors.transparent,
+                appBar: AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  leading: Builder(
+                    builder: (context) => IconButton(
+                      icon: const Icon(Icons.menu, color: Colors.white),
+                      onPressed: () => Scaffold.of(context).openDrawer(),
+                    ),
+                  ),
+                  title: const _Logo(),
+                  actions: [
+                    Padding(
+                      padding: const EdgeInsets.only(right: 16),
+                      child: _AdminProfileButton(compact: true),
+                    ),
+                  ],
                 ),
-                child: ConstrainedBox(
-                  // Ensure content fills at least the full screen height
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - (width < 700 ? 32 : 60),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      _Header(),
-                      const SizedBox(height: 24),
-                      _DashboardGrid(
-                        columns: cols,
-                        children: [
-                        _SectionCard(
-                          icon: Icons.directions_run,
-                          title: "Trenutno u teretani",
-                          items: const [
-                            _MenuItemData(icon: Icons.visibility_outlined, text: "Pogledaj aktivne članove"),
-                          ],
-                          onTapIndex: (i) {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => const CurrentVisitorsScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        _SectionCard(
-                          icon: Icons.card_membership,
-                          title: "Članarine",
-                          items: const [
-                            _MenuItemData(icon: Icons.add_circle_outline, text: "Produžavanje članarina"),
-                            _MenuItemData(icon: Icons.inventory_2_outlined, text: "Upravljanje paketima"),
-                          ],
-                          onTapIndex: (i) {
-                            if (i == 0) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const MembershipManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 1) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      const MembershipPackageManagementScreen(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        _SectionCard(
-                          icon: Icons.people_outline,
-                          title: "Korisnici i osoblje",
-                          items: const [
-                            _MenuItemData(icon: Icons.person_outline, text: "Upravljanje korisnicima"),
-                            _MenuItemData(icon: Icons.fitness_center, text: "Treneri"),
-                            _MenuItemData(icon: Icons.restaurant_menu, text: "Nutricionisti"),
-                          ],
-                          onTapIndex: (i) {
-                            if (i == 0) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const UsersManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 1) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const TrainerManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 2) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const NutritionistManagementScreen(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        _SectionCard(
-                          icon: Icons.store_outlined,
-                          title: "Prodavnica",
-                          items: const [
-                            _MenuItemData(icon: Icons.medication_outlined, text: "Suplementi"),
-                            _MenuItemData(icon: Icons.category_outlined, text: "Kategorije"),
-                            _MenuItemData(icon: Icons.local_shipping_outlined, text: "Dobavljači"),
-                            _MenuItemData(icon: Icons.shopping_bag_outlined, text: "Kupovine"),
-                          ],
-                          onTapIndex: (i) {
-                            if (i == 0) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const SupplementsManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 1) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const CategoryManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 2) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const SupplierManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 3) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const OrderManagementScreen(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        _SectionCard(
-                          icon: Icons.article_outlined,
-                          title: "Sadržaj",
-                          items: const [
-                            _MenuItemData(icon: Icons.help_outline, text: "FAQ"),
-                            _MenuItemData(icon: Icons.rate_review_outlined, text: "Recenzije"),
-                            _MenuItemData(icon: Icons.school_outlined, text: "Seminari"),
-                          ],
-                          onTapIndex: (i) {
-                            if (i == 0) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const FaqManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 1) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const ReviewsManagementScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 2) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const SeminarManagementScreen(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        _SectionCard(
-                          icon: Icons.analytics_outlined,
-                          title: "Izvještaji",
-                          items: const [
-                            _MenuItemData(icon: Icons.trending_up, text: "Biznis report"),
-                            _MenuItemData(icon: Icons.emoji_events, text: "Rang lista"),
-                          ],
-                          onTapIndex: (i) {
-                            if (i == 0) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const BusinessReportScreen(),
-                                ),
-                              );
-                            }
-                            if (i == 1) {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => const LeaderboardManagementScreen(),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                        ],
-                      ),
-                    ],
-                  ),
+                drawer: _Sidebar(
+                  selectedScreen: _selectedScreen,
+                  onScreenSelected: _onScreenSelected,
+                  isCompact: false,
+                  isDrawer: true,
+                ),
+                body: SafeArea(
+                  child: _ContentArea(selectedScreen: _selectedScreen),
                 ),
               );
-            },
-          ),
+            }
+
+            // Tablet/Desktop: Side-by-side layout
+            return SafeArea(
+              child: Row(
+                children: [
+                  _Sidebar(
+                    selectedScreen: _selectedScreen,
+                    onScreenSelected: _onScreenSelected,
+                    isCompact: isCompact,
+                    isDrawer: false,
+                  ),
+                  Expanded(
+                    child: _ContentArea(selectedScreen: _selectedScreen),
+                  ),
+                ],
+              ),
+            );
+          },
         ),
       ),
     );
   }
 }
 
-class _Header extends StatelessWidget {
+// ─────────────────────────────────────────────────────────────────────────────
+// SIDEBAR
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _Sidebar extends StatelessWidget {
+  const _Sidebar({
+    required this.selectedScreen,
+    required this.onScreenSelected,
+    required this.isCompact,
+    required this.isDrawer,
+  });
+
+  final AdminScreen selectedScreen;
+  final void Function(AdminScreen) onScreenSelected;
+  final bool isCompact;
+  final bool isDrawer;
+
+  static const double expandedWidth = 260;
+  static const double compactWidth = 70;
+  static const Color sidebarBg = Color(0xFF1E2235);
+
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        const _Logo(),
-        const Spacer(),
-        PopupMenuButton<String>(
-          offset: const Offset(0, 50),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          color: const Color(0xFF22253A),
-          onSelected: (value) async {
-            if (value == 'logout') {
-              await TokenStorage.clear();
-              if (context.mounted) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (route) => false,
-                );
-              }
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'profile',
-              child: Row(
-                children: [
-                  Icon(Icons.person_outline, color: Colors.white70, size: 20),
-                  SizedBox(width: 12),
-                  Text('Profil', style: TextStyle(color: Colors.white)),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            const PopupMenuItem(
-              value: 'logout',
-              child: Row(
-                children: [
-                  Icon(Icons.logout, color: Color(0xFFFF5757), size: 20),
-                  SizedBox(width: 12),
-                  Text('Odjavi se', style: TextStyle(color: Color(0xFFFF5757))),
-                ],
-              ),
-            ),
-          ],
-          child: const _AdminBadge(),
+    final width = isCompact ? compactWidth : expandedWidth;
+
+    final content = Container(
+      width: isDrawer ? expandedWidth : width,
+      decoration: const BoxDecoration(
+        color: sidebarBg,
+        border: Border(
+          right: BorderSide(color: AppColors.border, width: 1),
         ),
-      ],
+      ),
+      child: Column(
+        children: [
+          // Logo/Branding
+          if (!isDrawer || isDrawer)
+            _SidebarHeader(isCompact: isCompact && !isDrawer),
+
+          const SizedBox(height: 8),
+
+          // Navigation items
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              children: [
+                for (final item in _navItems)
+                  _NavItem(
+                    icon: item.icon,
+                    label: item.label,
+                    isSelected: selectedScreen == item.screen,
+                    isCompact: isCompact && !isDrawer,
+                    onTap: () => onScreenSelected(item.screen),
+                  ),
+              ],
+            ),
+          ),
+
+          // Admin profile at bottom
+          _AdminProfileSection(isCompact: isCompact && !isDrawer),
+        ],
+      ),
+    );
+
+    if (isDrawer) {
+      return Drawer(
+        backgroundColor: sidebarBg,
+        child: content,
+      );
+    }
+
+    return content;
+  }
+}
+
+class _SidebarHeader extends StatelessWidget {
+  const _SidebarHeader({required this.isCompact});
+
+  final bool isCompact;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 12 : 20,
+        vertical: 20,
+      ),
+      decoration: const BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: AppColors.border, width: 1),
+        ),
+      ),
+      child: isCompact
+          ? const Icon(
+              Icons.fitness_center,
+              color: AppColors.accent,
+              size: 28,
+            )
+          : const _Logo(),
     );
   }
 }
@@ -305,20 +333,22 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: const [
+    return const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
         Icon(
           Icons.fitness_center,
-          color: Color(0xFFFF5757),
-          size: 34,
+          color: AppColors.accent,
+          size: 28,
         ),
-        SizedBox(width: 12),
+        SizedBox(width: 10),
         Text(
-          "STRONGHOLD",
+          'STRONGHOLD',
           style: TextStyle(
-            fontSize: 26,
+            fontSize: 20,
             fontWeight: FontWeight.w800,
             color: Colors.white,
+            letterSpacing: 0.5,
           ),
         ),
       ],
@@ -326,246 +356,143 @@ class _Logo extends StatelessWidget {
   }
 }
 
-class _AdminBadge extends StatelessWidget {
-  const _AdminBadge();
-
-  static const _bg = Color(0xFF22253A);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: _bg,
-        borderRadius: BorderRadius.circular(25),
-      ),
-      child: Row(
-        children: const [
-          Icon(Icons.person_outline, color: Colors.white70, size: 20),
-          SizedBox(width: 10),
-          Text(
-            "Admin",
-            style: TextStyle(
-              fontWeight: FontWeight.w500,
-              color: Colors.white,
-            ),
-          ),
-          SizedBox(width: 8),
-          Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 20),
-        ],
-      ),
-    );
-  }
-}
-
-class _DashboardGrid extends StatelessWidget {
-  const _DashboardGrid({
-    required this.columns,
-    required this.children,
-  });
-
-  final int columns;
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    const spacing = 24.0;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Calculate card width based on number of columns and spacing
-        final totalSpacing = spacing * (columns - 1);
-        final cardWidth = (constraints.maxWidth - totalSpacing) / columns;
-
-        return Wrap(
-          spacing: spacing,
-          runSpacing: spacing,
-          children: children
-              .map((child) => SizedBox(
-                    width: cardWidth,
-                    child: child,
-                  ))
-              .toList(),
-        );
-      },
-    );
-  }
-}
-
-class _SectionCard extends StatelessWidget {
-  const _SectionCard({
+class _NavItem extends StatefulWidget {
+  const _NavItem({
     required this.icon,
-    required this.title,
-    required this.items,
-    required this.onTapIndex,
-  });
-
-  final IconData icon;
-  final String title;
-  final List<_MenuItemData> items;
-  final void Function(int index) onTapIndex;
-
-  static const _card = Color(0xFF22253A);
-  static const _accent = Color(0xFFFF5757);
-  static const _accent2 = Color(0xFFFF6B6B);
-
-  @override
-  Widget build(BuildContext context) {
-    return _HoverCard(
-      child: Container(
-        decoration: BoxDecoration(
-          color: _card,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.transparent, width: 1),
-        ),
-        padding: const EdgeInsets.all(28),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [_accent, _accent2],
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: _accent.withValues(alpha: 0.30),
-                        blurRadius: 20,
-                        offset: const Offset(0, 8),
-                      )
-                    ],
-                  ),
-                  alignment: Alignment.center,
-                  child: Icon(
-                    icon,
-                    color: Colors.white,
-                    size: 26,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.3,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Column(
-              children: [
-                for (var i = 0; i < items.length; i++) ...[
-                  _MenuRow(
-                    icon: items[i].icon,
-                    text: items[i].text,
-                    onTap: () => onTapIndex(i),
-                  ),
-                  if (i != items.length - 1) const SizedBox(height: 6),
-                ]
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MenuItemData {
-  final IconData icon;
-  final String text;
-  const _MenuItemData({required this.icon, required this.text});
-}
-
-class _MenuRow extends StatefulWidget {
-  const _MenuRow({
-    required this.icon,
-    required this.text,
+    required this.label,
+    required this.isSelected,
+    required this.isCompact,
     required this.onTap,
   });
 
   final IconData icon;
-  final String text;
+  final String label;
+  final bool isSelected;
+  final bool isCompact;
   final VoidCallback onTap;
 
   @override
-  State<_MenuRow> createState() => _MenuRowState();
+  State<_NavItem> createState() => _NavItemState();
 }
 
-class _MenuRowState extends State<_MenuRow> {
+class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
   bool _hover = false;
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
 
-  static const _accent = Color(0xFFFF5757);
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 150),
+      vsync: this,
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.98).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final bg = _hover ? _accent.withValues(alpha: 0.10) : Colors.white.withValues(alpha: 0.03);
-    final leftPad = _hover ? 24.0 : 18.0;
+    final bgColor = widget.isSelected
+        ? AppColors.accent
+        : _hover
+            ? AppColors.accent.withValues(alpha: 0.15)
+            : Colors.transparent;
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(12),
-          onTap: widget.onTap,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            curve: Curves.easeOut,
-            padding: EdgeInsets.fromLTRB(leftPad, 16, 18, 16),
-            decoration: BoxDecoration(
-              color: bg,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Row(
-              children: [
-                Opacity(
-                  opacity: _hover ? 1 : 0.8,
-                  child: SizedBox(
-                    width: 24,
-                    child: Icon(
-                      widget.icon,
-                      color: Colors.white70,
-                      size: 20,
-                    ),
+    final textColor = widget.isSelected
+        ? Colors.white
+        : _hover
+            ? Colors.white
+            : Colors.white.withValues(alpha: 0.7);
+
+    final iconColor = widget.isSelected
+        ? Colors.white
+        : _hover
+            ? AppColors.accent
+            : Colors.white.withValues(alpha: 0.7);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: MouseRegion(
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: GestureDetector(
+          onTapDown: (_) => _controller.forward(),
+          onTapUp: (_) => _controller.reverse(),
+          onTapCancel: () => _controller.reverse(),
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap,
+                borderRadius: BorderRadius.circular(10),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOutCubic,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: widget.isCompact ? 0 : 14,
+                    vertical: 12,
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Text(
-                    widget.text,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                      color: _hover ? Colors.white : Colors.white.withValues(alpha: 0.85),
-                    ),
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(10),
                   ),
+                  child: widget.isCompact
+                      ? Tooltip(
+                          message: widget.label,
+                          preferBelow: false,
+                          child: Center(
+                            child: TweenAnimationBuilder<Color?>(
+                              tween: ColorTween(end: iconColor),
+                              duration: const Duration(milliseconds: 200),
+                              builder: (context, color, _) => Icon(
+                                widget.icon,
+                                color: color,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                        )
+                      : Row(
+                          children: [
+                            TweenAnimationBuilder<Color?>(
+                              tween: ColorTween(end: iconColor),
+                              duration: const Duration(milliseconds: 200),
+                              builder: (context, color, _) => Icon(
+                                widget.icon,
+                                color: color,
+                                size: 20,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: AnimatedDefaultTextStyle(
+                                duration: const Duration(milliseconds: 200),
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: widget.isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: textColor,
+                                ),
+                                child: Text(
+                                  widget.label,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                 ),
-                AnimatedSlide(
-                  duration: const Duration(milliseconds: 180),
-                  offset: _hover ? const Offset(0.1, 0) : Offset.zero,
-                  child: Text(
-                    "→",
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: _hover ? _accent : Colors.white.withValues(alpha: 0.30),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -574,52 +501,196 @@ class _MenuRowState extends State<_MenuRow> {
   }
 }
 
-class _HoverCard extends StatefulWidget {
-  const _HoverCard({required this.child});
+class _AdminProfileSection extends StatelessWidget {
+  const _AdminProfileSection({required this.isCompact});
 
-  final Widget child;
-
-  @override
-  State<_HoverCard> createState() => _HoverCardState();
-}
-
-class _HoverCardState extends State<_HoverCard> {
-  bool _hover = false;
-
-  static const _accent = Color(0xFFFF5757);
+  final bool isCompact;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-        transform: Matrix4.translationValues(0.0, _hover ? -4.0 : 0.0, 0.0),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: _hover
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.30),
-                      blurRadius: 40,
-                      offset: const Offset(0, 20),
-                    ),
-                  ]
-                : const [],
-            border: Border.all(
-              color: _hover ? _accent.withValues(alpha: 0.30) : Colors.transparent,
-              width: 1,
-            ),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: widget.child,
-          ),
+    return Container(
+      padding: EdgeInsets.all(isCompact ? 12 : 16),
+      decoration: const BoxDecoration(
+        border: Border(
+          top: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
+      child: _AdminProfileButton(compact: isCompact),
     );
+  }
+}
+
+class _AdminProfileButton extends StatelessWidget {
+  const _AdminProfileButton({required this.compact});
+
+  final bool compact;
+
+  Future<void> _handleLogout(BuildContext context) async {
+    await TokenStorage.clear();
+    if (context.mounted) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+        (route) => false,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      offset: const Offset(0, -100),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: AppColors.card,
+      onSelected: (value) async {
+        if (value == 'logout') {
+          await _handleLogout(context);
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: 'profile',
+          child: Row(
+            children: [
+              Icon(Icons.person_outline, color: Colors.white70, size: 20),
+              SizedBox(width: 12),
+              Text('Profil', style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+        const PopupMenuDivider(),
+        const PopupMenuItem(
+          value: 'logout',
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: AppColors.accent, size: 20),
+              SizedBox(width: 12),
+              Text('Odjavi se', style: TextStyle(color: AppColors.accent)),
+            ],
+          ),
+        ),
+      ],
+      child: compact
+          ? Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(
+                Icons.person_outline,
+                color: Colors.white70,
+                size: 20,
+              ),
+            )
+          : Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.card,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.person_outline, color: Colors.white70, size: 20),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Admin',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 20),
+                ],
+              ),
+            ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONTENT AREA
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ContentArea extends StatelessWidget {
+  const _ContentArea({required this.selectedScreen});
+
+  final AdminScreen selectedScreen;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (Widget child, Animation<double> animation) {
+        // Fade + subtle slide from right
+        final slideAnimation = Tween<Offset>(
+          begin: const Offset(0.03, 0), // Subtle slide from right
+          end: Offset.zero,
+        ).animate(CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+        ));
+
+        final fadeAnimation = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOut,
+        );
+
+        return FadeTransition(
+          opacity: fadeAnimation,
+          child: SlideTransition(
+            position: slideAnimation,
+            child: child,
+          ),
+        );
+      },
+      child: KeyedSubtree(
+        key: ValueKey<AdminScreen>(selectedScreen),
+        child: _buildScreen(),
+      ),
+    );
+  }
+
+  Widget _buildScreen() {
+    switch (selectedScreen) {
+      case AdminScreen.currentVisitors:
+        return const CurrentVisitorsScreen(embedded: true);
+      case AdminScreen.membershipExtension:
+        return const MembershipManagementScreen(embedded: true);
+      case AdminScreen.membershipPackages:
+        return const MembershipPackageManagementScreen(embedded: true);
+      case AdminScreen.users:
+        return const UsersManagementScreen(embedded: true);
+      case AdminScreen.trainers:
+        return const TrainerManagementScreen(embedded: true);
+      case AdminScreen.nutritionists:
+        return const NutritionistManagementScreen(embedded: true);
+      case AdminScreen.supplements:
+        return const SupplementsManagementScreen(embedded: true);
+      case AdminScreen.categories:
+        return const CategoryManagementScreen(embedded: true);
+      case AdminScreen.suppliers:
+        return const SupplierManagementScreen(embedded: true);
+      case AdminScreen.orders:
+        return const OrderManagementScreen(embedded: true);
+      case AdminScreen.faq:
+        return const FaqManagementScreen(embedded: true);
+      case AdminScreen.reviews:
+        return const ReviewsManagementScreen(embedded: true);
+      case AdminScreen.seminars:
+        return const SeminarManagementScreen(embedded: true);
+      case AdminScreen.businessReport:
+        return const BusinessReportScreen(embedded: true);
+      case AdminScreen.leaderboard:
+        return const LeaderboardManagementScreen(embedded: true);
+    }
   }
 }

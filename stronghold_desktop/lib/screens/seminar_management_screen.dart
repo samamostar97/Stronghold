@@ -18,7 +18,9 @@ import '../widgets/success_animation.dart';
 import '../widgets/shared_admin_header.dart';
 
 class SeminarManagementScreen extends StatefulWidget {
-  const SeminarManagementScreen({super.key});
+  const SeminarManagementScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   State<SeminarManagementScreen> createState() => _SeminarManagementScreenState();
@@ -163,6 +165,28 @@ class _SeminarManagementScreenState extends State<SeminarManagementScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Embedded mode: just return the content without Scaffold/gradient/header
+    if (widget.embedded) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final horizontalPadding = constraints.maxWidth > 1200
+              ? 40.0
+              : constraints.maxWidth > 800
+                  ? 24.0
+                  : 16.0;
+
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: 20,
+            ),
+            child: _buildMainContent(constraints),
+          );
+        },
+      );
+    }
+
+    // Standalone mode: full Scaffold with gradient
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(

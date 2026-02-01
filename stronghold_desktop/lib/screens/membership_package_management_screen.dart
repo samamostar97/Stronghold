@@ -17,7 +17,9 @@ import '../widgets/search_input.dart';
 import '../widgets/small_button.dart';
 
 class MembershipPackageManagementScreen extends StatefulWidget {
-  const MembershipPackageManagementScreen({super.key});
+  const MembershipPackageManagementScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   State<MembershipPackageManagementScreen> createState() => _MembershipPackageManagementScreenState();
@@ -179,6 +181,28 @@ class _MembershipPackageManagementScreenState extends State<MembershipPackageMan
 
   @override
   Widget build(BuildContext context) {
+    // Embedded mode: just return the content without Scaffold/gradient/header
+    if (widget.embedded) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final horizontalPadding = constraints.maxWidth > 1200
+              ? 40.0
+              : constraints.maxWidth > 800
+                  ? 24.0
+                  : 16.0;
+
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: 20,
+            ),
+            child: _buildMainContent(constraints),
+          );
+        },
+      );
+    }
+
+    // Standalone mode: full Scaffold with gradient
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(

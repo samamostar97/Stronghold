@@ -9,9 +9,10 @@ import '../widgets/shared_admin_header.dart';
 import '../widgets/success_animation.dart';
 
 class BusinessReportScreen extends StatefulWidget {
-  const BusinessReportScreen({super.key, this.onBack});
+  const BusinessReportScreen({super.key, this.onBack, this.embedded = false});
 
   final VoidCallback? onBack;
+  final bool embedded;
 
   @override
   State<BusinessReportScreen> createState() => _BusinessReportScreenState();
@@ -137,8 +138,160 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
     });
   }
 
+  Widget _buildMainContent(BoxConstraints constraints) {
+    final w = constraints.maxWidth;
+    final statsCols = w < 600 ? 1 : (w < 900 ? 2 : 3);
+    final chartsCols = w < 900 ? 1 : 2;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'Biznis report',
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white),
+            ),
+            if (_report != null && !_exporting)
+              Row(
+                children: [
+                  _ExportButton(
+                    icon: Icons.table_chart,
+                    label: 'Izvezi Excel',
+                    onPressed: _exportToExcel,
+                  ),
+                  const SizedBox(width: 12),
+                  _ExportButton(
+                    icon: Icons.picture_as_pdf,
+                    label: 'Izvezi PDF',
+                    onPressed: _exportToPdf,
+                  ),
+                ],
+              ),
+            if (_exporting)
+              const Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+
+        // LOADING / ERROR
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.only(top: 24),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (_error != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Greška: $_error', style: const TextStyle(color: Colors.white)),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _load,
+                  child: const Text('Pokušaj ponovo'),
+                ),
+              ],
+            ),
+          )
+        else if (_report != null) ...[
+          const SizedBox(height: 18),
+
+          // STATS
+          _StatsGrid(
+            columns: statsCols,
+            children: [
+              _StatCard(
+                label: 'Ukupna posjećenost ove sedmice',
+                value: '${_report!.thisWeekVisits}',
+                changeText:
+                    '${_pctText(_report!.weekChangePct)} u odnosu na prošlu sedmicu',
+                changeColor: _pctColor(_report!.weekChangePct),
+              ),
+              _StatCard(
+                label: 'Prodaja ovog mjeseca',
+                value: '${_report!.thisMonthRevenue.toStringAsFixed(2)} KM',
+                changeText:
+                    '${_pctText(_report!.monthChangePct)} u odnosu na prošli mjesec',
+                changeColor: _pctColor(_report!.monthChangePct),
+              ),
+              _StatCard(
+                label: 'Aktivnih članarina',
+                value: '${_report!.activeMemberships}',
+                changeText: 'ukupno aktivnih članova',
+                changeColor: const Color(0xFF2ECC71),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 30),
+
+          // CHARTS
+          _ChartsGrid(
+            columns: chartsCols,
+            children: [
+              _ChartCard(
+                title: 'Sedmična posjećenost po danima',
+                child: _BarChart(
+                  accent: AppColors.accent,
+                  accent2: AppColors.accentLight,
+                  muted: AppColors.muted,
+                  bars: _mapBars(_report!.visitsByWeekday),
+                ),
+              ),
+              _ChartCard(
+                title: 'Bestseller suplement',
+                child: _BestSeller(
+                  border: AppColors.border,
+                  muted: AppColors.muted,
+                  accent: AppColors.accent,
+                  productIcon: Icons.medication_outlined,
+                  productName: _report!.bestsellerLast30Days?.name ?? 'N/A',
+                  category: 'Suplement',
+                  units: '${_report!.bestsellerLast30Days?.quantitySold ?? 0}',
+                  period: 'u posljednjih 30 dana',
+                ),
+              ),
+            ],
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Embedded mode: just return the content without Scaffold/gradient/header
+    if (widget.embedded) {
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          final horizontalPadding = constraints.maxWidth > 1200
+              ? 40.0
+              : constraints.maxWidth > 800
+                  ? 24.0
+                  : 16.0;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: 20,
+            ),
+            child: _buildMainContent(constraints),
+          );
+        },
+      );
+    }
+
+    // Standalone mode: full Scaffold with gradient
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Container(
@@ -152,14 +305,9 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final w = constraints.maxWidth;
-              final statsCols = w < 600 ? 1 : (w < 900 ? 2 : 3);
-              final chartsCols = w < 900 ? 1 : 2;
-
-              // Responsive padding based on screen width
-              final horizontalPadding = w > 1200
+              final horizontalPadding = constraints.maxWidth > 1200
                   ? 40.0
-                  : w > 800
+                  : constraints.maxWidth > 800
                       ? 24.0
                       : 16.0;
 
@@ -170,139 +318,20 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                 ),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 40, // subtract vertical padding
+                    minHeight: constraints.maxHeight - 40,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                    const _Header(),
-                    const SizedBox(height: 20),
-
-                    AppBackButton(
-                      onTap: widget.onBack ?? () => Navigator.of(context).maybePop(),
-                    ),
-                    const SizedBox(height: 20),
-
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Biznis report',
-                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white),
-                        ),
-                        if (_report != null && !_exporting)
-                          Row(
-                            children: [
-                              _ExportButton(
-                                icon: Icons.table_chart,
-                                label: 'Izvezi Excel',
-                                onPressed: _exportToExcel,
-                              ),
-                              const SizedBox(width: 12),
-                              _ExportButton(
-                                icon: Icons.picture_as_pdf,
-                                label: 'Izvezi PDF',
-                                onPressed: _exportToPdf,
-                              ),
-                            ],
-                          ),
-                        if (_exporting)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 16),
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            ),
-                          ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // LOADING / ERROR
-                    if (_loading)
-                      const Padding(
-                        padding: EdgeInsets.only(top: 24),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    else if (_error != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 18),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Greška: $_error', style: const TextStyle(color: Colors.white)),
-                            const SizedBox(height: 12),
-                            ElevatedButton(
-                              onPressed: _load,
-                              child: const Text('Pokušaj ponovo'),
-                            ),
-                          ],
-                        ),
-                      )
-                    else if (_report != null) ...[
-                      const SizedBox(height: 18),
-
-                      // STATS
-                      _StatsGrid(
-                        columns: statsCols,
-                        children: [
-                          _StatCard(
-                            label: 'Ukupna posjećenost ove sedmice',
-                            value: '${_report!.thisWeekVisits}',
-                            changeText:
-                                '${_pctText(_report!.weekChangePct)} u odnosu na prošlu sedmicu',
-                            changeColor: _pctColor(_report!.weekChangePct),
-                          ),
-                          _StatCard(
-                            label: 'Prodaja ovog mjeseca',
-                            value: '${_report!.thisMonthRevenue.toStringAsFixed(2)} KM',
-                            changeText:
-                                '${_pctText(_report!.monthChangePct)} u odnosu na prošli mjesec',
-                            changeColor: _pctColor(_report!.monthChangePct),
-                          ),
-                          _StatCard(
-                            label: 'Aktivnih članarina',
-                            value: '${_report!.activeMemberships}',
-                            changeText: 'ukupno aktivnih članova',
-                            changeColor: const Color(0xFF2ECC71),
-                          ),
-                        ],
+                      const _Header(),
+                      const SizedBox(height: 20),
+                      AppBackButton(
+                        onTap: widget.onBack ?? () => Navigator.of(context).maybePop(),
                       ),
-
-                      const SizedBox(height: 30),
-
-                      // CHARTS
-                      _ChartsGrid(
-                        columns: chartsCols,
-                        children: [
-                          _ChartCard(
-                            title: 'Sedmična posjećenost po danima',
-                            child: _BarChart(
-                              accent: AppColors.accent,
-                              accent2: AppColors.accentLight,
-                              muted: AppColors.muted,
-                              bars: _mapBars(_report!.visitsByWeekday),
-                            ),
-                          ),
-                          _ChartCard(
-                            title: 'Bestseller suplement',
-                            child: _BestSeller(
-                              border: AppColors.border,
-                              muted: AppColors.muted,
-                              accent: AppColors.accent,
-                              productIcon: Icons.medication_outlined,
-                              productName: _report!.bestsellerLast30Days?.name ?? 'N/A',
-                              category: 'Suplement',
-                              units: '${_report!.bestsellerLast30Days?.quantitySold ?? 0}',
-                              period: 'u posljednjih 30 dana',
-                            ),
-                          ),
-                        ],
-                      ),
+                      const SizedBox(height: 20),
+                      _buildMainContent(constraints),
                     ],
-                  ],
-                ),
+                  ),
                 ),
               );
             },

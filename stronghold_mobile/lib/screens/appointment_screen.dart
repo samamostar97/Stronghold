@@ -117,7 +117,6 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
               Expanded(
                 child: _buildContent(),
               ),
-              _buildBookButton(),
             ],
           ),
         ),
@@ -291,32 +290,5 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     );
   }
 
-  Widget _buildBookButton() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: GestureDetector(
-        onTap: () {
-          // Placeholder - will implement booking logic later
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: const Color(0xFFe63946),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Center(
-            child: Text(
-              'Zakazi novi termin',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  
 }
