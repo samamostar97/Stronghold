@@ -1,25 +1,25 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stronghold.Application.DTOs.AdminSupplementsDTO
 {
     public class CreateSupplementDTO
     {
-        [Required]
-        [StringLength(50, MinimumLength = 2, ErrorMessage = "Naziv suplementa moze da sadrzi 2-50 karaktera")]
+        [Required(ErrorMessage = "Naziv je obavezan.")]
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Naziv suplementa mora imati između 2 i 100 karaktera.")]
         public string Name { get; set; } = string.Empty;
-        [Required]
-        [Range(0.01, 10000, ErrorMessage = "Cijena mora biti veća od 0")]
+
+        [Required(ErrorMessage = "Cijena je obavezna.")]
+        [Range(0.01, 10000, ErrorMessage = "Cijena mora biti veća od 0 i manja ili jednaka 10000.")]
         public decimal Price { get; set; }
-        [StringLength(255, MinimumLength = 2, ErrorMessage = "Opis suplementa moze da sadrzi 2-255 karaktera")]
+
+        [StringLength(1000, MinimumLength = 2, ErrorMessage = "Opis suplementa mora imati između 2 i 1000 karaktera.")]
         public string? Description { get; set; }
-        [Required]
+
+        [Range(1, int.MaxValue, ErrorMessage = "Kategorija suplementa je obavezna.")]
         public int SupplementCategoryId { get; set; }
-        [Required]
+
+        [Range(1, int.MaxValue, ErrorMessage = "Dobavljač je obavezan.")]
         public int SupplierId { get; set; }
     }
 }

@@ -1,23 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Stronghold.Application.DTOs.AdminUserMembershipsDTO
 {
     public class AssignMembershipRequest
     {
-        [Required]
+        [Range(1, int.MaxValue, ErrorMessage = "Korisnik je obavezan.")]
         public int UserId { get; set; }
-        [Required]
+
+        [Range(1, int.MaxValue, ErrorMessage = "Paket članarine je obavezan.")]
         public int MembershipPackageId { get; set; }
-        [Required]
-        [Range(5,10000)]
+
+        [Range(0.01, 10000, ErrorMessage = "Iznos mora biti veći od 0 i manji ili jednak 10000.")]
         public decimal AmountPaid { get; set; }
+
+        [Required(ErrorMessage = "Datum početka je obavezan.")]
         public DateTime StartDate { get; set; }
+
+        [Required(ErrorMessage = "Datum završetka je obavezan.")]
         public DateTime EndDate { get; set; }
+
+        [Required(ErrorMessage = "Datum uplate je obavezan.")]
         public DateTime PaymentDate { get; set; }
     }
 }

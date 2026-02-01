@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Stronghold.Application.DTOs.AdminFaqDTO
 {
     public class CreateFaqDTO
     {
-        [Required(ErrorMessage ="Unos pitanja obavezan")]
-        [StringLength(255,MinimumLength =2,ErrorMessage ="Pitanje moze da sadrzi 2-255 karaktera")]
+        [Required(ErrorMessage = "Unos pitanja je obavezan.")]
+        [StringLength(500, MinimumLength = 2, ErrorMessage = "Pitanje mora imati između 2 i 500 karaktera.")]
         public string Question { get; set; } = string.Empty;
-        [Required(ErrorMessage = "Unos odgovora obavezan")]
-        [StringLength(255, MinimumLength = 2, ErrorMessage = "Odgovor moze da sadrzi 2-255 karaktera")]
+
+        [Required(ErrorMessage = "Unos odgovora je obavezan.")]
+        [StringLength(2000, MinimumLength = 2, ErrorMessage = "Odgovor mora imati između 2 i 2000 karaktera.")]
         public string Answer { get; set; } = string.Empty;
     }
 }
