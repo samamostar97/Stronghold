@@ -47,8 +47,9 @@ class SeminarService {
       return;
     } else if (response.statusCode == 401) {
       throw Exception('Sesija je istekla. Prijavite se ponovo.');
-    } else if (response.statusCode == 400) {
-      throw Exception('Vec ste prijavljeni na ovaj seminar');
+    } else if (response.statusCode == 400 || response.statusCode == 409) {
+      final body = jsonDecode(response.body);
+      throw Exception(body['error'] ?? 'Vec ste prijavljeni na ovaj seminar');
     } else {
       throw Exception('Greska prilikom prijave na seminar');
     }

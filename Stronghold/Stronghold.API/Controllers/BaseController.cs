@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
@@ -6,6 +7,7 @@ using Stronghold.Application.IServices;
 namespace Stronghold.API.Controllers
 {
     [Route("[controller]")]
+    [Authorize(Roles = "Admin")]
     public class BaseController<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> : ControllerBase
         where T : class
     {

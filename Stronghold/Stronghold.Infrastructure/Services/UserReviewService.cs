@@ -3,11 +3,7 @@ using Stronghold.Application.DTOs.UserDTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Stronghold.Core.Exceptions;
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -100,7 +96,14 @@ namespace Stronghold.Infrastructure.Services
                 Comment = dto.Comment
             };
 
-            await _reviewRepository.AddAsync(review);
+            try
+            {
+                await _reviewRepository.AddAsync(review);
+            }
+            catch (DbUpdateException)
+            {
+                throw new ConflictException("Vec ste ostavili recenziju za ovaj suplement.");
+            }
         }
     }
 }

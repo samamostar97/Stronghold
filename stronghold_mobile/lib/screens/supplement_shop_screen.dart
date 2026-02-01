@@ -82,7 +82,7 @@ class _SupplementShopScreenState extends State<SupplementShopScreen> {
 
   Future<void> _loadRecommendations() async {
     try {
-      final recommendations = await RecommendationService.getRecommendations(count: 6);
+      final recommendations = await RecommendationService.getRecommendations();
       if (mounted) {
         setState(() {
           _recommendations = recommendations;

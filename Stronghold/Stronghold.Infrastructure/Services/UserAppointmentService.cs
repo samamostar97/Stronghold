@@ -66,7 +66,15 @@ namespace Stronghold.Infrastructure.Services
                 TrainerId = trainerId,
                 AppointmentDate = date
             };
-            await _appointmentRepository.AddAsync(newAppointment);
+
+            try
+            {
+                await _appointmentRepository.AddAsync(newAppointment);
+            }
+            catch (DbUpdateException)
+            {
+                throw new ConflictException("Odabrani trener je zauzet u ovom terminu.");
+            }
 
             return new UserAppointmentDTO()
             {
@@ -104,7 +112,15 @@ namespace Stronghold.Infrastructure.Services
                 NutritionistId = nutritionistId,
                 AppointmentDate = date
             };
-            await _appointmentRepository.AddAsync(newAppointment);
+
+            try
+            {
+                await _appointmentRepository.AddAsync(newAppointment);
+            }
+            catch (DbUpdateException)
+            {
+                throw new ConflictException("Odabrani nutricionist je zauzet u ovom terminu.");
+            }
 
             return new UserAppointmentDTO()
             {

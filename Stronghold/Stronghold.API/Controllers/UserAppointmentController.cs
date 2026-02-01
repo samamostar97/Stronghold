@@ -29,18 +29,13 @@ namespace Stronghold.API.Controllers
         [HttpGet("get-trainer-list")]
         public async Task<ActionResult<IEnumerable<TrainerDTO>>> GetTrainerListAsync()
         {
-            var userId = GetCurrentUserId();
-            if(userId == null)
-                return Unauthorized();
             var result = await _userAppointmentService.GetTrainerListAsync();
             return Ok(result);
         }
+
         [HttpGet("get-nutritionist-list")]
         public async Task<ActionResult<IEnumerable<NutritionistDTO>>> GetNutritionistListAsync()
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
             var result = await _userAppointmentService.GetNutritionistListAsync();
             return Ok(result);
         }

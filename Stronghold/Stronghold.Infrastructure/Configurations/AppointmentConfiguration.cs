@@ -26,5 +26,15 @@ public class AppointmentConfiguration : BaseEntityConfiguration<Appointment>
             .WithMany(n => n.Appointments)
             .HasForeignKey(a => a.NutritionistId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Prevent double-booking trainers at the same time
+        builder.HasIndex(a => new { a.TrainerId, a.AppointmentDate })
+            .IsUnique()
+            .HasFilter("[TrainerId] IS NOT NULL AND [IsDeleted] = 0");
+
+        // Prevent double-booking nutritionists at the same time
+        builder.HasIndex(a => new { a.NutritionistId, a.AppointmentDate })
+            .IsUnique()
+            .HasFilter("[NutritionistId] IS NOT NULL AND [IsDeleted] = 0");
     }
 }

@@ -4,11 +4,7 @@ using Stronghold.Application.DTOs.UserDTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Stronghold.Core.Exceptions;
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -34,7 +30,15 @@ namespace Stronghold.Infrastructure.Services
                 SeminarId = seminarId,
                 RegisteredAt = DateTime.UtcNow,
             };
-            await _attendeeRepository.AddAsync(addAttendance);
+
+            try
+            {
+                await _attendeeRepository.AddAsync(addAttendance);
+            }
+            catch (DbUpdateException)
+            {
+                throw new ConflictException("Korisnik je vec prijavljen na ovaj seminar.");
+            }
             
         }
 

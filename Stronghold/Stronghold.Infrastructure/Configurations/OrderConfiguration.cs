@@ -18,5 +18,10 @@ public class OrderConfiguration : BaseEntityConfiguration<Order>
             .WithMany(u => u.Orders)
             .HasForeignKey(o => o.UserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Prevent duplicate orders by payment ID (idempotency)
+        builder.HasIndex(o => o.StripePaymentId)
+            .IsUnique()
+            .HasFilter("[StripePaymentId] IS NOT NULL");
     }
 }

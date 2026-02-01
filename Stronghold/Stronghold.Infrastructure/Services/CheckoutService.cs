@@ -158,7 +158,15 @@ namespace Stronghold.Infrastructure.Services
                     OrderItems = orderItems
                 };
 
-                await _orderRepository.AddAsync(order);
+                try
+                {
+                    await _orderRepository.AddAsync(order);
+                }
+                catch (DbUpdateException)
+                {
+                    throw new InvalidOperationException("Narudzba za ovu uplatu vec postoji.");
+                }
+
                 await transaction.CommitAsync();
 
                 return new UserOrdersDTO
