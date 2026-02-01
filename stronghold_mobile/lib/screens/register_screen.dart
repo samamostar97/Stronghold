@@ -317,15 +317,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 keyboardType: TextInputType.phone,
                                 textInputAction: TextInputAction.next,
                                 decoration: buildStrongholdInputDecoration(
-                                  hintText: 'Unesite broj telefona',
+                                  hintText: '061 123 456',
                                   prefixIcon: Icons.phone_outlined,
                                 ),
                                 validator: (value) {
-                                  if(_phoneError != null) {
-                                  return _phoneError;
+                                  if (_phoneError != null) {
+                                    return _phoneError;
                                   }
                                   if (value == null || value.isEmpty) {
-                                    return 'Molimo unesite broj telefona';                                    
+                                    return 'Molimo unesite broj telefona';
+                                  }
+                                  // Bosnian phone number format validation
+                                  final phoneRegex = RegExp(r'^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$');
+                                  if (!phoneRegex.hasMatch(value)) {
+                                    return 'Format: 061 123 456 ili +387 61 123 456';
                                   }
                                   return null;
                                 },

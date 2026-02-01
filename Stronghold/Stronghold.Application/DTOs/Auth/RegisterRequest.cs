@@ -21,7 +21,9 @@ public class RegisterRequest
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [Phone]
+    [RegularExpression(
+        @"^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$",
+        ErrorMessage = "Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456")]
     public string PhoneNumber { get; set; } = string.Empty;
 
     [Required]

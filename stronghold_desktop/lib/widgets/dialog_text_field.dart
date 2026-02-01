@@ -7,6 +7,7 @@ class DialogTextField extends StatelessWidget {
     super.key,
     required this.controller,
     required this.label,
+    this.hint,
     this.validator,
     this.keyboardType,
     this.maxLines = 1,
@@ -15,6 +16,7 @@ class DialogTextField extends StatelessWidget {
 
   final TextEditingController controller;
   final String label;
+  final String? hint;
   final String? Function(String?)? validator;
   final TextInputType? keyboardType;
   final int maxLines;
@@ -31,7 +33,9 @@ class DialogTextField extends StatelessWidget {
       style: const TextStyle(color: Colors.white, fontSize: 14),
       decoration: InputDecoration(
         labelText: label,
+        hintText: hint,
         labelStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
+        hintStyle: TextStyle(color: AppColors.muted.withValues(alpha: 0.5), fontSize: 14),
         filled: true,
         fillColor: AppColors.panel,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

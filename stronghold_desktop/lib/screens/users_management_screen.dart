@@ -911,7 +911,14 @@ class _EditUserDialogState extends State<_EditUserDialog> {
                   DialogTextField(
                     controller: _phoneController,
                     label: 'Telefon',
+                    hint: '061 123 456',
                     keyboardType: TextInputType.phone,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return null; // Optional when editing
+                      final phoneRegex = RegExp(r'^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$');
+                      if (!phoneRegex.hasMatch(v)) return 'Format: 061 123 456';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   DialogTextField(
@@ -1116,9 +1123,14 @@ class _AddUserDialogState extends State<_AddUserDialog> {
                   DialogTextField(
                     controller: _phoneController,
                     label: 'Telefon',
+                    hint: '061 123 456',
                     keyboardType: TextInputType.phone,
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Obavezno polje' : null,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Obavezno polje';
+                      final phoneRegex = RegExp(r'^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$');
+                      if (!phoneRegex.hasMatch(v)) return 'Format: 061 123 456';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
                   DialogTextField(
