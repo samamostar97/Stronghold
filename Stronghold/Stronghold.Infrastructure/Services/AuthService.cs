@@ -27,9 +27,9 @@ public class AuthService : IAuthService
         _jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
             ?? throw new InvalidOperationException("JWT_SECRET nije konfigurisan");
         _jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
-            ?? "Stronghold";
+            ?? throw new InvalidOperationException("JWT_ISSUER nije konfigurisan");
         _jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
-            ?? "StrongholdApp";
+            ?? throw new InvalidOperationException("JWT_AUDIENCE nije konfigurisan");
     }
     public Task<bool> IsAdminAsync(ClaimsPrincipal user)
     {

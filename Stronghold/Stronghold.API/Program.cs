@@ -74,8 +74,10 @@ Stripe.StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_S
 // Configure JWT authentication
 var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET")
     ?? throw new InvalidOperationException("JWT_SECRET nije konfigurisan");
-var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "Stronghold";
-var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "StrongholdApp";
+var jwtIssuer = Environment.GetEnvironmentVariable("JWT_ISSUER")
+    ?? throw new InvalidOperationException("JWT_ISSUER nije konfigurisan");
+var jwtAudience = Environment.GetEnvironmentVariable("JWT_AUDIENCE")
+    ?? throw new InvalidOperationException("JWT_AUDIENCE nije konfigurisan");
 
 builder.Services.AddAuthentication(options =>
 {

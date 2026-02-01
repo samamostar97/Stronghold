@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="MailKit" Version="4.11.0" />
+    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Mapster" Version="7.4.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.23" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.23">
@@ -21,6 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Stronghold.Application\Stronghold.Application.csproj" />
     <ProjectReference Include="..\Stronghold.Core\Stronghold.Core.csproj" />
+    <ProjectReference Include="..\Stronghold.Messaging\Stronghold.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>

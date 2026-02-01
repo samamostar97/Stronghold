@@ -13,6 +13,10 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["Stronghold.API/Stronghold.API.csproj", "Stronghold.API/"]
+COPY ["Stronghold.Application/Stronghold.Application.csproj", "Stronghold.Application/"]
+COPY ["Stronghold.Core/Stronghold.Core.csproj", "Stronghold.Core/"]
+COPY ["Stronghold.Infrastructure/Stronghold.Infrastructure.csproj", "Stronghold.Infrastructure/"]
+COPY ["Stronghold.Messaging/Stronghold.Messaging.csproj", "Stronghold.Messaging/"]
 RUN dotnet restore "./Stronghold.API/Stronghold.API.csproj"
 COPY . .
 WORKDIR "/src/Stronghold.API"
