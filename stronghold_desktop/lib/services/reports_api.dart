@@ -30,6 +30,36 @@ class ReportsApi {
     throw Exception(extractErrorMessage(res));
   }
 
+  /// Get inventory report (slow moving products)
+  static Future<InventoryReportDTO> getInventoryReport({int daysToAnalyze = 30}) async {
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/report/inventory?daysToAnalyze=$daysToAnalyze'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode == 200) {
+      final json = jsonDecode(res.body) as Map<String, dynamic>;
+      return InventoryReportDTO.fromJson(json);
+    }
+
+    throw Exception(extractErrorMessage(res));
+  }
+
+  /// Get membership popularity report
+  static Future<MembershipPopularityReportDTO> getMembershipPopularityReport() async {
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/report/membership-popularity'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode == 200) {
+      final json = jsonDecode(res.body) as Map<String, dynamic>;
+      return MembershipPopularityReportDTO.fromJson(json);
+    }
+
+    throw Exception(extractErrorMessage(res));
+  }
+
   /// Export report to Excel and save to file
   static Future<void> exportToExcel(String savePath) async {
     final res = await http.get(
@@ -50,6 +80,70 @@ class ReportsApi {
   static Future<void> exportToPdf(String savePath) async {
     final res = await http.get(
       ApiConfig.uri('/api/admin/report/export/pdf'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode == 200) {
+      final file = File(savePath);
+      await file.writeAsBytes(res.bodyBytes);
+      return;
+    }
+
+    throw Exception(extractErrorMessage(res));
+  }
+
+  /// Export inventory report to Excel
+  static Future<void> exportInventoryToExcel(String savePath, {int daysToAnalyze = 30}) async {
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/report/inventory/export/excel?daysToAnalyze=$daysToAnalyze'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode == 200) {
+      final file = File(savePath);
+      await file.writeAsBytes(res.bodyBytes);
+      return;
+    }
+
+    throw Exception(extractErrorMessage(res));
+  }
+
+  /// Export inventory report to PDF
+  static Future<void> exportInventoryToPdf(String savePath, {int daysToAnalyze = 30}) async {
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/report/inventory/export/pdf?daysToAnalyze=$daysToAnalyze'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode == 200) {
+      final file = File(savePath);
+      await file.writeAsBytes(res.bodyBytes);
+      return;
+    }
+
+    throw Exception(extractErrorMessage(res));
+  }
+
+  /// Export membership popularity report to Excel
+  static Future<void> exportMembershipPopularityToExcel(String savePath) async {
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/report/membership-popularity/export/excel'),
+      headers: await _headers(),
+    );
+
+    if (res.statusCode == 200) {
+      final file = File(savePath);
+      await file.writeAsBytes(res.bodyBytes);
+      return;
+    }
+
+    throw Exception(extractErrorMessage(res));
+  }
+
+  /// Export membership popularity report to PDF
+  static Future<void> exportMembershipPopularityToPdf(String savePath) async {
+    final res = await http.get(
+      ApiConfig.uri('/api/admin/report/membership-popularity/export/pdf'),
       headers: await _headers(),
     );
 

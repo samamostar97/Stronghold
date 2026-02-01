@@ -100,3 +100,121 @@ class BusinessReportDTO {
     );
   }
 }
+
+// INVENTORY REPORT DTOs
+
+class SlowMovingProductDTO {
+  final int supplementId;
+  final String name;
+  final String categoryName;
+  final num price;
+  final int quantitySold;
+  final int daysSinceLastSale;
+
+  SlowMovingProductDTO({
+    required this.supplementId,
+    required this.name,
+    required this.categoryName,
+    required this.price,
+    required this.quantitySold,
+    required this.daysSinceLastSale,
+  });
+
+  factory SlowMovingProductDTO.fromJson(Map<String, dynamic> json) {
+    return SlowMovingProductDTO(
+      supplementId: (json['supplementId'] ?? 0) as int,
+      name: (json['name'] ?? '') as String,
+      categoryName: (json['categoryName'] ?? '') as String,
+      price: (json['price'] ?? 0) as num,
+      quantitySold: (json['quantitySold'] ?? 0) as int,
+      daysSinceLastSale: (json['daysSinceLastSale'] ?? 0) as int,
+    );
+  }
+}
+
+class InventoryReportDTO {
+  final List<SlowMovingProductDTO> slowMovingProducts;
+  final int totalProducts;
+  final int slowMovingCount;
+  final int daysAnalyzed;
+
+  InventoryReportDTO({
+    required this.slowMovingProducts,
+    required this.totalProducts,
+    required this.slowMovingCount,
+    required this.daysAnalyzed,
+  });
+
+  factory InventoryReportDTO.fromJson(Map<String, dynamic> json) {
+    final products = (json['slowMovingProducts'] as List<dynamic>?)
+            ?.map((e) => SlowMovingProductDTO.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <SlowMovingProductDTO>[];
+
+    return InventoryReportDTO(
+      slowMovingProducts: products,
+      totalProducts: (json['totalProducts'] ?? 0) as int,
+      slowMovingCount: (json['slowMovingCount'] ?? 0) as int,
+      daysAnalyzed: (json['daysAnalyzed'] ?? 30) as int,
+    );
+  }
+}
+
+// MEMBERSHIP POPULARITY REPORT DTOs
+
+class MembershipPlanStatsDTO {
+  final int membershipPackageId;
+  final String packageName;
+  final num packagePrice;
+  final int activeSubscriptions;
+  final int newSubscriptionsLast30Days;
+  final num revenueLast90Days;
+  final num popularityPercentage;
+
+  MembershipPlanStatsDTO({
+    required this.membershipPackageId,
+    required this.packageName,
+    required this.packagePrice,
+    required this.activeSubscriptions,
+    required this.newSubscriptionsLast30Days,
+    required this.revenueLast90Days,
+    required this.popularityPercentage,
+  });
+
+  factory MembershipPlanStatsDTO.fromJson(Map<String, dynamic> json) {
+    return MembershipPlanStatsDTO(
+      membershipPackageId: (json['membershipPackageId'] ?? 0) as int,
+      packageName: (json['packageName'] ?? '') as String,
+      packagePrice: (json['packagePrice'] ?? 0) as num,
+      activeSubscriptions: (json['activeSubscriptions'] ?? 0) as int,
+      newSubscriptionsLast30Days: (json['newSubscriptionsLast30Days'] ?? 0) as int,
+      revenueLast90Days: (json['revenueLast90Days'] ?? 0) as num,
+      popularityPercentage: (json['popularityPercentage'] ?? 0) as num,
+    );
+  }
+}
+
+class MembershipPopularityReportDTO {
+  final List<MembershipPlanStatsDTO> planStats;
+  final int totalActiveMemberships;
+  final num totalRevenueLast90Days;
+
+  MembershipPopularityReportDTO({
+    required this.planStats,
+    required this.totalActiveMemberships,
+    required this.totalRevenueLast90Days,
+  });
+
+  factory MembershipPopularityReportDTO.fromJson(Map<String, dynamic> json) {
+    final stats = (json['planStats'] as List<dynamic>?)
+            ?.map((e) => MembershipPlanStatsDTO.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <MembershipPlanStatsDTO>[];
+
+    return MembershipPopularityReportDTO(
+      planStats: stats,
+      totalActiveMemberships: (json['totalActiveMemberships'] ?? 0) as int,
+      totalRevenueLast90Days: (json['totalRevenueLast90Days'] ?? 0) as num,
+    );
+  }
+}

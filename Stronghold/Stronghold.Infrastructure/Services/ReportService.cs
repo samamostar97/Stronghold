@@ -125,6 +125,166 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
+        public async Task<InventoryReportDTO> GetInventoryReportAsync(int daysToAnalyze = 30)
+        {
+            var now = DateTime.UtcNow;
+            var since = now.AddDays(-daysToAnalyze);
+
+            var allProducts = await _context.Supplements
+                .AsNoTracking()
+                .Include(s => s.SupplementCategory)
+                .Where(s => !s.IsDeleted)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.Name,
+                    CategoryName = s.SupplementCategory.Name,
+                    s.Price
+                })
+                .ToListAsync();
+
+            var salesData = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .GroupBy(oi => oi.SupplementId)
+                .Select(g => new
+                {
+                    SupplementId = g.Key,
+                    QuantitySold = g.Sum(x => x.Quantity)
+                })
+                .ToListAsync();
+
+            var lastSaleDates = await _context.OrderItems
+                .AsNoTracking()
+                .GroupBy(oi => oi.SupplementId)
+                .Select(g => new
+                {
+                    SupplementId = g.Key,
+                    LastSaleDate = g.Max(x => x.Order.PurchaseDate)
+                })
+                .ToListAsync();
+
+            var salesDict = salesData.ToDictionary(x => x.SupplementId, x => x.QuantitySold);
+            var lastSaleDict = lastSaleDates.ToDictionary(x => x.SupplementId, x => x.LastSaleDate);
+
+            var slowMovingProducts = allProducts
+                .Select(p =>
+                {
+                    salesDict.TryGetValue(p.Id, out var qty);
+                    lastSaleDict.TryGetValue(p.Id, out var lastSale);
+                    var daysSinceLastSale = lastSale == default ? daysToAnalyze : (int)(now - lastSale).TotalDays;
+
+                    return new SlowMovingProductDTO
+                    {
+                        SupplementId = p.Id,
+                        Name = p.Name,
+                        CategoryName = p.CategoryName,
+                        Price = p.Price,
+                        QuantitySold = qty,
+                        DaysSinceLastSale = daysSinceLastSale
+                    };
+                })
+                .Where(p => p.QuantitySold <= 2)
+                .OrderBy(p => p.QuantitySold)
+                .ThenByDescending(p => p.DaysSinceLastSale)
+                .ToList();
+
+            return new InventoryReportDTO
+            {
+                SlowMovingProducts = slowMovingProducts,
+                TotalProducts = allProducts.Count,
+                SlowMovingCount = slowMovingProducts.Count,
+                DaysAnalyzed = daysToAnalyze
+            };
+        }
+
+        public async Task<MembershipPopularityReportDTO> GetMembershipPopularityReportAsync()
+        {
+            var now = DateTime.UtcNow;
+            var last30Days = now.AddDays(-30);
+            var last90Days = now.AddDays(-90);
+
+            var packages = await _context.MembershipPackages
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted && p.IsActive)
+                .Select(p => new
+                {
+                    p.Id,
+                    p.PackageName,
+                    p.PackagePrice
+                })
+                .ToListAsync();
+
+            var activeSubscriptions = await _context.Memberships
+                .AsNoTracking()
+                .Where(m => !m.IsDeleted && m.StartDate <= now && m.EndDate >= now)
+                .GroupBy(m => m.MembershipPackageId)
+                .Select(g => new
+                {
+                    MembershipPackageId = g.Key,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+
+            var newSubscriptionsLast30Days = await _context.Memberships
+                .AsNoTracking()
+                .Where(m => !m.IsDeleted && m.StartDate >= last30Days && m.StartDate <= now)
+                .GroupBy(m => m.MembershipPackageId)
+                .Select(g => new
+                {
+                    MembershipPackageId = g.Key,
+                    Count = g.Count()
+                })
+                .ToListAsync();
+
+            var revenueLast90Days = await _context.MembershipPaymentHistory
+                .AsNoTracking()
+                .Where(p => !p.IsDeleted && p.PaymentDate >= last90Days && p.PaymentDate <= now)
+                .GroupBy(p => p.MembershipPackageId)
+                .Select(g => new
+                {
+                    MembershipPackageId = g.Key,
+                    Revenue = g.Sum(x => x.AmountPaid)
+                })
+                .ToListAsync();
+
+            var activeDict = activeSubscriptions.ToDictionary(x => x.MembershipPackageId, x => x.Count);
+            var newSubsDict = newSubscriptionsLast30Days.ToDictionary(x => x.MembershipPackageId, x => x.Count);
+            var revenueDict = revenueLast90Days.ToDictionary(x => x.MembershipPackageId, x => x.Revenue);
+
+            var totalActive = activeDict.Values.Sum();
+
+            var planStats = packages
+                .Select(p =>
+                {
+                    activeDict.TryGetValue(p.Id, out var active);
+                    newSubsDict.TryGetValue(p.Id, out var newSubs);
+                    revenueDict.TryGetValue(p.Id, out var revenue);
+
+                    return new MembershipPlanStatsDTO
+                    {
+                        MembershipPackageId = p.Id,
+                        PackageName = p.PackageName,
+                        PackagePrice = p.PackagePrice,
+                        ActiveSubscriptions = active,
+                        NewSubscriptionsLast30Days = newSubs,
+                        RevenueLast90Days = revenue,
+                        PopularityPercentage = totalActive > 0
+                            ? Math.Round((active / (decimal)totalActive) * 100, 2)
+                            : 0m
+                    };
+                })
+                .OrderByDescending(p => p.ActiveSubscriptions)
+                .ToList();
+
+            return new MembershipPopularityReportDTO
+            {
+                PlanStats = planStats,
+                TotalActiveMemberships = totalActive,
+                TotalRevenueLast90Days = revenueDict.Values.Sum()
+            };
+        }
+
         private static DateTime GetStartOfWeekUtc(DateTime utcNow)
         {
             // Monday-based week
@@ -390,6 +550,317 @@ namespace Stronghold.Infrastructure.Services
                         else
                         {
                             col.Item().PaddingTop(10).Text("Nema podataka").Italic().FontColor(Colors.Grey.Medium);
+                        }
+                    });
+
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.Span("Stronghold Gym © ").FontColor(Colors.Grey.Medium);
+                        text.Span($"{DateTime.Now.Year}").FontColor(Colors.Grey.Medium);
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
+        public async Task<byte[]> ExportInventoryReportToExcelAsync(int daysToAnalyze = 30)
+        {
+            var report = await GetInventoryReportAsync(daysToAnalyze);
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Inventar Izvještaj");
+
+            worksheet.Cell("A1").Value = "STRONGHOLD - Izvještaj o Sporoj Prodaji";
+            worksheet.Cell("A1").Style.Font.Bold = true;
+            worksheet.Cell("A1").Style.Font.FontSize = 16;
+            worksheet.Range("A1:E1").Merge();
+
+            worksheet.Cell("A2").Value = $"Datum generisanja: {DateTime.Now:dd.MM.yyyy HH:mm}";
+            worksheet.Range("A2:E2").Merge();
+
+            worksheet.Cell("A3").Value = $"Period analize: posljednjih {report.DaysAnalyzed} dana";
+            worksheet.Range("A3:E3").Merge();
+
+            worksheet.Cell("A5").Value = "SAŽETAK";
+            worksheet.Cell("A5").Style.Font.Bold = true;
+
+            worksheet.Cell("A6").Value = "Ukupno proizvoda:";
+            worksheet.Cell("B6").Value = report.TotalProducts;
+
+            worksheet.Cell("A7").Value = "Proizvodi sa slabom prodajom:";
+            worksheet.Cell("B7").Value = report.SlowMovingCount;
+
+            worksheet.Cell("A9").Value = "PROIZVODI SA SLABOM PRODAJOM (≤2 prodaje)";
+            worksheet.Cell("A9").Style.Font.Bold = true;
+            worksheet.Range("A9:E9").Merge();
+
+            worksheet.Cell("A10").Value = "Naziv";
+            worksheet.Cell("B10").Value = "Kategorija";
+            worksheet.Cell("C10").Value = "Cijena (KM)";
+            worksheet.Cell("D10").Value = "Prodato";
+            worksheet.Cell("E10").Value = "Dana od zadnje prodaje";
+
+            var headerRange = worksheet.Range("A10:E10");
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+            var row = 11;
+            foreach (var product in report.SlowMovingProducts)
+            {
+                worksheet.Cell($"A{row}").Value = product.Name;
+                worksheet.Cell($"B{row}").Value = product.CategoryName;
+                worksheet.Cell($"C{row}").Value = product.Price;
+                worksheet.Cell($"D{row}").Value = product.QuantitySold;
+                worksheet.Cell($"E{row}").Value = product.DaysSinceLastSale;
+                row++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
+        public async Task<byte[]> ExportInventoryReportToPdfAsync(int daysToAnalyze = 30)
+        {
+            var report = await GetInventoryReportAsync(daysToAnalyze);
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(40);
+                    page.DefaultTextStyle(x => x.FontSize(11));
+
+                    page.Header().Column(col =>
+                    {
+                        col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
+                        col.Item().Text("Izvještaj o Sporoj Prodaji").FontSize(16).FontColor(Colors.Grey.Darken2);
+                        col.Item().PaddingTop(5).Text($"Datum: {DateTime.Now:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().Text($"Period: posljednjih {report.DaysAnalyzed} dana").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                    });
+
+                    page.Content().PaddingVertical(20).Column(col =>
+                    {
+                        col.Item().Text("Sažetak").Bold().FontSize(14);
+                        col.Item().PaddingTop(10).Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(1);
+                            });
+
+                            table.Cell().Text("Ukupno proizvoda:");
+                            table.Cell().Text($"{report.TotalProducts}").Bold();
+
+                            table.Cell().Text("Sa slabom prodajom:");
+                            table.Cell().Text($"{report.SlowMovingCount}").Bold().FontColor(Colors.Orange.Darken2);
+                        });
+
+                        col.Item().PaddingTop(20).Text("Proizvodi sa slabom prodajom (≤2 prodaje)").Bold().FontSize(14);
+
+                        if (report.SlowMovingProducts.Any())
+                        {
+                            col.Item().PaddingTop(10).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(3);
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(1);
+                                    columns.RelativeColumn(1);
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Naziv").Bold();
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Kategorija").Bold();
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Cijena").Bold();
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Prodato").Bold();
+                                });
+
+                                foreach (var product in report.SlowMovingProducts.Take(20))
+                                {
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(product.Name);
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(product.CategoryName);
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text($"{product.Price:F2} KM");
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text($"{product.QuantitySold}");
+                                }
+                            });
+                        }
+                        else
+                        {
+                            col.Item().PaddingTop(10).Text("Nema proizvoda sa slabom prodajom").Italic().FontColor(Colors.Grey.Medium);
+                        }
+                    });
+
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.Span("Stronghold Gym © ").FontColor(Colors.Grey.Medium);
+                        text.Span($"{DateTime.Now.Year}").FontColor(Colors.Grey.Medium);
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
+
+        public async Task<byte[]> ExportMembershipPopularityToExcelAsync()
+        {
+            var report = await GetMembershipPopularityReportAsync();
+
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Popularnost Članarina");
+
+            worksheet.Cell("A1").Value = "STRONGHOLD - Popularnost Članarina";
+            worksheet.Cell("A1").Style.Font.Bold = true;
+            worksheet.Cell("A1").Style.Font.FontSize = 16;
+            worksheet.Range("A1:F1").Merge();
+
+            worksheet.Cell("A2").Value = $"Datum generisanja: {DateTime.Now:dd.MM.yyyy HH:mm}";
+            worksheet.Cell("A2").Style.Font.Bold = true;
+            worksheet.Range("A2:F2").Merge();
+
+            worksheet.Cell("A4").Value = "SAŽETAK";
+            worksheet.Cell("A4").Style.Font.Bold = true;
+
+            worksheet.Cell("A5").Value = "Ukupno aktivnih članarina:";
+            worksheet.Cell("B5").Value = report.TotalActiveMemberships;
+
+            worksheet.Cell("A6").Value = "Prihod (90 dana):";
+            worksheet.Cell("B6").Value = $"{report.TotalRevenueLast90Days:F2} KM";
+
+            worksheet.Cell("A8").Value = "STATISTIKA PO PAKETIMA";
+            worksheet.Cell("A8").Style.Font.Bold = true;
+            worksheet.Range("A8:F8").Merge();
+
+            worksheet.Cell("A9").Value = "Paket";
+            worksheet.Cell("B9").Value = "Cijena (KM)";
+            worksheet.Cell("C9").Value = "Aktivne";
+            worksheet.Cell("D9").Value = "Novih (30 dana)";
+            worksheet.Cell("E9").Value = "Prihod (90 dana)";
+            worksheet.Cell("F9").Value = "Popularnost (%)";
+
+            var headerRange = worksheet.Range("A9:F9");
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+
+            var row = 10;
+            foreach (var plan in report.PlanStats)
+            {
+                worksheet.Cell($"A{row}").Value = plan.PackageName;
+                worksheet.Cell($"B{row}").Value = plan.PackagePrice;
+                worksheet.Cell($"C{row}").Value = plan.ActiveSubscriptions;
+                worksheet.Cell($"D{row}").Value = plan.NewSubscriptionsLast30Days;
+                worksheet.Cell($"E{row}").Value = $"{plan.RevenueLast90Days:F2}";
+                worksheet.Cell($"F{row}").Value = $"{plan.PopularityPercentage:F1}%";
+                row++;
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
+        public async Task<byte[]> ExportMembershipPopularityToPdfAsync()
+        {
+            var report = await GetMembershipPopularityReportAsync();
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(40);
+                    page.DefaultTextStyle(x => x.FontSize(11));
+
+                    page.Header().Column(col =>
+                    {
+                        col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
+                        col.Item().Text("Popularnost Članarina").FontSize(16).FontColor(Colors.Grey.Darken2);
+                        col.Item().PaddingTop(5).Text($"Datum: {DateTime.Now:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                    });
+
+                    page.Content().PaddingVertical(20).Column(col =>
+                    {
+                        col.Item().Text("Sažetak").Bold().FontSize(14);
+                        col.Item().PaddingTop(10).Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(1);
+                            });
+
+                            table.Cell().Text("Ukupno aktivnih članarina:");
+                            table.Cell().Text($"{report.TotalActiveMemberships}").Bold().FontColor(Colors.Red.Darken2);
+
+                            table.Cell().Text("Prihod (posljednjih 90 dana):");
+                            table.Cell().Text($"{report.TotalRevenueLast90Days:F2} KM").Bold();
+                        });
+
+                        col.Item().PaddingTop(20).Text("Statistika po paketima").Bold().FontSize(14);
+
+                        if (report.PlanStats.Any())
+                        {
+                            col.Item().PaddingTop(10).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(3);
+                                    columns.RelativeColumn(1);
+                                    columns.RelativeColumn(1);
+                                    columns.RelativeColumn(2);
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Paket").Bold();
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Aktivne").Bold();
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Novih").Bold();
+                                    header.Cell().Background(Colors.Grey.Lighten3).Padding(5).Text("Popularnost").Bold();
+                                });
+
+                                foreach (var plan in report.PlanStats)
+                                {
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(plan.PackageName);
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text($"{plan.ActiveSubscriptions}");
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text($"{plan.NewSubscriptionsLast30Days}");
+
+                                    var popColor = plan.PopularityPercentage >= 30 ? Colors.Green.Darken2 :
+                                                   plan.PopularityPercentage >= 10 ? Colors.Orange.Darken2 :
+                                                   Colors.Grey.Darken1;
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5)
+                                        .Text($"{plan.PopularityPercentage:F1}%").FontColor(popColor).Bold();
+                                }
+                            });
+
+                            var topPlan = report.PlanStats.FirstOrDefault();
+                            if (topPlan != null)
+                            {
+                                col.Item().PaddingTop(20).Text("Najpopularniji paket").Bold().FontSize(14);
+                                col.Item().PaddingTop(10).Row(r =>
+                                {
+                                    r.RelativeItem().Column(innerCol =>
+                                    {
+                                        innerCol.Item().Text(topPlan.PackageName).Bold().FontSize(18).FontColor(Colors.Red.Darken2);
+                                        innerCol.Item().Text($"Aktivnih: {topPlan.ActiveSubscriptions} | Popularnost: {topPlan.PopularityPercentage:F1}%").FontColor(Colors.Grey.Darken1);
+                                        innerCol.Item().Text($"Prihod (90 dana): {topPlan.RevenueLast90Days:F2} KM").FontColor(Colors.Grey.Darken1);
+                                    });
+                                });
+                            }
+                        }
+                        else
+                        {
+                            col.Item().PaddingTop(10).Text("Nema podataka o članarinama").Italic().FontColor(Colors.Grey.Medium);
                         }
                     });
 
