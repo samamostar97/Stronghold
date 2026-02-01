@@ -1,0 +1,173 @@
+using Microsoft.EntityFrameworkCore;
+using Stronghold.Application.DTOs.UserDTOs;
+using Stronghold.Application.IRepositories;
+using Stronghold.Application.IServices;
+using Stronghold.Core.Entities;
+using Stronghold.Core.Enums;
+
+namespace Stronghold.Infrastructure.Services;
+
+public class RecommendationService : IRecommendationService
+{
+    private readonly IRepository<Order, int> _orderRepository;
+    private readonly IRepository<Review, int> _reviewRepository;
+    private readonly IRepository<Supplement, int> _supplementRepository;
+
+    public RecommendationService(
+        IRepository<Order, int> orderRepository,
+        IRepository<Review, int> reviewRepository,
+        IRepository<Supplement, int> supplementRepository)
+    {
+        _orderRepository = orderRepository;
+        _reviewRepository = reviewRepository;
+        _supplementRepository = supplementRepository;
+    }
+
+    public async Task<List<RecommendationDTO>> GetRecommendationsAsync(int userId, int count = 6)
+    {
+        // 1. Get supplements from delivered orders
+        var deliveredOrders = await _orderRepository.AsQueryable()
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Supplement)
+                    .ThenInclude(s => s.SupplementCategory)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Supplement)
+                    .ThenInclude(s => s.Supplier)
+            .Where(o => o.UserId == userId && o.Status == OrderStatus.Delivered)
+            .ToListAsync();
+
+        var purchasedSupplementIds = new HashSet<int>();
+        var purchasedCategoryIds = new HashSet<int>();
+        var purchasedSupplierIds = new HashSet<int>();
+
+        foreach (var order in deliveredOrders)
+        {
+            foreach (var item in order.OrderItems)
+            {
+                purchasedSupplementIds.Add(item.SupplementId);
+                purchasedCategoryIds.Add(item.Supplement.SupplementCategoryId);
+                purchasedSupplierIds.Add(item.Supplement.SupplierId);
+            }
+        }
+
+        // 2. Get highly-rated supplements (rating >= 4)
+        var highlyRatedReviews = await _reviewRepository.AsQueryable()
+            .Include(r => r.Supplement)
+                .ThenInclude(s => s.SupplementCategory)
+            .Include(r => r.Supplement)
+                .ThenInclude(s => s.Supplier)
+            .Where(r => r.UserId == userId && r.Rating >= 4)
+            .ToListAsync();
+
+        var highlyRatedSupplementIds = new HashSet<int>();
+        var highlyRatedCategoryIds = new HashSet<int>();
+        var highlyRatedSupplierIds = new HashSet<int>();
+
+        foreach (var review in highlyRatedReviews)
+        {
+            highlyRatedSupplementIds.Add(review.SupplementId);
+            highlyRatedCategoryIds.Add(review.Supplement.SupplementCategoryId);
+            highlyRatedSupplierIds.Add(review.Supplement.SupplierId);
+        }
+
+        // 3. Get all supplements (excluding already purchased)
+        var allSupplements = await _supplementRepository.AsQueryable()
+            .Include(s => s.SupplementCategory)
+            .Include(s => s.Supplier)
+            .Include(s => s.Reviews)
+            .Where(s => !purchasedSupplementIds.Contains(s.Id))
+            .ToListAsync();
+
+        // 4. Score each candidate supplement
+        var scoredSupplements = new List<(Supplement Supplement, int Score, string Reason)>();
+
+        foreach (var supplement in allSupplements)
+        {
+            int score = 0;
+            var reasons = new List<string>();
+
+            // +3 points if same category as a purchased item
+            if (purchasedCategoryIds.Contains(supplement.SupplementCategoryId))
+            {
+                score += 3;
+                reasons.Add($"Kupovali ste {supplement.SupplementCategory.Name}");
+            }
+
+            // +2 points if same supplier as a purchased item
+            if (purchasedSupplierIds.Contains(supplement.SupplierId))
+            {
+                score += 2;
+                reasons.Add($"Od dobavljaca {supplement.Supplier.Name}");
+            }
+
+            // +2 points if same category as a highly-rated item
+            if (highlyRatedCategoryIds.Contains(supplement.SupplementCategoryId))
+            {
+                score += 2;
+                if (!reasons.Any(r => r.Contains(supplement.SupplementCategory.Name)))
+                {
+                    reasons.Add($"Visoko ocijenili {supplement.SupplementCategory.Name}");
+                }
+            }
+
+            // +1 point if same supplier as a highly-rated item
+            if (highlyRatedSupplierIds.Contains(supplement.SupplierId))
+            {
+                score += 1;
+                if (!reasons.Any(r => r.Contains(supplement.Supplier.Name)))
+                {
+                    reasons.Add($"Volite dobavljaca {supplement.Supplier.Name}");
+                }
+            }
+
+            // +1 point per star of average rating (bonus for popular items)
+            var avgRating = supplement.Reviews.Any()
+                ? supplement.Reviews.Average(r => r.Rating)
+                : 0;
+            score += (int)Math.Round(avgRating);
+
+            // Build recommendation reason
+            string reason;
+            if (reasons.Any())
+            {
+                reason = reasons.First();
+            }
+            else if (avgRating >= 4)
+            {
+                reason = "Popularno među korisnicima";
+            }
+            else
+            {
+                reason = "Mozda vas zanima";
+            }
+
+            scoredSupplements.Add((supplement, score, reason));
+        }
+
+        // 5. Sort by score and return top N
+        var topRecommendations = scoredSupplements
+            .OrderByDescending(x => x.Score)
+            .ThenByDescending(x => x.Supplement.Reviews.Any()
+                ? x.Supplement.Reviews.Average(r => r.Rating)
+                : 0)
+            .Take(count)
+            .Select(x => new RecommendationDTO
+            {
+                Id = x.Supplement.Id,
+                Name = x.Supplement.Name,
+                Price = x.Supplement.Price,
+                Description = x.Supplement.Description,
+                ImageUrl = x.Supplement.SupplementImageUrl,
+                CategoryName = x.Supplement.SupplementCategory.Name,
+                SupplierName = x.Supplement.Supplier.Name,
+                AverageRating = x.Supplement.Reviews.Any()
+                    ? Math.Round(x.Supplement.Reviews.Average(r => r.Rating), 1)
+                    : 0,
+                ReviewCount = x.Supplement.Reviews.Count,
+                RecommendationReason = x.Reason
+            })
+            .ToList();
+
+        return topRecommendations;
+    }
+}

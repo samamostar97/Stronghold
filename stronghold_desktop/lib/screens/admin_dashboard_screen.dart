@@ -65,10 +65,10 @@ class AdminDashboardScreen extends StatelessWidget {
                         columns: cols,
                         children: [
                         _SectionCard(
-                          icon: "🏋️",
+                          icon: Icons.directions_run,
                           title: "Trenutno u teretani",
                           items: const [
-                            _MenuItemData(icon: "👁️", text: "Pogledaj aktivne članove"),
+                            _MenuItemData(icon: Icons.visibility_outlined, text: "Pogledaj aktivne članove"),
                           ],
                           onTapIndex: (i) {
                             Navigator.of(context).push(
@@ -79,11 +79,11 @@ class AdminDashboardScreen extends StatelessWidget {
                           },
                         ),
                         _SectionCard(
-                          icon: "🎫",
+                          icon: Icons.card_membership,
                           title: "Članarine",
                           items: const [
-                            _MenuItemData(icon: "➕", text: "Produžavanje članarina"),
-                            _MenuItemData(icon: "📋", text: "Upravljanje paketima"),
+                            _MenuItemData(icon: Icons.add_circle_outline, text: "Produžavanje članarina"),
+                            _MenuItemData(icon: Icons.inventory_2_outlined, text: "Upravljanje paketima"),
                           ],
                           onTapIndex: (i) {
                             if (i == 0) {
@@ -104,12 +104,12 @@ class AdminDashboardScreen extends StatelessWidget {
                           },
                         ),
                         _SectionCard(
-                          icon: "👥",
+                          icon: Icons.people_outline,
                           title: "Korisnici i osoblje",
                           items: const [
-                            _MenuItemData(icon: "👤", text: "Upravljanje korisnicima"),
-                            _MenuItemData(icon: "🏃", text: "Treneri"),
-                            _MenuItemData(icon: "🍴", text: "Nutricionisti"),
+                            _MenuItemData(icon: Icons.person_outline, text: "Upravljanje korisnicima"),
+                            _MenuItemData(icon: Icons.fitness_center, text: "Treneri"),
+                            _MenuItemData(icon: Icons.restaurant_menu, text: "Nutricionisti"),
                           ],
                           onTapIndex: (i) {
                             if (i == 0) {
@@ -136,13 +136,13 @@ class AdminDashboardScreen extends StatelessWidget {
                           },
                         ),
                         _SectionCard(
-                          icon: "🛒",
+                          icon: Icons.store_outlined,
                           title: "Prodavnica",
                           items: const [
-                            _MenuItemData(icon: "💊", text: "Suplementi"),
-                            _MenuItemData(icon: "📁", text: "Kategorije"),
-                            _MenuItemData(icon: "🚚", text: "Dobavljači"),
-                            _MenuItemData(icon: "📦", text: "Kupovine"),
+                            _MenuItemData(icon: Icons.medication_outlined, text: "Suplementi"),
+                            _MenuItemData(icon: Icons.category_outlined, text: "Kategorije"),
+                            _MenuItemData(icon: Icons.local_shipping_outlined, text: "Dobavljači"),
+                            _MenuItemData(icon: Icons.shopping_bag_outlined, text: "Kupovine"),
                           ],
                           onTapIndex: (i) {
                             if (i == 0) {
@@ -176,12 +176,12 @@ class AdminDashboardScreen extends StatelessWidget {
                           },
                         ),
                         _SectionCard(
-                          icon: "📝",
+                          icon: Icons.article_outlined,
                           title: "Sadržaj",
                           items: const [
-                            _MenuItemData(icon: "❓", text: "FAQ"),
-                            _MenuItemData(icon: "⭐", text: "Recenzije"),
-                            _MenuItemData(icon: "🎓", text: "Seminari"),
+                            _MenuItemData(icon: Icons.help_outline, text: "FAQ"),
+                            _MenuItemData(icon: Icons.rate_review_outlined, text: "Recenzije"),
+                            _MenuItemData(icon: Icons.school_outlined, text: "Seminari"),
                           ],
                           onTapIndex: (i) {
                             if (i == 0) {
@@ -208,11 +208,11 @@ class AdminDashboardScreen extends StatelessWidget {
                           },
                         ),
                         _SectionCard(
-                          icon: "📊",
+                          icon: Icons.analytics_outlined,
                           title: "Izvještaji",
                           items: const [
-                            _MenuItemData(icon: "📈", text: "Biznis report"),
-                            _MenuItemData(icon: "🏆", text: "Rang lista"),
+                            _MenuItemData(icon: Icons.trending_up, text: "Biznis report"),
+                            _MenuItemData(icon: Icons.emoji_events, text: "Rang lista"),
                           ],
                           onTapIndex: (i) {
                             if (i == 0) {
@@ -307,9 +307,10 @@ class _Logo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: const [
-        Text(
-          "🏋️",
-          style: TextStyle(fontSize: 34),
+        Icon(
+          Icons.fitness_center,
+          color: Color(0xFFFF5757),
+          size: 34,
         ),
         SizedBox(width: 12),
         Text(
@@ -340,7 +341,7 @@ class _AdminBadge extends StatelessWidget {
       ),
       child: Row(
         children: const [
-          Text("👤", style: TextStyle(fontSize: 16)),
+          Icon(Icons.person_outline, color: Colors.white70, size: 20),
           SizedBox(width: 10),
           Text(
             "Admin",
@@ -399,7 +400,7 @@ class _SectionCard extends StatelessWidget {
     required this.onTapIndex,
   });
 
-  final String icon;
+  final IconData icon;
   final String title;
   final List<_MenuItemData> items;
   final void Function(int index) onTapIndex;
@@ -442,9 +443,10 @@ class _SectionCard extends StatelessWidget {
                     ],
                   ),
                   alignment: Alignment.center,
-                  child: Text(
+                  child: Icon(
                     icon,
-                    style: const TextStyle(fontSize: 22),
+                    color: Colors.white,
+                    size: 26,
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -482,7 +484,7 @@ class _SectionCard extends StatelessWidget {
 }
 
 class _MenuItemData {
-  final String icon;
+  final IconData icon;
   final String text;
   const _MenuItemData({required this.icon, required this.text});
 }
@@ -494,7 +496,7 @@ class _MenuRow extends StatefulWidget {
     required this.onTap,
   });
 
-  final String icon;
+  final IconData icon;
   final String text;
   final VoidCallback onTap;
 
@@ -534,10 +536,10 @@ class _MenuRowState extends State<_MenuRow> {
                   opacity: _hover ? 1 : 0.8,
                   child: SizedBox(
                     width: 24,
-                    child: Text(
+                    child: Icon(
                       widget.icon,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18),
+                      color: Colors.white70,
+                      size: 20,
                     ),
                   ),
                 ),

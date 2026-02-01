@@ -104,9 +104,10 @@ class _LeaderboardManagementScreenState
         children: [
           Row(
             children: [
-              const Text(
-                '🏆',
-                style: TextStyle(fontSize: 28),
+              const Icon(
+                Icons.emoji_events,
+                color: Color(0xFFFF5757),
+                size: 28,
               ),
               const SizedBox(width: 12),
               Text(

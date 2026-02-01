@@ -565,8 +565,9 @@ class _PaginationButtonState extends State<_PaginationButton> {
 abstract class _TableFlex {
   static const int image = 1;
   static const int name = 2;
-  static const int price = 2;
-  static const int description = 3;
+  static const int price = 1;
+  static const int category = 2;
+  static const int supplier = 2;
   static const int actions = 2;
 }
 
@@ -585,7 +586,8 @@ class _TableHeader extends StatelessWidget {
           _HeaderCell(text: 'Slika', flex: _TableFlex.image),
           _HeaderCell(text: 'Naziv', flex: _TableFlex.name),
           _HeaderCell(text: 'Cijena', flex: _TableFlex.price),
-          _HeaderCell(text: 'Opis', flex: _TableFlex.description),
+          _HeaderCell(text: 'Kategorija', flex: _TableFlex.category),
+          _HeaderCell(text: 'Dobavljač', flex: _TableFlex.supplier),
           _HeaderCell(text: 'Akcije', flex: _TableFlex.actions, alignRight: true),
         ],
       ),
@@ -686,8 +688,12 @@ class _SupplementTableRowState extends State<_SupplementTableRow> {
               flex: _TableFlex.price,
             ),
             _DataCell(
-              text: widget.supplement.description ?? '-',
-              flex: _TableFlex.description,
+              text: widget.supplement.supplementCategoryName ?? '-',
+              flex: _TableFlex.category,
+            ),
+            _DataCell(
+              text: widget.supplement.supplierName ?? '-',
+              flex: _TableFlex.supplier,
             ),
             Expanded(
               flex: _TableFlex.actions,

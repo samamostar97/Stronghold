@@ -18,7 +18,11 @@ class SharedAdminHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Text('🏋️', style: TextStyle(fontSize: 32)),
+                const Icon(
+                  Icons.fitness_center,
+                  color: Color(0xFFFF5757),
+                  size: 32,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   'STRONGHOLD',
@@ -81,7 +85,7 @@ class SharedAdminHeader extends StatelessWidget {
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('👤', style: TextStyle(fontSize: 16)),
+                    Icon(Icons.person_outline, color: Colors.white70, size: 20),
                     SizedBox(width: 10),
                     Text(
                       'Admin',

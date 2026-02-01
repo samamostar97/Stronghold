@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../models/supplement_models.dart';
+import '../models/recommendation.dart';
 import '../services/supplement_service.dart';
+import '../services/recommendation_service.dart';
 import '../services/cart_service.dart';
 import '../utils/image_utils.dart';
 import 'supplement_detail_screen.dart';
@@ -21,9 +23,11 @@ class _SupplementShopScreenState extends State<SupplementShopScreen> {
 
   List<Supplement> _supplements = [];
   List<SupplementCategory> _categories = [];
+  List<Recommendation> _recommendations = [];
   int? _selectedCategoryId;
   bool _isLoading = true;
   bool _isLoadingMore = false;
+  bool _isLoadingRecommendations = true;
   bool _hasError = false;
   String _errorMessage = '';
   int _currentPage = 1;
@@ -37,6 +41,7 @@ class _SupplementShopScreenState extends State<SupplementShopScreen> {
     _scrollController.addListener(_onScroll);
     _loadCategories();
     _loadSupplements();
+    _loadRecommendations();
   }
 
   @override
@@ -73,6 +78,36 @@ class _SupplementShopScreenState extends State<SupplementShopScreen> {
         });
       }
     } catch (_) {}
+  }
+
+  Future<void> _loadRecommendations() async {
+    try {
+      final recommendations = await RecommendationService.getRecommendations(count: 6);
+      if (mounted) {
+        setState(() {
+          _recommendations = recommendations;
+          _isLoadingRecommendations = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _isLoadingRecommendations = false;
+        });
+      }
+    }
+  }
+
+  Supplement _recommendationToSupplement(Recommendation rec) {
+    return Supplement(
+      id: rec.id,
+      name: rec.name,
+      price: rec.price,
+      description: rec.description,
+      imageUrl: rec.imageUrl,
+      categoryId: 0,
+      categoryName: rec.categoryName,
+    );
   }
 
   Future<void> _loadSupplements() async {
@@ -357,27 +392,234 @@ class _SupplementShopScreenState extends State<SupplementShopScreen> {
                                   ),
                                 ),
                               )
-                            : ListView.builder(
+                            : CustomScrollView(
                                 controller: _scrollController,
-                                padding: const EdgeInsets.symmetric(horizontal: 20),
-                                itemCount: _supplements.length + (_isLoadingMore ? 1 : 0),
-                                itemBuilder: (context, index) {
-                                  if (index == _supplements.length) {
-                                    return const Center(
-                                      child: Padding(
-                                        padding: EdgeInsets.all(16),
-                                        child: CircularProgressIndicator(
-                                          color: Color(0xFFe63946),
-                                        ),
+                                slivers: [
+                                  // Recommendations section
+                                  if (!_isLoadingRecommendations && _recommendations.isNotEmpty)
+                                    SliverToBoxAdapter(
+                                      child: _buildRecommendationsSection(),
+                                    ),
+                                  // Supplements list
+                                  SliverPadding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    sliver: SliverList(
+                                      delegate: SliverChildBuilderDelegate(
+                                        (context, index) {
+                                          if (index == _supplements.length) {
+                                            return const Center(
+                                              child: Padding(
+                                                padding: EdgeInsets.all(16),
+                                                child: CircularProgressIndicator(
+                                                  color: Color(0xFFe63946),
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                          return _buildSupplementCard(_supplements[index]);
+                                        },
+                                        childCount: _supplements.length + (_isLoadingMore ? 1 : 0),
                                       ),
-                                    );
-                                  }
-                                  return _buildSupplementCard(_supplements[index]);
-                                },
+                                    ),
+                                  ),
+                                ],
                               ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecommendationsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFe63946).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.recommend,
+                  color: Color(0xFFe63946),
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Preporuceno za tebe',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+        SizedBox(
+          height: 220,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            itemCount: _recommendations.length,
+            itemBuilder: (context, index) {
+              return _buildRecommendationCard(_recommendations[index]);
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            'Svi suplementi',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.7),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+
+  Widget _buildRecommendationCard(Recommendation recommendation) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => SupplementDetailScreen(
+              supplement: _recommendationToSupplement(recommendation),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 160,
+        margin: const EdgeInsets.only(right: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0f0f1a),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: const Color(0xFFe63946).withValues(alpha: 0.3),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image
+            Container(
+              height: 100,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1a1a2e),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  topRight: Radius.circular(16),
+                ),
+              ),
+              child: recommendation.imageUrl != null && recommendation.imageUrl!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(16),
+                        topRight: Radius.circular(16),
+                      ),
+                      child: Image.network(
+                        getFullImageUrl(recommendation.imageUrl),
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(
+                              Icons.fitness_center,
+                              color: Color(0xFFe63946),
+                              size: 32,
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  : const Center(
+                      child: Icon(
+                        Icons.fitness_center,
+                        color: Color(0xFFe63946),
+                        size: 32,
+                      ),
+                    ),
+            ),
+            // Info
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    recommendation.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.star,
+                        color: Color(0xFFffc107),
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        recommendation.averageRating.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      Text(
+                        ' (${recommendation.reviewCount})',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    recommendation.categoryName,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    '${recommendation.price.toStringAsFixed(2)} KM',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFFe63946),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

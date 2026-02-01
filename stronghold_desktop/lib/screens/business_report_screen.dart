@@ -205,7 +205,7 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                               border: AppColors.border,
                               muted: AppColors.muted,
                               accent: AppColors.accent,
-                              productEmoji: '💊',
+                              productIcon: Icons.medication_outlined,
                               productName: _report!.bestsellerLast30Days?.name ?? 'N/A',
                               category: 'Suplement',
                               units: '${_report!.bestsellerLast30Days?.quantitySold ?? 0}',
@@ -506,7 +506,7 @@ class _BestSeller extends StatelessWidget {
     required this.border,
     required this.muted,
     required this.accent,
-    required this.productEmoji,
+    required this.productIcon,
     required this.productName,
     required this.category,
     required this.units,
@@ -517,7 +517,7 @@ class _BestSeller extends StatelessWidget {
   final Color muted;
   final Color accent;
 
-  final String productEmoji;
+  final IconData productIcon;
   final String productName;
   final String category;
   final String units;
@@ -533,7 +533,7 @@ class _BestSeller extends StatelessWidget {
         // Responsive: use column layout on narrow screens
         final isNarrow = constraints.maxWidth < 400;
         final imageSize = isNarrow ? 120.0 : 150.0;
-        final emojiSize = isNarrow ? 60.0 : 70.0;
+        final iconSize = isNarrow ? 60.0 : 70.0;
         final titleSize = isNarrow ? 22.0 : 26.0;
         final unitsSize = isNarrow ? 36.0 : 44.0;
 
@@ -550,7 +550,7 @@ class _BestSeller extends StatelessWidget {
             border: Border.all(color: border, width: 2),
           ),
           alignment: Alignment.center,
-          child: Text(productEmoji, style: TextStyle(fontSize: emojiSize)),
+          child: Icon(productIcon, color: accent, size: iconSize),
         );
 
         final infoWidget = Column(
