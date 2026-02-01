@@ -394,6 +394,7 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
     final w = constraints.maxWidth;
     final statsCols = w < 600 ? 1 : (w < 900 ? 2 : 3);
     final chartsCols = w < 900 ? 1 : 2;
+    final chartAspect = chartsCols == 1 ? (16 / 9) : (4 / 3);
 
     if (_businessLoading) {
       return const Center(child: CircularProgressIndicator());
@@ -463,11 +464,14 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
             children: [
               _ChartCard(
                 title: 'Sedmična posjećenost po danima',
-                child: _BarChart(
-                  accent: AppColors.accent,
-                  accent2: AppColors.accentLight,
-                  muted: AppColors.muted,
-                  bars: _mapBars(_businessReport!.visitsByWeekday),
+                child: AspectRatio(
+                  aspectRatio: chartAspect,
+                  child: _BarChart(
+                    accent: AppColors.accent,
+                    accent2: AppColors.accentLight,
+                    muted: AppColors.muted,
+                    bars: _mapBars(_businessReport!.visitsByWeekday),
+                  ),
                 ),
               ),
               _ChartCard(
@@ -1340,7 +1344,6 @@ class _ChartsGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const spacing = 20.0;
-    const cardHeight = 320.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1350,9 +1353,7 @@ class _ChartsGrid extends StatelessWidget {
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
-          children: children
-              .map((child) => SizedBox(width: cardWidth, height: cardHeight, child: child))
-              .toList(),
+          children: children.map((child) => SizedBox(width: cardWidth, child: child)).toList(),
         );
       },
     );
@@ -1375,13 +1376,14 @@ class _ChartCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             title,
             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
           ),
           const SizedBox(height: 20),
-          Expanded(child: child),
+          child,
         ],
       ),
     );
@@ -1518,11 +1520,21 @@ class _BestSeller extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 400;
-        final imageSize = isNarrow ? 120.0 : 150.0;
-        final iconSize = isNarrow ? 60.0 : 70.0;
-        final titleSize = isNarrow ? 22.0 : 26.0;
-        final unitsSize = isNarrow ? 36.0 : 44.0;
+      final isNarrow = constraints.maxWidth < 400;
+      final isTightHeight = constraints.maxHeight > 0 && constraints.maxHeight < 210;
+
+      final imageSize = isTightHeight
+        ? (isNarrow ? 110.0 : 130.0)
+        : (isNarrow ? 120.0 : 150.0);
+      final iconSize = isTightHeight
+        ? (isNarrow ? 54.0 : 62.0)
+        : (isNarrow ? 60.0 : 70.0);
+      final titleSize = isTightHeight
+        ? (isNarrow ? 20.0 : 24.0)
+        : (isNarrow ? 22.0 : 26.0);
+      final unitsSize = isTightHeight
+        ? (isNarrow ? 32.0 : 40.0)
+        : (isNarrow ? 36.0 : 44.0);
 
         final imageWidget = Container(
           width: imageSize,
@@ -1547,44 +1559,74 @@ class _BestSeller extends StatelessWidget {
             Text(
               productName,
               style: TextStyle(fontSize: titleSize, fontWeight: FontWeight.w700, color: Colors.white),
+              maxLines: isTightHeight ? 1 : 2,
+              overflow: TextOverflow.ellipsis,
+              softWrap: true,
               textAlign: isNarrow ? TextAlign.center : TextAlign.left,
             ),
             const SizedBox(height: 6),
-            Text(category, style: TextStyle(color: muted, fontSize: 14)),
-            const SizedBox(height: 12),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.end,
-              alignment: isNarrow ? WrapAlignment.center : WrapAlignment.start,
+            Text(
+              category,
+              style: TextStyle(color: muted, fontSize: 14),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: isTightHeight ? 8 : 12),
+            Row(
+              mainAxisAlignment: isNarrow ? MainAxisAlignment.center : MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
                   units,
                   style: TextStyle(fontSize: unitsSize, fontWeight: FontWeight.w800, color: accent),
                 ),
                 const SizedBox(width: 8),
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text('prodatih jedinica', style: TextStyle(color: muted, fontSize: 14)),
+                Flexible(
+                  child: Padding(
+                    padding: EdgeInsets.only(bottom: isTightHeight ? 2 : 8),
+                    child: Text(
+                      'prodatih jedinica',
+                      style: TextStyle(color: muted, fontSize: 14),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: isNarrow ? TextAlign.center : TextAlign.left,
+                    ),
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 6),
-            Text(period, style: const TextStyle(color: Color(0xFF2ECC71), fontSize: 14)),
+            Text(
+              period,
+              style: const TextStyle(color: Color(0xFF2ECC71), fontSize: 14),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: isNarrow ? TextAlign.center : TextAlign.left,
+            ),
           ],
         );
+
+        final scaledInfoWidget = isTightHeight
+            ? FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: isNarrow ? Alignment.topCenter : Alignment.topLeft,
+                child: infoWidget,
+              )
+            : infoWidget;
 
         if (isNarrow) {
           return Padding(
             padding: const EdgeInsets.all(12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              children: [imageWidget, const SizedBox(height: 16), infoWidget],
+              children: [imageWidget, const SizedBox(height: 16), scaledInfoWidget],
             ),
           );
         }
 
         return Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(children: [imageWidget, const SizedBox(width: 24), Expanded(child: infoWidget)]),
+          padding: EdgeInsets.all(isTightHeight ? 12 : 16),
+          child: Row(children: [imageWidget, const SizedBox(width: 24), Expanded(child: scaledInfoWidget)]),
         );
       },
     );

@@ -15,7 +15,8 @@ class App extends StatelessWidget {
       title: 'Stronghold Desktop',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple)
+          seedColor: Colors.deepPurple),
+        fontFamily: 'Inter',
       ),
       home: LoginScreen(),
     );
