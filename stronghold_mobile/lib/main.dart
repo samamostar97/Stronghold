@@ -46,7 +46,7 @@ class StrongholdApp extends StatelessWidget {
           secondary: Color(0xFFe63946),
           surface: Color(0xFF0f0f1a),
         ),
-        fontFamily: 'Roboto',
+        fontFamily: 'Inter',
         appBarTheme: const AppBarTheme(
           backgroundColor: Color(0xFF1a1a2e),
           elevation: 0,

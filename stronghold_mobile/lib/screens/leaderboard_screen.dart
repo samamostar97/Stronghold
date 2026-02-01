@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/api_config.dart';
+import '../constants/app_colors.dart';
 import '../models/progress_models.dart';
 import '../services/progress_service.dart';
 import '../widgets/app_error_state.dart';
@@ -90,8 +91,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 child: _isLoading
                     ? const AppLoadingIndicator()
                     : _error != null
-                        ? AppErrorState(message: _error!, onRetry: _loadLeaderboard)
-                        : _buildContent(),
+                    ? AppErrorState(message: _error!, onRetry: _loadLeaderboard)
+                    : _buildContent(),
               ),
             ],
           ),
@@ -124,11 +125,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ),
           ),
           const SizedBox(width: 16),
-          const Icon(
-            Icons.emoji_events,
-            color: Color(0xFFf4a261),
-            size: 28,
-          ),
+          const Icon(Icons.emoji_events, color: Color(0xFFf4a261), size: 28),
           const SizedBox(width: 8),
           const Text(
             'Hall of Fame',
@@ -168,7 +165,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             GestureDetector(
               onTap: _loadLeaderboard,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFe63946),
                   borderRadius: BorderRadius.circular(12),
@@ -238,13 +238,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
   }
 
   Widget _buildPodiumItem(LeaderboardEntry entry, int position, double height) {
-    final colors = {
-      1: const Color(0xFFFFD700),
-      2: const Color(0xFFC0C0C0),
-      3: const Color(0xFFCD7F32),
-    };
-
-    final color = colors[position] ?? Colors.grey;
+    final color = AppColors.primary;
 
     return Column(
       children: [
@@ -263,7 +257,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ],
           ),
           child: ClipOval(
-            child: entry.profileImageUrl != null &&
+            child:
+                entry.profileImageUrl != null &&
                     entry.profileImageUrl!.isNotEmpty
                 ? Image.network(
                     _getFullImageUrl(entry.profileImageUrl),
@@ -305,10 +300,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                color,
-                color.withValues(alpha: 0.7),
-              ],
+              colors: [color, color.withValues(alpha: 0.7)],
             ),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             boxShadow: [
@@ -323,7 +315,11 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                position == 1 ? '1st' : position == 2 ? '2nd' : '3rd',
+                position == 1
+                    ? '1st'
+                    : position == 2
+                    ? '2nd'
+                    : '3rd',
                 style: TextStyle(
                   fontSize: position == 1 ? 28 : 22,
                   fontWeight: FontWeight.w800,
@@ -422,7 +418,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ),
             ),
             child: ClipOval(
-              child: entry.profileImageUrl != null &&
+              child:
+                  entry.profileImageUrl != null &&
                       entry.profileImageUrl!.isNotEmpty
                   ? Image.network(
                       _getFullImageUrl(entry.profileImageUrl),
