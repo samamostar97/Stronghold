@@ -7,14 +7,14 @@ Stronghold je aplikacija za upravljanje teretanom koja se sastoji od ASP.NET Cor
 ## 1. Raspakovati env.zip u root solutiona
 Svi konfiguracijski podaci se nalaze u `Stronghold/.env` fajlu.
 
-├── Stronghold.API
-├── Stronghold.Application
-├── Stronghold.Core
-├── Stronghold.Infrastructure
-├── Stronghold.Messaging
-├── Stronghold.Worker
-├── .env  <------
-└── Stronghold.sln
+##├── Stronghold.API
+##├── Stronghold.Application
+##├── Stronghold.Core
+##├── Stronghold.Infrastructure
+##├── Stronghold.Messaging
+##├── Stronghold.Worker
+##├── .env  <------
+##└── Stronghold.sln
 
 
 ### 1. Pokretanje backend servisa (API, baza, RabbitMQ, Worker)
