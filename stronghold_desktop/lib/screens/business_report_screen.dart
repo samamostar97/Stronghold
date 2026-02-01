@@ -1,9 +1,12 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../models/business_report_dto.dart';
 import '../services/reports_api.dart';
 import '../widgets/back_button.dart';
+import '../widgets/error_animation.dart';
 import '../widgets/shared_admin_header.dart';
+import '../widgets/success_animation.dart';
 
 class BusinessReportScreen extends StatefulWidget {
   const BusinessReportScreen({super.key, this.onBack});
@@ -16,6 +19,7 @@ class BusinessReportScreen extends StatefulWidget {
 
 class _BusinessReportScreenState extends State<BusinessReportScreen> {
   bool _loading = true;
+  bool _exporting = false;
   String? _error;
   BusinessReportDTO? _report;
 
@@ -42,6 +46,58 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
         _error = e.toString();
         _loading = false;
       });
+    }
+  }
+
+  Future<void> _exportToExcel() async {
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Sačuvaj Excel izvještaj',
+      fileName: 'Stronghold_Izvjestaj_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+      type: FileType.custom,
+      allowedExtensions: ['xlsx'],
+    );
+
+    if (result == null) return;
+
+    setState(() => _exporting = true);
+
+    try {
+      await ReportsApi.exportToExcel(result);
+      if (mounted) {
+        showSuccessAnimation(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
+
+  Future<void> _exportToPdf() async {
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Sačuvaj PDF izvještaj',
+      fileName: 'Stronghold_Izvjestaj_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      type: FileType.custom,
+      allowedExtensions: ['pdf'],
+    );
+
+    if (result == null) return;
+
+    setState(() => _exporting = true);
+
+    try {
+      await ReportsApi.exportToPdf(result);
+      if (mounted) {
+        showSuccessAnimation(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
+      }
+    } finally {
+      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -127,9 +183,39 @@ class _BusinessReportScreenState extends State<BusinessReportScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    const Text(
-                      'Biznis report',
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Biznis report',
+                          style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                        if (_report != null && !_exporting)
+                          Row(
+                            children: [
+                              _ExportButton(
+                                icon: Icons.table_chart,
+                                label: 'Izvezi Excel',
+                                onPressed: _exportToExcel,
+                              ),
+                              const SizedBox(width: 12),
+                              _ExportButton(
+                                icon: Icons.picture_as_pdf,
+                                label: 'Izvezi PDF',
+                                onPressed: _exportToPdf,
+                              ),
+                            ],
+                          ),
+                        if (_exporting)
+                          const Padding(
+                            padding: EdgeInsets.only(right: 16),
+                            child: SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                      ],
                     ),
                     const SizedBox(height: 12),
 
@@ -618,6 +704,36 @@ class _BestSeller extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _ExportButton extends StatelessWidget {
+  const _ExportButton({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: Text(label),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.card,
+        foregroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+        ),
+      ),
     );
   }
 }
