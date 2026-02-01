@@ -307,9 +307,20 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761000000",
                 Gender = Gender.Male,
                 Role = Role.Admin,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("admin")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test")
             },
             // Gym Members
+            new()
+            {
+                FirstName = "Member",
+                LastName = "Stronghold",
+                Username = "member",
+                Email = "member@stronghold.ba",
+                PhoneNumber = "+38761999999",
+                Gender = Gender.Male,
+                Role = Role.GymMember,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test")
+            },
             new()
             {
                 FirstName = "Haris",

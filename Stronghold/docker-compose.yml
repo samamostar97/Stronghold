@@ -25,8 +25,9 @@ services:
       context: .
       dockerfile: Stronghold.API/Dockerfile
     ports:
-      - "5034:8080"
+      - "5034:5034"
     environment:
+      - ASPNETCORE_URLS=${ASPNETCORE_URLS}
       - ASPNETCORE_ENVIRONMENT=Development
       - DB_SERVER=sqlserver
       - DB_NAME=${DB_NAME}

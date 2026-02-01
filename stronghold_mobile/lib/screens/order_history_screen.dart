@@ -179,7 +179,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Narudžba #${order.id}',
+                        'Narudžba ${formatDateDDMMYYYY(order.purchaseDate)}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

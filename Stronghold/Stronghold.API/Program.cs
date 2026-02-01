@@ -10,10 +10,15 @@ using Stronghold.Infrastructure.Repositories;
 using Stronghold.Infrastructure.Services;
 using Stronghold.Infrastructure.Mapping;
 using Stronghold.API.Middleware;
+using Stronghold.API.BackgroundServices;
 using System.Text;
 
 
-Env.Load();
+if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER") != "true")
+{
+    // u?itaj root .env za lokalni run (VS / dotnet run)
+    Env.Load();
+}
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -58,6 +63,7 @@ builder.Services.AddScoped<IUserFaqService, UserFaqService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IUserProgressService, UserProgressService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+builder.Services.AddHostedService<MembershipExpiryNotificationService>();
 builder.Services.AddScoped<IFileStorageService>(sp =>
 {
     var env = sp.GetRequiredService<IWebHostEnvironment>();
