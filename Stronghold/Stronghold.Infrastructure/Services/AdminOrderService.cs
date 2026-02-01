@@ -77,24 +77,46 @@ namespace Stronghold.Infrastructure.Services
             order.Status = OrderStatus.Delivered;
             await _repository.UpdateAsync(order);
 
+            // Send delivery notification email
+            await SendDeliveryEmailAsync(order);
+
+            return _mapper.Map<OrdersDTO>(order);
+        }
+
+        private async Task SendDeliveryEmailAsync(Order order)
+        {
             var itemsList = string.Join("", order.OrderItems.Select(oi =>
                 $"<li>{oi.Supplement.Name} x{oi.Quantity} — {oi.UnitPrice:F2} KM</li>"));
 
             var emailBody = $@"
-                <h2>Vaša narudžba #{order.Id} je isporučena!</h2>
-                <p>Poštovani/a {order.User.FirstName},</p>
-                <p>Vaša narudžba je uspješno isporučena.</p>
-                <h3>Detalji narudžbe:</h3>
-                <ul>{itemsList}</ul>
-                <p><strong>Ukupno: {order.TotalAmount:F2} KM</strong></p>
-                <p>Hvala Vam na povjerenju!</p>";
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <h2 style='color: #2ECC71;'>🚚 Vaša narudžba #{order.Id} je na putu!</h2>
+                    <p>Poštovani/a {order.User.FirstName},</p>
+                    
+                    <div style='background-color: #d4edda; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2ECC71;'>
+                        <p style='margin: 0; font-size: 16px;'>
+                            <strong>✅ Vaša dostava je krenula!</strong><br/>
+                            Sve je prošlo u redu i Vaš paket je na putu do Vas.
+                        </p>
+                    </div>
+                    
+                    <h3>Sadržaj pošiljke:</h3>
+                    <ul>{itemsList}</ul>
+                    <p><strong>Ukupan iznos: {order.TotalAmount:F2} KM</strong></p>
+                    
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'/>
+                    <p style='color: #666; font-size: 14px;'>
+                        Očekujte dostavu u narednim danima. Hvala Vam što kupujete kod nas!
+                    </p>
+                    <p>Srdačan pozdrav,<br/><strong>Stronghold Tim</strong></p>
+                </body>
+                </html>";
 
             await _emailService.SendEmailAsync(
                 order.User.Email,
-                $"Narudžba #{order.Id} — Isporučena",
+                $"Narudžba #{order.Id} — Vaša dostava je na putu! 🚚",
                 emailBody);
-
-            return _mapper.Map<OrdersDTO>(order);
         }
 
         private IQueryable<Order> ApplyFilter(IQueryable<Order> query, OrderQueryFilter? filter)

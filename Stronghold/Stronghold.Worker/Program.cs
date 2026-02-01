@@ -1,13 +1,10 @@
 using Stronghold.Worker;
 using Stronghold.Worker.Services;
 
-var builder = Host.CreateDefaultBuilder(args);
+var builder = Host.CreateApplicationBuilder(args);
 
-builder.ConfigureServices(services =>
-{
-    services.AddSingleton<EmailSenderService>();
-    services.AddHostedService<Worker>();
-});
+builder.Services.AddSingleton<EmailSenderService>();
+builder.Services.AddHostedService<EmailQueueConsumer>();
 
 var host = builder.Build();
 host.Run();
