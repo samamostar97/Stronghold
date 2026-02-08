@@ -1,0 +1,20 @@
+name: stronghold_core
+description: Shared core library for Stronghold Flutter apps (models, services, API client)
+version: 1.0.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.10.4
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  http: ^1.6.0
+  flutter_secure_storage: ^9.2.2
+  intl: ^0.19.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

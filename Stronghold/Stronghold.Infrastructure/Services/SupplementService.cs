@@ -97,6 +97,11 @@ namespace Stronghold.Infrastructure.Services
                               || (x.SupplementCategory != null && x.SupplementCategory.Name.ToLower().Contains(search)));
             }
 
+            if (filter.SupplementCategoryId.HasValue)
+            {
+                query = query.Where(x => x.SupplementCategoryId == filter.SupplementCategoryId.Value);
+            }
+
             if (!string.IsNullOrEmpty(filter.OrderBy))
             {
                 return filter.OrderBy.ToLower() switch

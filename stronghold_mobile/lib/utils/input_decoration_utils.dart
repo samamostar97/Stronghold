@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
 InputDecoration buildStrongholdInputDecoration({
   required String hintText,
@@ -8,44 +10,34 @@ InputDecoration buildStrongholdInputDecoration({
 }) {
   return InputDecoration(
     hintText: hintText,
-    hintStyle: TextStyle(
-      color: Colors.white.withValues(alpha: 0.3),
-    ),
+    hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.textDark),
     filled: true,
-    fillColor: AppColors.backgroundLight,
+    fillColor: AppColors.surfaceLight,
     contentPadding: const EdgeInsets.symmetric(
-      horizontal: 16,
-      vertical: 16,
+      horizontal: AppSpacing.lg,
+      vertical: AppSpacing.lg,
     ),
-    prefixIcon: Icon(
-      prefixIcon,
-      color: Colors.white.withValues(alpha: 0.5),
-    ),
+    prefixIcon: Icon(prefixIcon, color: AppColors.textMuted),
     suffixIcon: suffixIcon,
     border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       borderSide: BorderSide.none,
     ),
     enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: BorderSide(
-        color: Colors.white.withValues(alpha: 0.1),
-        width: 1,
-      ),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: const BorderSide(color: AppColors.border, width: 1),
     ),
     focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: AppColors.primary,
-        width: 1,
-      ),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: const BorderSide(color: AppColors.primary, width: 1),
     ),
     errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(12),
-      borderSide: const BorderSide(
-        color: AppColors.primary,
-        width: 1,
-      ),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: const BorderSide(color: AppColors.error, width: 1),
+    ),
+    focusedErrorBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      borderSide: const BorderSide(color: AppColors.error, width: 1),
     ),
   );
 }

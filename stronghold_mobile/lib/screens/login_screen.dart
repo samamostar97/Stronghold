@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../providers/auth_provider.dart';
+import '../utils/input_decoration_utils.dart';
+import '../widgets/glass_card.dart';
+import '../widgets/gradient_button.dart';
 import 'register_screen.dart';
 import 'login_success_screen.dart';
 import 'forgot_password_screen.dart';
-import '../providers/auth_provider.dart';
-import '../utils/input_decoration_utils.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -15,30 +21,26 @@ class LoginScreen extends ConsumerStatefulWidget {
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _usernameController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _usernameCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
+    _usernameCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-
     try {
       await ref.read(authProvider.notifier).login(
-        _usernameController.text.trim(),
-        _passwordController.text,
-      );
-
+            _usernameCtrl.text.trim(),
+            _passwordCtrl.text,
+          );
       if (!mounted) return;
-
-      final authState = ref.read(authProvider);
-      final user = authState.user;
+      final user = ref.read(authProvider).user;
       if (user != null) {
         Navigator.pushReplacement(
           context,
@@ -51,16 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         );
       }
-    } catch (_) {
-      // Error is handled by the provider state
-    }
-  }
-
-  void _navigateToRegister() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RegisterScreen()),
-    );
+    } catch (_) {}
   }
 
   @override
@@ -70,270 +63,164 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final errorMessage = authState.error;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo and Title
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFe63946).withValues(alpha: 0.1),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.fitness_center,
-                      size: 60,
-                      color: Color(0xFFe63946),
-                    ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.screenPadding),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.lg),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryDim,
+                    shape: BoxShape.circle,
                   ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'STRONGHOLD',
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: 4,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Dobrodosli nazad',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                  const SizedBox(height: 48),
-
-                  // Login Form
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0f0f1a),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: const Color(0xFFe63946).withValues(alpha: 0.2),
-                        width: 1,
-                      ),
-                    ),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          // Username Field
-                          Text(
-                            'KORISNICKO IME',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.7),
-                              letterSpacing: 1,
+                  child: const Icon(LucideIcons.dumbbell,
+                      size: 60, color: AppColors.primary),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Text('STRONGHOLD',
+                    style: AppTextStyles.stat.copyWith(letterSpacing: 4)),
+                const SizedBox(height: AppSpacing.sm),
+                Text('Dobrodosli nazad',
+                    style: AppTextStyles.bodyLg
+                        .copyWith(color: AppColors.textSecondary)),
+                const SizedBox(height: AppSpacing.xxxl + AppSpacing.lg),
+                GlassCard(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text('KORISNICKO IME', style: AppTextStyles.label),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextFormField(
+                          controller: _usernameCtrl,
+                          style: AppTextStyles.bodyMd
+                              .copyWith(color: AppColors.textPrimary),
+                          keyboardType: TextInputType.text,
+                          textInputAction: TextInputAction.next,
+                          decoration: buildStrongholdInputDecoration(
+                            hintText: 'Unesite korisnicko ime',
+                            prefixIcon: LucideIcons.user,
+                          ),
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Molimo unesite korisnicko ime';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        Text('LOZINKA', style: AppTextStyles.label),
+                        const SizedBox(height: AppSpacing.sm),
+                        TextFormField(
+                          controller: _passwordCtrl,
+                          obscureText: _obscurePassword,
+                          style: AppTextStyles.bodyMd
+                              .copyWith(color: AppColors.textPrimary),
+                          textInputAction: TextInputAction.done,
+                          onFieldSubmitted: (_) => _handleLogin(),
+                          decoration: buildStrongholdInputDecoration(
+                            hintText: 'Unesite lozinku',
+                            prefixIcon: LucideIcons.lock,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? LucideIcons.eye
+                                    : LucideIcons.eyeOff,
+                                color: AppColors.textMuted,
+                                size: 20,
+                              ),
+                              onPressed: () => setState(
+                                  () => _obscurePassword = !_obscurePassword),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _usernameController,
-                            style: const TextStyle(color: Colors.white),
-                            keyboardType: TextInputType.text,
-                            textInputAction: TextInputAction.next,
-                            decoration: buildStrongholdInputDecoration(
-                              hintText: 'Unesite korisnicko ime',
-                              prefixIcon: Icons.person_outline,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Molimo unesite lozinku';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: GestureDetector(
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) =>
+                                      const ForgotPasswordScreen()),
                             ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Molimo unesite korisnicko ime';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 20),
-
-                          // Password Field
-                          Text(
-                            'LOZINKA',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.7),
-                              letterSpacing: 1,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  vertical: AppSpacing.xs),
+                              child: Text('Zaboravili ste lozinku?',
+                                  style: AppTextStyles.bodySm.copyWith(
+                                      color: AppColors.textSecondary)),
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          TextFormField(
-                            controller: _passwordController,
-                            obscureText: _obscurePassword,
-                            style: const TextStyle(color: Colors.white),
-                            textInputAction: TextInputAction.done,
-                            onFieldSubmitted: (_) => _handleLogin(),
-                            decoration: buildStrongholdInputDecoration(
-                              hintText: 'Unesite lozinku',
-                              prefixIcon: Icons.lock_outline,
-                              suffixIcon: IconButton(
-                                icon: Icon(
-                                  _obscurePassword
-                                      ? Icons.visibility_outlined
-                                      : Icons.visibility_off_outlined,
-                                  color: Colors.white.withValues(alpha: 0.5),
+                        ),
+                        if (errorMessage != null) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          Container(
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            decoration: BoxDecoration(
+                              color: AppColors.errorDim,
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusSm),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(LucideIcons.alertCircle,
+                                    color: AppColors.error, size: 18),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(errorMessage,
+                                      style: AppTextStyles.bodySm
+                                          .copyWith(color: AppColors.error)),
                                 ),
-                                onPressed: () {
-                                  setState(() {
-                                    _obscurePassword = !_obscurePassword;
-                                  });
-                                },
-                              ),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Molimo unesite lozinku';
-                              }
-                              return null;
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Forgot Password Link
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const ForgotPasswordScreen(),
-                                  ),
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                minimumSize: Size.zero,
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: Text(
-                                'Zaboravili ste lozinku?',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.6),
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          // Error Message
-                          if (errorMessage != null) ...[
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFe63946).withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: Color(0xFFe63946),
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      errorMessage,
-                                      style: const TextStyle(
-                                        color: Color(0xFFe63946),
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                          ],
-
-                          const SizedBox(height: 8),
-
-                          // Login Button
-                          SizedBox(
-                            height: 52,
-                            child: ElevatedButton(
-                              onPressed: isLoading ? null : _handleLogin,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFe63946),
-                                disabledBackgroundColor:
-                                    const Color(0xFFe63946).withValues(alpha: 0.5),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                elevation: 0,
-                              ),
-                              child: isLoading
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        color: Colors.white,
-                                      ),
-                                    )
-                                  : const Text(
-                                      'PRIJAVI SE',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 1,
-                                        color: Colors.white,
-                                      ),
-                                    ),
+                              ],
                             ),
                           ),
                         ],
-                      ),
+                        const SizedBox(height: AppSpacing.lg),
+                        GradientButton(
+                          label: 'PRIJAVI SE',
+                          icon: LucideIcons.logIn,
+                          isLoading: isLoading,
+                          onPressed: isLoading ? null : _handleLogin,
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Register Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Nemate racun? ',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontSize: 15,
-                        ),
+                ),
+                const SizedBox(height: AppSpacing.xxl),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text('Nemate racun? ',
+                        style: AppTextStyles.bodyMd
+                            .copyWith(color: AppColors.textSecondary)),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const RegisterScreen()),
                       ),
-                      GestureDetector(
-                        onTap: _navigateToRegister,
-                        child: const Text(
-                          'Registrujte se',
-                          style: TextStyle(
-                            color: Color(0xFFe63946),
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                ],
-              ),
+                      child: Text('Registrujte se',
+                          style: AppTextStyles.bodyBold
+                              .copyWith(color: AppColors.primary)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
             ),
           ),
         ),

@@ -73,7 +73,7 @@ class SupplementListNotifier extends StateNotifier<SupplementListState> {
         queryParams['search'] = state.search!;
       }
       if (state.categoryId != null) {
-        queryParams['categoryId'] = state.categoryId.toString();
+        queryParams['SupplementCategoryId'] = state.categoryId.toString();
       }
 
       final result = await _client.get<Map<String, dynamic>>(

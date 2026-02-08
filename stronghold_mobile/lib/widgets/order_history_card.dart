@@ -1,0 +1,143 @@
+import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../models/order_models.dart';
+import '../utils/date_format_utils.dart';
+import 'glass_card.dart';
+import 'status_pill.dart';
+
+class OrderHistoryCard extends StatelessWidget {
+  final Order order;
+  final bool isExpanded;
+  final VoidCallback onToggle;
+
+  const OrderHistoryCard({
+    super.key,
+    required this.order,
+    required this.isExpanded,
+    required this.onToggle,
+  });
+
+  Color _statusColor(String statusName) {
+    switch (statusName.toLowerCase()) {
+      case 'processing':
+        return AppColors.warning;
+      case 'delivered':
+        return AppColors.success;
+      default:
+        return AppColors.textMuted;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final totalQty = order.orderItems
+        .fold<int>(0, (sum, item) => sum + item.quantity);
+
+    return GlassCard(
+      padding: EdgeInsets.zero,
+      child: Column(children: [
+        GestureDetector(
+          onTap: onToggle,
+          child: Padding(
+            padding: AppSpacing.cardPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Expanded(
+                    child: Text(
+                      'Narudzba ${formatDateDDMMYYYY(order.purchaseDate)}',
+                      style: AppTextStyles.headingSm,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  StatusPill(
+                    label: order.statusNameBosnian,
+                    color: _statusColor(order.statusName),
+                  ),
+                ]),
+                const SizedBox(height: AppSpacing.md),
+                Text('${order.totalAmount.toStringAsFixed(2)} KM',
+                    style: AppTextStyles.bodyBold
+                        .copyWith(color: AppColors.primary)),
+                const SizedBox(height: AppSpacing.lg),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Datum narudzbe',
+                            style: AppTextStyles.caption),
+                        const SizedBox(height: AppSpacing.xs),
+                        Text(formatDateDDMMYYYY(order.purchaseDate),
+                            style: AppTextStyles.bodyMd),
+                      ],
+                    ),
+                    Row(children: [
+                      Text(
+                          '$totalQty artikl${totalQty == 1 ? '' : 'a'}',
+                          style: AppTextStyles.bodySm),
+                      const SizedBox(width: AppSpacing.sm),
+                      Icon(
+                        isExpanded
+                            ? LucideIcons.chevronUp
+                            : LucideIcons.chevronDown,
+                        color: AppColors.textMuted,
+                        size: 18,
+                      ),
+                    ]),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (isExpanded && order.orderItems.isNotEmpty)
+          Container(
+            decoration: const BoxDecoration(
+              border: Border(
+                  top: BorderSide(color: AppColors.border)),
+            ),
+            child: Column(
+              children: order.orderItems
+                  .map((item) => _itemRow(item))
+                  .toList(),
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Widget _itemRow(OrderItem item) {
+    return Container(
+      padding: AppSpacing.listItemPadding,
+      decoration: const BoxDecoration(
+        border:
+            Border(bottom: BorderSide(color: AppColors.divider)),
+      ),
+      child: Row(children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item.supplementName,
+                  style: AppTextStyles.bodyBold,
+                  overflow: TextOverflow.ellipsis),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                  '${item.quantity} x ${item.unitPrice.toStringAsFixed(2)} KM',
+                  style: AppTextStyles.bodySm),
+            ],
+          ),
+        ),
+        Text('${item.totalPrice.toStringAsFixed(2)} KM',
+            style: AppTextStyles.bodyBold),
+      ]),
+    );
+  }
+}

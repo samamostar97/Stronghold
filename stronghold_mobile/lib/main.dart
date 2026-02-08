@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'config/stripe_config.dart';
+import 'constants/app_colors.dart';
+import 'constants/app_theme.dart';
 import 'screens/login_screen.dart';
 
 void main() {
@@ -33,7 +35,7 @@ void main() {
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF16213e),
+      systemNavigationBarColor: AppColors.background,
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
@@ -49,40 +51,7 @@ class StrongholdApp extends StatelessWidget {
     return MaterialApp(
       title: 'Stronghold',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: const Color(0xFFe63946),
-        scaffoldBackgroundColor: const Color(0xFF1a1a2e),
-        colorScheme: const ColorScheme.dark(
-          primary: Color(0xFFe63946),
-          secondary: Color(0xFFe63946),
-          surface: Color(0xFF0f0f1a),
-        ),
-        fontFamily: 'Inter',
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1a1a2e),
-          elevation: 0,
-          centerTitle: true,
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF1a1a2e),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
-          ),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFFe63946),
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            elevation: 0,
-          ),
-        ),
-      ),
+      theme: AppTheme.darkTheme(),
       home: const LoginScreen(),
     );
   }

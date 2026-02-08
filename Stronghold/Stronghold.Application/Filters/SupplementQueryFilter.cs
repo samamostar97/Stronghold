@@ -11,5 +11,6 @@ namespace Stronghold.Application.Filters
     {
         public string? Search {  get; set; }
         public string? OrderBy { get; set; }
+        public int? SupplementCategoryId { get; set; }
     }
 }

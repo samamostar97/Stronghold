@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../utils/date_format_utils.dart';
-import '../models/seminar.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 import '../providers/seminar_provider.dart';
-import '../widgets/feedback_dialog.dart';
-import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
+import '../widgets/app_error_state.dart';
 import '../widgets/app_loading_indicator.dart';
+import '../widgets/feedback_dialog.dart';
+import '../widgets/seminar_card.dart';
 
 class SeminarScreen extends ConsumerStatefulWidget {
   const SeminarScreen({super.key});
@@ -25,317 +28,116 @@ class _SeminarScreenState extends ConsumerState<SeminarScreen> {
     Future.microtask(() => ref.read(seminarsProvider.notifier).load());
   }
 
-  Future<void> _attendSeminar(int seminarId) async {
-    setState(() {
-      _attendingIds.add(seminarId);
-    });
-
+  Future<void> _attend(int id) async {
+    setState(() => _attendingIds.add(id));
     try {
-      await ref.read(seminarsProvider.notifier).attend(seminarId);
+      await ref.read(seminarsProvider.notifier).attend(id);
       if (mounted) {
-        setState(() {
-          _attendingIds.remove(seminarId);
-        });
-        await showSuccessFeedback(context, 'Uspjesno ste se prijavili na seminar');
+        setState(() => _attendingIds.remove(id));
+        await showSuccessFeedback(
+            context, 'Uspjesno ste se prijavili na seminar');
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _attendingIds.remove(seminarId);
-        });
-        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _attendingIds.remove(id));
+        await showErrorFeedback(
+            context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
 
-  Future<void> _cancelAttendance(int seminarId) async {
-    setState(() {
-      _cancelingIds.add(seminarId);
-    });
-
+  Future<void> _cancel(int id) async {
+    setState(() => _cancelingIds.add(id));
     try {
-      await ref.read(seminarsProvider.notifier).cancelAttendance(seminarId);
+      await ref.read(seminarsProvider.notifier).cancelAttendance(id);
       if (mounted) {
-        setState(() {
-          _cancelingIds.remove(seminarId);
-        });
-        await showSuccessFeedback(context, 'Uspjesno ste se odjavili sa seminara');
+        setState(() => _cancelingIds.remove(id));
+        await showSuccessFeedback(
+            context, 'Uspjesno ste se odjavili sa seminara');
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _cancelingIds.remove(seminarId);
-        });
-        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
+        setState(() => _cancelingIds.remove(id));
+        await showErrorFeedback(
+            context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final seminarState = ref.watch(seminarsProvider);
+    final state = ref.watch(seminarsProvider);
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Seminari',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.screenPadding),
+            child: Row(children: [
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  width: AppSpacing.touchTarget,
+                  height: AppSpacing.touchTarget,
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceLight,
+                    borderRadius:
+                        BorderRadius.circular(AppSpacing.radiusMd),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: const Icon(LucideIcons.arrowLeft,
+                      color: AppColors.textPrimary, size: 20),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                  child:
+                      Text('Seminari', style: AppTextStyles.headingMd)),
+            ]),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-          ),
-        ),
-        child: SafeArea(
-          child: _buildContent(seminarState),
-        ),
+          Expanded(child: _body(state)),
+        ]),
       ),
     );
   }
 
-  Widget _buildContent(SeminarsState state) {
+  Widget _body(SeminarsState state) {
     if (state.isLoading && state.items.isEmpty) {
       return const AppLoadingIndicator();
     }
-
     if (state.error != null && state.items.isEmpty) {
       return AppErrorState(
         message: state.error!,
         onRetry: () => ref.read(seminarsProvider.notifier).load(),
       );
     }
-
     if (state.items.isEmpty) {
       return const AppEmptyState(
-        icon: Icons.event_outlined,
+        icon: LucideIcons.presentation,
         title: 'Nema dostupnih seminara',
       );
     }
-
-    return _buildSeminarList(state);
-  }
-
-  Widget _buildSeminarList(SeminarsState state) {
     return RefreshIndicator(
       onRefresh: () => ref.read(seminarsProvider.notifier).refresh(),
-      color: const Color(0xFFe63946),
+      color: AppColors.primary,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.screenPadding),
         itemCount: state.items.length,
-        itemBuilder: (context, index) {
-          return _buildSeminarCard(state.items[index]);
-        },
-      ),
-    );
-  }
-
-  Widget _buildSeminarCard(Seminar seminar) {
-    final isAttendLoading = _attendingIds.contains(seminar.id);
-    final isCancelLoading = _cancelingIds.contains(seminar.id);
-    final isAlreadyRegistered = seminar.isAttending;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1a1a2e).withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFe63946).withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(
-                  seminar.topic,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              if (isAlreadyRegistered)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF50).withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.check_circle_outline,
-                        size: 14,
-                        color: Color(0xFF4CAF50),
-                      ),
-                      SizedBox(width: 4),
-                      Text(
-                        'Prijavljen',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF4CAF50),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(
-                Icons.person_outline,
-                size: 16,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Predavac: ',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.5),
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  seminar.speakerName,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Icon(
-                Icons.calendar_today_outlined,
-                size: 16,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'Datum: ',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.5),
-                ),
-              ),
-              Text(
-                formatDateDDMMYYYY(seminar.eventDate),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (isAlreadyRegistered)
-            SizedBox(
-              width: double.infinity,
-              child: GestureDetector(
-                onTap: isCancelLoading ? null : () => _cancelAttendance(seminar.id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: isCancelLoading
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: isCancelLoading
-                          ? Colors.white.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                  ),
-                  child: Center(
-                    child: isCancelLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(
-                            'Odjavi se',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white.withValues(alpha: 0.8),
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-            )
-          else
-            SizedBox(
-              width: double.infinity,
-              child: GestureDetector(
-                onTap: isAttendLoading ? null : () => _attendSeminar(seminar.id),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: isAttendLoading
-                        ? const Color(0xFFe63946).withValues(alpha: 0.5)
-                        : const Color(0xFFe63946),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Center(
-                    child: isAttendLoading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Text(
-                            'Prijavi se',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
+        itemBuilder: (_, i) {
+          final s = state.items[i];
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.md),
+            child: SeminarCard(
+              seminar: s,
+              isAttendLoading: _attendingIds.contains(s.id),
+              isCancelLoading: _cancelingIds.contains(s.id),
+              onAttend: () => _attend(s.id),
+              onCancel: () => _cancel(s.id),
             ),
-        ],
+          );
+        },
       ),
     );
   }
