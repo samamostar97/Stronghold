@@ -1,7 +1,5 @@
 using Mapster;
-using Stronghold.Application.DTOs.AdminOrderDTO;
-using Stronghold.Application.DTOs.AdminReviewDTO;
-using Stronghold.Application.DTOs.AdminSupplementsDTO;
+using Stronghold.Application.DTOs.Response;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.Infrastructure.Mapping
@@ -10,23 +8,24 @@ namespace Stronghold.Infrastructure.Mapping
     {
         public static void Configure()
         {
-            // Supplement -> SupplementDTO
-            TypeAdapterConfig<Supplement, SupplementDTO>.NewConfig()
-                .Map(dest => dest.SupplementCategoryName, src => src.SupplementCategory.Name)
-                .Map(dest => dest.SupplierName, src => src.Supplier.Name);
+            // Supplement -> SupplementResponse
+            TypeAdapterConfig<Supplement, SupplementResponse>.NewConfig()
+                .Map(dest => dest.SupplementCategoryName, src => src.SupplementCategory != null ? src.SupplementCategory.Name : string.Empty)
+                .Map(dest => dest.SupplierName, src => src.Supplier != null ? src.Supplier.Name : string.Empty);
 
-            // Order -> OrdersDTO
-            TypeAdapterConfig<Order, OrdersDTO>.NewConfig()
-                .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)
-                .Map(dest => dest.UserEmail, src => src.User.Email);
+            // Order -> OrderResponse
+            TypeAdapterConfig<Order, OrderResponse>.NewConfig()
+                .Map(dest => dest.UserFullName, src => src.User != null ? src.User.FirstName + " " + src.User.LastName : string.Empty)
+                .Map(dest => dest.UserEmail, src => src.User != null ? src.User.Email : string.Empty);
 
-            // OrderItem -> OrderItemDTO
-            TypeAdapterConfig<OrderItem, OrderItemDTO>.NewConfig()
-                .Map(dest => dest.SupplementName, src => src.Supplement.Name);
-            // OrderItem -> OrderItemDTO
-            TypeAdapterConfig<Review, ReviewDTO>.NewConfig()
-                .Map(dest => dest.UserName, src => src.User.FirstName + " " + src.User.LastName)
-                .Map(dest => dest.SupplementName, src => src.Supplement.Name);
+            // OrderItem -> OrderItemResponse
+            TypeAdapterConfig<OrderItem, OrderItemResponse>.NewConfig()
+                .Map(dest => dest.SupplementName, src => src.Supplement != null ? src.Supplement.Name : string.Empty);
+
+            // Review -> ReviewResponse
+            TypeAdapterConfig<Review, ReviewResponse>.NewConfig()
+                .Map(dest => dest.UserName, src => src.User != null ? src.User.FirstName + " " + src.User.LastName : string.Empty)
+                .Map(dest => dest.SupplementName, src => src.Supplement != null ? src.Supplement.Name : string.Empty);
         }
     }
 }

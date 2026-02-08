@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/token_storage.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../screens/login_screen.dart';
 
 class SharedAdminHeader extends StatelessWidget {

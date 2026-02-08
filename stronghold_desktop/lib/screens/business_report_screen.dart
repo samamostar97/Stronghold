@@ -1,153 +1,43 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
-import '../models/business_report_dto.dart';
-import '../services/reports_api.dart';
+import 'package:stronghold_core/stronghold_core.dart';
+import '../providers/reports_provider.dart';
 import '../widgets/back_button.dart';
 import '../widgets/error_animation.dart';
+import '../widgets/pagination_controls.dart';
 import '../widgets/shared_admin_header.dart';
 import '../widgets/success_animation.dart';
 
-class BusinessReportScreen extends StatefulWidget {
+/// Refactored Business Report Screen using Riverpod
+class BusinessReportScreen extends ConsumerStatefulWidget {
   const BusinessReportScreen({super.key, this.onBack, this.embedded = false});
 
   final VoidCallback? onBack;
   final bool embedded;
 
   @override
-  State<BusinessReportScreen> createState() => _BusinessReportScreenState();
+  ConsumerState<BusinessReportScreen> createState() => _BusinessReportScreenState();
 }
 
-class _BusinessReportScreenState extends State<BusinessReportScreen>
+class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-
-  // Business report state
-  bool _businessLoading = true;
-  String? _businessError;
-  BusinessReportDTO? _businessReport;
-
-  // Inventory report state
-  bool _inventoryLoading = false;
-  bool _inventoryInitialized = false;
-  String? _inventoryError;
-  InventoryReportDTO? _inventoryReport;
-
-  // Membership popularity state
-  bool _membershipLoading = false;
-  bool _membershipInitialized = false;
-  String? _membershipError;
-  MembershipPopularityReportDTO? _membershipReport;
-
-  bool _exporting = false;
+  static const int _daysToAnalyze = 30;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(_onTabChanged);
-    _loadBusinessReport();
+    // Load paginated slow-moving products on init
+    Future.microtask(() => ref.read(slowMovingProductsProvider.notifier).load());
   }
 
   @override
   void dispose() {
-    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
-  }
-
-  void _onTabChanged() {
-    if (_tabController.indexIsChanging) return;
-
-    switch (_tabController.index) {
-      case 1:
-        if (!_inventoryInitialized && !_inventoryLoading) {
-          _loadInventoryReport();
-        }
-        break;
-      case 2:
-        if (!_membershipInitialized && !_membershipLoading) {
-          _loadMembershipReport();
-        }
-        break;
-    }
-  }
-
-  Future<void> _loadBusinessReport() async {
-    setState(() {
-      _businessLoading = true;
-      _businessError = null;
-    });
-
-    try {
-      final report = await ReportsApi.getBusinessReport();
-      if (mounted) {
-        setState(() {
-          _businessReport = report;
-          _businessLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _businessError = e.toString();
-          _businessLoading = false;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadInventoryReport() async {
-    setState(() {
-      _inventoryLoading = true;
-      _inventoryError = null;
-    });
-
-    try {
-      final report = await ReportsApi.getInventoryReport();
-      if (mounted) {
-        setState(() {
-          _inventoryReport = report;
-          _inventoryLoading = false;
-          _inventoryInitialized = true;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _inventoryError = e.toString();
-          _inventoryLoading = false;
-          _inventoryInitialized = true;
-        });
-      }
-    }
-  }
-
-  Future<void> _loadMembershipReport() async {
-    setState(() {
-      _membershipLoading = true;
-      _membershipError = null;
-    });
-
-    try {
-      final report = await ReportsApi.getMembershipPopularityReport();
-      if (mounted) {
-        setState(() {
-          _membershipReport = report;
-          _membershipLoading = false;
-          _membershipInitialized = true;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _membershipError = e.toString();
-          _membershipLoading = false;
-          _membershipInitialized = true;
-        });
-      }
-    }
   }
 
   Future<void> _exportToExcel() async {
@@ -160,17 +50,13 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
 
     if (result == null) return;
 
-    setState(() => _exporting = true);
-
     try {
-      await ReportsApi.exportToExcel(result);
+      await ref.read(exportOperationsProvider.notifier).exportBusinessToExcel(result);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -184,17 +70,13 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
 
     if (result == null) return;
 
-    setState(() => _exporting = true);
-
     try {
-      await ReportsApi.exportToPdf(result);
+      await ref.read(exportOperationsProvider.notifier).exportBusinessToPdf(result);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -208,17 +90,13 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
 
     if (result == null) return;
 
-    setState(() => _exporting = true);
-
     try {
-      await ReportsApi.exportInventoryToExcel(result);
+      await ref.read(exportOperationsProvider.notifier).exportInventoryToExcel(result, daysToAnalyze: _daysToAnalyze);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -232,17 +110,13 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
 
     if (result == null) return;
 
-    setState(() => _exporting = true);
-
     try {
-      await ReportsApi.exportInventoryToPdf(result);
+      await ref.read(exportOperationsProvider.notifier).exportInventoryToPdf(result, daysToAnalyze: _daysToAnalyze);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -256,17 +130,13 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
 
     if (result == null) return;
 
-    setState(() => _exporting = true);
-
     try {
-      await ReportsApi.exportMembershipPopularityToExcel(result);
+      await ref.read(exportOperationsProvider.notifier).exportMembershipToExcel(result);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -280,17 +150,13 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
 
     if (result == null) return;
 
-    setState(() => _exporting = true);
-
     try {
-      await ReportsApi.exportMembershipPopularityToPdf(result);
+      await ref.read(exportOperationsProvider.notifier).exportMembershipToPdf(result);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(context, message: e.toString().replaceFirst('Exception: ', ''));
       }
-    } finally {
-      if (mounted) setState(() => _exporting = false);
     }
   }
 
@@ -329,6 +195,9 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
   }
 
   Widget _buildMainContent(BoxConstraints constraints) {
+    final exportState = ref.watch(exportOperationsProvider);
+    final isExporting = exportState.isLoading;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -339,7 +208,7 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
               'Biznis izvještaji',
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700, color: Colors.white),
             ),
-            if (_exporting)
+            if (isExporting)
               const Padding(
                 padding: EdgeInsets.only(right: 16),
                 child: SizedBox(
@@ -391,132 +260,113 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
   }
 
   Widget _buildBusinessTab(BoxConstraints constraints) {
+    final businessAsync = ref.watch(businessReportProvider);
+    final exportState = ref.watch(exportOperationsProvider);
+    final isExporting = exportState.isLoading;
+
     final w = constraints.maxWidth;
     final statsCols = w < 600 ? 1 : (w < 900 ? 2 : 3);
     final chartsCols = w < 900 ? 1 : 2;
     final chartAspect = chartsCols == 1 ? (16 / 9) : (4 / 3);
 
-    if (_businessLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return businessAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => _buildErrorState(
+        error.toString(),
+        () => ref.invalidate(businessReportProvider),
+      ),
+      data: (report) => SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Export buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _ExportButton(
+                  icon: Icons.table_chart,
+                  label: 'Excel',
+                  onPressed: isExporting ? null : _exportToExcel,
+                ),
+                const SizedBox(width: 12),
+                _ExportButton(
+                  icon: Icons.picture_as_pdf,
+                  label: 'PDF',
+                  onPressed: isExporting ? null : _exportToPdf,
+                ),
+              ],
+            ),
+            const SizedBox(height: 18),
 
-    if (_businessError != null) {
-      return _buildErrorState(_businessError!, _loadBusinessReport);
-    }
+            // Stats
+            _StatsGrid(
+              columns: statsCols,
+              children: [
+                _StatCard(
+                  label: 'Posjete ove sedmice',
+                  value: '${report.thisWeekVisits}',
+                  changeText: '${_pctText(report.weekChangePct)} u odnosu na prošlu sedmicu',
+                  changeColor: _pctColor(report.weekChangePct),
+                ),
+                _StatCard(
+                  label: 'Prodaja ovog mjeseca',
+                  value: '${report.thisMonthRevenue.toStringAsFixed(2)} KM',
+                  changeText: '${_pctText(report.monthChangePct)} u odnosu na prošli mjesec',
+                  changeColor: _pctColor(report.monthChangePct),
+                ),
+                _StatCard(
+                  label: 'Aktivnih članarina',
+                  value: '${report.activeMemberships}',
+                  changeText: 'ukupno aktivnih članova',
+                  changeColor: const Color(0xFF2ECC71),
+                ),
+              ],
+            ),
 
-    if (_businessReport == null) {
-      return const Center(child: Text('Nema podataka', style: TextStyle(color: Colors.white)));
-    }
+            const SizedBox(height: 30),
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Export buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              _ExportButton(
-                icon: Icons.table_chart,
-                label: 'Excel',
-                onPressed: _exporting ? null : _exportToExcel,
-              ),
-              const SizedBox(width: 12),
-              _ExportButton(
-                icon: Icons.picture_as_pdf,
-                label: 'PDF',
-                onPressed: _exporting ? null : _exportToPdf,
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Stats
-          _StatsGrid(
-            columns: statsCols,
-            children: [
-              _StatCard(
-                label: 'Posjete ove sedmice',
-                value: '${_businessReport!.thisWeekVisits}',
-                changeText: '${_pctText(_businessReport!.weekChangePct)} u odnosu na prošlu sedmicu',
-                changeColor: _pctColor(_businessReport!.weekChangePct),
-              ),
-              _StatCard(
-                label: 'Prodaja ovog mjeseca',
-                value: '${_businessReport!.thisMonthRevenue.toStringAsFixed(2)} KM',
-                changeText: '${_pctText(_businessReport!.monthChangePct)} u odnosu na prošli mjesec',
-                changeColor: _pctColor(_businessReport!.monthChangePct),
-              ),
-              _StatCard(
-                label: 'Aktivnih članarina',
-                value: '${_businessReport!.activeMemberships}',
-                changeText: 'ukupno aktivnih članova',
-                changeColor: const Color(0xFF2ECC71),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 30),
-
-          // Charts
-          _ChartsGrid(
-            columns: chartsCols,
-            children: [
-              _ChartCard(
-                title: 'Sedmična posjećenost po danima',
-                child: AspectRatio(
-                  aspectRatio: chartAspect,
-                  child: _BarChart(
-                    accent: AppColors.accent,
-                    accent2: AppColors.accentLight,
-                    muted: AppColors.muted,
-                    bars: _mapBars(_businessReport!.visitsByWeekday),
+            // Charts
+            _ChartsGrid(
+              columns: chartsCols,
+              children: [
+                _ChartCard(
+                  title: 'Sedmična posjećenost po danima',
+                  child: AspectRatio(
+                    aspectRatio: chartAspect,
+                    child: _BarChart(
+                      accent: AppColors.accent,
+                      accent2: AppColors.accentLight,
+                      muted: AppColors.muted,
+                      bars: _mapBars(report.visitsByWeekday),
+                    ),
                   ),
                 ),
-              ),
-              _ChartCard(
-                title: 'Bestseller suplement',
-                child: _BestSeller(
-                  border: AppColors.border,
-                  muted: AppColors.muted,
-                  accent: AppColors.accent,
-                  productIcon: Icons.medication_outlined,
-                  productName: _businessReport!.bestsellerLast30Days?.name ?? 'N/A',
-                  category: 'Suplement',
-                  units: '${_businessReport!.bestsellerLast30Days?.quantitySold ?? 0}',
-                  period: 'u posljednjih 30 dana',
+                _ChartCard(
+                  title: 'Bestseller suplement',
+                  child: _BestSeller(
+                    border: AppColors.border,
+                    muted: AppColors.muted,
+                    accent: AppColors.accent,
+                    productIcon: Icons.medication_outlined,
+                    productName: report.bestsellerLast30Days?.name ?? 'N/A',
+                    category: 'Suplement',
+                    units: '${report.bestsellerLast30Days?.quantitySold ?? 0}',
+                    period: 'u posljednjih 30 dana',
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ],
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildInventoryTab(BoxConstraints constraints) {
-    // Show loading if not initialized yet
-    if (!_inventoryInitialized && !_inventoryLoading) {
-      // Schedule the load for after build completes
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_inventoryInitialized && !_inventoryLoading) {
-          _loadInventoryReport();
-        }
-      });
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_inventoryLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (_inventoryError != null) {
-      return _buildErrorState(_inventoryError!, _loadInventoryReport);
-    }
-
-    if (_inventoryReport == null) {
-      return const Center(child: Text('Nema podataka', style: TextStyle(color: Colors.white)));
-    }
+    final summaryAsync = ref.watch(inventorySummaryProvider(_daysToAnalyze));
+    final productsState = ref.watch(slowMovingProductsProvider);
+    final exportState = ref.watch(exportOperationsProvider);
+    final isExporting = exportState.isLoading;
 
     return SingleChildScrollView(
       child: Column(
@@ -529,52 +379,62 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
               _ExportButton(
                 icon: Icons.table_chart,
                 label: 'Excel',
-                onPressed: _exporting ? null : _exportInventoryToExcel,
+                onPressed: isExporting ? null : _exportInventoryToExcel,
               ),
               const SizedBox(width: 12),
               _ExportButton(
                 icon: Icons.picture_as_pdf,
                 label: 'PDF',
-                onPressed: _exporting ? null : _exportInventoryToPdf,
+                onPressed: isExporting ? null : _exportInventoryToPdf,
               ),
             ],
           ),
           const SizedBox(height: 18),
 
-          // Summary cards
-          Row(
-            children: [
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.inventory_2_outlined,
-                  label: 'Ukupno proizvoda',
-                  value: '${_inventoryReport!.totalProducts}',
-                  color: AppColors.accent,
+          // Summary cards (from summary endpoint)
+          summaryAsync.when(
+            loading: () => const SizedBox(
+              height: 100,
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (error, _) => Text(
+              'Greška: ${error.toString().replaceFirst('Exception: ', '')}',
+              style: const TextStyle(color: Colors.red),
+            ),
+            data: (summary) => Row(
+              children: [
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.inventory_2_outlined,
+                    label: 'Ukupno proizvoda',
+                    value: '${summary.totalProducts}',
+                    color: AppColors.accent,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.warning_amber_outlined,
-                  label: 'Slaba prodaja',
-                  value: '${_inventoryReport!.slowMovingCount}',
-                  color: const Color(0xFFFF9800),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.warning_amber_outlined,
+                    label: 'Slaba prodaja',
+                    value: '${summary.slowMovingCount}',
+                    color: const Color(0xFFFF9800),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.calendar_today_outlined,
-                  label: 'Period analize',
-                  value: '${_inventoryReport!.daysAnalyzed} dana',
-                  color: const Color(0xFF2196F3),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _SummaryCard(
+                    icon: Icons.calendar_today_outlined,
+                    label: 'Period analize',
+                    value: '${summary.daysAnalyzed} dana',
+                    color: const Color(0xFF2196F3),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
           const SizedBox(height: 24),
 
-          // Products table
+          // Products table (paginated)
           Container(
             decoration: BoxDecoration(
               color: AppColors.card,
@@ -597,10 +457,34 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
                           color: Colors.white,
                         ),
                       ),
+                      const Spacer(),
+                      if (productsState.isLoading)
+                        const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
                     ],
                   ),
                 ),
-                if (_inventoryReport!.slowMovingProducts.isEmpty)
+                if (productsState.error != null)
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      children: [
+                        Text(
+                          productsState.error!.replaceFirst('Exception: ', ''),
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                        const SizedBox(height: 12),
+                        ElevatedButton(
+                          onPressed: () => ref.read(slowMovingProductsProvider.notifier).refresh(),
+                          child: const Text('Pokušaj ponovo'),
+                        ),
+                      ],
+                    ),
+                  )
+                else if (productsState.isEmpty && !productsState.isLoading)
                   const Padding(
                     padding: EdgeInsets.all(40),
                     child: Center(
@@ -616,8 +500,21 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
                       ),
                     ),
                   )
-                else
-                  _InventoryTable(products: _inventoryReport!.slowMovingProducts),
+                else ...[
+                  _InventoryTable(products: productsState.items),
+                  // Pagination controls
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: PaginationControls(
+                      currentPage: productsState.currentPage,
+                      totalPages: productsState.totalPages,
+                      totalCount: productsState.totalCount,
+                      onPageChanged: (page) {
+                        ref.read(slowMovingProductsProvider.notifier).goToPage(page);
+                      },
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -627,194 +524,182 @@ class _BusinessReportScreenState extends State<BusinessReportScreen>
   }
 
   Widget _buildMembershipTab(BoxConstraints constraints) {
-    // Show loading if not initialized yet
-    if (!_membershipInitialized && !_membershipLoading) {
-      // Schedule the load for after build completes
-      SchedulerBinding.instance.addPostFrameCallback((_) {
-        if (mounted && !_membershipInitialized && !_membershipLoading) {
-          _loadMembershipReport();
-        }
-      });
-      return const Center(child: CircularProgressIndicator());
-    }
+    final membershipAsync = ref.watch(membershipPopularityReportProvider);
+    final exportState = ref.watch(exportOperationsProvider);
+    final isExporting = exportState.isLoading;
 
-    if (_membershipLoading) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    return membershipAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (error, _) => _buildErrorState(
+        error.toString(),
+        () => ref.invalidate(membershipPopularityReportProvider),
+      ),
+      data: (report) {
+        final topPlan = report.planStats.isNotEmpty ? report.planStats.first : null;
 
-    if (_membershipError != null) {
-      return _buildErrorState(_membershipError!, _loadMembershipReport);
-    }
-
-    if (_membershipReport == null) {
-      return const Center(child: Text('Nema podataka', style: TextStyle(color: Colors.white)));
-    }
-
-    final topPlan = _membershipReport!.planStats.isNotEmpty
-        ? _membershipReport!.planStats.first
-        : null;
-
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Export buttons
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _ExportButton(
-                icon: Icons.table_chart,
-                label: 'Excel',
-                onPressed: _exporting ? null : _exportMembershipToExcel,
-              ),
-              const SizedBox(width: 12),
-              _ExportButton(
-                icon: Icons.picture_as_pdf,
-                label: 'PDF',
-                onPressed: _exporting ? null : _exportMembershipToPdf,
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Summary cards
-          Row(
-            children: [
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.people_outline,
-                  label: 'Aktivnih članarina',
-                  value: '${_membershipReport!.totalActiveMemberships}',
-                  color: AppColors.accent,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _SummaryCard(
-                  icon: Icons.attach_money,
-                  label: 'Prihod (90 dana)',
-                  value: '${_membershipReport!.totalRevenueLast90Days.toStringAsFixed(2)} KM',
-                  color: const Color(0xFF2ECC71),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          // Top plan highlight
-          if (topPlan != null) ...[
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    AppColors.accent.withValues(alpha: 0.2),
-                    AppColors.accentLight.withValues(alpha: 0.1),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
-              ),
-              child: Row(
+              // Export buttons
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.emoji_events, color: AppColors.accent, size: 32),
+                  _ExportButton(
+                    icon: Icons.table_chart,
+                    label: 'Excel',
+                    onPressed: isExporting ? null : _exportMembershipToExcel,
                   ),
-                  const SizedBox(width: 20),
+                  const SizedBox(width: 12),
+                  _ExportButton(
+                    icon: Icons.picture_as_pdf,
+                    label: 'PDF',
+                    onPressed: isExporting ? null : _exportMembershipToPdf,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 18),
+
+              // Summary cards
+              Row(
+                children: [
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'NAJPOPULARNIJI PAKET',
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.muted,
-                            letterSpacing: 1,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          topPlan.packageName,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _MiniStat(
-                              label: 'Aktivnih',
-                              value: '${topPlan.activeSubscriptions}',
-                            ),
-                            const SizedBox(width: 24),
-                            _MiniStat(
-                              label: 'Popularnost',
-                              value: '${topPlan.popularityPercentage.toStringAsFixed(1)}%',
-                            ),
-                            const SizedBox(width: 24),
-                            _MiniStat(
-                              label: 'Prihod',
-                              value: '${topPlan.revenueLast90Days.toStringAsFixed(0)} KM',
-                            ),
-                          ],
-                        ),
-                      ],
+                    child: _SummaryCard(
+                      icon: Icons.people_outline,
+                      label: 'Aktivnih članarina',
+                      value: '${report.totalActiveMemberships}',
+                      color: AppColors.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _SummaryCard(
+                      icon: Icons.attach_money,
+                      label: 'Prihod (90 dana)',
+                      value: '${report.totalRevenueLast90Days.toStringAsFixed(2)} KM',
+                      color: const Color(0xFF2ECC71),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 24),
-          ],
+              const SizedBox(height: 24),
 
-          // Plans table
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Padding(
-                  padding: EdgeInsets.all(20),
-                  child: Text(
-                    'Statistika po paketima',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
+              // Top plan highlight
+              if (topPlan != null) ...[
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.accent.withValues(alpha: 0.2),
+                        AppColors.accentLight.withValues(alpha: 0.1),
+                      ],
                     ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.accent.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.emoji_events, color: AppColors.accent, size: 32),
+                      ),
+                      const SizedBox(width: 20),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'NAJPOPULARNIJI PAKET',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.muted,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              topPlan.packageName,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                _MiniStat(
+                                  label: 'Aktivnih',
+                                  value: '${topPlan.activeSubscriptions}',
+                                ),
+                                const SizedBox(width: 24),
+                                _MiniStat(
+                                  label: 'Popularnost',
+                                  value: '${topPlan.popularityPercentage.toStringAsFixed(1)}%',
+                                ),
+                                const SizedBox(width: 24),
+                                _MiniStat(
+                                  label: 'Prihod',
+                                  value: '${topPlan.revenueLast90Days.toStringAsFixed(0)} KM',
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (_membershipReport!.planStats.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(40),
-                    child: Center(
+                const SizedBox(height: 24),
+              ],
+
+              // Plans table
+              Container(
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.all(20),
                       child: Text(
-                        'Nema aktivnih paketa',
-                        style: TextStyle(color: AppColors.muted, fontSize: 16),
+                        'Statistika po paketima',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
-                  )
-                else
-                  _MembershipTable(plans: _membershipReport!.planStats),
-              ],
-            ),
+                    if (report.planStats.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(40),
+                        child: Center(
+                          child: Text(
+                            'Nema aktivnih paketa',
+                            style: TextStyle(color: AppColors.muted, fontSize: 16),
+                          ),
+                        ),
+                      )
+                    else
+                      _MembershipTable(plans: report.planStats),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -1053,10 +938,10 @@ class _InventoryTable extends StatelessWidget {
               ),
             ),
             // Rows
-            ...products.take(15).toList().asMap().entries.map((entry) {
+            ...products.asMap().entries.map((entry) {
               final index = entry.key;
               final p = entry.value;
-              final isLast = index == products.take(15).length - 1;
+              final isLast = index == products.length - 1;
               final daysColor = p.daysSinceLastSale > 20
                   ? const Color(0xFFE74C3C)
                   : p.daysSinceLastSale > 10

@@ -1,59 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/date_format_utils.dart';
 import '../models/membership_models.dart';
-import '../services/membership_service.dart';
+import '../providers/profile_provider.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 
-class MembershipHistoryScreen extends StatefulWidget {
+class MembershipHistoryScreen extends ConsumerWidget {
   const MembershipHistoryScreen({super.key});
-
-  @override
-  State<MembershipHistoryScreen> createState() => _MembershipHistoryScreenState();
-}
-
-class _MembershipHistoryScreenState extends State<MembershipHistoryScreen> {
-  List<MembershipPayment>? _payments;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPaymentHistory();
-  }
-
-  Future<void> _loadPaymentHistory() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final payments = await MembershipService.getPaymentHistory();
-      if (mounted) {
-        setState(() {
-          _payments = payments;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
-  }
 
   String _formatCurrency(double amount) {
     return '${amount.toStringAsFixed(2)} KM';
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final paymentsAsync = ref.watch(membershipHistoryProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -82,43 +46,35 @@ class _MembershipHistoryScreenState extends State<MembershipHistoryScreen> {
           ),
         ),
         child: SafeArea(
-          child: _buildContent(),
+          child: paymentsAsync.when(
+            loading: () => const AppLoadingIndicator(),
+            error: (error, _) => AppErrorState(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(membershipHistoryProvider),
+            ),
+            data: (payments) {
+              if (payments.isEmpty) {
+                return const AppEmptyState(
+                  icon: Icons.receipt_long_outlined,
+                  title: 'Nemate evidentirane uplate',
+                  subtitle: 'Vasa historija placanja ce se prikazati ovdje',
+                );
+              }
+              return _buildPaymentList(payments);
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const AppLoadingIndicator();
-    }
-
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadPaymentHistory);
-    }
-
-    if (_payments == null || _payments!.isEmpty) {
-      return const AppEmptyState(
-        icon: Icons.receipt_long_outlined,
-        title: 'Nemate evidentirane uplate',
-        subtitle: 'Vasa historija placanja ce se prikazati ovdje',
-      );
-    }
-
-    return _buildPaymentList();
-  }
-
-  Widget _buildPaymentList() {
-    return RefreshIndicator(
-      onRefresh: _loadPaymentHistory,
-      color: const Color(0xFFe63946),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _payments!.length,
-        itemBuilder: (context, index) {
-          return _buildPaymentCard(_payments![index]);
-        },
-      ),
+  Widget _buildPaymentList(List<MembershipPayment> payments) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: payments.length,
+      itemBuilder: (context, index) {
+        return _buildPaymentCard(payments[index]);
+      },
     );
   }
 

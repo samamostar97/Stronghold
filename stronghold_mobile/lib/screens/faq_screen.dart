@@ -1,54 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/faq_models.dart';
-import '../services/faq_service.dart';
+import '../providers/faq_provider.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 
-class FaqScreen extends StatefulWidget {
+class FaqScreen extends ConsumerWidget {
   const FaqScreen({super.key});
 
   @override
-  State<FaqScreen> createState() => _FaqScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final faqsAsync = ref.watch(allFaqsProvider);
 
-class _FaqScreenState extends State<FaqScreen> {
-  List<Faq>? _faqs;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadFaqs();
-  }
-
-  Future<void> _loadFaqs() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final faqs = await FaqService.getFaqs();
-      if (mounted) {
-        setState(() {
-          _faqs = faqs;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -68,20 +32,12 @@ class _FaqScreenState extends State<FaqScreen> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back_ios,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white, size: 20),
                     ),
                     const Expanded(
                       child: Text(
                         'Česta pitanja',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white),
                       ),
                     ),
                   ],
@@ -90,7 +46,23 @@ class _FaqScreenState extends State<FaqScreen> {
 
               // Content
               Expanded(
-                child: _buildContent(),
+                child: faqsAsync.when(
+                  loading: () => const AppLoadingIndicator(),
+                  error: (error, _) => AppErrorState(
+                    message: error.toString().replaceFirst('Exception: ', ''),
+                    onRetry: () => ref.invalidate(allFaqsProvider),
+                  ),
+                  data: (faqs) {
+                    if (faqs.isEmpty) {
+                      return const AppEmptyState(icon: Icons.help_outline, title: 'Nema čestih pitanja');
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      itemCount: faqs.length,
+                      itemBuilder: (context, index) => _buildFaqItem(context, faqs[index]),
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -99,42 +71,13 @@ class _FaqScreenState extends State<FaqScreen> {
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const AppLoadingIndicator();
-    }
-
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadFaqs);
-    }
-
-    if (_faqs == null || _faqs!.isEmpty) {
-      return const AppEmptyState(
-        icon: Icons.help_outline,
-        title: 'Nema čestih pitanja',
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      itemCount: _faqs!.length,
-      itemBuilder: (context, index) {
-        final faq = _faqs![index];
-        return _buildFaqItem(faq);
-      },
-    );
-  }
-
-  Widget _buildFaqItem(Faq faq) {
+  Widget _buildFaqItem(BuildContext context, Faq faq) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFF0f0f1a),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFe63946).withValues(alpha: 0.2),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFe63946).withValues(alpha: 0.2), width: 1),
       ),
       child: Theme(
         data: Theme.of(context).copyWith(
@@ -147,25 +90,11 @@ class _FaqScreenState extends State<FaqScreen> {
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           iconColor: const Color(0xFFe63946),
           collapsedIconColor: Colors.white.withValues(alpha: 0.5),
-          title: Text(
-            faq.question,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
-          ),
+          title: Text(faq.question, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Colors.white)),
           children: [
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                faq.answer,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withValues(alpha: 0.7),
-                  height: 1.5,
-                ),
-              ),
+              child: Text(faq.answer, style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.7), height: 1.5)),
             ),
           ],
         ),

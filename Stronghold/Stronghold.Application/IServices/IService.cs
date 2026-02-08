@@ -7,13 +7,14 @@ using System.Threading.Tasks;
 
 namespace Stronghold.Application.IServices
 {
-    public interface IService<T,TDto,TCreateDto,TUpdateDto,TQueryFilter,TKey>
+    public interface IService<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey>
+        where TQueryFilter : PaginationRequest, new()
     {
-        Task<IEnumerable<TDto>> GetAllAsync(TQueryFilter? filter);
-        Task<PagedResult<TDto>> GetPagedAsync(PaginationRequest pagination, TQueryFilter? filter);
+        Task<IEnumerable<TDto>> GetAllAsync(TQueryFilter filter);
+        Task<PagedResult<TDto>> GetPagedAsync(TQueryFilter filter);
         Task<TDto> GetByIdAsync(TKey id);
         Task<TDto> CreateAsync(TCreateDto dto);
-        Task<TDto> UpdateAsync(TKey id,TUpdateDto dto);
+        Task<TDto> UpdateAsync(TKey id, TUpdateDto dto);
         Task DeleteAsync(TKey id);
     }
 

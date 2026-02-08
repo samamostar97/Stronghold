@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'config/stripe_config.dart';
 import 'screens/login_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize API config for mobile
+  // For Android emulator use: http://10.0.2.2:5034
+  // For iOS simulator use: http://localhost:5034
+  // For physical device use your machine's IP: http://192.168.x.x:5034
+  const baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://10.0.2.2:5034',
+  );
+  ApiConfig.initialize(baseUrl);
 
   // Initialize Stripe
   Stripe.publishableKey = StripeConfig.publishableKey;
@@ -26,7 +38,7 @@ void main() {
     ),
   );
 
-  runApp(const StrongholdApp());
+  runApp(const ProviderScope(child: StrongholdApp()));
 }
 
 class StrongholdApp extends StatelessWidget {

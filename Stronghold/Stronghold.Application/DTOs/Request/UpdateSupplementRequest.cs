@@ -1,0 +1,20 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace Stronghold.Application.DTOs.Request
+{
+    public class UpdateSupplementRequest
+    {
+        [StringLength(100, MinimumLength = 2, ErrorMessage = "Naziv suplementa mora imati između 2 i 100 karaktera.")]
+        public string? Name { get; set; }
+
+        [Range(0.01, 10000, ErrorMessage = "Cijena mora biti veća od 0 i manja ili jednaka 10000.")]
+        public decimal? Price { get; set; }
+
+        [StringLength(1000, MinimumLength = 2, ErrorMessage = "Opis suplementa mora imati između 2 i 1000 karaktera.")]
+        public string? Description { get; set; }
+
+        public int? SupplementCategoryId { get; set; }
+
+        public int? SupplierId { get; set; }
+    }
+}

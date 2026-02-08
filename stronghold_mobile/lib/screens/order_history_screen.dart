@@ -1,51 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/date_format_utils.dart';
 import '../models/order_models.dart';
-import '../services/order_service.dart';
+import '../providers/order_provider.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 
-class OrderHistoryScreen extends StatefulWidget {
+class OrderHistoryScreen extends ConsumerStatefulWidget {
   const OrderHistoryScreen({super.key});
 
   @override
-  State<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
+  ConsumerState<OrderHistoryScreen> createState() => _OrderHistoryScreenState();
 }
 
-class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  List<Order>? _orders;
-  bool _isLoading = true;
-  String? _error;
+class _OrderHistoryScreenState extends ConsumerState<OrderHistoryScreen> {
   final Set<int> _expandedOrders = {};
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadOrderHistory();
+    _scrollController.addListener(_onScroll);
+    Future.microtask(() => ref.read(orderListProvider.notifier).load());
   }
 
-  Future<void> _loadOrderHistory() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    try {
-      final orders = await OrderService.getOrderHistory();
-      if (mounted) {
-        setState(() {
-          _orders = orders;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
+  void _onScroll() {
+    final state = ref.read(orderListProvider);
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !state.isLoading &&
+        state.hasNextPage) {
+      ref.read(orderListProvider.notifier).nextPage();
     }
   }
 
@@ -77,6 +68,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final orderState = ref.watch(orderListProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -105,22 +98,25 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
           ),
         ),
         child: SafeArea(
-          child: _buildContent(),
+          child: _buildContent(orderState),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
+  Widget _buildContent(OrderListState state) {
+    if (state.isLoading && state.items.isEmpty) {
       return const AppLoadingIndicator();
     }
 
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadOrderHistory);
+    if (state.error != null && state.items.isEmpty) {
+      return AppErrorState(
+        message: state.error!,
+        onRetry: () => ref.read(orderListProvider.notifier).load(),
+      );
     }
 
-    if (_orders == null || _orders!.isEmpty) {
+    if (state.items.isEmpty) {
       return const AppEmptyState(
         icon: Icons.shopping_bag_outlined,
         title: 'Nemate narudžbi',
@@ -128,18 +124,27 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
       );
     }
 
-    return _buildOrderList();
+    return _buildOrderList(state);
   }
 
-  Widget _buildOrderList() {
+  Widget _buildOrderList(OrderListState state) {
     return RefreshIndicator(
-      onRefresh: _loadOrderHistory,
+      onRefresh: () => ref.read(orderListProvider.notifier).refresh(),
       color: const Color(0xFFe63946),
       child: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: _orders!.length,
+        itemCount: state.items.length + (state.isLoading && state.items.isNotEmpty ? 1 : 0),
         itemBuilder: (context, index) {
-          return _buildOrderCard(_orders![index]);
+          if (index == state.items.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(color: Color(0xFFe63946)),
+              ),
+            );
+          }
+          return _buildOrderCard(state.items[index]);
         },
       ),
     );

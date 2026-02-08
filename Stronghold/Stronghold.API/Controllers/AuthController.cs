@@ -1,7 +1,8 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stronghold.Application.DTOs.Auth;
+using Stronghold.Application.DTOs.Request;
+using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers;
@@ -18,14 +19,14 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
         var response = await _authService.LoginAsync(request);
         return Ok(response);
     }
 
     [HttpPost("login/admin")]
-    public async Task<IActionResult> AdminLogin([FromBody] LoginRequest request)
+    public async Task<ActionResult<AuthResponse>> AdminLogin([FromBody] LoginRequest request)
     {
         var response = await _authService.LoginAsync(request);
         if (response.Role != "Admin")
@@ -34,7 +35,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login/member")]
-    public async Task<IActionResult> MemberLogin([FromBody] LoginRequest request)
+    public async Task<ActionResult<AuthResponse>> MemberLogin([FromBody] LoginRequest request)
     {
         var response = await _authService.LoginAsync(request);
         if (response.Role == "Admin")
@@ -43,7 +44,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult> Register([FromBody] RegisterRequest request)
+    public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
         var response = await _authService.RegisterAsync(request);
 

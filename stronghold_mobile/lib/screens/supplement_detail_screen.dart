@@ -1,55 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/supplement_models.dart';
-import '../services/cart_service.dart';
-import '../services/supplement_service.dart';
+import '../providers/cart_provider.dart';
+import '../providers/supplement_provider.dart';
 import '../utils/image_utils.dart';
 import '../widgets/feedback_dialog.dart';
 
-class SupplementDetailScreen extends StatefulWidget {
+class SupplementDetailScreen extends ConsumerWidget {
   final Supplement supplement;
 
   const SupplementDetailScreen({super.key, required this.supplement});
 
-  @override
-  State<SupplementDetailScreen> createState() => _SupplementDetailScreenState();
-}
-
-class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
-  List<SupplementReview> _reviews = [];
-  bool _isLoadingReviews = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadReviews();
-  }
-
-  Future<void> _loadReviews() async {
-    try {
-      final reviews = await SupplementService.getReviews(widget.supplement.id);
-      setState(() {
-        _reviews = reviews;
-        _isLoadingReviews = false;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingReviews = false;
-      });
-    }
-  }
-
-  Future<void> _showSuccessFeedback(String message) async {
+  Future<void> _showSuccessFeedback(BuildContext context, String message) async {
     await showSuccessFeedback(context, message);
   }
 
-  double get _averageRating {
-    if (_reviews.isEmpty) return 0;
-    final sum = _reviews.fold<int>(0, (sum, r) => sum + r.rating);
-    return sum / _reviews.length;
-  }
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reviewsAsync = ref.watch(supplementReviewsProvider(supplement.id));
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -88,7 +57,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: Text(
-                        widget.supplement.name,
+                        supplement.name,
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
@@ -120,11 +89,11 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                             color: const Color(0xFFe63946).withValues(alpha: 0.2),
                           ),
                         ),
-                        child: widget.supplement.imageUrl != null && widget.supplement.imageUrl!.isNotEmpty
+                        child: supplement.imageUrl != null && supplement.imageUrl!.isNotEmpty
                             ? ClipRRect(
                                 borderRadius: BorderRadius.circular(20),
                                 child: Image.network(
-                                  getFullImageUrl(widget.supplement.imageUrl),
+                                  getFullImageUrl(supplement.imageUrl),
                                   fit: BoxFit.cover,
                                   errorBuilder: (context, error, stackTrace) {
                                     return const Center(
@@ -150,7 +119,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
 
                       // Name
                       Text(
-                        widget.supplement.name,
+                        supplement.name,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
@@ -171,7 +140,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          widget.supplement.categoryName,
+                          supplement.categoryName,
                           style: const TextStyle(
                             fontSize: 14,
                             color: Color(0xFFe63946),
@@ -184,7 +153,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
 
                       // Price
                       Text(
-                        '${widget.supplement.price.toStringAsFixed(2)} KM',
+                        '${supplement.price.toStringAsFixed(2)} KM',
                         style: const TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w700,
@@ -195,8 +164,8 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                       const SizedBox(height: 24),
 
                       // Description
-                      if (widget.supplement.description != null &&
-                          widget.supplement.description!.isNotEmpty) ...[
+                      if (supplement.description != null &&
+                          supplement.description!.isNotEmpty) ...[
                         Text(
                           'Opis',
                           style: TextStyle(
@@ -217,7 +186,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                             ),
                           ),
                           child: Text(
-                            widget.supplement.description!,
+                            supplement.description!,
                             style: TextStyle(
                               fontSize: 15,
                               color: Colors.white.withValues(alpha: 0.7),
@@ -230,7 +199,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                       const SizedBox(height: 24),
 
                       // Reviews section
-                      _buildReviewsSection(),
+                      _buildReviewsSection(reviewsAsync),
 
                       const SizedBox(height: 24),
                     ],
@@ -243,8 +212,8 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
                 padding: const EdgeInsets.all(20),
                 child: GestureDetector(
                   onTap: () {
-                    CartService().addItem(widget.supplement);
-                    _showSuccessFeedback('${widget.supplement.name} dodano u korpu');
+                    ref.read(cartProvider.notifier).addItem(supplement);
+                    _showSuccessFeedback(context, '${supplement.name} dodano u korpu');
                   },
                   child: Container(
                     width: double.infinity,
@@ -290,7 +259,7 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
     );
   }
 
-  Widget _buildReviewsSection() {
+  Widget _buildReviewsSection(AsyncValue<List<SupplementReview>> reviewsAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -303,17 +272,16 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
           ),
         ),
         const SizedBox(height: 12),
-        if (_isLoadingReviews)
-          const Center(
+        reviewsAsync.when(
+          loading: () => const Center(
             child: Padding(
               padding: EdgeInsets.all(20),
               child: CircularProgressIndicator(
                 color: Color(0xFFe63946),
               ),
             ),
-          )
-        else if (_reviews.isEmpty)
-          Container(
+          ),
+          error: (_, _) => Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -324,64 +292,93 @@ class _SupplementDetailScreenState extends State<SupplementDetailScreen> {
               ),
             ),
             child: Text(
-              'Nema recenzija',
+              'Greska prilikom ucitavanja recenzija',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 15,
                 color: Colors.white.withValues(alpha: 0.5),
               ),
             ),
-          )
-        else ...[
-          // Average rating summary
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0f0f1a),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFFe63946).withValues(alpha: 0.2),
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  _averageRating.toStringAsFixed(1),
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
+          ),
+          data: (reviews) {
+            if (reviews.isEmpty) {
+              return Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0f0f1a),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFe63946).withValues(alpha: 0.2),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildStarRating(_averageRating, size: 20),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_reviews.length} ${_reviews.length == 1 ? 'recenzija' : 'recenzija'}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'Nema recenzija',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Colors.white.withValues(alpha: 0.5),
+                  ),
                 ),
+              );
+            }
+
+            final averageRating = reviews.fold<int>(0, (sum, r) => sum + r.rating) / reviews.length;
+
+            return Column(
+              children: [
+                // Average rating summary
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0f0f1a),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFFe63946).withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Text(
+                        averageRating.toStringAsFixed(1),
+                        style: const TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildStarRating(averageRating, size: 20),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${reviews.length} ${reviews.length == 1 ? 'recenzija' : 'recenzija'}',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Individual reviews
+                ...List.generate(reviews.length, (index) {
+                  final review = reviews[index];
+                  return Padding(
+                    padding: EdgeInsets.only(bottom: index < reviews.length - 1 ? 10 : 0),
+                    child: _buildReviewCard(review),
+                  );
+                }),
               ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Individual reviews
-          ...List.generate(_reviews.length, (index) {
-            final review = _reviews[index];
-            return Padding(
-              padding: EdgeInsets.only(bottom: index < _reviews.length - 1 ? 10 : 0),
-              child: _buildReviewCard(review),
             );
-          }),
-        ],
+          },
+        ),
       ],
     );
   }

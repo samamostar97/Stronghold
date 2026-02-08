@@ -1,10 +1,11 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import '../config/api_config.dart';
-import '../services/auth_service.dart';
-import '../services/cart_service.dart';
-import '../services/user_profile_service.dart';
+import '../providers/auth_provider.dart';
+import '../providers/cart_provider.dart';
+import '../providers/profile_provider.dart';
+import '../utils/image_utils.dart';
 import 'appointment_screen.dart';
 import 'faq_screen.dart';
 import 'leaderboard_screen.dart';
@@ -20,7 +21,7 @@ import 'trainer_list_screen.dart';
 import 'user_progress_screen.dart';
 import '../widgets/feedback_dialog.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   final String userName;
   final String? userImageUrl;
   final bool hasActiveMembership;
@@ -33,12 +34,11 @@ class HomeScreen extends StatefulWidget {
   });
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   String? _currentImageUrl;
-  bool _isUploadingImage = false;
   bool _isLoggingOut = false;
 
   @override
@@ -166,49 +166,35 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _uploadImage(File imageFile) async {
-    setState(() {
-      _isUploadingImage = true;
-    });
-
     try {
-      final imageUrl = await UserProfileService.uploadProfilePicture(imageFile);
+      final imageUrl = await ref.read(profilePictureProvider.notifier).upload(imageFile.path);
       if (mounted) {
         setState(() {
           _currentImageUrl = imageUrl;
-          _isUploadingImage = false;
         });
         await _showSuccessFeedback('Slika uspjesno promijenjena');
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isUploadingImage = false;
-        });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        final state = ref.read(profilePictureProvider);
+        await _showErrorFeedback(state.error ?? e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
 
   Future<void> _deleteImage() async {
-    setState(() {
-      _isUploadingImage = true;
-    });
-
     try {
-      await UserProfileService.deleteProfilePicture();
+      await ref.read(profilePictureProvider.notifier).delete();
       if (mounted) {
         setState(() {
           _currentImageUrl = null;
-          _isUploadingImage = false;
         });
         await _showSuccessFeedback('Slika uspjesno uklonjena');
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          _isUploadingImage = false;
-        });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        final state = ref.read(profilePictureProvider);
+        await _showErrorFeedback(state.error ?? e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
@@ -227,8 +213,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      CartService().clear();
-      await AuthService.logout();
+      ref.read(cartProvider.notifier).clear();
+      await ref.read(authProvider.notifier).logout();
       if (mounted) {
         Navigator.pushReplacement(
           context,
@@ -250,14 +236,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  String _getFullImageUrl(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) return '';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return '${ApiConfig.baseUrl}$imageUrl';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final isUploadingImage = ref.watch(profilePictureProvider).isLoading;
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -309,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         children: [
                           // User avatar - tappable
                           GestureDetector(
-                            onTap: _isUploadingImage ? null : _showImagePickerOptions,
+                            onTap: isUploadingImage ? null : _showImagePickerOptions,
                             child: Stack(
                               children: [
                                 Container(
@@ -330,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                   child: ClipOval(
-                                    child: _isUploadingImage
+                                    child: isUploadingImage
                                         ? Container(
                                             color: const Color(0xFF1a1a2e),
                                             child: const Center(
@@ -346,7 +328,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           )
                                         : _currentImageUrl != null && _currentImageUrl!.isNotEmpty
                                             ? Image.network(
-                                                _getFullImageUrl(_currentImageUrl),
+                                                getFullImageUrl(_currentImageUrl),
                                                 fit: BoxFit.cover,
                                                 width: 70,
                                                 height: 70,

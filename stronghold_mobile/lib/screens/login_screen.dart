@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'register_screen.dart';
 import 'login_success_screen.dart';
 import 'forgot_password_screen.dart';
-import '../services/auth_service.dart';
+import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  bool _isLoading = false;
-  String? _errorMessage;
-
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -31,44 +29,30 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
     try {
-      final authResponse = await AuthService.login(
-        username: _usernameController.text.trim(),
-        password: _passwordController.text,
+      await ref.read(authProvider.notifier).login(
+        _usernameController.text.trim(),
+        _passwordController.text,
       );
 
       if (!mounted) return;
 
-      setState(() {
-        _isLoading = false;
-      });
-
-      // Navigate to success screen
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => LoginSuccessScreen(
-            userName: authResponse.displayName,
-            userImageUrl: authResponse.profileImageUrl,
-            hasActiveMembership: authResponse.hasActiveMembership,
+      final authState = ref.read(authProvider);
+      final user = authState.user;
+      if (user != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => LoginSuccessScreen(
+              userName: user.displayName,
+              userImageUrl: user.profileImageUrl,
+              hasActiveMembership: user.hasActiveMembership,
+            ),
           ),
-        ),
-      );
-    } on AuthException catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.message;
-      });
-    } catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = 'Greska prilikom povezivanja. Provjerite internet konekciju.';
-      });
+        );
+      }
+    } catch (_) {
+      // Error is handled by the provider state
     }
   }
 
@@ -81,6 +65,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final isLoading = authState.isLoading;
+    final errorMessage = authState.error;
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -247,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           const SizedBox(height: 8),
 
                           // Error Message
-                          if (_errorMessage != null) ...[
+                          if (errorMessage != null) ...[
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
@@ -264,7 +252,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   const SizedBox(width: 8),
                                   Expanded(
                                     child: Text(
-                                      _errorMessage!,
+                                      errorMessage,
                                       style: const TextStyle(
                                         color: Color(0xFFe63946),
                                         fontSize: 13,
@@ -283,7 +271,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           SizedBox(
                             height: 52,
                             child: ElevatedButton(
-                              onPressed: _isLoading ? null : _handleLogin,
+                              onPressed: isLoading ? null : _handleLogin,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFFe63946),
                                 disabledBackgroundColor:
@@ -293,7 +281,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                                 elevation: 0,
                               ),
-                              child: _isLoading
+                              child: isLoading
                                   ? const SizedBox(
                                       width: 24,
                                       height: 24,

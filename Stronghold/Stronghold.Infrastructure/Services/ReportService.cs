@@ -1,9 +1,11 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
-using Stronghold.Application.DTOs.AdminReportsDTO;
+using Stronghold.Application.Common;
+using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Filters;
 using Stronghold.Application.IServices;
 using Stronghold.Infrastructure.Data;
 
@@ -24,7 +26,7 @@ namespace Stronghold.Infrastructure.Services
             _context = context;
         }
 
-        public async Task<BusinessReportDTO> GetBusinessReportAsync()
+        public async Task<BusinessReportResponse> GetBusinessReportAsync()
         {
             var now = DateTime.UtcNow;
 
@@ -49,7 +51,7 @@ namespace Stronghold.Infrastructure.Services
                 .Where(v => v.CheckInTime >= lastWeekStart && v.CheckInTime < startOfWeek)
                 .CountAsync();
 
-            // Monthly revenue 
+            // Monthly revenue
 
             var thisMonthRevenue = await _context.MembershipPaymentHistory
                 .AsNoTracking()
@@ -76,7 +78,7 @@ namespace Stronghold.Infrastructure.Services
 
             var rawByDay = visitTimes
                 .GroupBy(d => d.DayOfWeek)
-                .Select(g => new WeekdayVisitsDTO
+                .Select(g => new WeekdayVisitsResponse
                 {
                     Day = g.Key,
                     Count = g.Count()
@@ -101,7 +103,7 @@ namespace Stronghold.Infrastructure.Services
                 .OrderByDescending(x => x.Quantity)
                 .FirstOrDefaultAsync();
 
-            return new BusinessReportDTO
+            return new BusinessReportResponse
             {
                 ThisWeekVisits = thisWeekVisits,
                 LastWeekVisits = lastWeekVisits,
@@ -116,7 +118,7 @@ namespace Stronghold.Infrastructure.Services
 
                 BestsellerLast30Days = bestseller == null
                     ? null
-                    : new BestSellerDTO
+                    : new BestSellerResponse
                     {
                         SupplementId = bestseller.SupplementId,
                         Name = bestseller.Name,
@@ -125,7 +127,7 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
-        public async Task<InventoryReportDTO> GetInventoryReportAsync(int daysToAnalyze = 30)
+        public async Task<InventoryReportResponse> GetInventoryReportAsync(int daysToAnalyze = 30)
         {
             var now = DateTime.UtcNow;
             var since = now.AddDays(-daysToAnalyze);
@@ -174,7 +176,7 @@ namespace Stronghold.Infrastructure.Services
                     lastSaleDict.TryGetValue(p.Id, out var lastSale);
                     var daysSinceLastSale = lastSale == default ? daysToAnalyze : (int)(now - lastSale).TotalDays;
 
-                    return new SlowMovingProductDTO
+                    return new SlowMovingProductResponse
                     {
                         SupplementId = p.Id,
                         Name = p.Name,
@@ -189,7 +191,7 @@ namespace Stronghold.Infrastructure.Services
                 .ThenByDescending(p => p.DaysSinceLastSale)
                 .ToList();
 
-            return new InventoryReportDTO
+            return new InventoryReportResponse
             {
                 SlowMovingProducts = slowMovingProducts,
                 TotalProducts = allProducts.Count,
@@ -198,7 +200,150 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
-        public async Task<MembershipPopularityReportDTO> GetMembershipPopularityReportAsync()
+        public async Task<InventorySummaryResponse> GetInventorySummaryAsync(int daysToAnalyze = 30)
+        {
+            var now = DateTime.UtcNow;
+            var since = now.AddDays(-daysToAnalyze);
+
+            var totalProducts = await _context.Supplements
+                .AsNoTracking()
+                .Where(s => !s.IsDeleted)
+                .CountAsync();
+
+            var salesData = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .GroupBy(oi => oi.SupplementId)
+                .Select(g => new
+                {
+                    SupplementId = g.Key,
+                    QuantitySold = g.Sum(x => x.Quantity)
+                })
+                .ToListAsync();
+
+            var salesDict = salesData.ToDictionary(x => x.SupplementId, x => x.QuantitySold);
+
+            // Count products with <= 2 sales (slow moving)
+            var slowMovingCount = await _context.Supplements
+                .AsNoTracking()
+                .Where(s => !s.IsDeleted)
+                .CountAsync(s => !salesDict.ContainsKey(s.Id) || salesDict[s.Id] <= 2);
+
+            // Actually we need to count in memory since EF can't handle the dictionary
+            var allProductIds = await _context.Supplements
+                .AsNoTracking()
+                .Where(s => !s.IsDeleted)
+                .Select(s => s.Id)
+                .ToListAsync();
+
+            slowMovingCount = allProductIds.Count(id => !salesDict.ContainsKey(id) || salesDict[id] <= 2);
+
+            return new InventorySummaryResponse
+            {
+                TotalProducts = totalProducts,
+                SlowMovingCount = slowMovingCount,
+                DaysAnalyzed = daysToAnalyze
+            };
+        }
+
+        public async Task<PagedResult<SlowMovingProductResponse>> GetSlowMovingProductsPagedAsync(SlowMovingProductQueryFilter filter)
+        {
+            var now = DateTime.UtcNow;
+            var since = now.AddDays(-filter.DaysToAnalyze);
+
+            var allProducts = await _context.Supplements
+                .AsNoTracking()
+                .Include(s => s.SupplementCategory)
+                .Where(s => !s.IsDeleted)
+                .Select(s => new
+                {
+                    s.Id,
+                    s.Name,
+                    CategoryName = s.SupplementCategory.Name,
+                    s.Price
+                })
+                .ToListAsync();
+
+            var salesData = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .GroupBy(oi => oi.SupplementId)
+                .Select(g => new
+                {
+                    SupplementId = g.Key,
+                    QuantitySold = g.Sum(x => x.Quantity)
+                })
+                .ToListAsync();
+
+            var lastSaleDates = await _context.OrderItems
+                .AsNoTracking()
+                .GroupBy(oi => oi.SupplementId)
+                .Select(g => new
+                {
+                    SupplementId = g.Key,
+                    LastSaleDate = g.Max(x => x.Order.PurchaseDate)
+                })
+                .ToListAsync();
+
+            var salesDict = salesData.ToDictionary(x => x.SupplementId, x => x.QuantitySold);
+            var lastSaleDict = lastSaleDates.ToDictionary(x => x.SupplementId, x => x.LastSaleDate);
+
+            var slowMovingProducts = allProducts
+                .Select(p =>
+                {
+                    salesDict.TryGetValue(p.Id, out var qty);
+                    lastSaleDict.TryGetValue(p.Id, out var lastSale);
+                    var daysSinceLastSale = lastSale == default ? filter.DaysToAnalyze : (int)(now - lastSale).TotalDays;
+
+                    return new SlowMovingProductResponse
+                    {
+                        SupplementId = p.Id,
+                        Name = p.Name,
+                        CategoryName = p.CategoryName,
+                        Price = p.Price,
+                        QuantitySold = qty,
+                        DaysSinceLastSale = daysSinceLastSale
+                    };
+                })
+                .Where(p => p.QuantitySold <= 2)
+                .AsQueryable();
+
+            // Apply search filter
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                var searchLower = filter.Search.ToLower();
+                slowMovingProducts = slowMovingProducts.Where(p =>
+                    p.Name.ToLower().Contains(searchLower) ||
+                    p.CategoryName.ToLower().Contains(searchLower));
+            }
+
+            // Apply ordering
+            slowMovingProducts = filter.OrderBy?.ToLower() switch
+            {
+                "name" => slowMovingProducts.OrderBy(p => p.Name),
+                "namedesc" => slowMovingProducts.OrderByDescending(p => p.Name),
+                "price" => slowMovingProducts.OrderBy(p => p.Price),
+                "pricedesc" => slowMovingProducts.OrderByDescending(p => p.Price),
+                "dayssincelastsale" => slowMovingProducts.OrderBy(p => p.DaysSinceLastSale),
+                "dayssincelastsaledesc" => slowMovingProducts.OrderByDescending(p => p.DaysSinceLastSale),
+                _ => slowMovingProducts.OrderBy(p => p.QuantitySold).ThenByDescending(p => p.DaysSinceLastSale)
+            };
+
+            var totalCount = slowMovingProducts.Count();
+            var items = slowMovingProducts
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToList();
+
+            return new PagedResult<SlowMovingProductResponse>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber
+            };
+        }
+
+        public async Task<MembershipPopularityReportResponse> GetMembershipPopularityReportAsync()
         {
             var now = DateTime.UtcNow;
             var last30Days = now.AddDays(-30);
@@ -261,7 +406,7 @@ namespace Stronghold.Infrastructure.Services
                     newSubsDict.TryGetValue(p.Id, out var newSubs);
                     revenueDict.TryGetValue(p.Id, out var revenue);
 
-                    return new MembershipPlanStatsDTO
+                    return new MembershipPlanStatsResponse
                     {
                         MembershipPackageId = p.Id,
                         PackageName = p.PackageName,
@@ -277,7 +422,7 @@ namespace Stronghold.Infrastructure.Services
                 .OrderByDescending(p => p.ActiveSubscriptions)
                 .ToList();
 
-            return new MembershipPopularityReportDTO
+            return new MembershipPopularityReportResponse
             {
                 PlanStats = planStats,
                 TotalActiveMemberships = totalActive,
@@ -310,7 +455,7 @@ namespace Stronghold.Infrastructure.Services
             return Math.Round(((current - previous) / previous) * 100m, 2);
         }
 
-        private static List<WeekdayVisitsDTO> BuildWeekdayVisits(List<WeekdayVisitsDTO> raw)
+        private static List<WeekdayVisitsResponse> BuildWeekdayVisits(List<WeekdayVisitsResponse> raw)
         {
             // ensure Monday..Sunday always exists (even if count=0)
             var map = raw.ToDictionary(x => x.Day, x => x.Count);
@@ -326,12 +471,12 @@ namespace Stronghold.Infrastructure.Services
             DayOfWeek.Sunday
         };
 
-            var result = new List<WeekdayVisitsDTO>(7);
+            var result = new List<WeekdayVisitsResponse>(7);
 
             foreach (var day in orderedDays)
             {
                 map.TryGetValue(day, out var count);
-                result.Add(new WeekdayVisitsDTO { Day = day, Count = count });
+                result.Add(new WeekdayVisitsResponse { Day = day, Count = count });
             }
 
             return result;

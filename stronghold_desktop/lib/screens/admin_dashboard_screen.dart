@@ -1,27 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:stronghold_desktop/screens/business_report_screen.dart';
-import 'package:stronghold_desktop/screens/category_management_screen.dart';
-import 'package:stronghold_desktop/screens/current_visitors_screen.dart';
-import 'package:stronghold_desktop/screens/membership_package_management_screen.dart';
-import 'package:stronghold_desktop/screens/nutritionist_management_screen.dart';
-import 'package:stronghold_desktop/screens/order_management_screen.dart';
-import 'package:stronghold_desktop/screens/reviews_management_screen.dart';
-import 'package:stronghold_desktop/screens/faq_management_screen.dart';
-import 'package:stronghold_desktop/screens/seminar_management_screen.dart';
-import 'package:stronghold_desktop/screens/supplements_management_screen.dart';
-import 'package:stronghold_desktop/screens/supplier_management_screen.dart';
-import 'package:stronghold_desktop/screens/trainer_management_screen.dart';
-import 'package:stronghold_desktop/services/token_storage.dart';
+import 'package:stronghold_desktop/screens/visitors_screen.dart';
+import 'package:stronghold_desktop/screens/supplements_screen.dart';
+import 'package:stronghold_desktop/screens/categories_screen.dart';
+import 'package:stronghold_desktop/screens/suppliers_screen.dart';
+import 'package:stronghold_desktop/screens/trainers_screen.dart';
+import 'package:stronghold_desktop/screens/nutritionists_screen.dart';
+import 'package:stronghold_desktop/screens/users_screen.dart';
+import 'package:stronghold_desktop/screens/faq_screen.dart';
+import 'package:stronghold_desktop/screens/orders_screen.dart';
+import 'package:stronghold_desktop/screens/reviews_screen.dart';
+import 'package:stronghold_desktop/screens/seminars_screen.dart';
+import 'package:stronghold_desktop/screens/membership_packages_screen.dart';
+import 'package:stronghold_desktop/screens/memberships_screen.dart';
+import 'package:stronghold_desktop/screens/leaderboard_screen.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'package:stronghold_desktop/screens/login_screen.dart';
-import 'package:stronghold_desktop/screens/users_management_screen.dart';
-import 'package:stronghold_desktop/screens/membership_extension_screen.dart';
-import 'package:stronghold_desktop/screens/leaderboard_management_screen.dart';
 import '../constants/app_colors.dart';
 
 /// Enum representing all available admin screens
 enum AdminScreen {
   currentVisitors,
-  membershipExtension,
+  memberships,
   membershipPackages,
   users,
   trainers,
@@ -58,19 +58,19 @@ const List<_NavItemData> _navItems = [
     label: 'Trenutno u teretani',
   ),
   _NavItemData(
-    screen: AdminScreen.membershipExtension,
-    icon: Icons.add_circle_outline,
-    label: 'Produžavanje članarine',
+    screen: AdminScreen.memberships,
+    icon: Icons.card_membership,
+    label: 'Članarine',
   ),
   _NavItemData(
     screen: AdminScreen.membershipPackages,
-    icon: Icons.inventory_2_outlined,
-    label: 'Upravljanje paketima',
+    icon: Icons.inventory_2,
+    label: 'Paketi članarina',
   ),
   _NavItemData(
     screen: AdminScreen.users,
-    icon: Icons.person_outline,
-    label: 'Upravljanje korisnicima',
+    icon: Icons.people,
+    label: 'Korisnici',
   ),
   _NavItemData(
     screen: AdminScreen.trainers,
@@ -79,42 +79,42 @@ const List<_NavItemData> _navItems = [
   ),
   _NavItemData(
     screen: AdminScreen.nutritionists,
-    icon: Icons.restaurant_menu,
+    icon: Icons.restaurant,
     label: 'Nutricionisti',
   ),
   _NavItemData(
     screen: AdminScreen.supplements,
-    icon: Icons.medication_outlined,
+    icon: Icons.medication,
     label: 'Suplementi',
   ),
   _NavItemData(
     screen: AdminScreen.categories,
-    icon: Icons.category_outlined,
+    icon: Icons.category,
     label: 'Kategorije',
   ),
   _NavItemData(
     screen: AdminScreen.suppliers,
-    icon: Icons.local_shipping_outlined,
+    icon: Icons.local_shipping,
     label: 'Dobavljači',
   ),
   _NavItemData(
     screen: AdminScreen.orders,
-    icon: Icons.shopping_bag_outlined,
+    icon: Icons.shopping_bag,
     label: 'Kupovine',
   ),
   _NavItemData(
     screen: AdminScreen.faq,
-    icon: Icons.help_outline,
+    icon: Icons.help,
     label: 'FAQ',
   ),
   _NavItemData(
     screen: AdminScreen.reviews,
-    icon: Icons.rate_review_outlined,
+    icon: Icons.rate_review,
     label: 'Recenzije',
   ),
   _NavItemData(
     screen: AdminScreen.seminars,
-    icon: Icons.school_outlined,
+    icon: Icons.school,
     label: 'Seminari',
   ),
   _NavItemData(
@@ -662,35 +662,35 @@ class _ContentArea extends StatelessWidget {
   Widget _buildScreen() {
     switch (selectedScreen) {
       case AdminScreen.currentVisitors:
-        return const CurrentVisitorsScreen(embedded: true);
-      case AdminScreen.membershipExtension:
-        return const MembershipManagementScreen(embedded: true);
+        return const VisitorsScreen(embedded: true);
+      case AdminScreen.memberships:
+        return const MembershipsScreen(embedded: true);
       case AdminScreen.membershipPackages:
-        return const MembershipPackageManagementScreen(embedded: true);
+        return const MembershipPackagesScreen();
       case AdminScreen.users:
-        return const UsersManagementScreen(embedded: true);
+        return const UsersScreen();
       case AdminScreen.trainers:
-        return const TrainerManagementScreen(embedded: true);
+        return const TrainersScreen();
       case AdminScreen.nutritionists:
-        return const NutritionistManagementScreen(embedded: true);
+        return const NutritionistsScreen();
       case AdminScreen.supplements:
-        return const SupplementsManagementScreen(embedded: true);
+        return const SupplementsScreen();
       case AdminScreen.categories:
-        return const CategoryManagementScreen(embedded: true);
+        return const CategoriesScreen();
       case AdminScreen.suppliers:
-        return const SupplierManagementScreen(embedded: true);
+        return const SuppliersScreen();
       case AdminScreen.orders:
-        return const OrderManagementScreen(embedded: true);
+        return const OrdersScreen();
       case AdminScreen.faq:
-        return const FaqManagementScreen(embedded: true);
+        return const FaqScreen();
       case AdminScreen.reviews:
-        return const ReviewsManagementScreen(embedded: true);
+        return const ReviewsScreen();
       case AdminScreen.seminars:
-        return const SeminarManagementScreen(embedded: true);
+        return const SeminarsScreen();
       case AdminScreen.businessReport:
         return const BusinessReportScreen(embedded: true);
       case AdminScreen.leaderboard:
-        return const LeaderboardManagementScreen(embedded: true);
+        return const LeaderboardScreen(embedded: true);
     }
   }
 }

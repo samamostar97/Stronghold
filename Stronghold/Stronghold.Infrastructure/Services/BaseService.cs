@@ -13,14 +13,17 @@ namespace Stronghold.Infrastructure.Services
 {
     public class BaseService<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> : IService<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey>
         where T : class
+        where TQueryFilter : PaginationRequest, new()
     {
         protected readonly IRepository<T, TKey> _repository;
         protected readonly IMapper _mapper;
+
         public BaseService(IRepository<T, TKey> repository, IMapper mapper)
         {
             _repository = repository;
-            _mapper=mapper;
+            _mapper = mapper;
         }
+
         public virtual async Task<TDto> CreateAsync(TCreateDto dto)
         {
             var result = _mapper.Map<T>(dto!);
@@ -40,9 +43,8 @@ namespace Stronghold.Infrastructure.Services
             await _repository.DeleteAsync(entity);
             await AfterDeleteAsync(entity);
         }
-        
 
-        public virtual async Task<IEnumerable<TDto>> GetAllAsync(TQueryFilter? filter)
+        public virtual async Task<IEnumerable<TDto>> GetAllAsync(TQueryFilter filter)
         {
             var query = _repository.AsQueryable();
             query = ApplyFilter(query, filter);
@@ -53,8 +55,6 @@ namespace Stronghold.Infrastructure.Services
 
         public virtual async Task<TDto> GetByIdAsync(TKey id)
         {
-
-
             var entity = await _repository.GetByIdAsync(id);
             if (entity == null)
                 throw new KeyNotFoundException($"Entity sa id '{id}' nije pronadjen.");
@@ -62,14 +62,14 @@ namespace Stronghold.Infrastructure.Services
             return _mapper.Map<TDto>(entity);
         }
 
-        public virtual async Task<PagedResult<TDto>> GetPagedAsync(PaginationRequest pagination, TQueryFilter? filter)
+        public virtual async Task<PagedResult<TDto>> GetPagedAsync(TQueryFilter filter)
         {
             var query = _repository.AsQueryable();
             query = ApplyFilter(query, filter);
 
             await BeforePagedAsync(query);
 
-            var pagedEntities = await _repository.GetPagedAsync(query, pagination);
+            var pagedEntities = await _repository.GetPagedAsync(query, filter);
 
             await AfterPagedAsync(pagedEntities.Items);
 
@@ -94,8 +94,9 @@ namespace Stronghold.Infrastructure.Services
 
             return _mapper.Map<TDto>(entity);
         }
-        //hook methods
-        protected virtual IQueryable<T> ApplyFilter(IQueryable<T> query, TQueryFilter? filter)
+
+        // Hook methods
+        protected virtual IQueryable<T> ApplyFilter(IQueryable<T> query, TQueryFilter filter)
         {
             return query;
         }

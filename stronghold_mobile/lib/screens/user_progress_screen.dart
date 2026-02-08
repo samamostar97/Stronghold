@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
-import '../config/api_config.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/progress_models.dart';
-import '../services/progress_service.dart';
+import '../providers/profile_provider.dart';
 
-class UserProgressScreen extends StatefulWidget {
+class UserProgressScreen extends ConsumerStatefulWidget {
   const UserProgressScreen({super.key});
 
   @override
-  State<UserProgressScreen> createState() => _UserProgressScreenState();
+  ConsumerState<UserProgressScreen> createState() => _UserProgressScreenState();
 }
 
-class _UserProgressScreenState extends State<UserProgressScreen>
+class _UserProgressScreenState extends ConsumerState<UserProgressScreen>
     with SingleTickerProviderStateMixin {
-  UserProgress? _progress;
-  bool _isLoading = true;
-  String? _error;
   late AnimationController _animationController;
   late Animation<double> _progressAnimation;
 
@@ -28,7 +25,6 @@ class _UserProgressScreenState extends State<UserProgressScreen>
     _progressAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
-    _loadProgress();
   }
 
   @override
@@ -37,39 +33,10 @@ class _UserProgressScreenState extends State<UserProgressScreen>
     super.dispose();
   }
 
-  Future<void> _loadProgress() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final progress = await ProgressService.getUserProgress();
-      if (mounted) {
-        setState(() {
-          _progress = progress;
-          _isLoading = false;
-        });
-        _animationController.forward();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  String _getFullImageUrl(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) return '';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return '${ApiConfig.baseUrl}$imageUrl';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final progressAsync = ref.watch(userProgressProvider);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -84,15 +51,18 @@ class _UserProgressScreenState extends State<UserProgressScreen>
             children: [
               _buildHeader(),
               Expanded(
-                child: _isLoading
-                    ? const Center(
-                        child: CircularProgressIndicator(
-                          color: Color(0xFFe63946),
-                        ),
-                      )
-                    : _error != null
-                        ? _buildError()
-                        : _buildContent(),
+                child: progressAsync.when(
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(
+                      color: Color(0xFFe63946),
+                    ),
+                  ),
+                  error: (error, _) => _buildError(error.toString()),
+                  data: (progress) {
+                    _animationController.forward();
+                    return _buildContent(progress);
+                  },
+                ),
               ),
             ],
           ),
@@ -138,7 +108,7 @@ class _UserProgressScreenState extends State<UserProgressScreen>
     );
   }
 
-  Widget _buildError() {
+  Widget _buildError(String error) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -152,7 +122,7 @@ class _UserProgressScreenState extends State<UserProgressScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              _error!,
+              error.replaceFirst('Exception: ', ''),
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.7),
                 fontSize: 16,
@@ -161,7 +131,7 @@ class _UserProgressScreenState extends State<UserProgressScreen>
             ),
             const SizedBox(height: 24),
             GestureDetector(
-              onTap: _loadProgress,
+              onTap: () => ref.invalidate(userProgressProvider),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 decoration: BoxDecoration(
@@ -183,8 +153,7 @@ class _UserProgressScreenState extends State<UserProgressScreen>
     );
   }
 
-  Widget _buildContent() {
-    final progress = _progress!;
+  Widget _buildContent(UserProgress progress) {
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
@@ -480,7 +449,6 @@ class _UserProgressScreenState extends State<UserProgressScreen>
       builder: (context, child) {
         return Column(
           children: [
-            // Minutes label - fixed height to reserve space
             SizedBox(
               height: 18,
               child: minutes > 0
@@ -493,7 +461,6 @@ class _UserProgressScreenState extends State<UserProgressScreen>
                     )
                   : null,
             ),
-            // Bar area - expands to fill remaining space
             Expanded(
               child: Align(
                 alignment: Alignment.bottomCenter,
@@ -517,7 +484,6 @@ class _UserProgressScreenState extends State<UserProgressScreen>
               ),
             ),
             const SizedBox(height: 8),
-            // Day label
             Text(
               day,
               style: TextStyle(

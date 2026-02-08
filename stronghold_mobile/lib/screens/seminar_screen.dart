@@ -1,54 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/date_format_utils.dart';
 import '../models/seminar.dart';
-import '../services/seminar_service.dart';
+import '../providers/seminar_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 
-class SeminarScreen extends StatefulWidget {
+class SeminarScreen extends ConsumerStatefulWidget {
   const SeminarScreen({super.key});
 
   @override
-  State<SeminarScreen> createState() => _SeminarScreenState();
+  ConsumerState<SeminarScreen> createState() => _SeminarScreenState();
 }
 
-class _SeminarScreenState extends State<SeminarScreen> {
-  List<Seminar>? _seminars;
-  bool _isLoading = true;
-  String? _error;
+class _SeminarScreenState extends ConsumerState<SeminarScreen> {
   final Set<int> _attendingIds = {};
   final Set<int> _cancelingIds = {};
 
   @override
   void initState() {
     super.initState();
-    _loadSeminars();
-  }
-
-  Future<void> _loadSeminars() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final seminars = await SeminarService.getSeminars();
-      if (mounted) {
-        setState(() {
-          _seminars = seminars;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
+    Future.microtask(() => ref.read(seminarsProvider.notifier).load());
   }
 
   Future<void> _attendSeminar(int seminarId) async {
@@ -57,20 +31,19 @@ class _SeminarScreenState extends State<SeminarScreen> {
     });
 
     try {
-      await SeminarService.attendSeminar(seminarId);
+      await ref.read(seminarsProvider.notifier).attend(seminarId);
       if (mounted) {
         setState(() {
           _attendingIds.remove(seminarId);
         });
-        await _showSuccessFeedback('Uspjesno ste se prijavili na seminar');
-        await _loadSeminars();
+        await showSuccessFeedback(context, 'Uspjesno ste se prijavili na seminar');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _attendingIds.remove(seminarId);
         });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
@@ -81,34 +54,27 @@ class _SeminarScreenState extends State<SeminarScreen> {
     });
 
     try {
-      await SeminarService.cancelAttendance(seminarId);
+      await ref.read(seminarsProvider.notifier).cancelAttendance(seminarId);
       if (mounted) {
         setState(() {
           _cancelingIds.remove(seminarId);
         });
-        await _showSuccessFeedback('Uspjesno ste se odjavili sa seminara');
-        await _loadSeminars();
+        await showSuccessFeedback(context, 'Uspjesno ste se odjavili sa seminara');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _cancelingIds.remove(seminarId);
         });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
 
-  Future<void> _showSuccessFeedback(String message) async {
-    await showSuccessFeedback(context, message);
-  }
-
-  Future<void> _showErrorFeedback(String message) async {
-    await showErrorFeedback(context, message);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final seminarState = ref.watch(seminarsProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -137,40 +103,43 @@ class _SeminarScreenState extends State<SeminarScreen> {
           ),
         ),
         child: SafeArea(
-          child: _buildContent(),
+          child: _buildContent(seminarState),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
+  Widget _buildContent(SeminarsState state) {
+    if (state.isLoading && state.items.isEmpty) {
       return const AppLoadingIndicator();
     }
 
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadSeminars);
+    if (state.error != null && state.items.isEmpty) {
+      return AppErrorState(
+        message: state.error!,
+        onRetry: () => ref.read(seminarsProvider.notifier).load(),
+      );
     }
 
-    if (_seminars == null || _seminars!.isEmpty) {
+    if (state.items.isEmpty) {
       return const AppEmptyState(
         icon: Icons.event_outlined,
         title: 'Nema dostupnih seminara',
       );
     }
 
-    return _buildSeminarList();
+    return _buildSeminarList(state);
   }
 
-  Widget _buildSeminarList() {
+  Widget _buildSeminarList(SeminarsState state) {
     return RefreshIndicator(
-      onRefresh: _loadSeminars,
+      onRefresh: () => ref.read(seminarsProvider.notifier).refresh(),
       color: const Color(0xFFe63946),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
-        itemCount: _seminars!.length,
+        itemCount: state.items.length,
         itemBuilder: (context, index) {
-          return _buildSeminarCard(_seminars![index]);
+          return _buildSeminarCard(state.items[index]);
         },
       ),
     );

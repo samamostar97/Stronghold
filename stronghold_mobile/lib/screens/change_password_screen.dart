@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 
-class ChangePasswordScreen extends StatefulWidget {
+class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  State<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
+  ConsumerState<ChangePasswordScreen> createState() => _ChangePasswordScreenState();
 }
 
-class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
+class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   bool _isLoading = false;
   String? _errorMessage;
   bool _success = false;
@@ -40,7 +41,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     });
 
     try {
-      await AuthService.changePassword(
+      await ref.read(authProvider.notifier).changePassword(
         currentPassword: _currentPasswordController.text,
         newPassword: _newPasswordController.text,
       );
@@ -57,15 +58,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       if (mounted) {
         Navigator.pop(context);
       }
-    } on AuthException catch (e) {
-      setState(() {
-        _isLoading = false;
-        _errorMessage = e.message;
-      });
     } catch (e) {
+      final authState = ref.read(authProvider);
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Greska prilikom povezivanja. Provjerite internet konekciju.';
+        _errorMessage = authState.error ?? 'Greska prilikom povezivanja. Provjerite internet konekciju.';
       });
     }
   }

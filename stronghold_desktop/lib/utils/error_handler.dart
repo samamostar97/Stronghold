@@ -1,10 +1,20 @@
 import 'package:flutter/foundation.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Utility class that prevents exposing internal implementation details to users
 class ErrorHandler {
   /// Converts technical error messages into user-friendly messages
   /// Logs the original error for debugging purposes
   static String getUserFriendlyMessage(dynamic error, {String? context}) {
+    // Check for ApiException first - it has structured validation errors
+    if (error is ApiException) {
+      debugPrint('ERROR [$context]: ${error.message} (${error.statusCode})');
+      if (error.hasFieldErrors) {
+        return error.formattedErrors;
+      }
+      // Fall through to normal processing for non-field errors
+    }
+
     final errorString = error.toString().replaceAll('Exception: ', '');
 
     // Log the actual error for debugging (you can replace print with proper logging)
@@ -73,6 +83,14 @@ class ErrorHandler {
 
   /// Returns a context-specific error message
   static String getContextualMessage(dynamic error, String operation) {
+    // Check for ApiException first - it has structured validation errors
+    if (error is ApiException) {
+      debugPrint('ERROR [$operation]: ${error.message} (${error.statusCode})');
+      if (error.hasFieldErrors) {
+        return error.formattedErrors;
+      }
+    }
+
     final errorString = error.toString().replaceAll('Exception: ', '');
 
     // Log the actual error

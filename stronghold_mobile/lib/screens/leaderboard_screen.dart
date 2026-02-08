@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import '../config/api_config.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../models/progress_models.dart';
-import '../services/progress_service.dart';
-import '../widgets/app_error_state.dart';
+import '../providers/profile_provider.dart';
+import '../utils/image_utils.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
+import '../widgets/app_error_state.dart';
 
-class LeaderboardScreen extends StatefulWidget {
+class LeaderboardScreen extends ConsumerStatefulWidget {
   const LeaderboardScreen({super.key});
 
   @override
-  State<LeaderboardScreen> createState() => _LeaderboardScreenState();
+  ConsumerState<LeaderboardScreen> createState() => _LeaderboardScreenState();
 }
 
-class _LeaderboardScreenState extends State<LeaderboardScreen>
+class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     with SingleTickerProviderStateMixin {
-  List<LeaderboardEntry>? _leaderboard;
-  bool _isLoading = true;
-  String? _error;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
 
@@ -32,7 +30,6 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     _fadeAnimation = Tween<double>(begin: 0, end: 1).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
     );
-    _loadLeaderboard();
   }
 
   @override
@@ -41,39 +38,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     super.dispose();
   }
 
-  Future<void> _loadLeaderboard() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final leaderboard = await ProgressService.getLeaderboard();
-      if (mounted) {
-        setState(() {
-          _leaderboard = leaderboard;
-          _isLoading = false;
-        });
-        _animationController.forward();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  String _getFullImageUrl(String? imageUrl) {
-    if (imageUrl == null || imageUrl.isEmpty) return '';
-    if (imageUrl.startsWith('http')) return imageUrl;
-    return '${ApiConfig.baseUrl}$imageUrl';
-  }
-
   @override
   Widget build(BuildContext context) {
+    final leaderboardAsync = ref.watch(leaderboardProvider);
+
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
@@ -88,11 +56,17 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             children: [
               _buildHeader(),
               Expanded(
-                child: _isLoading
-                    ? const AppLoadingIndicator()
-                    : _error != null
-                    ? AppErrorState(message: _error!, onRetry: _loadLeaderboard)
-                    : _buildContent(),
+                child: leaderboardAsync.when(
+                  loading: () => const AppLoadingIndicator(),
+                  error: (error, _) => AppErrorState(
+                    message: error.toString().replaceFirst('Exception: ', ''),
+                    onRetry: () => ref.invalidate(leaderboardProvider),
+                  ),
+                  data: (leaderboard) {
+                    _animationController.forward();
+                    return _buildContent(leaderboard);
+                  },
+                ),
               ),
             ],
           ),
@@ -140,56 +114,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildError() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.error_outline,
-              color: Colors.white.withValues(alpha: 0.5),
-              size: 48,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              _error!,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            GestureDetector(
-              onTap: _loadLeaderboard,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFe63946),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text(
-                  'Pokusaj ponovo',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent() {
-    if (_leaderboard == null || _leaderboard!.isEmpty) {
+  Widget _buildContent(List<LeaderboardEntry> leaderboard) {
+    if (leaderboard.isEmpty) {
       return const AppEmptyState(
         icon: Icons.emoji_events,
         title: 'Nema podataka za prikaz',
@@ -203,10 +129,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
         child: Column(
           children: [
             const SizedBox(height: 20),
-            _buildPodium(),
+            _buildPodium(leaderboard),
             const SizedBox(height: 30),
-            if (_leaderboard!.length > 3) ...[
-              _buildRemainingList(),
+            if (leaderboard.length > 3) ...[
+              _buildRemainingList(leaderboard),
               const SizedBox(height: 20),
             ],
           ],
@@ -215,8 +141,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildPodium() {
-    final top3 = _leaderboard!.take(3).toList();
+  Widget _buildPodium(List<LeaderboardEntry> leaderboard) {
+    final top3 = leaderboard.take(3).toList();
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -257,11 +183,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
             ],
           ),
           child: ClipOval(
-            child:
-                entry.profileImageUrl != null &&
+            child: entry.profileImageUrl != null &&
                     entry.profileImageUrl!.isNotEmpty
                 ? Image.network(
-                    _getFullImageUrl(entry.profileImageUrl),
+                    getFullImageUrl(entry.profileImageUrl),
                     fit: BoxFit.cover,
                     errorBuilder: (_, __, ___) => _buildInitialsAvatar(entry),
                   )
@@ -318,8 +243,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
                 position == 1
                     ? '1st'
                     : position == 2
-                    ? '2nd'
-                    : '3rd',
+                        ? '2nd'
+                        : '3rd',
                 style: TextStyle(
                   fontSize: position == 1 ? 28 : 22,
                   fontWeight: FontWeight.w800,
@@ -367,8 +292,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
     );
   }
 
-  Widget _buildRemainingList() {
-    final remaining = _leaderboard!.skip(3).toList();
+  Widget _buildRemainingList(List<LeaderboardEntry> leaderboard) {
+    final remaining = leaderboard.skip(3).toList();
 
     return Column(
       children: remaining.map((entry) => _buildListItem(entry)).toList(),
@@ -418,11 +343,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen>
               ),
             ),
             child: ClipOval(
-              child:
-                  entry.profileImageUrl != null &&
+              child: entry.profileImageUrl != null &&
                       entry.profileImageUrl!.isNotEmpty
                   ? Image.network(
-                      _getFullImageUrl(entry.profileImageUrl),
+                      getFullImageUrl(entry.profileImageUrl),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _buildInitialsAvatar(entry),
                     )

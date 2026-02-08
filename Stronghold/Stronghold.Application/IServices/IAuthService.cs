@@ -1,4 +1,5 @@
-using Stronghold.Application.DTOs.Auth;
+using Stronghold.Application.DTOs.Request;
+using Stronghold.Application.DTOs.Response;
 using System.Security.Claims;
 
 namespace Stronghold.Application.IServices;

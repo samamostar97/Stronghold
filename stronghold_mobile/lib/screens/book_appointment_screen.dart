@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import '../services/appointment_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/appointment_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../utils/date_format_utils.dart';
 
 enum StaffType { trainer, nutritionist }
 
-class BookAppointmentScreen extends StatefulWidget {
+class BookAppointmentScreen extends ConsumerStatefulWidget {
   final int staffId;
   final String staffName;
   final StaffType staffType;
@@ -18,15 +19,13 @@ class BookAppointmentScreen extends StatefulWidget {
   });
 
   @override
-  State<BookAppointmentScreen> createState() => _BookAppointmentScreenState();
+  ConsumerState<BookAppointmentScreen> createState() => _BookAppointmentScreenState();
 }
 
-class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
+class _BookAppointmentScreenState extends ConsumerState<BookAppointmentScreen> {
   DateTime? _selectedDate;
   int? _selectedHour;
   bool _isSubmitting = false;
-  bool _isLoadingHours = false;
-  List<int> _availableHours = [];
 
   String get _staffTypeLabel =>
       widget.staffType == StaffType.trainer ? 'Trener' : 'Nutricionist';
@@ -62,43 +61,14 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
       setState(() {
         _selectedDate = picked;
         _selectedHour = null;
-        _availableHours = [];
       });
-      await _loadAvailableHours();
-    }
-  }
-
-  Future<void> _loadAvailableHours() async {
-    if (_selectedDate == null) return;
-
-    setState(() {
-      _isLoadingHours = true;
-    });
-
-    try {
-      final hours = await AppointmentService.getAvailableHours(
-        widget.staffId,
-        _selectedDate!,
-        widget.staffType == StaffType.trainer,
-      );
-      if (mounted) {
-        setState(() {
-          _availableHours = hours;
-          _isLoadingHours = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingHours = false;
-        });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
-      }
     }
   }
 
   Future<void> _submitAppointment() async {
-    if (_selectedDate == null || _selectedHour == null) {
+    final date = _selectedDate;
+    final hour = _selectedHour;
+    if (date == null || hour == null) {
       return;
     }
 
@@ -108,27 +78,22 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
 
     try {
       final appointmentDateTime = DateTime(
-        _selectedDate!.year,
-        _selectedDate!.month,
-        _selectedDate!.day,
-        _selectedHour!,
+        date.year,
+        date.month,
+        date.day,
+        hour,
         0,
       );
 
+      final notifier = ref.read(bookAppointmentProvider.notifier);
       if (widget.staffType == StaffType.trainer) {
-        await AppointmentService.makeTrainerAppointment(
-          widget.staffId,
-          appointmentDateTime,
-        );
+        await notifier.bookTrainer(widget.staffId, appointmentDateTime);
       } else {
-        await AppointmentService.makeNutritionistAppointment(
-          widget.staffId,
-          appointmentDateTime,
-        );
+        await notifier.bookNutritionist(widget.staffId, appointmentDateTime);
       }
 
       if (mounted) {
-        await _showSuccessFeedback('Uspjesno ste zakazali termin');
+        await showSuccessFeedback(context, 'Uspjesno ste zakazali termin');
         if (mounted) {
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
@@ -138,21 +103,20 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
         setState(() {
           _isSubmitting = false;
         });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
 
-  Future<void> _showSuccessFeedback(String message) async {
-    await showSuccessFeedback(context, message);
-  }
-
-  Future<void> _showErrorFeedback(String message) async {
-    await showErrorFeedback(context, message);
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Watch available hours based on staff type and selected date
+    final hoursAsync = _selectedDate != null
+        ? widget.staffType == StaffType.trainer
+            ? ref.watch(trainerAvailableHoursProvider((trainerId: widget.staffId, date: _selectedDate!)))
+            : ref.watch(nutritionistAvailableHoursProvider((nutritionistId: widget.staffId, date: _selectedDate!)))
+        : null;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -346,71 +310,88 @@ class _BookAppointmentScreenState extends State<BookAppointmentScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        if (_isLoadingHours)
-                          const Center(
-                            child: Padding(
-                              padding: EdgeInsets.all(16),
-                              child: CircularProgressIndicator(
-                                color: Color(0xFFe63946),
+                        if (hoursAsync != null)
+                          hoursAsync.when(
+                            loading: () => const Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(16),
+                                child: CircularProgressIndicator(
+                                  color: Color(0xFFe63946),
+                                ),
                               ),
                             ),
-                          )
-                        else if (_availableHours.isEmpty)
-                          Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Text(
-                                'Nema dostupnih termina za ovaj datum',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.white.withValues(alpha: 0.5),
+                            error: (error, _) => Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Text(
+                                  error.toString().replaceFirst('Exception: ', ''),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                  ),
+                                  textAlign: TextAlign.center,
                                 ),
-                                textAlign: TextAlign.center,
                               ),
                             ),
-                          )
-                        else
-                          Wrap(
-                            spacing: 10,
-                            runSpacing: 10,
-                            children: _availableHours.map((hour) {
-                              final isSelected = _selectedHour == hour;
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    _selectedHour = hour;
-                                  });
-                                },
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 20,
-                                    vertical: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? const Color(0xFFe63946)
-                                        : const Color(0xFFe63946).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: isSelected
-                                          ? const Color(0xFFe63946)
-                                          : const Color(0xFFe63946).withValues(alpha: 0.3),
-                                      width: 1,
+                            data: (availableHours) {
+                              if (availableHours.isEmpty) {
+                                return Center(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Text(
+                                      'Nema dostupnih termina za ovaj datum',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white.withValues(alpha: 0.5),
+                                      ),
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
-                                  child: Text(
-                                    '${hour.toString().padLeft(2, '0')}:00',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: isSelected
-                                          ? Colors.white
-                                          : Colors.white.withValues(alpha: 0.7),
+                                );
+                              }
+                              return Wrap(
+                                spacing: 10,
+                                runSpacing: 10,
+                                children: availableHours.map((hour) {
+                                  final isSelected = _selectedHour == hour;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        _selectedHour = hour;
+                                      });
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: isSelected
+                                            ? const Color(0xFFe63946)
+                                            : const Color(0xFFe63946).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: isSelected
+                                              ? const Color(0xFFe63946)
+                                              : const Color(0xFFe63946).withValues(alpha: 0.3),
+                                          width: 1,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${hour.toString().padLeft(2, '0')}:00',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: isSelected
+                                              ? Colors.white
+                                              : Colors.white.withValues(alpha: 0.7),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }).toList(),
                               );
-                            }).toList(),
+                            },
                           ),
                       ],
                     ),

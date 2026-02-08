@@ -1,37 +1,17 @@
 import 'package:flutter/material.dart';
-import '../services/cart_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/cart_provider.dart';
 import '../utils/image_utils.dart';
 import 'checkout_screen.dart';
 
-class CartScreen extends StatefulWidget {
+class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
 
   @override
-  State<CartScreen> createState() => _CartScreenState();
-}
-
-class _CartScreenState extends State<CartScreen> {
-  final CartService _cartService = CartService();
-
-  @override
-  void initState() {
-    super.initState();
-    _cartService.addListener(_onCartChanged);
-  }
-
-  @override
-  void dispose() {
-    _cartService.removeListener(_onCartChanged);
-    super.dispose();
-  }
-
-  void _onCartChanged() {
-    if (mounted) setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final items = _cartService.items;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cartState = ref.watch(cartProvider);
+    final cartNotifier = ref.read(cartProvider.notifier);
+    final items = cartState.items;
 
     return Scaffold(
       body: Container(
@@ -81,9 +61,7 @@ class _CartScreenState extends State<CartScreen> {
                     ),
                     if (items.isNotEmpty)
                       GestureDetector(
-                        onTap: () {
-                          _cartService.clear();
-                        },
+                        onTap: () => cartNotifier.clear(),
                         child: Text(
                           'Isprazni',
                           style: TextStyle(
@@ -203,7 +181,7 @@ class _CartScreenState extends State<CartScreen> {
                                   children: [
                                     GestureDetector(
                                       onTap: () {
-                                        _cartService.updateQuantity(
+                                        cartNotifier.updateQuantity(
                                           item.supplement.id,
                                           item.quantity - 1,
                                         );
@@ -234,7 +212,7 @@ class _CartScreenState extends State<CartScreen> {
                                     ),
                                     GestureDetector(
                                       onTap: () {
-                                        _cartService.updateQuantity(
+                                        cartNotifier.updateQuantity(
                                           item.supplement.id,
                                           item.quantity + 1,
                                         );
@@ -258,7 +236,7 @@ class _CartScreenState extends State<CartScreen> {
                                 // Delete
                                 GestureDetector(
                                   onTap: () {
-                                    _cartService.removeItem(item.supplement.id);
+                                    cartNotifier.removeItem(item.supplement.id);
                                   },
                                   child: Icon(
                                     Icons.delete_outline,
@@ -298,7 +276,7 @@ class _CartScreenState extends State<CartScreen> {
                             ),
                           ),
                           Text(
-                            '${_cartService.totalAmount.toStringAsFixed(2)} KM',
+                            '${cartState.totalAmount.toStringAsFixed(2)} KM',
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.w700,

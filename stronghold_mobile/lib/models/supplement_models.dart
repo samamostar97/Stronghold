@@ -24,8 +24,8 @@ class Supplement {
       price: (json['price'] as num).toDouble(),
       description: json['description'] as String?,
       imageUrl: json['imageUrl'] as String?,
-      categoryId: json['categoryId'] as int,
-      categoryName: json['categoryName'] as String,
+      categoryId: json['supplementCategoryId'] as int,
+      categoryName: json['supplementCategoryName'] as String,
     );
   }
 }

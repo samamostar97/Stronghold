@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
@@ -7,33 +7,38 @@ using Stronghold.Application.IServices;
 namespace Stronghold.API.Controllers
 {
     [Route("[controller]")]
-    [Authorize(Roles = "Admin")]
-    public class BaseController<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> : ControllerBase
+    public class BaseController<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> : UserControllerBase
         where T : class
+        where TQueryFilter : PaginationRequest, new()
     {
         protected readonly IService<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> _service;
+
         public BaseController(IService<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> service)
         {
             _service = service;
         }
+
         [HttpGet("GetAllPaged")]
-        public virtual async Task<ActionResult<PagedResult<TDto>>> GetAllPagedAsync([FromQuery]PaginationRequest request, [FromQuery]TQueryFilter? filter)
+        public virtual async Task<ActionResult<PagedResult<TDto>>> GetAllPagedAsync([FromQuery] TQueryFilter filter)
         {
-            var list = await _service.GetPagedAsync(request, filter);
+            var list = await _service.GetPagedAsync(filter);
             return Ok(list);
         }
+
         [HttpGet("GetAll")]
-        public virtual async Task<ActionResult<IEnumerable<TDto>>> GetAllAsync([FromQuery]TQueryFilter? filter)
+        public virtual async Task<ActionResult<IEnumerable<TDto>>> GetAllAsync([FromQuery] TQueryFilter filter)
         {
             var list = await _service.GetAllAsync(filter);
             return Ok(list);
         }
+
         [HttpGet("{id}")]
         public virtual async Task<ActionResult<TDto>> GetById(TKey id)
         {
             var result = await _service.GetByIdAsync(id);
             return Ok(result);
         }
+
         [HttpPost]
         public virtual async Task<ActionResult<TDto>> Create([FromBody]TCreateDto dto)
         {
@@ -41,19 +46,21 @@ namespace Stronghold.API.Controllers
             var idProp = result!.GetType().GetProperty("Id");
             var id = idProp?.GetValue(result);
 
-            return CreatedAtAction(nameof(GetById), new { id }, new { id });
+            return CreatedAtAction(nameof(GetById), new { id }, result);
         }
+
         [HttpPut("{id}")]
         public virtual async Task<ActionResult<TDto>> Update(TKey id, [FromBody] TUpdateDto dto)
         {
             var result = await _service.UpdateAsync(id, dto);
             return Ok(result);
         }
+
         [HttpDelete("{id}")]
         public virtual async Task<IActionResult> Delete(TKey id)
         {
             await _service.DeleteAsync(id);
-            
+
             return NoContent();
         }
     }

@@ -1,51 +1,42 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/review_models.dart';
-import '../services/review_service.dart';
+import '../providers/review_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 
-class ReviewHistoryScreen extends StatefulWidget {
+class ReviewHistoryScreen extends ConsumerStatefulWidget {
   const ReviewHistoryScreen({super.key});
 
   @override
-  State<ReviewHistoryScreen> createState() => _ReviewHistoryScreenState();
+  ConsumerState<ReviewHistoryScreen> createState() => _ReviewHistoryScreenState();
 }
 
-class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
-  List<Review>? _reviews;
-  bool _isLoading = true;
-  String? _error;
+class _ReviewHistoryScreenState extends ConsumerState<ReviewHistoryScreen> {
   int? _deletingReviewId;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadReviewHistory();
+    _scrollController.addListener(_onScroll);
+    Future.microtask(() => ref.read(myReviewsProvider.notifier).load());
   }
 
-  Future<void> _loadReviewHistory() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    try {
-      final reviews = await ReviewService.getReviewHistory();
-      if (mounted) {
-        setState(() {
-          _reviews = reviews;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
+  void _onScroll() {
+    final state = ref.read(myReviewsProvider);
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !state.isLoading &&
+        state.hasNextPage) {
+      ref.read(myReviewsProvider.notifier).nextPage();
     }
   }
 
@@ -107,20 +98,19 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
     });
 
     try {
-      await ReviewService.deleteReview(review.id);
+      await ref.read(myReviewsProvider.notifier).delete(review.id);
       if (mounted) {
         setState(() {
-          _reviews?.removeWhere((r) => r.id == review.id);
           _deletingReviewId = null;
         });
-        await _showSuccessFeedback('Recenzija uspjesno obrisana');
+        await showSuccessFeedback(context, 'Recenzija uspjesno obrisana');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _deletingReviewId = null;
         });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
@@ -132,26 +122,20 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
       backgroundColor: Colors.transparent,
       builder: (context) => _CreateReviewSheet(
         onReviewCreated: () {
-          _loadReviewHistory();
-          _showSuccessFeedback('Recenzija uspjesno kreirana');
+          ref.read(myReviewsProvider.notifier).refresh();
+          showSuccessFeedback(context, 'Recenzija uspjesno kreirana');
         },
         onError: (message) {
-          _showErrorFeedback(message);
+          showErrorFeedback(context, message);
         },
       ),
     );
   }
 
-  Future<void> _showSuccessFeedback(String message) async {
-    await showSuccessFeedback(context, message);
-  }
-
-  Future<void> _showErrorFeedback(String message) async {
-    await showErrorFeedback(context, message);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final reviewState = ref.watch(myReviewsProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -192,22 +176,25 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
           ),
         ),
         child: SafeArea(
-          child: _buildContent(),
+          child: _buildContent(reviewState),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
+  Widget _buildContent(MyReviewsState state) {
+    if (state.isLoading && state.items.isEmpty) {
       return const AppLoadingIndicator();
     }
 
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadReviewHistory);
+    if (state.error != null && state.items.isEmpty) {
+      return AppErrorState(
+        message: state.error!,
+        onRetry: () => ref.read(myReviewsProvider.notifier).load(),
+      );
     }
 
-    if (_reviews == null || _reviews!.isEmpty) {
+    if (state.items.isEmpty) {
       return const AppEmptyState(
         icon: Icons.rate_review_outlined,
         title: 'Nemate recenzija',
@@ -215,18 +202,27 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
       );
     }
 
-    return _buildReviewList();
+    return _buildReviewList(state);
   }
 
-  Widget _buildReviewList() {
+  Widget _buildReviewList(MyReviewsState state) {
     return RefreshIndicator(
-      onRefresh: _loadReviewHistory,
+      onRefresh: () => ref.read(myReviewsProvider.notifier).refresh(),
       color: const Color(0xFFe63946),
       child: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: _reviews!.length,
+        itemCount: state.items.length + (state.isLoading && state.items.isNotEmpty ? 1 : 0),
         itemBuilder: (context, index) {
-          return _buildReviewCard(_reviews![index]);
+          if (index == state.items.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(color: Color(0xFFe63946)),
+              ),
+            );
+          }
+          return _buildReviewCard(state.items[index]);
         },
       ),
     );
@@ -365,7 +361,7 @@ class _ReviewHistoryScreenState extends State<ReviewHistoryScreen> {
   }
 }
 
-class _CreateReviewSheet extends StatefulWidget {
+class _CreateReviewSheet extends ConsumerStatefulWidget {
   final VoidCallback onReviewCreated;
   final void Function(String message) onError;
 
@@ -375,13 +371,10 @@ class _CreateReviewSheet extends StatefulWidget {
   });
 
   @override
-  State<_CreateReviewSheet> createState() => _CreateReviewSheetState();
+  ConsumerState<_CreateReviewSheet> createState() => _CreateReviewSheetState();
 }
 
-class _CreateReviewSheetState extends State<_CreateReviewSheet> {
-  List<PurchasedSupplement>? _supplements;
-  bool _isLoadingSupplements = true;
-  String? _loadError;
+class _CreateReviewSheetState extends ConsumerState<_CreateReviewSheet> {
   PurchasedSupplement? _selectedSupplement;
   int _rating = 0;
   final _commentController = TextEditingController();
@@ -390,7 +383,7 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
   @override
   void initState() {
     super.initState();
-    _loadSupplements();
+    Future.microtask(() => ref.read(availableSupplementsProvider.notifier).load());
   }
 
   @override
@@ -399,37 +392,19 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
     super.dispose();
   }
 
-  Future<void> _loadSupplements() async {
-    try {
-      final supplements = await ReviewService.getAvailableSupplements();
-      if (mounted) {
-        setState(() {
-          _supplements = supplements;
-          _isLoadingSupplements = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _loadError = e.toString().replaceFirst('Exception: ', '');
-          _isLoadingSupplements = false;
-        });
-      }
-    }
-  }
-
   Future<void> _submitReview() async {
-    if (_selectedSupplement == null || _rating == 0) return;
+    final supplement = _selectedSupplement;
+    if (supplement == null || _rating == 0) return;
 
     setState(() {
       _isSubmitting = true;
     });
 
     try {
-      await ReviewService.createReview(
-        _selectedSupplement!.id,
-        _rating,
-        _commentController.text.trim().isEmpty
+      await ref.read(createReviewProvider.notifier).create(
+        supplementId: supplement.id,
+        rating: _rating,
+        comment: _commentController.text.trim().isEmpty
             ? null
             : _commentController.text.trim(),
       );
@@ -447,6 +422,8 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final supplementsState = ref.watch(availableSupplementsProvider);
+
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -490,7 +467,7 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
                 ),
               ),
               const SizedBox(height: 24),
-              if (_isLoadingSupplements)
+              if (supplementsState.isLoading)
                 const Center(
                   child: Padding(
                     padding: EdgeInsets.all(32),
@@ -499,12 +476,12 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
                     ),
                   ),
                 )
-              else if (_loadError != null)
+              else if (supplementsState.error != null)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      _loadError!,
+                      supplementsState.error!,
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.7),
                       ),
@@ -512,7 +489,7 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
                     ),
                   ),
                 )
-              else if (_supplements == null || _supplements!.isEmpty)
+              else if (supplementsState.items.isEmpty)
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -559,7 +536,7 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
                         Icons.arrow_drop_down,
                         color: Colors.white.withValues(alpha: 0.5),
                       ),
-                      items: _supplements!.map((s) {
+                      items: supplementsState.items.map((s) {
                         return DropdownMenuItem<PurchasedSupplement>(
                           value: s,
                           child: Text(
@@ -635,15 +612,13 @@ class _CreateReviewSheetState extends State<_CreateReviewSheet> {
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color:
-                            const Color(0xFFe63946).withValues(alpha: 0.3),
+                        color: const Color(0xFFe63946).withValues(alpha: 0.3),
                       ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color:
-                            const Color(0xFFe63946).withValues(alpha: 0.3),
+                        color: const Color(0xFFe63946).withValues(alpha: 0.3),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(

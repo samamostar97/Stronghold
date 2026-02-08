@@ -1,55 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/appointment_models.dart';
-import '../services/appointment_service.dart';
+import '../providers/appointment_provider.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 import 'book_appointment_screen.dart';
 
-class TrainerListScreen extends StatefulWidget {
+class TrainerListScreen extends ConsumerWidget {
   const TrainerListScreen({super.key});
 
   @override
-  State<TrainerListScreen> createState() => _TrainerListScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final trainersAsync = ref.watch(trainersProvider);
 
-class _TrainerListScreenState extends State<TrainerListScreen> {
-  List<Trainer>? _trainers;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTrainers();
-  }
-
-  Future<void> _loadTrainers() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final trainers = await AppointmentService.getTrainers();
-      if (mounted) {
-        setState(() {
-          _trainers = trainers;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -78,46 +42,38 @@ class _TrainerListScreenState extends State<TrainerListScreen> {
           ),
         ),
         child: SafeArea(
-          child: _buildContent(),
+          child: trainersAsync.when(
+            loading: () => const AppLoadingIndicator(),
+            error: (error, _) => AppErrorState(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(trainersProvider),
+            ),
+            data: (trainers) {
+              if (trainers.isEmpty) {
+                return const AppEmptyState(
+                  icon: Icons.fitness_center,
+                  title: 'Nema dostupnih trenera',
+                );
+              }
+              return _buildTrainerList(context, trainers);
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const AppLoadingIndicator();
-    }
-
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadTrainers);
-    }
-
-    if (_trainers == null || _trainers!.isEmpty) {
-      return const AppEmptyState(
-        icon: Icons.fitness_center,
-        title: 'Nema dostupnih trenera',
-      );
-    }
-
-    return _buildTrainerList();
-  }
-
-  Widget _buildTrainerList() {
-    return RefreshIndicator(
-      onRefresh: _loadTrainers,
-      color: const Color(0xFFe63946),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _trainers!.length,
-        itemBuilder: (context, index) {
-          return _buildTrainerCard(_trainers![index]);
-        },
-      ),
+  Widget _buildTrainerList(BuildContext context, List<Trainer> trainers) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: trainers.length,
+      itemBuilder: (context, index) {
+        return _buildTrainerCard(context, trainers[index]);
+      },
     );
   }
 
-  Widget _buildTrainerCard(Trainer trainer) {
+  Widget _buildTrainerCard(BuildContext context, Trainer trainer) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),

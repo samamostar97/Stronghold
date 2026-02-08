@@ -1,55 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/appointment_models.dart';
-import '../services/appointment_service.dart';
+import '../providers/appointment_provider.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 import 'book_appointment_screen.dart';
 
-class NutritionistListScreen extends StatefulWidget {
+class NutritionistListScreen extends ConsumerWidget {
   const NutritionistListScreen({super.key});
 
   @override
-  State<NutritionistListScreen> createState() => _NutritionistListScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final nutritionistsAsync = ref.watch(nutritionistsProvider);
 
-class _NutritionistListScreenState extends State<NutritionistListScreen> {
-  List<Nutritionist>? _nutritionists;
-  bool _isLoading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadNutritionists();
-  }
-
-  Future<void> _loadNutritionists() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
-
-    try {
-      final nutritionists = await AppointmentService.getNutritionists();
-      if (mounted) {
-        setState(() {
-          _nutritionists = nutritionists;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -78,46 +42,38 @@ class _NutritionistListScreenState extends State<NutritionistListScreen> {
           ),
         ),
         child: SafeArea(
-          child: _buildContent(),
+          child: nutritionistsAsync.when(
+            loading: () => const AppLoadingIndicator(),
+            error: (error, _) => AppErrorState(
+              message: error.toString().replaceFirst('Exception: ', ''),
+              onRetry: () => ref.invalidate(nutritionistsProvider),
+            ),
+            data: (nutritionists) {
+              if (nutritionists.isEmpty) {
+                return const AppEmptyState(
+                  icon: Icons.restaurant_menu,
+                  title: 'Nema dostupnih nutricionista',
+                );
+              }
+              return _buildNutritionistList(context, nutritionists);
+            },
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
-      return const AppLoadingIndicator();
-    }
-
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadNutritionists);
-    }
-
-    if (_nutritionists == null || _nutritionists!.isEmpty) {
-      return const AppEmptyState(
-        icon: Icons.restaurant_menu,
-        title: 'Nema dostupnih nutricionista',
-      );
-    }
-
-    return _buildNutritionistList();
-  }
-
-  Widget _buildNutritionistList() {
-    return RefreshIndicator(
-      onRefresh: _loadNutritionists,
-      color: const Color(0xFFe63946),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: _nutritionists!.length,
-        itemBuilder: (context, index) {
-          return _buildNutritionistCard(_nutritionists![index]);
-        },
-      ),
+  Widget _buildNutritionistList(BuildContext context, List<Nutritionist> nutritionists) {
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: nutritionists.length,
+      itemBuilder: (context, index) {
+        return _buildNutritionistCard(context, nutritionists[index]);
+      },
     );
   }
 
-  Widget _buildNutritionistCard(Nutritionist nutritionist) {
+  Widget _buildNutritionistCard(BuildContext context, Nutritionist nutritionist) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),

@@ -1,52 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/date_format_utils.dart';
 import '../models/appointment_models.dart';
-import '../services/appointment_service.dart';
+import '../providers/appointment_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_loading_indicator.dart';
 
-class AppointmentScreen extends StatefulWidget {
+class AppointmentScreen extends ConsumerStatefulWidget {
   const AppointmentScreen({super.key});
 
   @override
-  State<AppointmentScreen> createState() => _AppointmentScreenState();
+  ConsumerState<AppointmentScreen> createState() => _AppointmentScreenState();
 }
 
-class _AppointmentScreenState extends State<AppointmentScreen> {
-  List<Appointment>? _appointments;
-  bool _isLoading = true;
-  String? _error;
+class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
   final Set<int> _cancelingIds = {};
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadAppointments();
+    _scrollController.addListener(_onScroll);
+    Future.microtask(() => ref.read(myAppointmentsProvider.notifier).load());
   }
 
-  Future<void> _loadAppointments() async {
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
-    try {
-      final appointments = await AppointmentService.getAppointments();
-      if (mounted) {
-        setState(() {
-          _appointments = appointments;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
-          _isLoading = false;
-        });
-      }
+  void _onScroll() {
+    final state = ref.read(myAppointmentsProvider);
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200 &&
+        !state.isLoading &&
+        state.hasNextPage) {
+      ref.read(myAppointmentsProvider.notifier).nextPage();
     }
   }
 
@@ -56,34 +47,27 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     });
 
     try {
-      await AppointmentService.cancelAppointment(appointmentId);
+      await ref.read(myAppointmentsProvider.notifier).cancel(appointmentId);
       if (mounted) {
         setState(() {
           _cancelingIds.remove(appointmentId);
         });
-        await _showSuccessFeedback('Uspjesno ste otkazali termin');
-        await _loadAppointments();
+        await showSuccessFeedback(context, 'Uspjesno ste otkazali termin');
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _cancelingIds.remove(appointmentId);
         });
-        await _showErrorFeedback(e.toString().replaceFirst('Exception: ', ''));
+        await showErrorFeedback(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }
 
-  Future<void> _showSuccessFeedback(String message) async {
-    await showSuccessFeedback(context, message);
-  }
-
-  Future<void> _showErrorFeedback(String message) async {
-    await showErrorFeedback(context, message);
-  }
-
   @override
   Widget build(BuildContext context) {
+    final appointmentState = ref.watch(myAppointmentsProvider);
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -115,7 +99,7 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
           child: Column(
             children: [
               Expanded(
-                child: _buildContent(),
+                child: _buildContent(appointmentState),
               ),
             ],
           ),
@@ -124,16 +108,19 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
     );
   }
 
-  Widget _buildContent() {
-    if (_isLoading) {
+  Widget _buildContent(MyAppointmentsState state) {
+    if (state.isLoading && state.items.isEmpty) {
       return const AppLoadingIndicator();
     }
 
-    if (_error != null) {
-      return AppErrorState(message: _error!, onRetry: _loadAppointments);
+    if (state.error != null && state.items.isEmpty) {
+      return AppErrorState(
+        message: state.error!,
+        onRetry: () => ref.read(myAppointmentsProvider.notifier).load(),
+      );
     }
 
-    if (_appointments == null || _appointments!.isEmpty) {
+    if (state.items.isEmpty) {
       return const AppEmptyState(
         icon: Icons.calendar_today_outlined,
         title: 'Nemate zakazanih termina',
@@ -141,18 +128,27 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       );
     }
 
-    return _buildAppointmentList();
+    return _buildAppointmentList(state);
   }
 
-  Widget _buildAppointmentList() {
+  Widget _buildAppointmentList(MyAppointmentsState state) {
     return RefreshIndicator(
-      onRefresh: _loadAppointments,
+      onRefresh: () => ref.read(myAppointmentsProvider.notifier).refresh(),
       color: const Color(0xFFe63946),
       child: ListView.builder(
+        controller: _scrollController,
         padding: const EdgeInsets.all(16),
-        itemCount: _appointments!.length,
+        itemCount: state.items.length + (state.isLoading && state.items.isNotEmpty ? 1 : 0),
         itemBuilder: (context, index) {
-          return _buildAppointmentCard(_appointments![index]);
+          if (index == state.items.length) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16),
+                child: CircularProgressIndicator(color: Color(0xFFe63946)),
+              ),
+            );
+          }
+          return _buildAppointmentCard(state.items[index]);
         },
       ),
     );
@@ -289,6 +285,4 @@ class _AppointmentScreenState extends State<AppointmentScreen> {
       ),
     );
   }
-
-  
 }

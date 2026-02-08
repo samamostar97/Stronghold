@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Stronghold.Application.DTOs.UserDTOs;
+using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
@@ -23,7 +23,7 @@ public class RecommendationService : IRecommendationService
         _supplementRepository = supplementRepository;
     }
 
-    public async Task<List<RecommendationDTO>> GetRecommendationsAsync(int userId, int count = 6)
+    public async Task<List<RecommendationResponse>> GetRecommendationsAsync(int userId, int count = 6)
     {
         // 1. Get supplements from delivered orders
         var deliveredOrders = await _orderRepository.AsQueryable()
@@ -44,6 +44,7 @@ public class RecommendationService : IRecommendationService
         {
             foreach (var item in order.OrderItems)
             {
+                if (item.Supplement == null) continue;
                 purchasedSupplementIds.Add(item.SupplementId);
                 purchasedCategoryIds.Add(item.Supplement.SupplementCategoryId);
                 purchasedSupplierIds.Add(item.Supplement.SupplierId);
@@ -65,6 +66,7 @@ public class RecommendationService : IRecommendationService
 
         foreach (var review in highlyRatedReviews)
         {
+            if (review.Supplement == null) continue;
             highlyRatedSupplementIds.Add(review.SupplementId);
             highlyRatedCategoryIds.Add(review.Supplement.SupplementCategoryId);
             highlyRatedSupplierIds.Add(review.Supplement.SupplierId);
@@ -86,27 +88,30 @@ public class RecommendationService : IRecommendationService
             int score = 0;
             var reasons = new List<string>();
 
+            var categoryName = supplement.SupplementCategory?.Name ?? "Nepoznato";
+            var supplierName = supplement.Supplier?.Name ?? "Nepoznato";
+
             // +3 points if same category as a purchased item
             if (purchasedCategoryIds.Contains(supplement.SupplementCategoryId))
             {
                 score += 3;
-                reasons.Add($"Kupovali ste {supplement.SupplementCategory.Name}");
+                reasons.Add($"Kupovali ste {categoryName}");
             }
 
             // +2 points if same supplier as a purchased item
             if (purchasedSupplierIds.Contains(supplement.SupplierId))
             {
                 score += 2;
-                reasons.Add($"Od dobavljaca {supplement.Supplier.Name}");
+                reasons.Add($"Od dobavljaca {supplierName}");
             }
 
             // +2 points if same category as a highly-rated item
             if (highlyRatedCategoryIds.Contains(supplement.SupplementCategoryId))
             {
                 score += 2;
-                if (!reasons.Any(r => r.Contains(supplement.SupplementCategory.Name)))
+                if (!reasons.Any(r => r.Contains(categoryName)))
                 {
-                    reasons.Add($"Visoko ocijenili {supplement.SupplementCategory.Name}");
+                    reasons.Add($"Visoko ocijenili {categoryName}");
                 }
             }
 
@@ -114,9 +119,9 @@ public class RecommendationService : IRecommendationService
             if (highlyRatedSupplierIds.Contains(supplement.SupplierId))
             {
                 score += 1;
-                if (!reasons.Any(r => r.Contains(supplement.Supplier.Name)))
+                if (!reasons.Any(r => r.Contains(supplierName)))
                 {
-                    reasons.Add($"Volite dobavljaca {supplement.Supplier.Name}");
+                    reasons.Add($"Volite dobavljaca {supplierName}");
                 }
             }
 
@@ -151,15 +156,15 @@ public class RecommendationService : IRecommendationService
                 ? x.Supplement.Reviews.Average(r => r.Rating)
                 : 0)
             .Take(count)
-            .Select(x => new RecommendationDTO
+            .Select(x => new RecommendationResponse
             {
                 Id = x.Supplement.Id,
                 Name = x.Supplement.Name,
                 Price = x.Supplement.Price,
                 Description = x.Supplement.Description,
                 ImageUrl = x.Supplement.SupplementImageUrl,
-                CategoryName = x.Supplement.SupplementCategory.Name,
-                SupplierName = x.Supplement.Supplier.Name,
+                CategoryName = x.Supplement.SupplementCategory?.Name ?? string.Empty,
+                SupplierName = x.Supplement.Supplier?.Name ?? string.Empty,
                 AverageRating = x.Supplement.Reviews.Any()
                     ? Math.Round(x.Supplement.Reviews.Average(r => r.Rating), 1)
                     : 0,

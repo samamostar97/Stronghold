@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:stronghold_desktop/services/auth_service.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'package:stronghold_desktop/screens/admin_dashboard_screen.dart';
 
 class LoginScreen extends StatefulWidget {

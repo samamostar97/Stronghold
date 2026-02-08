@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
-import '../services/cart_service.dart';
-import '../services/checkout_service.dart';
+import '../providers/cart_provider.dart';
+import '../providers/checkout_provider.dart';
 import 'order_history_screen.dart';
 
-class CheckoutScreen extends StatefulWidget {
+class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
 
   @override
-  State<CheckoutScreen> createState() => _CheckoutScreenState();
+  ConsumerState<CheckoutScreen> createState() => _CheckoutScreenState();
 }
 
-class _CheckoutScreenState extends State<CheckoutScreen> {
-  final CartService _cartService = CartService();
+class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   bool _isProcessing = false;
   String? _errorMessage;
 
@@ -22,13 +22,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       _errorMessage = null;
     });
 
+    final cartState = ref.read(cartProvider);
+    final cartNotifier = ref.read(cartProvider.notifier);
+    final checkoutNotifier = ref.read(checkoutProvider.notifier);
+
     String? paymentIntentId;
     bool paymentSucceeded = false;
 
     try {
       // Step 1: Create PaymentIntent on backend
-      final checkoutResponse = await CheckoutService.createPaymentIntent(
-        _cartService.items,
+      final checkoutResponse = await checkoutNotifier.createPaymentIntent(
+        cartState.items,
       );
       paymentIntentId = checkoutResponse.paymentIntentId;
 
@@ -45,13 +49,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       paymentSucceeded = true;
 
       // Step 4: Confirm order on backend
-      await CheckoutService.confirmOrder(
+      await checkoutNotifier.confirmOrder(
         checkoutResponse.paymentIntentId,
-        _cartService.items,
+        cartState.items,
       );
 
       // Step 5: Clear cart and navigate to success
-      _cartService.clear();
+      cartNotifier.clear();
 
       if (mounted) {
         setState(() => _isProcessing = false);
@@ -172,7 +176,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final items = _cartService.items;
+    final cartState = ref.watch(cartProvider);
+    final items = cartState.items;
 
     return Scaffold(
       body: Container(
@@ -313,7 +318,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               ),
                             ),
                             Text(
-                              '${_cartService.totalAmount.toStringAsFixed(2)} KM',
+                              '${cartState.totalAmount.toStringAsFixed(2)} KM',
                               style: const TextStyle(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w700,

@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stronghold.Application.DTOs.UserDTOs;
+using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers;
@@ -19,7 +19,7 @@ public class RecommendationController : UserControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<RecommendationDTO>>> GetRecommendations([FromQuery][Range(1, 50)] int count = 6)
+    public async Task<ActionResult<List<RecommendationResponse>>> GetRecommendations([FromQuery][Range(1, 50)] int count = 6)
     {
         var userId = GetCurrentUserId();
         if (userId == null)
