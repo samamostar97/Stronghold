@@ -32,7 +32,7 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
   }
 
   Future<void> _addNutritionist() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => _AddNutritionistDialog(
         onCreate: (request) async {
@@ -43,11 +43,13 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
 
     if (created == true && mounted) {
       showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editNutritionist(NutritionistResponse nutritionist) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditNutritionistDialog(
         nutritionist: nutritionist,
@@ -59,6 +61,8 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
 
     if (updated == true && mounted) {
       showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -153,6 +157,7 @@ class _NutritionistsTable extends StatelessWidget {
       itemCount: nutritionists.length,
       itemBuilder: (context, i) => _NutritionistRow(
         nutritionist: nutritionists[i],
+        index: i,
         isLast: i == nutritionists.length - 1,
         onEdit: () => onEdit(nutritionists[i]),
         onDelete: () => onDelete(nutritionists[i]),
@@ -164,12 +169,14 @@ class _NutritionistsTable extends StatelessWidget {
 class _NutritionistRow extends StatelessWidget {
   const _NutritionistRow({
     required this.nutritionist,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final NutritionistResponse nutritionist;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -178,22 +185,20 @@ class _NutritionistRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
-          TableDataCell(text: nutritionist.firstName, flex: _Flex.firstName),
-          TableDataCell(text: nutritionist.lastName, flex: _Flex.lastName),
-          TableDataCell(text: nutritionist.email, flex: _Flex.email),
-          TableDataCell(text: nutritionist.phoneNumber, flex: _Flex.phone),
-          Expanded(
+          TableDataCell(text: nutritionist.firstName, flex: _Flex.firstName, bold: true),
+          TableDataCell(text: nutritionist.lastName, flex: _Flex.lastName, bold: true),
+          TableDataCell(text: nutritionist.email, flex: _Flex.email, muted: true),
+          TableDataCell(text: nutritionist.phoneNumber, flex: _Flex.phone, muted: true),
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -251,14 +256,8 @@ class _AddNutritionistDialogState extends State<_AddNutritionistDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'create-nutritionist');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        final errorMessage = ErrorHandler.getContextualMessage(e, 'create-nutritionist');
+        Navigator.of(context).pop(errorMessage);
       }
     }
   }
@@ -447,14 +446,8 @@ class _EditNutritionistDialogState extends State<_EditNutritionistDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'update-nutritionist');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        final errorMessage = ErrorHandler.getContextualMessage(e, 'update-nutritionist');
+        Navigator.of(context).pop(errorMessage);
       }
     }
   }

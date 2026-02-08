@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_theme.dart';
 
 /// Reusable header cell for data tables
 class TableHeaderCell extends StatelessWidget {
@@ -19,12 +20,13 @@ class TableHeaderCell extends StatelessWidget {
     return Expanded(
       flex: flex,
       child: Text(
-        text,
+        text.toUpperCase(),
         textAlign: alignRight ? TextAlign.right : TextAlign.left,
         style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+          color: AppColors.muted,
         ),
       ),
     );
@@ -37,10 +39,14 @@ class TableDataCell extends StatelessWidget {
     super.key,
     required this.text,
     required this.flex,
+    this.bold = false,
+    this.muted = false,
   });
 
   final String text;
   final int flex;
+  final bool bold;
+  final bool muted;
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +54,11 @@ class TableDataCell extends StatelessWidget {
       flex: flex,
       child: Text(
         text,
-        style: const TextStyle(fontSize: 14, color: Colors.white),
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.normal,
+          color: muted ? AppColors.muted : AppColors.textPrimary,
+        ),
         overflow: TextOverflow.ellipsis,
       ),
     );
@@ -76,6 +86,7 @@ class DataTableContainer extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.panel,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: AppShadows.cardShadow,
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -85,9 +96,40 @@ class DataTableContainer extends StatelessWidget {
             if (itemCount == 0)
               Expanded(
                 child: Center(
-                  child: Text(
-                    emptyMessage,
-                    style: TextStyle(color: Colors.white.withValues(alpha: 0.85)),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: AppColors.muted.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.inbox_outlined,
+                          size: 36,
+                          color: AppColors.muted.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        emptyMessage,
+                        style: const TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Pokusajte promijeniti filtere ili dodajte novi zapis',
+                        style: TextStyle(
+                          color: AppColors.muted.withValues(alpha: 0.7),
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               )
@@ -111,10 +153,16 @@ class HoverableTableRow extends StatefulWidget {
     super.key,
     required this.child,
     this.isLast = false,
+    this.index,
+    this.activeAccentColor,
   });
 
   final Widget child;
   final bool isLast;
+  final int? index;
+
+  /// When set, shows a persistent left accent bar in this color (e.g. green for active status).
+  final Color? activeAccentColor;
 
   @override
   State<HoverableTableRow> createState() => _HoverableTableRowState();
@@ -123,20 +171,65 @@ class HoverableTableRow extends StatefulWidget {
 class _HoverableTableRowState extends State<HoverableTableRow> {
   bool _hover = false;
 
+  bool get _hasActiveAccent => widget.activeAccentColor != null;
+
+  Color get _backgroundColor {
+    if (_hover) return AppColors.surfaceHover;
+    if (_hasActiveAccent) {
+      return widget.activeAccentColor!.withValues(alpha: 0.04);
+    }
+    if (widget.index != null && widget.index!.isOdd) {
+      return AppColors.panel.withValues(alpha: 0.15);
+    }
+    return Colors.transparent;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final showBar = _hover || _hasActiveAccent;
+    final barColor = _hover
+        ? null // use gradient on hover
+        : widget.activeAccentColor;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
         decoration: BoxDecoration(
-          color: _hover ? AppColors.panel.withValues(alpha: 0.5) : Colors.transparent,
+          color: _backgroundColor,
+          borderRadius: _hover ? BorderRadius.circular(6) : BorderRadius.zero,
           border: widget.isLast
               ? null
               : const Border(bottom: BorderSide(color: AppColors.border)),
         ),
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
-        child: widget.child,
+        child: Row(
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              width: showBar ? 3 : 0,
+              height: 32,
+              decoration: BoxDecoration(
+                color: barColor,
+                gradient: _hover
+                    ? const LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppColors.accent, AppColors.accentLight],
+                      )
+                    : null,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                child: widget.child,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -154,7 +247,7 @@ class TableHeader extends StatelessWidget {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       child: child,
     );
   }

@@ -32,7 +32,7 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
   }
 
   Future<void> _addFaq() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => _AddFaqDialog(
         onCreate: (request) async {
@@ -43,11 +43,13 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
 
     if (created == true && mounted) {
       showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editFaq(FaqResponse faq) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditFaqDialog(
         faq: faq,
@@ -59,6 +61,8 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
 
     if (updated == true && mounted) {
       showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -147,6 +151,7 @@ class _FaqTable extends StatelessWidget {
       itemCount: faqs.length,
       itemBuilder: (context, i) => _FaqRow(
         faq: faqs[i],
+        index: i,
         isLast: i == faqs.length - 1,
         onEdit: () => onEdit(faqs[i]),
         onDelete: () => onDelete(faqs[i]),
@@ -158,12 +163,14 @@ class _FaqTable extends StatelessWidget {
 class _FaqRow extends StatelessWidget {
   const _FaqRow({
     required this.faq,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final FaqResponse faq;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -172,6 +179,7 @@ class _FaqRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
           Expanded(
@@ -180,7 +188,7 @@ class _FaqRow extends StatelessWidget {
               message: faq.question,
               child: Text(
                 faq.question,
-                style: const TextStyle(fontSize: 14, color: Colors.white),
+                style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 2,
               ),
@@ -198,16 +206,13 @@ class _FaqRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -259,19 +264,7 @@ class _AddFaqDialogState extends State<_AddFaqDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(false);
-        final errorMessage = ErrorHandler.getContextualMessage(e, 'create-faq');
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(
-            context,
-            message: errorMessage,
-          );
-        }
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'create-faq'));
       }
     }
   }
@@ -415,19 +408,7 @@ class _EditFaqDialogState extends State<_EditFaqDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(false);
-        final errorMessage = ErrorHandler.getContextualMessage(e, 'update-faq');
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(
-            context,
-            message: errorMessage,
-          );
-        }
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'update-faq'));
       }
     }
   }

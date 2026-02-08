@@ -55,7 +55,7 @@ class ListState<T, TFilter extends BaseQueryFilter> {
   }
 
   // Convenience getters
-  List<T> get items => data?.items ?? [];
+  List<T> get items => data?.items ?? <T>[];
   int get totalCount => data?.totalCount ?? 0;
   int get currentPage => filter.pageNumber;
   int get pageSize => filter.pageSize;

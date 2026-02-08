@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_theme.dart';
 import '../providers/list_state.dart';
 import '../utils/debouncer.dart';
 import 'gradient_button.dart';
 import 'pagination_controls.dart';
 import 'search_input.dart';
+import 'shimmer_loading.dart';
 
 /// Sort option for dropdown
 class SortOption {
@@ -32,6 +34,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter> extends ConsumerState
     this.searchHint = 'Pretraži...',
     this.addButtonText = '+ Dodaj',
     this.sortOptions = const [],
+    this.loadingColumnFlex,
   });
 
   final String title;
@@ -45,6 +48,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter> extends ConsumerState
   final String searchHint;
   final String addButtonText;
   final List<SortOption> sortOptions;
+  final List<int>? loadingColumnFlex;
 
   @override
   ConsumerState<CrudListScaffold<T, TFilter>> createState() => _CrudListScaffoldState<T, TFilter>();
@@ -98,6 +102,8 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
             decoration: BoxDecoration(
               color: AppColors.card,
               borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+              boxShadow: AppShadows.cardShadow,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -204,8 +210,8 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
 
   Widget _buildContent(BoxConstraints constraints) {
     if (widget.state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.accent),
+      return ShimmerTable(
+        columnFlex: widget.loadingColumnFlex ?? const [2, 3, 2, 2],
       );
     }
 

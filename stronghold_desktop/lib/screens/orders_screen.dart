@@ -12,11 +12,10 @@ import '../widgets/error_animation.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/pagination_controls.dart';
 import '../widgets/search_input.dart';
+import '../widgets/shimmer_loading.dart';
 import '../widgets/small_button.dart';
+import '../widgets/status_pill.dart';
 import '../widgets/success_animation.dart';
-
-// Local color extension for success color not in shared AppColors
-const _successColor = Color(0xFF2ECC71);
 
 /// Refactored Orders Screen using Riverpod + generic patterns
 /// Old: ~1,076 LOC | New: ~400 LOC (63% reduction)
@@ -216,9 +215,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     BoxConstraints constraints,
   ) {
     if (state.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.accent),
-      );
+      return const ShimmerTable(columnFlex: [1, 3, 2, 2, 2, 2]);
     }
 
     if (state.error != null) {
@@ -304,6 +301,7 @@ class _OrdersTable extends StatelessWidget {
       itemCount: orders.length,
       itemBuilder: (context, i) => _OrderRow(
         order: orders[i],
+        index: i,
         isLast: i == orders.length - 1,
         onViewDetails: () => onViewDetails(orders[i]),
       ),
@@ -314,11 +312,13 @@ class _OrdersTable extends StatelessWidget {
 class _OrderRow extends StatelessWidget {
   const _OrderRow({
     required this.order,
+    required this.index,
     required this.isLast,
     required this.onViewDetails,
   });
 
   final OrderResponse order;
+  final int index;
   final bool isLast;
   final VoidCallback onViewDetails;
 
@@ -330,19 +330,11 @@ class _OrderRow extends StatelessWidget {
     return '${amount.toStringAsFixed(2)} KM';
   }
 
-  Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.processing:
-        return AppColors.editBlue;
-      case OrderStatus.delivered:
-        return _successColor;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
           TableDataCell(text: '#${order.id}', flex: _Flex.orderId),
@@ -353,7 +345,7 @@ class _OrderRow extends StatelessWidget {
               children: [
                 Text(
                   order.userFullName,
-                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                  style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
@@ -364,59 +356,28 @@ class _OrderRow extends StatelessWidget {
               ],
             ),
           ),
-          TableDataCell(text: _formatCurrency(order.totalAmount), flex: _Flex.total),
+          TableDataCell(text: _formatCurrency(order.totalAmount), flex: _Flex.total, muted: true),
           TableDataCell(text: _formatDate(order.purchaseDate), flex: _Flex.date),
           Expanded(
             flex: _Flex.status,
-            child: _StatusBadge(
-              status: order.status,
-              color: _getStatusColor(order.status),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: order.status == OrderStatus.delivered
+                  ? StatusPill.delivered()
+                  : StatusPill.pending(),
             ),
           ),
-          Expanded(
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(
-                  text: 'Detalji',
-                  color: AppColors.editBlue,
-                  onTap: onViewDetails,
-                ),
-              ],
-            ),
+            children: [
+              SmallButton(
+                text: 'Detalji',
+                color: AppColors.editBlue,
+                onTap: onViewDetails,
+              ),
+            ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.status, required this.color});
-
-  final OrderStatus status;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.5)),
-        ),
-        child: Text(
-          status.displayName,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: color,
-          ),
-        ),
       ),
     );
   }
@@ -441,15 +402,6 @@ class _OrderDetailsDialog extends StatelessWidget {
 
   String _formatCurrency(double amount) {
     return '${amount.toStringAsFixed(2)} KM';
-  }
-
-  Color _getStatusColor(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.processing:
-        return AppColors.editBlue;
-      case OrderStatus.delivered:
-        return _successColor;
-    }
   }
 
   @override
@@ -479,10 +431,9 @@ class _OrderDetailsDialog extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  _StatusBadge(
-                    status: order.status,
-                    color: _getStatusColor(order.status),
-                  ),
+                  order.status == OrderStatus.delivered
+                      ? StatusPill.delivered()
+                      : StatusPill.pending(),
                   const Spacer(),
                   IconButton(
                     icon: const Icon(Icons.close, color: AppColors.muted),
@@ -649,7 +600,7 @@ class _OrderDetailsDialog extends StatelessWidget {
                       icon: const Icon(Icons.check, size: 18),
                       label: const Text('Oznaci kao dostavljeno'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _successColor,
+                        backgroundColor: AppColors.success,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),

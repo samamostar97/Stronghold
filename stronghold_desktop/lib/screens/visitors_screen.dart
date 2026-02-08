@@ -72,15 +72,16 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
   }
 
   Future<void> _openCheckInDialog() async {
-    final result = await showDialog<bool>(
+    final result = await showDialog<Object?>(
       context: context,
       builder: (ctx) => const _CheckInDialog(),
     );
 
     if (result == true && mounted) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) showSuccessAnimation(context);
+      showSuccessAnimation(context);
       ref.read(currentVisitorsProvider.notifier).load();
+    } else if (result is String && mounted) {
+      showErrorAnimation(context, message: result);
     }
   }
 
@@ -598,7 +599,7 @@ class _CheckInDialogState extends ConsumerState<_CheckInDialog> {
       final state = ref.read(userListProvider);
       if (mounted) {
         setState(() {
-          _searchResults = state.data?.items ?? [];
+          _searchResults = state.data?.items ?? <UserResponse>[];
           _searching = false;
         });
       }
@@ -619,11 +620,7 @@ class _CheckInDialogState extends ConsumerState<_CheckInDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context, false);
-        showErrorAnimation(
-          context,
-          message: e.toString().replaceFirst('Exception: ', ''),
-        );
+        Navigator.pop(context, e.toString().replaceFirst('Exception: ', ''));
       }
     }
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
@@ -7,6 +8,7 @@ import '../widgets/back_button.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/hover_icon_button.dart';
 import '../widgets/shared_admin_header.dart';
+import '../widgets/shimmer_loading.dart';
 
 /// Refactored Leaderboard Screen using Riverpod
 class LeaderboardScreen extends ConsumerWidget {
@@ -124,8 +126,9 @@ class LeaderboardScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Expanded(
             child: leaderboardAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.accent),
+              loading: () => const ShimmerTable(
+                columnFlex: [1, 4, 2, 2],
+                rowCount: 10,
               ),
               error: (error, _) => Center(
                 child: Column(
@@ -213,7 +216,19 @@ class _LeaderboardTable extends StatelessWidget {
                   itemBuilder: (context, i) => _LeaderboardTableRow(
                     entry: entries[i],
                     isLast: i == entries.length - 1,
-                  ),
+                  )
+                      .animate()
+                      .fadeIn(
+                        duration: 300.ms,
+                        delay: (50 * i).ms,
+                      )
+                      .slideY(
+                        begin: 0.1,
+                        end: 0,
+                        duration: 300.ms,
+                        delay: (50 * i).ms,
+                        curve: Curves.easeOut,
+                      ),
                 ),
               ),
           ],
@@ -298,23 +313,21 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
     }
   }
 
-  String _getRankEmoji(int rank) {
+  IconData? _getRankIcon(int rank) {
     switch (rank) {
       case 1:
-        return '🥇';
       case 2:
-        return '🥈';
       case 3:
-        return '🥉';
+        return Icons.emoji_events;
       default:
-        return '';
+        return null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final rankColor = _getRankColor(widget.entry.rank);
-    final rankEmoji = _getRankEmoji(widget.entry.rank);
+    final rankIcon = _getRankIcon(widget.entry.rank);
 
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
@@ -332,21 +345,26 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
             // Rank
             Expanded(
               flex: _TableFlex.rank,
-              child: Row(
-                children: [
-                  if (rankEmoji.isNotEmpty) ...[
-                    Text(rankEmoji, style: const TextStyle(fontSize: 18)),
-                    const SizedBox(width: 8),
-                  ],
-                  Text(
-                    '#${widget.entry.rank}',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: rankColor,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (rankIcon != null) ...[
+                      Icon(rankIcon, color: rankColor, size: 20),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      '#${widget.entry.rank}',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: rankColor,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             // User
@@ -393,20 +411,24 @@ class _LeaderboardTableRowState extends State<_LeaderboardTableRow> {
             // Level
             Expanded(
               flex: _TableFlex.level,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Level ${widget.entry.level}',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.accent,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  textAlign: TextAlign.center,
+                  child: Text(
+                    'Level ${widget.entry.level}',
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.accent,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                 ),
               ),
             ),

@@ -1,49 +1,69 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_theme.dart';
 
-/// A reusable error animation widget that displays an animated red X
-/// in a circular container with an error message.
-///
-/// Usage:
-/// ```dart
-/// showErrorAnimation(
-///   context,
-///   message: 'Check-out neuspješan',
-/// );
-/// ```
-class ErrorAnimation extends StatefulWidget {
-  final String message;
-
-  const ErrorAnimation({
-    super.key,
-    required this.message,
-  });
-
-  @override
-  State<ErrorAnimation> createState() => _ErrorAnimationState();
+/// Error toast that slides in from the top-right with a shake effect.
+/// Uses showDialog so it's dismissible via close button.
+void showErrorAnimation(BuildContext context, {required String message}) {
+  showDialog(
+    context: context,
+    barrierColor: Colors.transparent,
+    barrierDismissible: true,
+    builder: (_) => _ErrorToast(message: message),
+  );
 }
 
-class _ErrorAnimationState extends State<ErrorAnimation>
+class _ErrorToast extends StatefulWidget {
+  const _ErrorToast({required this.message});
+
+  final String message;
+
+  @override
+  State<_ErrorToast> createState() => _ErrorToastState();
+}
+
+class _ErrorToastState extends State<_ErrorToast>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _xAnimation;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _shakeAnimation;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 600),
+      duration: const Duration(milliseconds: 2000),
       vsync: this,
     );
 
-    _scaleAnimation = CurvedAnimation(
+    // Slide in from right (0-300ms)
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(1.2, 0),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
       parent: _controller,
-      curve: Curves.elasticOut,
+      curve: const Interval(0, 0.15, curve: Curves.easeOutCubic),
+    ));
+
+    // Fade in (0-200ms)
+    _fadeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0, 0.1, curve: Curves.easeOut),
     );
 
-    _xAnimation = CurvedAnimation(
+    // Shake effect (300-700ms) - 3 oscillations
+    _shakeAnimation = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+      curve: const Interval(0.15, 0.35, curve: Curves.easeOut),
+    );
+
+    // Subtle pulse on the icon (loops via sin)
+    _pulseAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.35, 1.0, curve: Curves.linear),
     );
 
     _controller.forward();
@@ -55,162 +75,115 @@ class _ErrorAnimationState extends State<ErrorAnimation>
     super.dispose();
   }
 
+  double _shakeOffset(double value) {
+    if (value <= 0) return 0;
+    // Damped sine wave: 3 oscillations, decaying amplitude
+    return math.sin(value * math.pi * 6) * 6 * (1 - value);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 400),
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        child: Material(
-          color: Colors.transparent,
-          child: ScaleTransition(
-            scale: _scaleAnimation,
-            child: Container(
-              padding: const EdgeInsets.all(32),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2A2D3E),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.3),
-                    blurRadius: 20,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Animated X in circle
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF5757),
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFFF5757).withValues(alpha: 0.4),
-                          blurRadius: 30,
-                          spreadRadius: 10,
-                        ),
-                      ],
-                    ),
-                    child: AnimatedBuilder(
-                      animation: _xAnimation,
-                      builder: (context, child) {
-                        return CustomPaint(
-                          painter: XMarkPainter(progress: _xAnimation.value),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(height: 24),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final shake = _shakeOffset(_shakeAnimation.value);
+        final pulse = 1.0 + math.sin(_pulseAnimation.value * math.pi * 2) * 0.03;
 
-                  // Error message
-                  Text(
-                    widget.message,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Close button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF5757),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+        return Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 24, right: 24),
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: FadeTransition(
+                opacity: _fadeAnimation,
+                child: Transform.translate(
+                  offset: Offset(shake, 0),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 400),
+                      padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: BorderRadius.circular(AppRadius.medium),
+                        border: Border.all(
+                          color: AppColors.accent.withValues(alpha: 0.4),
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.accent.withValues(alpha: 0.12),
+                            blurRadius: 24,
+                            offset: const Offset(0, 4),
+                          ),
+                          ...AppShadows.elevatedShadow,
+                        ],
                       ),
-                      child: const Text(
-                        'U redu',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Error icon with pulse
+                          Transform.scale(
+                            scale: pulse,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: AppColors.accent.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(AppRadius.small),
+                              ),
+                              child: const Icon(
+                                Icons.error_outline_rounded,
+                                color: AppColors.accent,
+                                size: 22,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          // Title + message
+                          Expanded(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Greska',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  widget.message,
+                                  style: TextStyle(
+                                    color: Colors.white.withValues(alpha: 0.7),
+                                    fontSize: 13,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Close button
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(Icons.close, size: 18),
+                            color: AppColors.muted,
+                            splashRadius: 16,
+                          ),
+                        ],
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
-}
-
-class XMarkPainter extends CustomPainter {
-  final double progress;
-
-  XMarkPainter({required this.progress});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = 20.0;
-
-    // First line of X (top-left to bottom-right)
-    if (progress < 0.5) {
-      final t = progress * 2;
-      final path1 = Path();
-      path1.moveTo(center.dx - radius, center.dy - radius);
-      path1.lineTo(
-        center.dx - radius + (radius * 2 * t),
-        center.dy - radius + (radius * 2 * t),
-      );
-      canvas.drawPath(path1, paint);
-    } else {
-      // Complete first line
-      final path1 = Path();
-      path1.moveTo(center.dx - radius, center.dy - radius);
-      path1.lineTo(center.dx + radius, center.dy + radius);
-      canvas.drawPath(path1, paint);
-
-      // Second line of X (top-right to bottom-left)
-      final t = (progress - 0.5) * 2;
-      final path2 = Path();
-      path2.moveTo(center.dx + radius, center.dy - radius);
-      path2.lineTo(
-        center.dx + radius - (radius * 2 * t),
-        center.dy - radius + (radius * 2 * t),
-      );
-      canvas.drawPath(path2, paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(XMarkPainter oldDelegate) {
-    return oldDelegate.progress != progress;
-  }
-}
-
-/// Helper function to show the error animation dialog
-void showErrorAnimation(
-  BuildContext context, {
-  required String message,
-}) {
-  showDialog(
-    context: context,
-    barrierColor: Colors.black.withValues(alpha: 0.5),
-    barrierDismissible: false,
-    builder: (context) => ErrorAnimation(message: message),
-  );
 }

@@ -32,7 +32,7 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
   }
 
   Future<void> _addSupplier() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => _AddSupplierDialog(
         onCreate: (request) async {
@@ -43,11 +43,13 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
 
     if (created == true && mounted) {
       showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editSupplier(SupplierResponse supplier) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditSupplierDialog(
         supplier: supplier,
@@ -59,6 +61,8 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
 
     if (updated == true && mounted) {
       showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -148,6 +152,7 @@ class _SuppliersTable extends StatelessWidget {
       itemCount: suppliers.length,
       itemBuilder: (context, i) => _SupplierRow(
         supplier: suppliers[i],
+        index: i,
         isLast: i == suppliers.length - 1,
         onEdit: () => onEdit(suppliers[i]),
         onDelete: () => onDelete(suppliers[i]),
@@ -159,12 +164,14 @@ class _SuppliersTable extends StatelessWidget {
 class _SupplierRow extends StatelessWidget {
   const _SupplierRow({
     required this.supplier,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final SupplierResponse supplier;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -173,20 +180,18 @@ class _SupplierRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
-          TableDataCell(text: supplier.name, flex: _Flex.name),
-          TableDataCell(text: supplier.website ?? '-', flex: _Flex.website),
-          Expanded(
+          TableDataCell(text: supplier.name, flex: _Flex.name, bold: true),
+          TableDataCell(text: supplier.website ?? '-', flex: _Flex.website, muted: true),
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -241,14 +246,7 @@ class _AddSupplierDialogState extends State<_AddSupplierDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'create-supplier');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'create-supplier'));
       }
     }
   }
@@ -399,14 +397,7 @@ class _EditSupplierDialogState extends State<_EditSupplierDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'update-supplier');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'update-supplier'));
       }
     }
   }

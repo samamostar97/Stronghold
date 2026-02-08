@@ -349,18 +349,15 @@ class _ReviewRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(
-                  text: 'Obriši',
-                  color: AppColors.accent,
-                  onTap: onDelete,
-                ),
-              ],
-            ),
+            children: [
+              SmallButton(
+                text: 'Obriši',
+                color: AppColors.accent,
+                onTap: onDelete,
+              ),
+            ],
           ),
         ],
       ),

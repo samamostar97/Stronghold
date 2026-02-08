@@ -35,26 +35,28 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
   }
 
   Future<void> _addSupplement() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => const _AddSupplementDialog(),
     );
 
     if (created == true && mounted) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) showSuccessAnimation(context);
+      showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editSupplement(SupplementResponse supplement) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditSupplementDialog(supplement: supplement),
     );
 
     if (updated == true && mounted) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) showSuccessAnimation(context);
+      showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -151,6 +153,7 @@ class _SupplementsTable extends StatelessWidget {
       itemCount: supplements.length,
       itemBuilder: (context, i) => _SupplementRow(
         supplement: supplements[i],
+        index: i,
         isLast: i == supplements.length - 1,
         onEdit: () => onEdit(supplements[i]),
         onDelete: () => onDelete(supplements[i]),
@@ -162,12 +165,14 @@ class _SupplementsTable extends StatelessWidget {
 class _SupplementRow extends StatelessWidget {
   const _SupplementRow({
     required this.supplement,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final SupplementResponse supplement;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -176,26 +181,24 @@ class _SupplementRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
           Expanded(
             flex: _Flex.image,
             child: _SupplementImage(imageUrl: supplement.imageUrl),
           ),
-          TableDataCell(text: supplement.name, flex: _Flex.name),
+          TableDataCell(text: supplement.name, flex: _Flex.name, bold: true),
           TableDataCell(text: '${supplement.price.toStringAsFixed(2)} KM', flex: _Flex.price),
-          TableDataCell(text: supplement.supplementCategoryName ?? '-', flex: _Flex.category),
-          TableDataCell(text: supplement.supplierName ?? '-', flex: _Flex.supplier),
-          Expanded(
+          TableDataCell(text: supplement.supplementCategoryName ?? '-', flex: _Flex.category, muted: true),
+          TableDataCell(text: supplement.supplierName ?? '-', flex: _Flex.supplier, muted: true),
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obriši', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obriši', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -309,12 +312,7 @@ class _AddSupplementDialogState extends ConsumerState<_AddSupplementDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: ErrorHandler.getContextualMessage(e, 'add-supplement'));
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'add-supplement'));
       }
     }
   }
@@ -608,12 +606,7 @@ class _EditSupplementDialogState extends ConsumerState<_EditSupplementDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: ErrorHandler.getContextualMessage(e, 'edit-supplement'));
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'edit-supplement'));
       }
     }
   }

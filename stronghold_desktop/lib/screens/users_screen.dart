@@ -35,26 +35,28 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   }
 
   Future<void> _addUser() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => const _AddUserDialog(),
     );
 
     if (created == true && mounted) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) showSuccessAnimation(context);
+      showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editUser(UserResponse user) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditUserDialog(user: user),
     );
 
     if (updated == true && mounted) {
-      await Future.delayed(const Duration(milliseconds: 100));
-      if (mounted) showSuccessAnimation(context);
+      showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -153,6 +155,7 @@ class _UsersTable extends StatelessWidget {
       itemCount: users.length,
       itemBuilder: (context, i) => _UserRow(
         user: users[i],
+        index: i,
         isLast: i == users.length - 1,
         onEdit: () => onEdit(users[i]),
         onDelete: () => onDelete(users[i]),
@@ -164,12 +167,14 @@ class _UsersTable extends StatelessWidget {
 class _UserRow extends StatelessWidget {
   const _UserRow({
     required this.user,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final UserResponse user;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -178,6 +183,7 @@ class _UserRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
           Expanded(
@@ -210,11 +216,11 @@ class _UserRow extends StatelessWidget {
               ),
             ),
           ),
-          TableDataCell(text: user.username, flex: _Flex.username),
+          TableDataCell(text: user.username, flex: _Flex.username, bold: true),
           TableDataCell(text: user.firstName, flex: _Flex.firstName),
           TableDataCell(text: user.lastName, flex: _Flex.lastName),
-          TableDataCell(text: user.email, flex: _Flex.email),
-          TableDataCell(text: user.phoneNumber, flex: _Flex.phone),
+          TableDataCell(text: user.email, flex: _Flex.email, muted: true),
+          TableDataCell(text: user.phoneNumber, flex: _Flex.phone, muted: true),
           TableActionCell(
             flex: _Flex.actions,
             children: [
@@ -285,12 +291,7 @@ class _AddUserDialogState extends ConsumerState<_AddUserDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: ErrorHandler.getContextualMessage(e, 'add-user'));
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'add-user'));
       }
     }
   }
@@ -522,12 +523,7 @@ class _EditUserDialogState extends ConsumerState<_EditUserDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: ErrorHandler.getContextualMessage(e, 'edit-user'));
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'edit-user'));
       }
     }
   }

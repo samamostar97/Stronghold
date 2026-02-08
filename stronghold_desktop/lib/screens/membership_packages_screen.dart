@@ -12,6 +12,7 @@ import '../widgets/confirm_dialog.dart';
 import '../widgets/dialog_text_field.dart';
 import '../utils/error_handler.dart';
 import '../utils/validators.dart';
+import '../widgets/status_pill.dart';
 
 /// Refactored Membership Packages Screen using Riverpod + generic patterns
 class MembershipPackagesScreen extends ConsumerStatefulWidget {
@@ -32,7 +33,7 @@ class _MembershipPackagesScreenState extends ConsumerState<MembershipPackagesScr
   }
 
   Future<void> _addPackage() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => _AddPackageDialog(
         onCreate: (request) async {
@@ -43,11 +44,13 @@ class _MembershipPackagesScreenState extends ConsumerState<MembershipPackagesScr
 
     if (created == true && mounted) {
       showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editPackage(MembershipPackageResponse package) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditPackageDialog(
         package: package,
@@ -59,6 +62,8 @@ class _MembershipPackagesScreenState extends ConsumerState<MembershipPackagesScr
 
     if (updated == true && mounted) {
       showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -153,6 +158,7 @@ class _PackagesTable extends StatelessWidget {
       itemCount: packages.length,
       itemBuilder: (context, i) => _PackageRow(
         package: packages[i],
+        index: i,
         isLast: i == packages.length - 1,
         onEdit: () => onEdit(packages[i]),
         onDelete: () => onDelete(packages[i]),
@@ -164,12 +170,14 @@ class _PackagesTable extends StatelessWidget {
 class _PackageRow extends StatelessWidget {
   const _PackageRow({
     required this.package,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final MembershipPackageResponse package;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -178,58 +186,32 @@ class _PackageRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
-          TableDataCell(text: package.packageName ?? '-', flex: _Flex.name),
+          TableDataCell(text: package.packageName ?? '-', flex: _Flex.name, bold: true),
           TableDataCell(text: '${package.packagePrice.toStringAsFixed(2)} KM', flex: _Flex.price),
           TableDataCell(
             text: (package.description?.isEmpty ?? true) ? '-' : package.description!,
             flex: _Flex.description,
+            muted: true,
           ),
           Expanded(
             flex: _Flex.status,
-            child: _StatusBadge(isActive: package.isActive),
-          ),
-          Expanded(
-            flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: package.isActive ? StatusPill.active() : StatusPill.inactive(),
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.isActive});
-
-  final bool isActive;
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: isActive ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
-          borderRadius: BorderRadius.circular(4),
-        ),
-        child: Text(
-          isActive ? 'Aktivan' : 'Neaktivan',
-          style: TextStyle(
-            color: isActive ? Colors.green : Colors.red,
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
+          TableActionCell(
+            flex: _Flex.actions,
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
-        ),
+        ],
       ),
     );
   }
@@ -284,13 +266,8 @@ class _AddPackageDialogState extends State<_AddPackageDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        String errorMessage = ErrorHandler.getContextualMessage(e, 'add-package');
-        Navigator.of(context).pop(false);
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: errorMessage);
-        }
+        final errorMessage = ErrorHandler.getContextualMessage(e, 'add-package');
+        Navigator.of(context).pop(errorMessage);
       }
     }
   }
@@ -454,13 +431,8 @@ class _EditPackageDialogState extends State<_EditPackageDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        String errorMessage = ErrorHandler.getContextualMessage(e, 'edit-package');
-        Navigator.of(context).pop(false);
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: errorMessage);
-        }
+        final errorMessage = ErrorHandler.getContextualMessage(e, 'edit-package');
+        Navigator.of(context).pop(errorMessage);
       }
     }
   }

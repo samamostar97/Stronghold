@@ -223,20 +223,15 @@ namespace Stronghold.Infrastructure.Services
 
             var salesDict = salesData.ToDictionary(x => x.SupplementId, x => x.QuantitySold);
 
-            // Count products with <= 2 sales (slow moving)
-            var slowMovingCount = await _context.Supplements
-                .AsNoTracking()
-                .Where(s => !s.IsDeleted)
-                .CountAsync(s => !salesDict.ContainsKey(s.Id) || salesDict[s.Id] <= 2);
-
-            // Actually we need to count in memory since EF can't handle the dictionary
+            // Count products with <= 2 sales (slow moving) - done in memory
+            // because EF Core can't translate Dictionary.ContainsKey to SQL
             var allProductIds = await _context.Supplements
                 .AsNoTracking()
                 .Where(s => !s.IsDeleted)
                 .Select(s => s.Id)
                 .ToListAsync();
 
-            slowMovingCount = allProductIds.Count(id => !salesDict.ContainsKey(id) || salesDict[id] <= 2);
+            var slowMovingCount = allProductIds.Count(id => !salesDict.ContainsKey(id) || salesDict[id] <= 2);
 
             return new InventorySummaryResponse
             {

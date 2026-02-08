@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:stronghold_desktop/screens/business_report_screen.dart';
 import 'package:stronghold_desktop/screens/visitors_screen.dart';
 import 'package:stronghold_desktop/screens/supplements_screen.dart';
@@ -14,12 +15,16 @@ import 'package:stronghold_desktop/screens/seminars_screen.dart';
 import 'package:stronghold_desktop/screens/membership_packages_screen.dart';
 import 'package:stronghold_desktop/screens/memberships_screen.dart';
 import 'package:stronghold_desktop/screens/leaderboard_screen.dart';
+import 'package:stronghold_desktop/screens/dashboard_home_screen.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'package:stronghold_desktop/screens/login_screen.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_theme.dart';
+import '../widgets/command_palette.dart';
 
 /// Enum representing all available admin screens
 enum AdminScreen {
+  dashboardHome,
   currentVisitors,
   memberships,
   membershipPackages,
@@ -37,7 +42,10 @@ enum AdminScreen {
   leaderboard,
 }
 
-/// Navigation item data for the sidebar
+// ─────────────────────────────────────────────────────────────────────────────
+// NAVIGATION DATA
+// ─────────────────────────────────────────────────────────────────────────────
+
 class _NavItemData {
   final AdminScreen screen;
   final IconData icon;
@@ -50,84 +58,128 @@ class _NavItemData {
   });
 }
 
-/// All navigation items in order
-const List<_NavItemData> _navItems = [
-  _NavItemData(
-    screen: AdminScreen.currentVisitors,
-    icon: Icons.directions_run,
-    label: 'Trenutno u teretani',
+class _NavGroup {
+  final String? label;
+  final List<_NavItemData> items;
+
+  const _NavGroup({this.label, required this.items});
+}
+
+const List<_NavGroup> _navGroups = [
+  _NavGroup(
+    items: [
+      _NavItemData(
+        screen: AdminScreen.dashboardHome,
+        icon: Icons.space_dashboard,
+        label: 'Kontrolna ploca',
+      ),
+    ],
   ),
-  _NavItemData(
-    screen: AdminScreen.memberships,
-    icon: Icons.card_membership,
-    label: 'Članarine',
+  _NavGroup(
+    label: 'UPRAVLJANJE',
+    items: [
+      _NavItemData(
+        screen: AdminScreen.currentVisitors,
+        icon: Icons.directions_run,
+        label: 'Trenutno u teretani',
+      ),
+      _NavItemData(
+        screen: AdminScreen.memberships,
+        icon: Icons.card_membership,
+        label: 'Clanarine',
+      ),
+      _NavItemData(
+        screen: AdminScreen.membershipPackages,
+        icon: Icons.inventory_2,
+        label: 'Paketi clanarina',
+      ),
+      _NavItemData(
+        screen: AdminScreen.users,
+        icon: Icons.people,
+        label: 'Korisnici',
+      ),
+    ],
   ),
-  _NavItemData(
-    screen: AdminScreen.membershipPackages,
-    icon: Icons.inventory_2,
-    label: 'Paketi članarina',
+  _NavGroup(
+    label: 'OSOBLJE',
+    items: [
+      _NavItemData(
+        screen: AdminScreen.trainers,
+        icon: Icons.fitness_center,
+        label: 'Treneri',
+      ),
+      _NavItemData(
+        screen: AdminScreen.nutritionists,
+        icon: Icons.restaurant,
+        label: 'Nutricionisti',
+      ),
+    ],
   ),
-  _NavItemData(
-    screen: AdminScreen.users,
-    icon: Icons.people,
-    label: 'Korisnici',
+  _NavGroup(
+    label: 'PRODAVNICA',
+    items: [
+      _NavItemData(
+        screen: AdminScreen.supplements,
+        icon: Icons.medication,
+        label: 'Suplementi',
+      ),
+      _NavItemData(
+        screen: AdminScreen.categories,
+        icon: Icons.category,
+        label: 'Kategorije',
+      ),
+      _NavItemData(
+        screen: AdminScreen.suppliers,
+        icon: Icons.local_shipping,
+        label: 'Dobavljaci',
+      ),
+      _NavItemData(
+        screen: AdminScreen.orders,
+        icon: Icons.shopping_bag,
+        label: 'Kupovine',
+      ),
+    ],
   ),
-  _NavItemData(
-    screen: AdminScreen.trainers,
-    icon: Icons.fitness_center,
-    label: 'Treneri',
+  _NavGroup(
+    label: 'SADRZAJ',
+    items: [
+      _NavItemData(
+        screen: AdminScreen.faq,
+        icon: Icons.help,
+        label: 'FAQ',
+      ),
+      _NavItemData(
+        screen: AdminScreen.reviews,
+        icon: Icons.rate_review,
+        label: 'Recenzije',
+      ),
+      _NavItemData(
+        screen: AdminScreen.seminars,
+        icon: Icons.school,
+        label: 'Seminari',
+      ),
+    ],
   ),
-  _NavItemData(
-    screen: AdminScreen.nutritionists,
-    icon: Icons.restaurant,
-    label: 'Nutricionisti',
-  ),
-  _NavItemData(
-    screen: AdminScreen.supplements,
-    icon: Icons.medication,
-    label: 'Suplementi',
-  ),
-  _NavItemData(
-    screen: AdminScreen.categories,
-    icon: Icons.category,
-    label: 'Kategorije',
-  ),
-  _NavItemData(
-    screen: AdminScreen.suppliers,
-    icon: Icons.local_shipping,
-    label: 'Dobavljači',
-  ),
-  _NavItemData(
-    screen: AdminScreen.orders,
-    icon: Icons.shopping_bag,
-    label: 'Kupovine',
-  ),
-  _NavItemData(
-    screen: AdminScreen.faq,
-    icon: Icons.help,
-    label: 'FAQ',
-  ),
-  _NavItemData(
-    screen: AdminScreen.reviews,
-    icon: Icons.rate_review,
-    label: 'Recenzije',
-  ),
-  _NavItemData(
-    screen: AdminScreen.seminars,
-    icon: Icons.school,
-    label: 'Seminari',
-  ),
-  _NavItemData(
-    screen: AdminScreen.businessReport,
-    icon: Icons.trending_up,
-    label: 'Biznis izvještaji',
-  ),
-  _NavItemData(
-    screen: AdminScreen.leaderboard,
-    icon: Icons.emoji_events,
-    label: 'Rang lista',
+  _NavGroup(
+    label: 'ANALITIKA',
+    items: [
+      _NavItemData(
+        screen: AdminScreen.businessReport,
+        icon: Icons.trending_up,
+        label: 'Biznis izvjestaji',
+      ),
+      _NavItemData(
+        screen: AdminScreen.leaderboard,
+        icon: Icons.emoji_events,
+        label: 'Rang lista',
+      ),
+    ],
   ),
 ];
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN DASHBOARD SHELL
+// ─────────────────────────────────────────────────────────────────────────────
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -137,7 +189,9 @@ class AdminDashboardScreen extends StatefulWidget {
 }
 
 class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
-  AdminScreen _selectedScreen = AdminScreen.currentVisitors;
+  AdminScreen _selectedScreen = AdminScreen.dashboardHome;
+  bool _sidebarCollapsed = false;
+  bool? _userToggledCollapse;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   void _onScreenSelected(AdminScreen screen) {
@@ -148,28 +202,41 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     }
   }
 
+  void _toggleSidebar() {
+    setState(() {
+      _sidebarCollapsed = !_sidebarCollapsed;
+      _userToggledCollapse = _sidebarCollapsed;
+    });
+  }
+
+  void _openCommandPalette() {
+    showCommandPalette(context, onNavigate: _onScreenSelected);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: Colors.transparent,
-      drawer: null, // We'll conditionally add this in the builder
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [AppColors.bg1, AppColors.bg2],
-          ),
-        ),
-        child: LayoutBuilder(
+    return CallbackShortcuts(
+      bindings: {
+        const SingleActivator(LogicalKeyboardKey.keyK, control: true):
+            _openCommandPalette,
+      },
+      child: Focus(
+        autofocus: true,
+        child: Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: Colors.transparent,
+          body: Container(
+            decoration: const BoxDecoration(gradient: AppGradients.background),
+            child: LayoutBuilder(
           builder: (context, constraints) {
             final width = constraints.maxWidth;
             final isMobile = width < 800;
-            final isCompact = width < 1200;
+            final isNarrow = width < 1200;
+
+            // Determine collapse state: user override or breakpoint default
+            final collapsed = _userToggledCollapse ?? isNarrow;
 
             if (isMobile) {
-              // Mobile: Drawer-based sidebar
               return Scaffold(
                 key: GlobalKey<ScaffoldState>(),
                 backgroundColor: Colors.transparent,
@@ -195,25 +262,32 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   onScreenSelected: _onScreenSelected,
                   isCompact: false,
                   isDrawer: true,
+                  onToggleCollapse: null,
                 ),
                 body: SafeArea(
-                  child: _ContentArea(selectedScreen: _selectedScreen),
+                  child: _ContentArea(
+                    selectedScreen: _selectedScreen,
+                    onNavigate: _onScreenSelected,
+                  ),
                 ),
               );
             }
 
-            // Tablet/Desktop: Side-by-side layout
             return SafeArea(
               child: Row(
                 children: [
                   _Sidebar(
                     selectedScreen: _selectedScreen,
                     onScreenSelected: _onScreenSelected,
-                    isCompact: isCompact,
+                    isCompact: collapsed,
                     isDrawer: false,
+                    onToggleCollapse: _toggleSidebar,
                   ),
                   Expanded(
-                    child: _ContentArea(selectedScreen: _selectedScreen),
+                    child: _ContentArea(
+                      selectedScreen: _selectedScreen,
+                      onNavigate: _onScreenSelected,
+                    ),
                   ),
                 ],
               ),
@@ -221,6 +295,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
           },
         ),
       ),
+    ),
+    ),
     );
   }
 }
@@ -235,12 +311,14 @@ class _Sidebar extends StatelessWidget {
     required this.onScreenSelected,
     required this.isCompact,
     required this.isDrawer,
+    required this.onToggleCollapse,
   });
 
   final AdminScreen selectedScreen;
   final void Function(AdminScreen) onScreenSelected;
   final bool isCompact;
   final bool isDrawer;
+  final VoidCallback? onToggleCollapse;
 
   static const double expandedWidth = 260;
   static const double compactWidth = 70;
@@ -248,10 +326,12 @@ class _Sidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = isCompact ? compactWidth : expandedWidth;
+    final showExpanded = isDrawer || !isCompact;
 
-    final content = Container(
-      width: isDrawer ? expandedWidth : width,
+    final content = AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOutCubic,
+      width: isDrawer ? expandedWidth : (isCompact ? compactWidth : expandedWidth),
       decoration: const BoxDecoration(
         color: sidebarBg,
         border: Border(
@@ -260,31 +340,37 @@ class _Sidebar extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Logo/Branding
-          if (!isDrawer || isDrawer)
-            _SidebarHeader(isCompact: isCompact && !isDrawer),
-
-          const SizedBox(height: 8),
-
-          // Navigation items
+          _SidebarHeader(isCompact: !showExpanded),
+          const SizedBox(height: 4),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               children: [
-                for (final item in _navItems)
-                  _NavItem(
-                    icon: item.icon,
-                    label: item.label,
-                    isSelected: selectedScreen == item.screen,
-                    isCompact: isCompact && !isDrawer,
-                    onTap: () => onScreenSelected(item.screen),
-                  ),
+                for (final group in _navGroups) ...[
+                  if (group.label != null) ...[
+                    _SectionLabel(
+                      label: group.label!,
+                      isCompact: !showExpanded,
+                    ),
+                  ],
+                  for (final item in group.items)
+                    _NavItem(
+                      icon: item.icon,
+                      label: item.label,
+                      isSelected: selectedScreen == item.screen,
+                      isCompact: !showExpanded,
+                      onTap: () => onScreenSelected(item.screen),
+                    ),
+                ],
               ],
             ),
           ),
-
-          // Admin profile at bottom
-          _AdminProfileSection(isCompact: isCompact && !isDrawer),
+          if (onToggleCollapse != null)
+            _CollapseToggle(
+              isCompact: !showExpanded,
+              onToggle: onToggleCollapse!,
+            ),
+          _AdminProfileSection(isCompact: !showExpanded),
         ],
       ),
     );
@@ -297,6 +383,88 @@ class _Sidebar extends StatelessWidget {
     }
 
     return content;
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel({required this.label, required this.isCompact});
+
+  final String label;
+  final bool isCompact;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isCompact) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Divider(color: AppColors.border, height: 1),
+      );
+    }
+
+    return ClipRect(
+      child: Padding(
+        padding: const EdgeInsets.only(left: 14, top: 20, bottom: 8),
+        child: Text(label, style: AppTypography.label, overflow: TextOverflow.ellipsis),
+      ),
+    );
+  }
+}
+
+class _CollapseToggle extends StatelessWidget {
+  const _CollapseToggle({required this.isCompact, required this.onToggle});
+
+  final bool isCompact;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: isCompact ? 12 : 16,
+        vertical: 4,
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(8),
+          onTap: onToggle,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final effectiveCompact =
+                    isCompact || constraints.maxWidth < 100;
+                return Row(
+                  mainAxisAlignment: effectiveCompact
+                      ? MainAxisAlignment.center
+                      : MainAxisAlignment.start,
+                  children: [
+                    if (!effectiveCompact) const SizedBox(width: 10),
+                    Icon(
+                      effectiveCompact
+                          ? Icons.chevron_right
+                          : Icons.chevron_left,
+                      color: AppColors.muted,
+                      size: 20,
+                    ),
+                    if (!effectiveCompact) ...[
+                      const SizedBox(width: 10),
+                      const Text(
+                        'Smanji',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.muted,
+                        ),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -317,13 +485,18 @@ class _SidebarHeader extends StatelessWidget {
           bottom: BorderSide(color: AppColors.border, width: 1),
         ),
       ),
-      child: isCompact
-          ? const Icon(
-              Icons.fitness_center,
-              color: AppColors.accent,
-              size: 28,
-            )
-          : const _Logo(),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final effectiveCompact = isCompact || constraints.maxWidth < 160;
+          return effectiveCompact
+              ? const Icon(
+                  Icons.fitness_center,
+                  color: AppColors.accent,
+                  size: 28,
+                )
+              : const _Logo();
+        },
+      ),
     );
   }
 }
@@ -333,25 +506,29 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          Icons.fitness_center,
-          color: AppColors.accent,
-          size: 28,
-        ),
-        SizedBox(width: 10),
-        Text(
-          'STRONGHOLD',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-            letterSpacing: 0.5,
+    return const FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            Icons.fitness_center,
+            color: AppColors.accent,
+            size: 28,
           ),
-        ),
-      ],
+          SizedBox(width: 10),
+          Text(
+            'STRONGHOLD',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -375,7 +552,8 @@ class _NavItem extends StatefulWidget {
   State<_NavItem> createState() => _NavItemState();
 }
 
-class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin {
+class _NavItemState extends State<_NavItem>
+    with SingleTickerProviderStateMixin {
   bool _hover = false;
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -400,10 +578,11 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
 
   @override
   Widget build(BuildContext context) {
+    // New: subtle tint instead of solid fill
     final bgColor = widget.isSelected
-        ? AppColors.accent
+        ? AppColors.accent.withValues(alpha: 0.10)
         : _hover
-            ? AppColors.accent.withValues(alpha: 0.15)
+            ? AppColors.surfaceHover
             : Colors.transparent;
 
     final textColor = widget.isSelected
@@ -413,13 +592,16 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
             : Colors.white.withValues(alpha: 0.7);
 
     final iconColor = widget.isSelected
-        ? Colors.white
+        ? AppColors.accent
         : _hover
             ? AppColors.accent
             : Colors.white.withValues(alpha: 0.7);
 
+    // Left pill indicator width
+    final pillWidth = widget.isSelected ? 3.0 : 0.0;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.only(bottom: 2),
       child: MouseRegion(
         onEnter: (_) => setState(() => _hover = true),
         onExit: (_) => setState(() => _hover = false),
@@ -437,60 +619,93 @@ class _NavItemState extends State<_NavItem> with SingleTickerProviderStateMixin 
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   curve: Curves.easeOutCubic,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: widget.isCompact ? 0 : 14,
-                    vertical: 12,
-                  ),
+                  clipBehavior: Clip.hardEdge,
                   decoration: BoxDecoration(
                     color: bgColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: widget.isCompact
-                      ? Tooltip(
-                          message: widget.label,
-                          preferBelow: false,
-                          child: Center(
-                            child: TweenAnimationBuilder<Color?>(
-                              tween: ColorTween(end: iconColor),
-                              duration: const Duration(milliseconds: 200),
-                              builder: (context, color, _) => Icon(
-                                widget.icon,
-                                color: color,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        )
-                      : Row(
-                          children: [
-                            TweenAnimationBuilder<Color?>(
-                              tween: ColorTween(end: iconColor),
-                              duration: const Duration(milliseconds: 200),
-                              builder: (context, color, _) => Icon(
-                                widget.icon,
-                                color: color,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: AnimatedDefaultTextStyle(
-                                duration: const Duration(milliseconds: 200),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: widget.isSelected
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                                  color: textColor,
-                                ),
-                                child: Text(
-                                  widget.label,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ),
-                          ],
+                  child: Row(
+                    children: [
+                      // Left accent pill indicator
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutCubic,
+                        width: pillWidth,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(2),
                         ),
+                      ),
+                      if (widget.isSelected) const SizedBox(width: 1),
+                      Expanded(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Use actual width to decide layout, not just
+                            // isCompact flag, to avoid overflow during the
+                            // sidebar width animation.
+                            final effectiveCompact =
+                                widget.isCompact || constraints.maxWidth < 80;
+                            return Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: effectiveCompact ? 0 : 12,
+                                vertical: 10,
+                              ),
+                              child: effectiveCompact
+                                  ? Tooltip(
+                                      message: widget.label,
+                                      preferBelow: false,
+                                      child: Center(
+                                        child: TweenAnimationBuilder<Color?>(
+                                          tween: ColorTween(end: iconColor),
+                                          duration: const Duration(
+                                              milliseconds: 200),
+                                          builder: (context, color, _) => Icon(
+                                            widget.icon,
+                                            color: color,
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  : Row(
+                                      children: [
+                                        TweenAnimationBuilder<Color?>(
+                                          tween: ColorTween(end: iconColor),
+                                          duration: const Duration(
+                                              milliseconds: 200),
+                                          builder: (context, color, _) => Icon(
+                                            widget.icon,
+                                            color: color,
+                                            size: 20,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: AnimatedDefaultTextStyle(
+                                            duration: const Duration(
+                                                milliseconds: 200),
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: widget.isSelected
+                                                  ? FontWeight.w600
+                                                  : FontWeight.w500,
+                                              color: textColor,
+                                            ),
+                                            child: Text(
+                                              widget.label,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -572,44 +787,52 @@ class _AdminProfileButton extends StatelessWidget {
           ),
         ),
       ],
-      child: compact
-          ? Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: const Icon(
-                Icons.person_outline,
-                color: Colors.white70,
-                size: 20,
-              ),
-            )
-          : Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.card,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Row(
-                children: [
-                  Icon(Icons.person_outline, color: Colors.white70, size: 20),
-                  SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Admin',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final effectiveCompact = compact || constraints.maxWidth < 80;
+          return effectiveCompact
+              ? Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(20),
                   ),
-                  Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 20),
-                ],
-              ),
-            ),
+                  child: const Icon(
+                    Icons.person_outline,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
+                )
+              : Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.card,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.person_outline,
+                          color: Colors.white70, size: 20),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Admin',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Icon(Icons.keyboard_arrow_down,
+                          color: Colors.white70, size: 20),
+                    ],
+                  ),
+                );
+        },
+      ),
     );
   }
 }
@@ -619,9 +842,13 @@ class _AdminProfileButton extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _ContentArea extends StatelessWidget {
-  const _ContentArea({required this.selectedScreen});
+  const _ContentArea({
+    required this.selectedScreen,
+    required this.onNavigate,
+  });
 
   final AdminScreen selectedScreen;
+  final void Function(AdminScreen) onNavigate;
 
   @override
   Widget build(BuildContext context) {
@@ -630,9 +857,8 @@ class _ContentArea extends StatelessWidget {
       switchInCurve: Curves.easeOutCubic,
       switchOutCurve: Curves.easeInCubic,
       transitionBuilder: (Widget child, Animation<double> animation) {
-        // Fade + subtle slide from right
         final slideAnimation = Tween<Offset>(
-          begin: const Offset(0.03, 0), // Subtle slide from right
+          begin: const Offset(0.03, 0),
           end: Offset.zero,
         ).animate(CurvedAnimation(
           parent: animation,
@@ -661,6 +887,8 @@ class _ContentArea extends StatelessWidget {
 
   Widget _buildScreen() {
     switch (selectedScreen) {
+      case AdminScreen.dashboardHome:
+        return DashboardHomeScreen(onNavigate: onNavigate);
       case AdminScreen.currentVisitors:
         return const VisitorsScreen(embedded: true);
       case AdminScreen.memberships:

@@ -128,29 +128,40 @@ class _PaginationButtonState extends State<PaginationButton> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
+      cursor: widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
         onTap: widget.enabled ? widget.onTap : null,
-        child: Container(
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
             color: widget.isActive
                 ? AppColors.accent
                 : widget.enabled && _hover
-                    ? AppColors.panel
+                    ? AppColors.surfaceHover
                     : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
               color: widget.enabled ? AppColors.border : AppColors.muted.withValues(alpha: 0.3),
             ),
+            boxShadow: widget.isActive
+                ? [
+                    BoxShadow(
+                      color: AppColors.accent.withValues(alpha: 0.3),
+                      blurRadius: 8,
+                    ),
+                  ]
+                : [],
           ),
           child: Text(
             widget.text,
             style: TextStyle(
               color: widget.enabled ? Colors.white : AppColors.muted.withValues(alpha: 0.5),
               fontSize: 14,
-              fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w500,
+              fontWeight: widget.isActive ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
@@ -8,6 +9,8 @@ import '../widgets/back_button.dart';
 import '../widgets/error_animation.dart';
 import '../widgets/pagination_controls.dart';
 import '../widgets/shared_admin_header.dart';
+import '../widgets/shimmer_loading.dart';
+import '../widgets/stat_card.dart';
 import '../widgets/success_animation.dart';
 
 /// Refactored Business Report Screen using Riverpod
@@ -162,38 +165,6 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
 
   // ===== UI helpers =====
 
-  String _pctText(num pct) {
-    final sign = pct >= 0 ? '↑' : '↓';
-    final val = pct.abs().toStringAsFixed(1);
-    return '$sign $val%';
-  }
-
-  Color _pctColor(num pct) => pct >= 0 ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C);
-
-  List<_BarData> _mapBars(List<WeekdayVisitsDTO> items) {
-    final map = {for (final i in items) i.day: i.count};
-
-    const order = [
-      {'day': 1, 'label': 'Pon'},
-      {'day': 2, 'label': 'Uto'},
-      {'day': 3, 'label': 'Sri'},
-      {'day': 4, 'label': 'Čet'},
-      {'day': 5, 'label': 'Pet'},
-      {'day': 6, 'label': 'Sub'},
-      {'day': 0, 'label': 'Ned'},
-    ];
-
-    final values = order.map((o) => map[o['day'] as int] ?? 0).toList();
-    final maxVal = values.isEmpty ? 0 : values.reduce((a, b) => a > b ? a : b);
-
-    return List.generate(order.length, (idx) {
-      final label = order[idx]['label'] as String;
-      final v = values[idx];
-      final factor = maxVal == 0 ? 0.2 : (v / maxVal).clamp(0.2, 1.0);
-      return _BarData(label: label, valueText: '$v', heightFactor: factor);
-    });
-  }
-
   Widget _buildMainContent(BoxConstraints constraints) {
     final exportState = ref.watch(exportOperationsProvider);
     final isExporting = exportState.isLoading;
@@ -270,7 +241,7 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
     final chartAspect = chartsCols == 1 ? (16 / 9) : (4 / 3);
 
     return businessAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ShimmerDashboard(),
       error: (error, _) => _buildErrorState(
         error.toString(),
         () => ref.invalidate(businessReportProvider),
@@ -302,23 +273,29 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
             _StatsGrid(
               columns: statsCols,
               children: [
-                _StatCard(
+                StatCard(
                   label: 'Posjete ove sedmice',
-                  value: '${report.thisWeekVisits}',
-                  changeText: '${_pctText(report.weekChangePct)} u odnosu na prošlu sedmicu',
-                  changeColor: _pctColor(report.weekChangePct),
+                  value: report.thisWeekVisits,
+                  changePercent: report.weekChangePct.toDouble(),
+                  changeLabel: 'vs prosle sedmice',
+                  icon: Icons.directions_walk,
+                  iconColor: AppColors.info,
                 ),
-                _StatCard(
+                StatCard(
                   label: 'Prodaja ovog mjeseca',
-                  value: '${report.thisMonthRevenue.toStringAsFixed(2)} KM',
-                  changeText: '${_pctText(report.monthChangePct)} u odnosu na prošli mjesec',
-                  changeColor: _pctColor(report.monthChangePct),
+                  value: report.thisMonthRevenue,
+                  valueSuffix: 'KM',
+                  changePercent: report.monthChangePct.toDouble(),
+                  changeLabel: 'vs proslog mjeseca',
+                  icon: Icons.trending_up,
+                  iconColor: AppColors.success,
                 ),
-                _StatCard(
-                  label: 'Aktivnih članarina',
-                  value: '${report.activeMemberships}',
-                  changeText: 'ukupno aktivnih članova',
-                  changeColor: const Color(0xFF2ECC71),
+                StatCard(
+                  label: 'Aktivnih clanarina',
+                  value: report.activeMemberships,
+                  changeLabel: 'ukupno aktivnih clanova',
+                  icon: Icons.card_membership,
+                  iconColor: AppColors.warning,
                 ),
               ],
             ),
@@ -330,14 +307,11 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
               columns: chartsCols,
               children: [
                 _ChartCard(
-                  title: 'Sedmična posjećenost po danima',
+                  title: 'Sedmicna posjecenost po danima',
                   child: AspectRatio(
                     aspectRatio: chartAspect,
-                    child: _BarChart(
-                      accent: AppColors.accent,
-                      accent2: AppColors.accentLight,
-                      muted: AppColors.muted,
-                      bars: _mapBars(report.visitsByWeekday),
+                    child: _FlBarChart(
+                      visitsByWeekday: report.visitsByWeekday,
                     ),
                   ),
                 ),
@@ -529,7 +503,7 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
     final isExporting = exportState.isLoading;
 
     return membershipAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const ShimmerDashboard(),
       error: (error, _) => _buildErrorState(
         error.toString(),
         () => ref.invalidate(membershipPopularityReportProvider),
@@ -799,17 +773,6 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPER CLASSES & WIDGETS
 // ─────────────────────────────────────────────────────────────────────────────
-
-class _BarData {
-  final String label;
-  final String valueText;
-  final double heightFactor;
-  const _BarData({
-    required this.label,
-    required this.valueText,
-    required this.heightFactor,
-  });
-}
 
 class _Header extends StatelessWidget {
   const _Header();
@@ -1178,44 +1141,142 @@ class _StatsGrid extends StatelessWidget {
   }
 }
 
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.label,
-    required this.value,
-    required this.changeText,
-    required this.changeColor,
-  });
+class _FlBarChart extends StatelessWidget {
+  const _FlBarChart({required this.visitsByWeekday});
 
-  final String label;
-  final String value;
-  final String changeText;
-  final Color changeColor;
+  final List<WeekdayVisitsDTO> visitsByWeekday;
+
+  static const _dayLabels = ['Pon', 'Uto', 'Sri', 'Cet', 'Pet', 'Sub', 'Ned'];
+  static const _backendToDisplay = {1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6};
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(25),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(color: AppColors.muted, fontSize: 14)),
-          const SizedBox(height: 10),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-              color: AppColors.accent,
+    final data = List.filled(7, 0);
+    for (final entry in visitsByWeekday) {
+      final displayIdx = _backendToDisplay[entry.day];
+      if (displayIdx != null) {
+        data[displayIdx] = entry.count;
+      }
+    }
+
+    final maxVal = data.reduce((a, b) => a > b ? a : b);
+    final maxY = maxVal == 0 ? 10.0 : (maxVal * 1.2).ceilToDouble();
+
+    return BarChart(
+      BarChartData(
+        alignment: BarChartAlignment.spaceAround,
+        maxY: maxY,
+        minY: 0,
+        barTouchData: BarTouchData(
+          touchTooltipData: BarTouchTooltipData(
+            getTooltipColor: (_) => AppColors.panel,
+            tooltipRoundedRadius: 8,
+            tooltipPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 6,
+            ),
+            getTooltipItem: (group, groupIndex, rod, rodIndex) {
+              return BarTooltipItem(
+                '${_dayLabels[group.x]}: ${rod.toY.round()}',
+                const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              );
+            },
+          ),
+        ),
+        titlesData: FlTitlesData(
+          show: true,
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          leftTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 36,
+              getTitlesWidget: (value, meta) {
+                if (value == meta.max || value == meta.min) {
+                  return const SizedBox.shrink();
+                }
+                return Text(
+                  value.toInt().toString(),
+                  style: const TextStyle(
+                    color: AppColors.muted,
+                    fontSize: 12,
+                  ),
+                );
+              },
             ),
           ),
-          const SizedBox(height: 10),
-          Text(changeText, style: TextStyle(fontSize: 14, color: changeColor)),
+          bottomTitles: AxisTitles(
+            sideTitles: SideTitles(
+              showTitles: true,
+              reservedSize: 28,
+              getTitlesWidget: (value, meta) {
+                final idx = value.toInt();
+                if (idx < 0 || idx >= _dayLabels.length) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 6),
+                  child: Text(
+                    _dayLabels[idx],
+                    style: const TextStyle(
+                      color: AppColors.muted,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          horizontalInterval: maxY > 0 ? maxY / 4 : 1,
+          getDrawingHorizontalLine: (value) {
+            return FlLine(
+              color: AppColors.border.withValues(alpha: 0.3),
+              strokeWidth: 1,
+              dashArray: [5, 5],
+            );
+          },
+        ),
+        borderData: FlBorderData(show: false),
+        barGroups: [
+          for (int i = 0; i < 7; i++)
+            BarChartGroupData(
+              x: i,
+              barRods: [
+                BarChartRodData(
+                  toY: data[i].toDouble(),
+                  width: 28,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(6),
+                  ),
+                  gradient: const LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [AppColors.accent, AppColors.accentLight],
+                  ),
+                  backDrawRodData: BackgroundBarChartRodData(
+                    show: true,
+                    toY: maxY,
+                    color: AppColors.panel,
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeOutCubic,
     );
   }
 }
@@ -1269,108 +1330,6 @@ class _ChartCard extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           child,
-        ],
-      ),
-    );
-  }
-}
-
-class _BarChart extends StatelessWidget {
-  const _BarChart({
-    required this.bars,
-    required this.accent,
-    required this.accent2,
-    required this.muted,
-  });
-
-  final List<_BarData> bars;
-  final Color accent;
-  final Color accent2;
-  final Color muted;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final chartHeight = constraints.maxHeight;
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              for (final b in bars)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: _Bar(
-                      label: b.label,
-                      valueText: b.valueText,
-                      height: chartHeight * b.heightFactor,
-                      accent: accent,
-                      accent2: accent2,
-                      muted: muted,
-                    ),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _Bar extends StatelessWidget {
-  const _Bar({
-    required this.label,
-    required this.valueText,
-    required this.height,
-    required this.accent,
-    required this.accent2,
-    required this.muted,
-  });
-
-  final String label;
-  final String valueText;
-  final double height;
-  final Color accent;
-  final Color accent2;
-  final Color muted;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: double.infinity,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.bottomCenter,
-        children: [
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              height: height.clamp(20.0, double.infinity),
-              constraints: const BoxConstraints(minWidth: 40),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [accent, accent2],
-                ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-              ),
-            ),
-          ),
-          Positioned(
-            top: -25,
-            child: Text(
-              valueText,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
-            ),
-          ),
-          Positioned(
-            bottom: -25,
-            child: Text(label, style: TextStyle(fontSize: 12, color: muted)),
-          ),
         ],
       ),
     );

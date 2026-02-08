@@ -33,7 +33,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
   }
 
   Future<void> _addSeminar() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => _AddSeminarDialog(
         onCreate: (request) async {
@@ -44,11 +44,13 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
 
     if (created == true && mounted) {
       showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editSeminar(SeminarResponse seminar) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditSeminarDialog(
         seminar: seminar,
@@ -60,6 +62,8 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
 
     if (updated == true && mounted) {
       showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -154,6 +158,7 @@ class _SeminarsTable extends StatelessWidget {
       itemCount: seminars.length,
       itemBuilder: (context, i) => _SeminarRow(
         seminar: seminars[i],
+        index: i,
         isLast: i == seminars.length - 1,
         onEdit: () => onEdit(seminars[i]),
         onDelete: () => onDelete(seminars[i]),
@@ -165,12 +170,14 @@ class _SeminarsTable extends StatelessWidget {
 class _SeminarRow extends StatelessWidget {
   const _SeminarRow({
     required this.seminar,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final SeminarResponse seminar;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -182,22 +189,20 @@ class _SeminarRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
-          TableDataCell(text: seminar.topic, flex: _Flex.topic),
+          TableDataCell(text: seminar.topic, flex: _Flex.topic, bold: true),
           TableDataCell(text: seminar.speakerName, flex: _Flex.speaker),
           TableDataCell(text: _formatDate(seminar.eventDate), flex: _Flex.date),
           TableDataCell(text: _formatTime(seminar.eventDate), flex: _Flex.time),
-          Expanded(
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -304,16 +309,7 @@ class _AddSeminarDialogState extends State<_AddSeminarDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(false);
-        final errorMessage = ErrorHandler.getContextualMessage(e, 'create-seminar');
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: errorMessage);
-        }
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'create-seminar'));
       }
     }
   }
@@ -537,16 +533,7 @@ class _EditSeminarDialogState extends State<_EditSeminarDialog> {
       }
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(false);
-        final errorMessage = ErrorHandler.getContextualMessage(e, 'update-seminar');
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          showErrorAnimation(context, message: errorMessage);
-        }
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isSaving = false);
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'update-seminar'));
       }
     }
   }

@@ -31,7 +31,7 @@ class _TrainersScreenState extends ConsumerState<TrainersScreen> {
   }
 
   Future<void> _addTrainer() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => _AddTrainerDialog(
         onCreate: (request) async {
@@ -42,11 +42,13 @@ class _TrainersScreenState extends ConsumerState<TrainersScreen> {
 
     if (created == true && mounted) {
       showSuccessAnimation(context);
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editTrainer(TrainerResponse trainer) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditTrainerDialog(
         trainer: trainer,
@@ -58,6 +60,8 @@ class _TrainersScreenState extends ConsumerState<TrainersScreen> {
 
     if (updated == true && mounted) {
       showSuccessAnimation(context);
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -152,6 +156,7 @@ class _TrainersTable extends StatelessWidget {
       itemCount: trainers.length,
       itemBuilder: (context, i) => _TrainerRow(
         trainer: trainers[i],
+        index: i,
         isLast: i == trainers.length - 1,
         onEdit: () => onEdit(trainers[i]),
         onDelete: () => onDelete(trainers[i]),
@@ -163,12 +168,14 @@ class _TrainersTable extends StatelessWidget {
 class _TrainerRow extends StatelessWidget {
   const _TrainerRow({
     required this.trainer,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final TrainerResponse trainer;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -177,22 +184,20 @@ class _TrainerRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
-          TableDataCell(text: trainer.firstName, flex: _Flex.firstName),
-          TableDataCell(text: trainer.lastName, flex: _Flex.lastName),
-          TableDataCell(text: trainer.email, flex: _Flex.email),
-          TableDataCell(text: trainer.phoneNumber, flex: _Flex.phone),
-          Expanded(
+          TableDataCell(text: trainer.firstName, flex: _Flex.firstName, bold: true),
+          TableDataCell(text: trainer.lastName, flex: _Flex.lastName, bold: true),
+          TableDataCell(text: trainer.email, flex: _Flex.email, muted: true),
+          TableDataCell(text: trainer.phoneNumber, flex: _Flex.phone, muted: true),
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -250,14 +255,8 @@ class _AddTrainerDialogState extends State<_AddTrainerDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'create-trainer');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        final errorMessage = ErrorHandler.getContextualMessage(e, 'create-trainer');
+        Navigator.of(context).pop(errorMessage);
       }
     }
   }
@@ -446,14 +445,8 @@ class _EditTrainerDialogState extends State<_EditTrainerDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'update-trainer');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        final errorMessage = ErrorHandler.getContextualMessage(e, 'update-trainer');
+        Navigator.of(context).pop(errorMessage);
       }
     }
   }

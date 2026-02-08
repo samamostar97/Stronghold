@@ -32,7 +32,7 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
   }
 
   Future<void> _addCategory() async {
-    final created = await showDialog<bool>(
+    final created = await showDialog<Object?>(
       context: context,
       builder: (_) => const _AddCategoryDialog(),
     );
@@ -43,11 +43,13 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         showSuccessAnimation(context);
       }
       ref.read(supplementCategoryListProvider.notifier).refresh();
+    } else if (created is String && mounted) {
+      showErrorAnimation(context, message: created);
     }
   }
 
   Future<void> _editCategory(SupplementCategoryResponse category) async {
-    final updated = await showDialog<bool>(
+    final updated = await showDialog<Object?>(
       context: context,
       builder: (_) => _EditCategoryDialog(category: category),
     );
@@ -58,6 +60,8 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
         showSuccessAnimation(context);
       }
       ref.read(supplementCategoryListProvider.notifier).refresh();
+    } else if (updated is String && mounted) {
+      showErrorAnimation(context, message: updated);
     }
   }
 
@@ -145,6 +149,7 @@ class _CategoriesTable extends StatelessWidget {
       itemCount: categories.length,
       itemBuilder: (context, i) => _CategoryRow(
         category: categories[i],
+        index: i,
         isLast: i == categories.length - 1,
         onEdit: () => onEdit(categories[i]),
         onDelete: () => onDelete(categories[i]),
@@ -156,12 +161,14 @@ class _CategoriesTable extends StatelessWidget {
 class _CategoryRow extends StatelessWidget {
   const _CategoryRow({
     required this.category,
+    required this.index,
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
   });
 
   final SupplementCategoryResponse category;
+  final int index;
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -170,19 +177,17 @@ class _CategoryRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
       child: Row(
         children: [
-          TableDataCell(text: category.name, flex: _Flex.name),
-          Expanded(
+          TableDataCell(text: category.name, flex: _Flex.name, bold: true),
+          TableActionCell(
             flex: _Flex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
-                const SizedBox(width: 8),
-                SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
-              ],
-            ),
+            children: [
+              SmallButton(text: 'Izmijeni', color: AppColors.editBlue, onTap: onEdit),
+              const SizedBox(width: 8),
+              SmallButton(text: 'Obrisi', color: AppColors.accent, onTap: onDelete),
+            ],
           ),
         ],
       ),
@@ -229,14 +234,7 @@ class _AddCategoryDialogState extends ConsumerState<_AddCategoryDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'create-category');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'create-category'));
       }
     }
   }
@@ -370,14 +368,7 @@ class _EditCategoryDialogState extends ConsumerState<_EditCategoryDialog> {
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isSaving = false);
-        Navigator.of(context).pop(false);
-
-        await Future.delayed(const Duration(milliseconds: 100));
-        if (mounted) {
-          String errorMessage = ErrorHandler.getContextualMessage(e, 'update-category');
-          showErrorAnimation(context, message: errorMessage);
-        }
+        Navigator.of(context).pop(ErrorHandler.getContextualMessage(e, 'update-category'));
       }
     }
   }

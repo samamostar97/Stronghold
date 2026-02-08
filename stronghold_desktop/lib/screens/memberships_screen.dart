@@ -16,6 +16,7 @@ import '../widgets/error_animation.dart';
 import '../widgets/search_input.dart';
 import '../widgets/pagination_controls.dart';
 import '../widgets/shared_admin_header.dart';
+import '../widgets/shimmer_loading.dart';
 import 'payment_history_screen.dart';
 
 /// Refactored Membership Management Screen using Riverpod
@@ -200,9 +201,7 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
 
   Widget _buildContent(BoxConstraints constraints, userState) {
     if (userState.isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.accent),
-      );
+      return const ShimmerTable(columnFlex: [2, 2, 2, 3, 4]);
     }
 
     if (userState.error != null) {
@@ -230,7 +229,7 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
       );
     }
 
-    final users = userState.data?.items ?? [];
+    final users = userState.data?.items ?? <UserResponse>[];
     final totalPages = userState.data?.totalPages(userState.filter.pageSize) ?? 1;
     final totalCount = userState.data?.totalCount ?? 0;
 
@@ -309,6 +308,7 @@ class _MembershipsTable extends StatelessWidget {
                   itemCount: users.length,
                   itemBuilder: (context, i) => _UserTableRow(
                     user: users[i],
+                    index: i,
                     isLast: i == users.length - 1,
                     onViewPayments: () => onViewPayments(users[i]),
                     onAddPayment: () => onAddPayment(users[i]),
@@ -332,7 +332,7 @@ class _TableHeader extends StatelessWidget {
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.border, width: 2)),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       child: const Row(
         children: [
           TableHeaderCell(text: 'Korisničko ime', flex: _TableFlex.username),
@@ -349,6 +349,7 @@ class _TableHeader extends StatelessWidget {
 class _UserTableRow extends ConsumerWidget {
   const _UserTableRow({
     required this.user,
+    required this.index,
     required this.isLast,
     required this.onViewPayments,
     required this.onAddPayment,
@@ -356,6 +357,7 @@ class _UserTableRow extends ConsumerWidget {
   });
 
   final UserResponse user;
+  final int index;
   final bool isLast;
   final VoidCallback onViewPayments;
   final VoidCallback onAddPayment;
@@ -365,8 +367,16 @@ class _UserTableRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final activeMembershipAsync = ref.watch(userHasActiveMembershipProvider(user.id));
 
+    // Hide green indicator immediately when provider is refetching
+    // (after invalidation). Riverpod preserves previous data during
+    // reload, so we must also check isLoading.
+    final isActive = !activeMembershipAsync.isLoading &&
+        (activeMembershipAsync.valueOrNull == true);
+
     return HoverableTableRow(
       isLast: isLast,
+      index: index,
+      activeAccentColor: isActive ? AppColors.success : null,
       child: Row(
         children: [
           TableDataCell(text: user.username, flex: _TableFlex.username),
@@ -374,91 +384,59 @@ class _UserTableRow extends ConsumerWidget {
             flex: _TableFlex.firstName,
             child: Row(
               children: [
+                if (isActive)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: const BoxDecoration(
+                      color: AppColors.success,
+                      shape: BoxShape.circle,
+                    ),
+                  )
+                else if (activeMembershipAsync.isLoading)
+                  Container(
+                    width: 8,
+                    height: 8,
+                    margin: const EdgeInsets.only(right: 8),
+                    child: const CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.muted),
+                  ),
                 Flexible(
                   child: Text(
                     user.firstName,
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                    style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
-                ),
-                activeMembershipAsync.when(
-                  data: (isActive) => isActive ? const _ActiveBadge() : const SizedBox.shrink(),
-                  loading: () => Container(
-                    margin: const EdgeInsets.only(left: 6),
-                    width: 12,
-                    height: 12,
-                    child: const CircularProgressIndicator(strokeWidth: 2, color: AppColors.muted),
-                  ),
-                  error: (_, __) => const SizedBox.shrink(),
                 ),
               ],
             ),
           ),
           TableDataCell(text: user.lastName, flex: _TableFlex.lastName),
-          TableDataCell(text: user.email, flex: _TableFlex.email),
-          Expanded(
+          TableDataCell(text: user.email, flex: _TableFlex.email, muted: true),
+          TableActionCell(
             flex: _TableFlex.actions,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Flexible(
-                  child: SmallButton(
-                    text: 'Pregled uplata',
-                    color: AppColors.editBlue,
-                    onTap: onViewPayments,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: SmallButton(
-                    text: 'Dodaj uplatu',
-                    color: AppColors.accent,
-                    onTap: onAddPayment,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Flexible(
-                  child: SmallButton(
-                    text: 'Ukini članarinu',
-                    color: Colors.red,
-                    onTap: onRevokeMembership,
-                  ),
-                ),
-              ],
-            ),
+            children: [
+              SmallButton(
+                text: 'Pregled uplata',
+                color: AppColors.editBlue,
+                onTap: onViewPayments,
+              ),
+              const SizedBox(width: 8),
+              SmallButton(
+                text: 'Dodaj uplatu',
+                color: AppColors.accent,
+                onTap: onAddPayment,
+              ),
+              const SizedBox(width: 8),
+              SmallButton(
+                text: 'Ukini članarinu',
+                color: Colors.red,
+                onTap: onRevokeMembership,
+              ),
+            ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ActiveBadge extends StatelessWidget {
-  const _ActiveBadge();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(left: 6),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFF4CAF50).withValues(alpha: 0.5),
-          width: 1,
-        ),
-      ),
-      child: const Text(
-        'AKTIVAN',
-        style: TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w600,
-          color: Color(0xFF4CAF50),
-          letterSpacing: 0.3,
-        ),
       ),
     );
   }
@@ -678,7 +656,7 @@ class _AddPaymentDialogState extends ConsumerState<_AddPaymentDialog> {
                       ),
                     );
                   }
-                  final packages = packagesAsync.data?.items ?? [];
+                  final packages = packagesAsync.data?.items ?? <MembershipPackageResponse>[];
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [

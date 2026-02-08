@@ -44,7 +44,7 @@ class DialogTextField extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: Colors.white24),
+          borderSide: const BorderSide(color: AppColors.accent),
           borderRadius: BorderRadius.circular(8),
         ),
         errorBorder: OutlineInputBorder(
