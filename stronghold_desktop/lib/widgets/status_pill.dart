@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_theme.dart';
+import '../constants/app_text_styles.dart';
 
-/// Colored pill badge for displaying entity status.
+/// Tier 1 — Colored pill badge for displaying entity status.
 class StatusPill extends StatelessWidget {
   const StatusPill({
     super.key,
@@ -13,37 +13,31 @@ class StatusPill extends StatelessWidget {
   final String label;
   final Color color;
 
-  /// Green "Aktivan" pill
   factory StatusPill.active() =>
       const StatusPill(label: 'Aktivan', color: AppColors.success);
 
-  /// Muted "Neaktivan" pill
   factory StatusPill.inactive() =>
-      const StatusPill(label: 'Neaktivan', color: AppColors.muted);
+      const StatusPill(label: 'Neaktivan', color: AppColors.textMuted);
 
-  /// Red "Istekao" pill
   factory StatusPill.expired() =>
-      const StatusPill(label: 'Istekao', color: AppColors.accent);
+      const StatusPill(label: 'Istekao', color: AppColors.error);
 
-  /// Amber "Na cekanju" pill
   factory StatusPill.pending() =>
       const StatusPill(label: 'Na cekanju', color: AppColors.warning);
 
-  /// Green "Placeno" pill
   factory StatusPill.paid() =>
       const StatusPill(label: 'Placeno', color: AppColors.success);
 
-  /// Blue "Dostavljeno" pill
   factory StatusPill.delivered() =>
-      const StatusPill(label: 'Dostavljeno', color: AppColors.info);
+      const StatusPill(label: 'Dostavljeno', color: AppColors.primary);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppRadius.pill),
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: FittedBox(
         fit: BoxFit.scaleDown,
@@ -60,14 +54,7 @@ class StatusPill extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
-            ),
+            Text(label, style: AppTextStyles.badge.copyWith(color: color)),
           ],
         ),
       ),

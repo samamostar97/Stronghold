@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
-
+import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_theme.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
 class ConfirmDialog extends StatelessWidget {
   const ConfirmDialog({
     super.key,
     required this.title,
     required this.message,
-    this.confirmText = 'Obriši',
+    this.confirmText = 'Obrisi',
     this.cancelText = 'Odustani',
   });
 
@@ -20,18 +21,18 @@ class ConfirmDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      backgroundColor: AppColors.card,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.large)),
+      backgroundColor: AppColors.surfaceSolid,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
       elevation: 0,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 400),
         decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(AppRadius.large),
-          border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-          boxShadow: AppShadows.elevatedShadow,
+          color: AppColors.surfaceSolid,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          border: Border.all(color: AppColors.border),
         ),
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(AppSpacing.xxl),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -39,59 +40,54 @@ class ConfirmDialog extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.accent.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppRadius.medium),
+                color: AppColors.errorDim,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               ),
-              child: const Icon(
-                Icons.warning_amber_rounded,
-                color: AppColors.accent,
-                size: 28,
-              ),
+              child: const Icon(LucideIcons.alertTriangle,
+                  color: AppColors.error, size: 24),
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.9)),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: AppSpacing.lg),
+            Text(title, style: AppTextStyles.headingSm,
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.md),
+            Text(message, style: AppTextStyles.bodyMd,
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.xxl),
             Row(
               children: [
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(false),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.small),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                         side: const BorderSide(color: AppColors.border),
                       ),
                     ),
-                    child: Text(cancelText, style: const TextStyle(color: AppColors.muted)),
+                    child: Text(cancelText,
+                        style: AppTextStyles.bodyMd.copyWith(
+                            color: AppColors.textMuted)),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: TextButton(
                     onPressed: () => Navigator.of(context).pop(true),
                     style: TextButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: AppColors.error,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.md),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.small),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
                       ),
                     ),
-                    child: Text(confirmText, style: const TextStyle(color: Colors.white)),
+                    child: Text(confirmText,
+                        style: AppTextStyles.bodyBold.copyWith(
+                            color: Colors.white)),
                   ),
                 ),
               ],

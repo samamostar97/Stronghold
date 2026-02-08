@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
 class PaginationControls extends StatelessWidget {
   const PaginationControls({
@@ -22,10 +23,10 @@ class PaginationControls extends StatelessWidget {
       children: [
         Text(
           'Ukupno: $totalCount | Stranica $currentPage od $totalPages',
-          style: const TextStyle(color: AppColors.muted, fontSize: 14),
+          style: AppTextStyles.bodySm,
           textAlign: TextAlign.center,
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: AppSpacing.md),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -34,9 +35,9 @@ class PaginationControls extends StatelessWidget {
               enabled: currentPage > 1,
               onTap: () => onPageChanged(currentPage - 1),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             ..._buildPageNumbers(),
-            const SizedBox(width: 8),
+            const SizedBox(width: AppSpacing.sm),
             PaginationButton(
               text: '\u2192',
               enabled: currentPage < totalPages,
@@ -51,24 +52,19 @@ class PaginationControls extends StatelessWidget {
   List<Widget> _buildPageNumbers() {
     final List<Widget> pageButtons = [];
 
-    // Show first page
     if (currentPage > 3) {
       pageButtons.add(PaginationButton(
-        text: '1',
-        enabled: true,
-        isActive: false,
-        onTap: () => onPageChanged(1),
+        text: '1', enabled: true, onTap: () => onPageChanged(1),
       ));
       if (currentPage > 4) {
-        pageButtons.add(const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text('...', style: TextStyle(color: AppColors.muted)),
+        pageButtons.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Text('...', style: AppTextStyles.bodySm),
         ));
       }
-      pageButtons.add(const SizedBox(width: 4));
+      pageButtons.add(const SizedBox(width: AppSpacing.xs));
     }
 
-    // Show pages around current page
     for (int i = currentPage - 2; i <= currentPage + 2; i++) {
       if (i >= 1 && i <= totalPages) {
         pageButtons.add(PaginationButton(
@@ -78,24 +74,22 @@ class PaginationControls extends StatelessWidget {
           onTap: () => onPageChanged(i),
         ));
         if (i < currentPage + 2 && i < totalPages) {
-          pageButtons.add(const SizedBox(width: 4));
+          pageButtons.add(const SizedBox(width: AppSpacing.xs));
         }
       }
     }
 
-    // Show last page
     if (currentPage < totalPages - 2) {
-      pageButtons.add(const SizedBox(width: 4));
+      pageButtons.add(const SizedBox(width: AppSpacing.xs));
       if (currentPage < totalPages - 3) {
-        pageButtons.add(const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 4),
-          child: Text('...', style: TextStyle(color: AppColors.muted)),
+        pageButtons.add(Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Text('...', style: AppTextStyles.bodySm),
         ));
       }
       pageButtons.add(PaginationButton(
         text: totalPages.toString(),
         enabled: true,
-        isActive: false,
         onTap: () => onPageChanged(totalPages),
       ));
     }
@@ -128,7 +122,9 @@ class _PaginationButtonState extends State<PaginationButton> {
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      cursor: widget.enabled ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: widget.enabled
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
@@ -136,21 +132,24 @@ class _PaginationButtonState extends State<PaginationButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
             color: widget.isActive
-                ? AppColors.accent
+                ? AppColors.primary
                 : widget.enabled && _hover
                     ? AppColors.surfaceHover
                     : Colors.transparent,
             borderRadius: BorderRadius.circular(6),
             border: Border.all(
-              color: widget.enabled ? AppColors.border : AppColors.muted.withValues(alpha: 0.3),
+              color: widget.enabled
+                  ? AppColors.border
+                  : AppColors.textMuted.withValues(alpha: 0.3),
             ),
             boxShadow: widget.isActive
                 ? [
                     BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 8,
                     ),
                   ]
@@ -158,10 +157,14 @@ class _PaginationButtonState extends State<PaginationButton> {
           ),
           child: Text(
             widget.text,
-            style: TextStyle(
-              color: widget.enabled ? Colors.white : AppColors.muted.withValues(alpha: 0.5),
-              fontSize: 14,
-              fontWeight: widget.isActive ? FontWeight.w700 : FontWeight.w500,
+            style: AppTextStyles.bodyMd.copyWith(
+              color: widget.isActive
+                  ? AppColors.background
+                  : widget.enabled
+                      ? AppColors.textPrimary
+                      : AppColors.textMuted.withValues(alpha: 0.5),
+              fontWeight:
+                  widget.isActive ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ),

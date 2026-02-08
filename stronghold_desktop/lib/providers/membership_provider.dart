@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'api_providers.dart';
+import 'list_state.dart';
 
 /// Membership service provider
 final membershipServiceProvider = Provider<MembershipService>((ref) {
@@ -86,4 +87,49 @@ class MembershipOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 final membershipOperationsProvider = StateNotifierProvider<MembershipOperationsNotifier, AsyncValue<void>>((ref) {
   final service = ref.watch(membershipServiceProvider);
   return MembershipOperationsNotifier(service);
+});
+
+/// Active members notifier — paged list of users with active memberships
+class ActiveMembersNotifier
+    extends StateNotifier<ListState<ActiveMemberResponse, ActiveMemberQueryFilter>> {
+  final MembershipService _service;
+
+  ActiveMembersNotifier(this._service)
+      : super(ListState(filter: ActiveMemberQueryFilter(pageSize: 8))) {
+    load();
+  }
+
+  Future<void> load() async {
+    state = state.copyWithLoading();
+    try {
+      final result = await _service.getActiveMembers(state.filter);
+      state = state.copyWithData(result);
+    } catch (e) {
+      state = state.copyWithError(e.toString().replaceFirst('Exception: ', ''));
+    }
+  }
+
+  Future<void> setSearch(String? search) async {
+    final newFilter = state.filter.copyWith(
+      pageNumber: 1,
+      search: (search == null || search.isEmpty) ? null : search,
+    );
+    state = state.copyWithFilter(newFilter);
+    await load();
+  }
+
+  Future<void> goToPage(int page) async {
+    if (page < 1 || page > state.totalPages) return;
+    final newFilter = state.filter.copyWith(pageNumber: page);
+    state = state.copyWithFilter(newFilter);
+    await load();
+  }
+}
+
+/// Active members provider
+final activeMembersProvider = StateNotifierProvider.autoDispose<
+    ActiveMembersNotifier,
+    ListState<ActiveMemberResponse, ActiveMemberQueryFilter>>((ref) {
+  final service = ref.watch(membershipServiceProvider);
+  return ActiveMembersNotifier(service);
 });

@@ -36,5 +36,11 @@ namespace Stronghold.API.Controllers
             var result = await _membershipService.GetPaymentsAsync(userId, filter);
             return Ok(result);
         }
+        [HttpGet("active-members")]
+        public async Task<ActionResult<PagedResult<ActiveMemberResponse>>> GetActiveMembers([FromQuery] ActiveMemberQueryFilter filter)
+        {
+            var result = await _membershipService.GetActiveMembersAsync(filter);
+            return Ok(result);
+        }
     }
 }

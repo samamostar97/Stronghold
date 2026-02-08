@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-
 import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
 class DialogTextField extends StatelessWidget {
   const DialogTextField({
@@ -30,32 +31,34 @@ class DialogTextField extends StatelessWidget {
       keyboardType: keyboardType,
       maxLines: obscureText ? 1 : maxLines,
       obscureText: obscureText,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
+      style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
-        hintStyle: TextStyle(color: AppColors.muted.withValues(alpha: 0.5), fontSize: 14),
+        labelStyle: AppTextStyles.bodySm,
+        hintStyle: AppTextStyles.bodySm.copyWith(
+            color: AppColors.textMuted.withValues(alpha: 0.5)),
         filled: true,
-        fillColor: AppColors.panel,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        fillColor: AppColors.surfaceSolid,
+        contentPadding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         enabledBorder: OutlineInputBorder(
           borderSide: const BorderSide(color: AppColors.border),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.accent),
-          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.primary),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         errorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.accent),
-          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.error),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.accent),
-          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(color: AppColors.error),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         ),
-        errorStyle: const TextStyle(color: AppColors.accent),
+        errorStyle: AppTextStyles.caption.copyWith(color: AppColors.error),
       ),
     );
   }

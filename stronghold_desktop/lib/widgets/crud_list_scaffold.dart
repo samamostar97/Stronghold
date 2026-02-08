@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_theme.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 import '../providers/list_state.dart';
 import '../utils/debouncer.dart';
 import 'gradient_button.dart';
@@ -19,8 +21,8 @@ class SortOption {
 }
 
 /// Generic CRUD list scaffold with search, sort, pagination, and add button.
-/// Reduces ~400 lines of boilerplate per screen to ~50 lines.
-class CrudListScaffold<T, TFilter extends BaseQueryFilter> extends ConsumerStatefulWidget {
+class CrudListScaffold<T, TFilter extends BaseQueryFilter>
+    extends ConsumerStatefulWidget {
   const CrudListScaffold({
     super.key,
     required this.title,
@@ -31,7 +33,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter> extends ConsumerState
     required this.onPageChanged,
     required this.onAdd,
     required this.tableBuilder,
-    this.searchHint = 'Pretraži...',
+    this.searchHint = 'Pretrazi...',
     this.addButtonText = '+ Dodaj',
     this.sortOptions = const [],
     this.loadingColumnFlex,
@@ -51,7 +53,8 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter> extends ConsumerState
   final List<int>? loadingColumnFlex;
 
   @override
-  ConsumerState<CrudListScaffold<T, TFilter>> createState() => _CrudListScaffoldState<T, TFilter>();
+  ConsumerState<CrudListScaffold<T, TFilter>> createState() =>
+      _CrudListScaffoldState<T, TFilter>();
 }
 
 class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
@@ -64,7 +67,6 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    // Initialize from filter state
     _searchController.text = widget.state.filter.search ?? '';
     _selectedOrderBy = widget.state.filter.orderBy;
   }
@@ -79,7 +81,6 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
 
   void _onSearchChanged() {
     _debouncer.run(() {
-      // Pass empty string (not null) when cleared - null means "keep old value" in createFilterCopy
       final text = _searchController.text.trim();
       widget.onSearch(text.isEmpty ? '' : text);
     });
@@ -89,37 +90,26 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final horizontalPadding = constraints.maxWidth > 1200
-            ? 40.0
-            : constraints.maxWidth > 800
-                ? 24.0
-                : 16.0;
+        final w = constraints.maxWidth;
+        final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
 
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 20),
+          padding: EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
           child: Container(
-            padding: EdgeInsets.all(constraints.maxWidth > 600 ? 30 : 16),
+            padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
             decoration: BoxDecoration(
-              color: AppColors.card,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
-              boxShadow: AppShadows.cardShadow,
+              color: AppColors.surfaceSolid,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+              border: Border.all(color: AppColors.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(
-                  widget.title,
-                  style: TextStyle(
-                    fontSize: constraints.maxWidth > 600 ? 28 : 22,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 24),
+                Text(widget.title, style: AppTextStyles.headingMd),
+                const SizedBox(height: AppSpacing.xxl),
                 _buildSearchBar(constraints),
-                const SizedBox(height: 24),
-                Expanded(child: _buildContent(constraints)),
+                const SizedBox(height: AppSpacing.xxl),
+                Expanded(child: _buildContent()),
               ],
             ),
           ),
@@ -130,7 +120,6 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
 
   Widget _buildSearchBar(BoxConstraints constraints) {
     final isNarrow = constraints.maxWidth < 600;
-
     if (isNarrow) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -141,14 +130,11 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
             hintText: widget.searchHint,
           ),
           if (widget.sortOptions.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: AppSpacing.md),
             _buildSortDropdown(),
           ],
-          const SizedBox(height: 12),
-          GradientButton(
-            text: widget.addButtonText,
-            onTap: widget.onAdd,
-          ),
+          const SizedBox(height: AppSpacing.md),
+          GradientButton(text: widget.addButtonText, onTap: widget.onAdd),
         ],
       );
     }
@@ -163,36 +149,31 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
           ),
         ),
         if (widget.sortOptions.isNotEmpty) ...[
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.lg),
           _buildSortDropdown(),
         ],
-        const SizedBox(width: 16),
-        GradientButton(
-          text: widget.addButtonText,
-          onTap: widget.onAdd,
-        ),
+        const SizedBox(width: AppSpacing.lg),
+        GradientButton(text: widget.addButtonText, onTap: widget.onAdd),
       ],
     );
   }
 
   Widget _buildSortDropdown() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.panel,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
         border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: _selectedOrderBy,
-          hint: const Text(
-            'Sortiraj',
-            style: TextStyle(color: AppColors.muted, fontSize: 14),
-          ),
-          dropdownColor: AppColors.panel,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
-          icon: const Icon(Icons.sort, color: AppColors.muted, size: 20),
+          hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
+          dropdownColor: AppColors.surfaceSolid,
+          style: AppTextStyles.bodyBold,
+          icon: Icon(LucideIcons.arrowUpDown,
+              color: AppColors.textMuted, size: 16),
           items: widget.sortOptions
               .map((opt) => DropdownMenuItem<String?>(
                     value: opt.value,
@@ -208,7 +189,7 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     );
   }
 
-  Widget _buildContent(BoxConstraints constraints) {
+  Widget _buildContent() {
     if (widget.state.isLoading) {
       return ShimmerTable(
         columnFlex: widget.loadingColumnFlex ?? const [2, 3, 2, 2],
@@ -220,18 +201,12 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Greška pri učitavanju',
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              widget.state.error!,
-              style: const TextStyle(color: AppColors.muted, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            GradientButton(text: 'Pokušaj ponovo', onTap: widget.onRefresh),
+            Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
+            const SizedBox(height: AppSpacing.sm),
+            Text(widget.state.error!, style: AppTextStyles.bodyMd,
+                textAlign: TextAlign.center),
+            const SizedBox(height: AppSpacing.lg),
+            GradientButton(text: 'Pokusaj ponovo', onTap: widget.onRefresh),
           ],
         ),
       );
@@ -241,7 +216,7 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(child: widget.tableBuilder(widget.state.items)),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.lg),
         PaginationControls(
           currentPage: widget.state.currentPage,
           totalPages: widget.state.totalPages,

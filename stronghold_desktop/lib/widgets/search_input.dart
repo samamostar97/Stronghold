@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-
+import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
+/// Tier 1 — Search field with surface bg, primary border on focus.
 class SearchInput extends StatefulWidget {
   const SearchInput({
     super.key,
@@ -37,24 +40,22 @@ class _SearchInputState extends State<SearchInput> {
 
   void _onTextChanged() {
     final hasText = widget.controller.text.isNotEmpty;
-    if (hasText != _hasText) {
-      setState(() => _hasText = hasText);
-    }
+    if (hasText != _hasText) setState(() => _hasText = hasText);
   }
 
   @override
   Widget build(BuildContext context) {
     return Focus(
-      onFocusChange: (focused) => setState(() => _focused = focused),
+      onFocusChange: (f) => setState(() => _focused = f),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeOut,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           boxShadow: _focused
               ? [
                   BoxShadow(
-                    color: AppColors.accent.withValues(alpha: 0.15),
+                    color: AppColors.primary.withValues(alpha: 0.12),
                     blurRadius: 12,
                   ),
                 ]
@@ -63,31 +64,36 @@ class _SearchInputState extends State<SearchInput> {
         child: TextField(
           controller: widget.controller,
           onSubmitted: widget.onSubmitted,
-          style: const TextStyle(color: Colors.white, fontSize: 14),
+          style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: const TextStyle(color: AppColors.muted, fontSize: 14),
+            hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.textMuted),
             filled: true,
-            fillColor: AppColors.panel,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            fillColor: AppColors.surfaceSolid,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
             enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: AppColors.border),
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: BorderSide(
-                color: AppColors.accent.withValues(alpha: 0.5),
-              ),
-              borderRadius: BorderRadius.circular(8),
+              borderSide: const BorderSide(color: AppColors.primary),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
             prefixIcon: Icon(
-              Icons.search,
-              color: _focused ? AppColors.accent : AppColors.muted,
-              size: 20,
+              LucideIcons.search,
+              color: _focused ? AppColors.primary : AppColors.textMuted,
+              size: 18,
             ),
             suffixIcon: _hasText
                 ? IconButton(
-                    icon: const Icon(Icons.close, size: 18, color: AppColors.muted),
+                    icon: const Icon(
+                      LucideIcons.x,
+                      size: 16,
+                      color: AppColors.textMuted,
+                    ),
                     onPressed: () {
                       widget.controller.clear();
                       widget.onSubmitted('');

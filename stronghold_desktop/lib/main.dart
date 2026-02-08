@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import 'package:stronghold_desktop/constants/app_theme.dart';
 import 'package:stronghold_desktop/screens/login_screen.dart';
 
 void main() {
-  // Initialize API base URL from environment variable (default: localhost:5034)
   const baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://localhost:5034',
@@ -22,11 +22,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Stronghold Desktop',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.deepPurple),
-        fontFamily: 'PlusJakartaSans',
-      ),
+      theme: AppTheme.darkTheme(),
       home: LoginScreen(),
     );
   }

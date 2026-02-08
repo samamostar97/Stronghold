@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
 class SmallButton extends StatefulWidget {
   const SmallButton({
@@ -30,28 +32,29 @@ class _SmallButtonState extends State<SmallButton> {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 200),
           curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(0.0, _hover ? -3.0 : 0.0, 0.0),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          transform:
+              Matrix4.translationValues(0.0, _hover ? -2.0 : 0.0, 0.0),
+          padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
           decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(6),
+            color: widget.color.withValues(alpha: _hover ? 0.2 : 0.1),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(
+              color: widget.color.withValues(alpha: _hover ? 0.5 : 0.25),
+            ),
             boxShadow: _hover
                 ? [
                     BoxShadow(
-                      color: widget.color.withValues(alpha: 0.3),
+                      color: widget.color.withValues(alpha: 0.15),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ]
-                : [],
+                : null,
           ),
           child: Text(
             widget.text,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.badge.copyWith(color: widget.color),
           ),
         ),
       ),

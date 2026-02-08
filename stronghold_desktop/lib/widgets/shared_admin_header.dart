@@ -1,108 +1,126 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 import '../screens/login_screen.dart';
+import 'avatar_widget.dart';
 
+/// Admin header with greeting, date, profile avatar, notification bell.
 class SharedAdminHeader extends StatelessWidget {
   const SharedAdminHeader({super.key});
 
-  static const _panel = Color(0xFF22253A);
-  static const _accent = Color(0xFFFF5757);
+  String get _greeting {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Dobro jutro';
+    if (hour < 18) return 'Dobar dan';
+    return 'Dobro vece';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isCompact = constraints.maxWidth < 400;
+    final now = DateTime.now();
+    final dateStr = DateFormat('dd.MM.yyyy  HH:mm').format(now);
 
-        return Row(
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.fitness_center,
-                  color: Color(0xFFFF5757),
-                  size: 32,
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'STRONGHOLD',
-                  style: TextStyle(
-                    fontSize: isCompact ? 18 : 24,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
-            const Spacer(),
-            PopupMenuButton<String>(
-              offset: const Offset(0, 50),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '$_greeting, Admin',
+                style: AppTextStyles.headingMd,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              color: _panel,
-              onSelected: (value) async {
-                if (value == 'logout') {
-                  await TokenStorage.clear();
-                  if (context.mounted) {
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      (route) => false,
-                    );
-                  }
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'profile',
-                  child: Row(
-                    children: [
-                      Icon(Icons.person_outline, color: Colors.white70, size: 20),
-                      SizedBox(width: 12),
-                      Text('Profil', style: TextStyle(color: Colors.white)),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem(
-                  value: 'logout',
-                  child: Row(
-                    children: [
-                      Icon(Icons.logout, color: _accent, size: 20),
-                      const SizedBox(width: 12),
-                      Text('Odjavi se', style: TextStyle(color: _accent)),
-                    ],
-                  ),
-                ),
-              ],
+              const SizedBox(height: 2),
+              Text(
+                dateStr,
+                style: AppTextStyles.bodySm,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+
+        // Notification bell with dot
+        Stack(
+          children: [
+            IconButton(
+              icon: const Icon(
+                LucideIcons.bell,
+                size: 20,
+                color: AppColors.textSecondary,
+              ),
+              onPressed: () {},
+            ),
+            Positioned(
+              right: 10,
+              top: 10,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                decoration: BoxDecoration(
-                  color: _panel,
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.person_outline, color: Colors.white70, size: 20),
-                    SizedBox(width: 10),
-                    Text(
-                      'Admin',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Icon(Icons.keyboard_arrow_down, color: Colors.white70, size: 20),
-                  ],
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: AppColors.error,
+                  shape: BoxShape.circle,
                 ),
               ),
             ),
           ],
-        );
-      },
+        ),
+        const SizedBox(width: AppSpacing.sm),
+
+        // Profile avatar + dropdown
+        PopupMenuButton<String>(
+          offset: const Offset(0, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          ),
+          color: AppColors.surfaceSolid,
+          onSelected: (value) async {
+            if (value == 'logout') {
+              await TokenStorage.clear();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            }
+          },
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              value: 'profile',
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.user, color: AppColors.textSecondary, size: 18),
+                  const SizedBox(width: AppSpacing.md),
+                  Text('Profil', style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary)),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            PopupMenuItem(
+              value: 'logout',
+              child: Row(
+                children: [
+                  const Icon(LucideIcons.logOut, color: AppColors.error, size: 18),
+                  const SizedBox(width: AppSpacing.md),
+                  Text('Odjavi se', style: AppTextStyles.bodyMd.copyWith(color: AppColors.error)),
+                ],
+              ),
+            ),
+          ],
+          child: const AvatarWidget(initials: 'AD', size: 36),
+        ),
+      ],
     );
   }
 }

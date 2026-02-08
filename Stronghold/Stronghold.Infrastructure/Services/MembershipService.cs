@@ -110,6 +110,52 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
+        public async Task<PagedResult<ActiveMemberResponse>> GetActiveMembersAsync(ActiveMemberQueryFilter filter)
+        {
+            var now = DateTime.UtcNow;
+
+            var baseQuery = _membershipRepository.AsQueryable()
+                .AsNoTracking()
+                .Include(m => m.User)
+                .Include(m => m.MembershipPackage)
+                .Where(m => m.EndDate > now && !m.IsDeleted && !m.User.IsDeleted);
+
+            if (!string.IsNullOrWhiteSpace(filter.Name))
+            {
+                var name = filter.Name.Trim().ToLower();
+                baseQuery = baseQuery.Where(m =>
+                    m.User.FirstName.ToLower().Contains(name) ||
+                    m.User.LastName.ToLower().Contains(name) ||
+                    m.User.Username.ToLower().Contains(name));
+            }
+
+            var query = baseQuery.OrderBy(m => m.User.FirstName).ThenBy(m => m.User.LastName);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(m => new ActiveMemberResponse
+                {
+                    UserId = m.UserId,
+                    FirstName = m.User.FirstName,
+                    LastName = m.User.LastName,
+                    Username = m.User.Username,
+                    ProfileImageUrl = m.User.ProfileImageUrl,
+                    PackageName = m.MembershipPackage.PackageName,
+                    MembershipEndDate = m.EndDate
+                })
+                .ToListAsync();
+
+            return new PagedResult<ActiveMemberResponse>
+            {
+                Items = items,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber
+            };
+        }
+
         public async Task<MembershipResponse> AssignMembership(AssignMembershipRequest request)
         {
             if (request.StartDate < DateTime.Today)

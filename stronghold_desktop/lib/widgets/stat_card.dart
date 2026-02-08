@@ -1,154 +1,123 @@
 import 'package:flutter/material.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_theme.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 
-/// Animated KPI stat card with count-up animation and change badge.
-class StatCard extends StatelessWidget {
+/// Tier 1 — KPI stat card with glass look, hover border glow, optional chart.
+class StatCard extends StatefulWidget {
   const StatCard({
     super.key,
-    required this.label,
+    required this.title,
     required this.value,
-    this.valueSuffix,
-    this.changePercent,
-    this.changeLabel,
-    this.icon,
-    this.iconColor,
+    this.trendValue,
+    this.isPositive = true,
+    this.accentColor = AppColors.primary,
+    this.child,
   });
 
-  final String label;
-  final num value;
-  final String? valueSuffix;
-  final num? changePercent;
-  final String? changeLabel;
-  final IconData? icon;
-  final Color? iconColor;
+  final String title;
+  final String value;
+  final String? trendValue;
+  final bool isPositive;
+  final Color accentColor;
+  final Widget? child;
+
+  @override
+  State<StatCard> createState() => _StatCardState();
+}
+
+class _StatCardState extends State<StatCard> {
+  bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
-    final color = iconColor ?? AppColors.accent;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: AppGradients.cardBorder,
-        borderRadius: BorderRadius.circular(AppRadius.large),
-        boxShadow: AppShadows.cardShadow,
-      ),
-      padding: const EdgeInsets.all(1),
-      child: Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(AppRadius.large - 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null)
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(AppRadius.medium),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOut,
+        transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+          border: Border.all(
+            color: _hover
+                ? widget.accentColor.withValues(alpha: 0.3)
+                : AppColors.border,
+          ),
+          boxShadow: _hover
+              ? [
+                  BoxShadow(
+                    color: widget.accentColor.withValues(alpha: 0.08),
+                    blurRadius: 20,
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(widget.title, style: AppTextStyles.label),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    widget.value,
+                    style: AppTextStyles.statLg,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (widget.trendValue != null) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    _TrendBadge(
+                      value: widget.trendValue!,
+                      isPositive: widget.isPositive,
+                    ),
+                  ],
+                ],
               ),
-              child: Icon(icon, color: color, size: 20),
             ),
-          if (icon != null) const SizedBox(height: 16),
-          Text(
-            label,
-            style: AppTypography.caption,
-          ),
-          const SizedBox(height: 6),
-          TweenAnimationBuilder<num>(
-            tween: Tween<num>(begin: 0, end: value),
-            duration: const Duration(milliseconds: 800),
-            curve: Curves.easeOutCubic,
-            builder: (context, animValue, _) {
-              final formatted = _formatValue(animValue);
-              return Text(
-                valueSuffix != null ? '$formatted $valueSuffix' : formatted,
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  fontFeatures: [FontFeature.tabularFigures()],
-                ),
-              );
-            },
-          ),
-          if (changePercent != null || changeLabel != null) ...[
-            const SizedBox(height: 8),
-            _ChangeBadge(
-              changePercent: changePercent,
-              changeLabel: changeLabel,
-            ),
+            if (widget.child != null) ...[
+              const SizedBox(width: AppSpacing.md),
+              widget.child!,
+            ],
           ],
-        ],
-      ),
+        ),
       ),
     );
   }
-
-  String _formatValue(num val) {
-    if (value is int || value == value.roundToDouble()) {
-      return val.round().toString();
-    }
-    return val.toStringAsFixed(2);
-  }
 }
 
-class _ChangeBadge extends StatelessWidget {
-  const _ChangeBadge({this.changePercent, this.changeLabel});
+class _TrendBadge extends StatelessWidget {
+  const _TrendBadge({required this.value, required this.isPositive});
 
-  final num? changePercent;
-  final String? changeLabel;
+  final String value;
+  final bool isPositive;
 
   @override
   Widget build(BuildContext context) {
-    final isPositive = changePercent != null && changePercent! >= 0;
-    final badgeColor = changePercent == null
-        ? AppColors.muted
-        : isPositive
-            ? AppColors.success
-            : AppColors.accent;
-
-    return Wrap(
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 6,
+    final color = isPositive ? AppColors.success : AppColors.error;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        if (changePercent != null)
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                  size: 12,
-                  color: badgeColor,
-                ),
-                const SizedBox(width: 2),
-                Text(
-                  '${changePercent!.abs().toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: badgeColor,
-                  ),
-                ),
-              ],
-            ),
+        Icon(
+          isPositive ? LucideIcons.trendingUp : LucideIcons.trendingDown,
+          size: 14,
+          color: color,
+        ),
+        const SizedBox(width: 4),
+        Flexible(
+          child: Text(
+            value,
+            style: AppTextStyles.bodySm.copyWith(color: color),
+            overflow: TextOverflow.ellipsis,
           ),
-        if (changeLabel != null)
-          Text(
-            changeLabel!,
-            style: AppTypography.caption,
-          ),
+        ),
       ],
     );
   }
