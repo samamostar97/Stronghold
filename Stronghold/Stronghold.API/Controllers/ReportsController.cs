@@ -101,5 +101,12 @@ namespace Stronghold.API.Controllers
             var fileName = $"Stronghold_Clanarine_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
             return File(fileBytes, "application/pdf", fileName);
         }
+
+        [HttpGet("activity")]
+        public async Task<ActionResult<List<ActivityFeedItemResponse>>> GetActivityFeed([FromQuery] int count = 20)
+        {
+            var feed = await _reportsService.GetActivityFeedAsync(count);
+            return Ok(feed);
+        }
     }
 }
