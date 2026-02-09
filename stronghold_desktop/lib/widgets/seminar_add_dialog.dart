@@ -21,6 +21,7 @@ class _State extends State<SeminarAddDialog> {
   final _formKey = GlobalKey<FormState>();
   final _topic = TextEditingController();
   final _speaker = TextEditingController();
+  final _capacity = TextEditingController();
   DateTime _eventDate = DateTime.now();
   bool _saving = false;
 
@@ -28,6 +29,7 @@ class _State extends State<SeminarAddDialog> {
   void dispose() {
     _topic.dispose();
     _speaker.dispose();
+    _capacity.dispose();
     super.dispose();
   }
 
@@ -39,6 +41,7 @@ class _State extends State<SeminarAddDialog> {
         topic: _topic.text.trim(),
         speakerName: _speaker.text.trim(),
         eventDate: _eventDate,
+        maxCapacity: int.parse(_capacity.text.trim()),
       ));
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
@@ -86,6 +89,21 @@ class _State extends State<SeminarAddDialog> {
                       controller: _speaker,
                       label: 'Voditelj',
                       validator: (v) => Validators.stringLength(v, 2, 100)),
+                  const SizedBox(height: AppSpacing.lg),
+                  DialogTextField(
+                      controller: _capacity,
+                      label: 'Maksimalni kapacitet',
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Kapacitet je obavezan';
+                        }
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n < 1 || n > 10000) {
+                          return 'Unesite broj od 1 do 10000';
+                        }
+                        return null;
+                      }),
                   const SizedBox(height: AppSpacing.lg),
                   DatePickerField(
                     label: 'Datum i satnica',

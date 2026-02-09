@@ -9,6 +9,7 @@ import '../widgets/confirm_dialog.dart';
 import '../widgets/seminars_table.dart';
 import '../widgets/seminar_add_dialog.dart';
 import '../widgets/seminar_edit_dialog.dart';
+import '../widgets/seminar_attendees_dialog.dart';
 import '../utils/error_handler.dart';
 
 class SeminarsScreen extends ConsumerStatefulWidget {
@@ -62,6 +63,17 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     }
   }
 
+  void _viewAttendees(SeminarResponse seminar) {
+    showDialog(
+      context: context,
+      builder: (_) => SeminarAttendeesDialog(
+        seminarId: seminar.id,
+        topic: seminar.topic,
+        service: ref.read(seminarServiceProvider),
+      ),
+    );
+  }
+
   Future<void> _deleteSeminar(SeminarResponse seminar) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -108,6 +120,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
         seminars: items,
         onEdit: _editSeminar,
         onDelete: _deleteSeminar,
+        onViewAttendees: _viewAttendees,
       ),
     );
   }

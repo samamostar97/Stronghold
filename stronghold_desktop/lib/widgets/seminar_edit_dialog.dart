@@ -27,6 +27,7 @@ class _State extends State<SeminarEditDialog> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _topic;
   late final TextEditingController _speaker;
+  late final TextEditingController _capacity;
   late DateTime _eventDate;
   bool _saving = false;
 
@@ -35,6 +36,8 @@ class _State extends State<SeminarEditDialog> {
     super.initState();
     _topic = TextEditingController(text: widget.seminar.topic);
     _speaker = TextEditingController(text: widget.seminar.speakerName);
+    _capacity = TextEditingController(
+        text: widget.seminar.maxCapacity.toString());
     _eventDate = widget.seminar.eventDate;
   }
 
@@ -42,6 +45,7 @@ class _State extends State<SeminarEditDialog> {
   void dispose() {
     _topic.dispose();
     _speaker.dispose();
+    _capacity.dispose();
     super.dispose();
   }
 
@@ -53,6 +57,7 @@ class _State extends State<SeminarEditDialog> {
         topic: _topic.text.trim(),
         speakerName: _speaker.text.trim(),
         eventDate: _eventDate,
+        maxCapacity: int.parse(_capacity.text.trim()),
       ));
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
@@ -100,6 +105,21 @@ class _State extends State<SeminarEditDialog> {
                       controller: _speaker,
                       label: 'Voditelj',
                       validator: (v) => Validators.stringLength(v, 2, 100)),
+                  const SizedBox(height: AppSpacing.lg),
+                  DialogTextField(
+                      controller: _capacity,
+                      label: 'Maksimalni kapacitet',
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Kapacitet je obavezan';
+                        }
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n < 1 || n > 10000) {
+                          return 'Unesite broj od 1 do 10000';
+                        }
+                        return null;
+                      }),
                   const SizedBox(height: AppSpacing.lg),
                   DatePickerField(
                     label: 'Datum i satnica',
