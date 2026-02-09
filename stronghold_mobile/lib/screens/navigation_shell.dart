@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
 import 'home_screen.dart';
 import 'supplement_shop_screen.dart';
 import 'profile_settings_screen.dart';
 
-class NavigationShell extends StatefulWidget {
+/// Provider to allow child widgets to switch bottom nav tab
+final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
+
+class NavigationShell extends ConsumerWidget {
   const NavigationShell({super.key});
-
-  @override
-  State<NavigationShell> createState() => _NavigationShellState();
-}
-
-class _NavigationShellState extends State<NavigationShell> {
-  int _currentIndex = 0;
 
   static const _screens = <Widget>[
     HomeScreen(),
@@ -22,16 +19,18 @@ class _NavigationShellState extends State<NavigationShell> {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentIndex = ref.watch(bottomNavIndexProvider);
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: IndexedStack(
-        index: _currentIndex,
+        index: currentIndex,
         children: _screens,
       ),
       bottomNavigationBar: AppBottomNav(
-        currentIndex: _currentIndex,
-        onTap: (index) => setState(() => _currentIndex = index),
+        currentIndex: currentIndex,
+        onTap: (index) => ref.read(bottomNavIndexProvider.notifier).state = index,
       ),
     );
   }

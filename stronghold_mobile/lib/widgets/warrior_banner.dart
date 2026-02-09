@@ -8,7 +8,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
-import '../screens/profile_settings_screen.dart';
+import '../screens/navigation_shell.dart';
 import '../utils/image_utils.dart';
 import 'glass_card.dart';
 
@@ -50,13 +50,9 @@ class WarriorBanner extends ConsumerWidget {
                   ],
                 ),
               ),
-              // Settings icon
+              // Settings icon - switches to Profile tab
               IconButton(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const ProfileSettingsScreen()),
-                ),
+                onPressed: () => ref.read(bottomNavIndexProvider.notifier).state = 2,
                 icon: const Icon(
                   LucideIcons.settings,
                   size: 20,
