@@ -26,11 +26,18 @@ class NavigationShell extends StatefulWidget {
 class _NavigationShellState extends State<NavigationShell> {
   int _currentIndex = 0;
 
+  void _switchToTab(int index) {
+    if (index >= 0 && index < 5) {
+      setState(() => _currentIndex = index);
+    }
+  }
+
   late final List<Widget> _screens = [
     HomeScreen(
       userName: widget.userName,
       userImageUrl: widget.userImageUrl,
       hasActiveMembership: widget.hasActiveMembership,
+      onTabSwitch: _switchToTab,
     ),
     const SupplementShopScreen(),
     const AppointmentScreen(),

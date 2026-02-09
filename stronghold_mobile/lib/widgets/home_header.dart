@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/profile_provider.dart';
+import '../screens/profile_settings_screen.dart';
 import '../utils/image_utils.dart';
 import 'avatar_widget.dart';
 import 'bottom_sheet_handle.dart';
@@ -14,11 +15,13 @@ import 'feedback_dialog.dart';
 class HomeHeader extends ConsumerStatefulWidget {
   final String userName;
   final String? userImageUrl;
+  final bool showSettings;
 
   const HomeHeader({
     super.key,
     required this.userName,
     this.userImageUrl,
+    this.showSettings = true,
   });
 
   @override
@@ -62,7 +65,22 @@ class _HomeHeaderState extends ConsumerState<HomeHeader> {
             ],
           ),
         ),
-        const SizedBox(width: AppSpacing.md),
+        if (widget.showSettings) ...[
+          IconButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ProfileSettingsScreen()),
+            ),
+            icon: const Icon(
+              LucideIcons.settings,
+              size: 22,
+              color: AppColors.textSecondary,
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
+        ],
+        const SizedBox(width: AppSpacing.sm),
         GestureDetector(
           onTap: isUploading ? null : _showImagePicker,
           child: isUploading
