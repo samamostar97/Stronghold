@@ -180,41 +180,41 @@ public static class StrongholdDbContextDataSeed
         var supplements = new List<Supplement>
         {
             // Proteini (0-3)
-            new() { Name = "Whey Protein Gold 2kg", Price = 89.00m, Description = "Premium whey protein izolat sa 24g proteina po porciji", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_whey-protein-gold.jpg" },
-            new() { Name = "Casein Protein 1kg", Price = 65.00m, Description = "Sporo oslobađajući kazein protein idealan za noć", SupplementCategoryId = proteini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_casein-protein.jpg" },
-            new() { Name = "Vegan Protein Mix 1kg", Price = 55.00m, Description = "Biljni protein od graška i riže", SupplementCategoryId = proteini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_vegan-protein.jpg" },
-            new() { Name = "Whey Isolate 1kg", Price = 75.00m, Description = "Čisti whey izolat sa minimalnim mastima i ugljikohidratima", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_whey-isolate.jpg" },
+            new() { Name = "Whey Protein Gold 2kg", Price = 89.00m, Description = "Premium whey protein izolat sa 24g proteina po porciji", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_whey-protein-gold.png" },
+            new() { Name = "Casein Protein 1kg", Price = 65.00m, Description = "Sporo oslobađajući kazein protein idealan za noć", SupplementCategoryId = proteini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_casein-protein.png" },
+            new() { Name = "Vegan Protein Mix 1kg", Price = 55.00m, Description = "Biljni protein od graška i riže", SupplementCategoryId = proteini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_vegan-protein.png" },
+            new() { Name = "Whey Isolate 1kg", Price = 75.00m, Description = "Čisti whey izolat sa minimalnim mastima i ugljikohidratima", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_whey-isolate.png" },
 
             // Kreatin (4-6)
-            new() { Name = "Kreatin Monohidrat 500g", Price = 35.00m, Description = "Čisti kreatin monohidrat za povećanje snage", SupplementCategoryId = kreatin, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_kreatin-monohidrat.jpg" },
-            new() { Name = "Kreatin HCL 120 kapsula", Price = 45.00m, Description = "Kreatin hidrohlorid za bolju apsorpciju", SupplementCategoryId = kreatin, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_kreatin-hcl.jpg" },
-            new() { Name = "Kre-Alkalyn 120 kapsula", Price = 50.00m, Description = "Puferovani kreatin bez potrebe za fazom punjenja", SupplementCategoryId = kreatin, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_kre-alkalyn.jpg" },
+            new() { Name = "Kreatin Monohidrat 500g", Price = 35.00m, Description = "Čisti kreatin monohidrat za povećanje snage", SupplementCategoryId = kreatin, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_kreatin-monohidrat.png" },
+            new() { Name = "Kreatin HCL 120 kapsula", Price = 45.00m, Description = "Kreatin hidrohlorid za bolju apsorpciju", SupplementCategoryId = kreatin, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_kreatin-hcl.png" },
+            new() { Name = "Kre-Alkalyn 120 kapsula", Price = 50.00m, Description = "Puferovani kreatin bez potrebe za fazom punjenja", SupplementCategoryId = kreatin, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_kre-alkalyn.png" },
 
             // Aminokiseline (7-11)
-            new() { Name = "BCAA 2:1:1 400g", Price = 40.00m, Description = "Razgranati aminokiselinski lanac za oporavak mišića", SupplementCategoryId = amino, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_bcaa.jpg" },
-            new() { Name = "EAA 350g", Price = 48.00m, Description = "Esencijalne aminokiseline za kompletnu podršku mišićima", SupplementCategoryId = amino, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_eaa.jpg" },
-            new() { Name = "Glutamin 500g", Price = 38.00m, Description = "L-Glutamin za oporavak i imunitet", SupplementCategoryId = amino, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_glutamin.jpg" },
-            new() { Name = "L-Karnitin 1000ml", Price = 32.00m, Description = "Tečni L-karnitin za sagorijevanje masti", SupplementCategoryId = amino, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_l-karnitin.jpg" },
-            new() { Name = "Beta Alanin 300g", Price = 35.00m, Description = "Za povećanje izdržljivosti tokom treninga", SupplementCategoryId = amino, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_beta-alanin.jpg" },
+            new() { Name = "BCAA 2:1:1 400g", Price = 40.00m, Description = "Razgranati aminokiselinski lanac za oporavak mišića", SupplementCategoryId = amino, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_bcaa.png" },
+            new() { Name = "EAA 350g", Price = 48.00m, Description = "Esencijalne aminokiseline za kompletnu podršku mišićima", SupplementCategoryId = amino, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_eaa.png" },
+            new() { Name = "Glutamin 500g", Price = 38.00m, Description = "L-Glutamin za oporavak i imunitet", SupplementCategoryId = amino, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_glutamin.png" },
+            new() { Name = "L-Karnitin 1000ml", Price = 32.00m, Description = "Tečni L-karnitin za sagorijevanje masti", SupplementCategoryId = amino, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_l-karnitin.png" },
+            new() { Name = "Beta Alanin 300g", Price = 35.00m, Description = "Za povećanje izdržljivosti tokom treninga", SupplementCategoryId = amino, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_beta-alanin.png" },
 
             // Vitamini i minerali (12-16)
-            new() { Name = "Multivitamin kompleks 60 tableta", Price = 25.00m, Description = "Kompletan multivitamin za sportiste", SupplementCategoryId = vitamini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_multivitamin.jpg" },
-            new() { Name = "Vitamin D3 5000IU 120 kapsula", Price = 18.00m, Description = "Vitamin D3 za kosti i imunitet", SupplementCategoryId = vitamini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_vitamin-d3.jpg" },
-            new() { Name = "Omega 3 120 kapsula", Price = 28.00m, Description = "Riblje ulje sa EPA i DHA", SupplementCategoryId = vitamini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_omega-3.jpg" },
-            new() { Name = "ZMA 90 kapsula", Price = 22.00m, Description = "Cink, magnezijum i vitamin B6 za bolji san i oporavak", SupplementCategoryId = vitamini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_zma.jpg" },
-            new() { Name = "Magnezijum Citrat 120 tableta", Price = 15.00m, Description = "Magnezijum za mišiće i nervni sistem", SupplementCategoryId = vitamini, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_magnezijum-citrat.jpg" },
+            new() { Name = "Multivitamin kompleks 60 tableta", Price = 25.00m, Description = "Kompletan multivitamin za sportiste", SupplementCategoryId = vitamini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_multivitamin.png" },
+            new() { Name = "Vitamin D3 5000IU 120 kapsula", Price = 18.00m, Description = "Vitamin D3 za kosti i imunitet", SupplementCategoryId = vitamini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_vitamin-d3.png" },
+            new() { Name = "Omega 3 120 kapsula", Price = 28.00m, Description = "Riblje ulje sa EPA i DHA", SupplementCategoryId = vitamini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_omega-3.png" },
+            new() { Name = "ZMA 90 kapsula", Price = 22.00m, Description = "Cink, magnezijum i vitamin B6 za bolji san i oporavak", SupplementCategoryId = vitamini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_zma.png" },
+            new() { Name = "Magnezijum Citrat 120 tableta", Price = 15.00m, Description = "Magnezijum za mišiće i nervni sistem", SupplementCategoryId = vitamini, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_magnezijum-citrat.png" },
 
             // Pre-workout (17-20)
-            new() { Name = "Pre-Workout Extreme 300g", Price = 42.00m, Description = "Snažna pre-workout formula sa kofeinom i beta alaninom", SupplementCategoryId = preworkout, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_pre-workout-extreme.jpg" },
-            new() { Name = "Pump Matrix 350g", Price = 38.00m, Description = "Pre-workout bez stimulansa za bolju pumpu", SupplementCategoryId = preworkout, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_pump-matrix.jpg" },
-            new() { Name = "Energy Boost 250g", Price = 30.00m, Description = "Lagani pre-workout za početnike", SupplementCategoryId = preworkout, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_energy-boost.jpg" },
-            new() { Name = "Nitric Oxide Booster 200g", Price = 35.00m, Description = "Za poboljšanje protoka krvi i izdržljivosti", SupplementCategoryId = preworkout, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_nitric-oxide-booster.jpg" },
+            new() { Name = "Pre-Workout Extreme 300g", Price = 42.00m, Description = "Snažna pre-workout formula sa kofeinom i beta alaninom", SupplementCategoryId = preworkout, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_pre-workout-extreme.png" },
+            new() { Name = "Pump Matrix 350g", Price = 38.00m, Description = "Pre-workout bez stimulansa za bolju pumpu", SupplementCategoryId = preworkout, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_pump-matrix.png" },
+            new() { Name = "Energy Boost 250g", Price = 30.00m, Description = "Lagani pre-workout za početnike", SupplementCategoryId = preworkout, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_energy-boost.png" },
+            new() { Name = "Nitric Oxide Booster 200g", Price = 35.00m, Description = "Za poboljšanje protoka krvi i izdržljivosti", SupplementCategoryId = preworkout, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_nitric-oxide-booster.png" },
 
             // Mass gaineri (21-24)
-            new() { Name = "Mass Gainer 3kg", Price = 70.00m, Description = "Visokokalorični gainer za povećanje mase", SupplementCategoryId = gaineri, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_mass-gainer.jpg" },
-            new() { Name = "Serious Mass 2.7kg", Price = 65.00m, Description = "Gainer sa kompleksnim ugljikohidratima", SupplementCategoryId = gaineri, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_serious-mass.jpg" },
-            new() { Name = "Clean Gainer 2kg", Price = 58.00m, Description = "Gainer sa manje šećera i više proteina", SupplementCategoryId = gaineri, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_clean-gainer.jpg" },
-            new() { Name = "Weight Gainer Pro 4kg", Price = 85.00m, Description = "Profesionalni gainer za hard gainere", SupplementCategoryId = gaineri, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_weight-gainer-pro.jpg" }
+            new() { Name = "Mass Gainer 3kg", Price = 70.00m, Description = "Visokokalorični gainer za povećanje mase", SupplementCategoryId = gaineri, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_mass-gainer.png" },
+            new() { Name = "Serious Mass 2.7kg", Price = 65.00m, Description = "Gainer sa kompleksnim ugljikohidratima", SupplementCategoryId = gaineri, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_serious-mass.png" },
+            new() { Name = "Clean Gainer 2kg", Price = 58.00m, Description = "Gainer sa manje šećera i više proteina", SupplementCategoryId = gaineri, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_clean-gainer.png" },
+            new() { Name = "Weight Gainer Pro 4kg", Price = 85.00m, Description = "Profesionalni gainer za hard gainere", SupplementCategoryId = gaineri, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_weight-gainer-pro.png" }
         };
 
         await context.Supplements.AddRangeAsync(supplements);
