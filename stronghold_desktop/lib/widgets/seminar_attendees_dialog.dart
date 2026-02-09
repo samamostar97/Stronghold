@@ -9,13 +9,11 @@ import '../constants/app_text_styles.dart';
 class SeminarAttendeesDialog extends StatefulWidget {
   const SeminarAttendeesDialog({
     super.key,
-    required this.seminarId,
-    required this.topic,
+    required this.seminar,
     required this.service,
   });
 
-  final int seminarId;
-  final String topic;
+  final SeminarResponse seminar;
   final SeminarService service;
 
   @override
@@ -39,7 +37,7 @@ class _State extends State<SeminarAttendeesDialog> {
       _error = null;
     });
     try {
-      final result = await widget.service.getAttendees(widget.seminarId);
+      final result = await widget.service.getAttendees(widget.seminar.id);
       if (mounted) setState(() => _attendees = result);
     } catch (e) {
       if (mounted) {
@@ -53,12 +51,13 @@ class _State extends State<SeminarAttendeesDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final s = widget.seminar;
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 550, maxHeight: 500),
+        constraints: const BoxConstraints(maxWidth: 550, maxHeight: 600),
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xxl),
           child: Column(
@@ -67,19 +66,8 @@ class _State extends State<SeminarAttendeesDialog> {
             children: [
               Row(children: [
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Ucesnici seminara',
-                          style: AppTextStyles.headingMd),
-                      const SizedBox(height: AppSpacing.xs),
-                      Text(widget.topic,
-                          style: AppTextStyles.bodyMd
-                              .copyWith(color: AppColors.textMuted),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
+                  child: Text('Detalji seminara',
+                      style: AppTextStyles.headingMd),
                 ),
                 IconButton(
                   icon: Icon(LucideIcons.x,
@@ -87,11 +75,39 @@ class _State extends State<SeminarAttendeesDialog> {
                   onPressed: () => Navigator.of(context).pop(),
                 ),
               ]),
-              const SizedBox(height: AppSpacing.xl),
+              const SizedBox(height: AppSpacing.lg),
+              _detailRow('Tema', s.topic),
+              _detailRow('Voditelj', s.speakerName),
+              _detailRow('Datum', DateFormat('dd.MM.yyyy').format(s.eventDate)),
+              _detailRow('Vrijeme', DateFormat('HH:mm').format(s.eventDate)),
+              _detailRow('Kapacitet',
+                  '${s.currentAttendees}/${s.maxCapacity}'),
+              const SizedBox(height: AppSpacing.lg),
+              const Divider(color: AppColors.border, height: 1),
+              const SizedBox(height: AppSpacing.lg),
               Flexible(child: _buildContent()),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(label,
+                style: AppTextStyles.bodySm
+                    .copyWith(color: AppColors.textMuted)),
+          ),
+          Expanded(
+            child: Text(value, style: AppTextStyles.bodyBold),
+          ),
+        ],
       ),
     );
   }

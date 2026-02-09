@@ -56,7 +56,7 @@ class SeminarsTable extends StatelessWidget {
                 text: DateFormat('HH:mm').format(s.eventDate), flex: 1),
             TableActionCell(flex: 3, children: [
               SmallButton(
-                  text: 'Ucesnici',
+                  text: 'Detalji',
                   color: AppColors.primary,
                   onTap: () => onViewAttendees(s)),
               const SizedBox(width: AppSpacing.sm),
@@ -92,29 +92,12 @@ class _CapacityIndicator extends StatelessWidget {
             ? AppColors.warning
             : AppColors.success;
 
-    return Row(
-      children: [
-        SizedBox(
-          width: 60,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: ratio,
-              backgroundColor: AppColors.border,
-              color: color,
-              minHeight: 6,
-            ),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '$current/$max',
-          style: AppTextStyles.bodySm.copyWith(
-            color: color,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
+    return Text(
+      '$current/$max',
+      style: AppTextStyles.bodySm.copyWith(
+        color: color,
+        fontWeight: FontWeight.w600,
+      ),
     );
   }
 }

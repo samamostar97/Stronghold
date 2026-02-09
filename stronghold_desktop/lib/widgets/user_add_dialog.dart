@@ -1,3 +1,5 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -27,6 +29,7 @@ class _UserAddDialogState extends ConsumerState<UserAddDialog> {
   final _phone = TextEditingController();
   final _password = TextEditingController();
   int _gender = 0;
+  String? _selectedImagePath;
   bool _saving = false;
 
   @override
@@ -38,6 +41,14 @@ class _UserAddDialogState extends ConsumerState<UserAddDialog> {
     _phone.dispose();
     _password.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform
+        .pickFiles(type: FileType.image, allowMultiple: false);
+    if (result != null && result.files.isNotEmpty) {
+      setState(() => _selectedImagePath = result.files.first.path);
+    }
   }
 
   Future<void> _save() async {
@@ -53,7 +64,13 @@ class _UserAddDialogState extends ConsumerState<UserAddDialog> {
         gender: _gender,
         password: _password.text,
       );
-      await ref.read(userListProvider.notifier).create(request);
+      final userId =
+          await ref.read(userListProvider.notifier).create(request);
+      if (_selectedImagePath != null) {
+        await ref
+            .read(userListProvider.notifier)
+            .uploadImage(userId, _selectedImagePath!);
+      }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
@@ -82,6 +99,8 @@ class _UserAddDialogState extends ConsumerState<UserAddDialog> {
                 children: [
                   _header(),
                   const SizedBox(height: AppSpacing.xl),
+                  _imageSection(),
+                  const SizedBox(height: AppSpacing.lg),
                   Row(children: [
                     Expanded(child: DialogTextField(
                         controller: _firstName, label: 'Ime',
@@ -128,6 +147,53 @@ class _UserAddDialogState extends ConsumerState<UserAddDialog> {
         IconButton(
           icon: Icon(LucideIcons.x, color: AppColors.textMuted, size: 20),
           onPressed: () => Navigator.of(context).pop(false),
+        ),
+      ],
+    );
+  }
+
+  Widget _imageSection() {
+    return Row(
+      children: [
+        Container(
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
+            color: AppColors.surfaceSolid,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            child: _selectedImagePath != null
+                ? Image.file(File(_selectedImagePath!), fit: BoxFit.cover)
+                : Icon(LucideIcons.user,
+                    size: 32, color: AppColors.textMuted),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextButton.icon(
+              onPressed: _pickImage,
+              icon: Icon(LucideIcons.upload, size: 16),
+              label: Text(_selectedImagePath != null
+                  ? 'Promijeni sliku'
+                  : 'Odaberi sliku'),
+              style:
+                  TextButton.styleFrom(foregroundColor: AppColors.secondary),
+            ),
+            if (_selectedImagePath != null)
+              TextButton.icon(
+                onPressed: () =>
+                    setState(() => _selectedImagePath = null),
+                icon: Icon(LucideIcons.trash2, size: 16),
+                label: const Text('Ukloni sliku'),
+                style:
+                    TextButton.styleFrom(foregroundColor: AppColors.error),
+              ),
+          ],
         ),
       ],
     );

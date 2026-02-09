@@ -6,7 +6,6 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../utils/error_handler.dart';
 import '../utils/validators.dart';
-import 'custom_checkbox.dart';
 import 'dialog_text_field.dart';
 
 class MembershipPackageEditDialog extends StatefulWidget {
@@ -28,7 +27,6 @@ class _State extends State<MembershipPackageEditDialog> {
   late final TextEditingController _name;
   late final TextEditingController _price;
   late final TextEditingController _description;
-  late bool _isActive;
   bool _saving = false;
 
   @override
@@ -39,7 +37,6 @@ class _State extends State<MembershipPackageEditDialog> {
         text: widget.package.packagePrice.toString());
     _description = TextEditingController(
         text: widget.package.description ?? '');
-    _isActive = widget.package.isActive;
   }
 
   @override
@@ -60,7 +57,6 @@ class _State extends State<MembershipPackageEditDialog> {
         description: _description.text.trim().isEmpty
             ? null
             : _description.text.trim(),
-        isActive: _isActive,
       ));
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
@@ -111,16 +107,6 @@ class _State extends State<MembershipPackageEditDialog> {
                       validator: (v) =>
                           Validators.description(v, maxLength: 500,
                               required: true)),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(children: [
-                    CustomCheckbox(
-                      checked: _isActive,
-                      onChanged: (v) => setState(() => _isActive = v),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Text('Aktivan paket', style: AppTextStyles.bodyMd
-                        .copyWith(color: AppColors.textPrimary)),
-                  ]),
                   const SizedBox(height: AppSpacing.xxl),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,

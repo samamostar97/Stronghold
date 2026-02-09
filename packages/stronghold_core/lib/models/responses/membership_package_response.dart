@@ -4,14 +4,12 @@ class MembershipPackageResponse {
   final String? packageName;
   final double packagePrice;
   final String? description;
-  final bool isActive;
 
   const MembershipPackageResponse({
     required this.id,
     this.packageName,
     required this.packagePrice,
     this.description,
-    required this.isActive,
   });
 
   factory MembershipPackageResponse.fromJson(Map<String, dynamic> json) {
@@ -20,7 +18,6 @@ class MembershipPackageResponse {
       packageName: json['packageName'] as String?,
       packagePrice: ((json['packagePrice'] ?? 0) as num).toDouble(),
       description: json['description'] as String?,
-      isActive: (json['isActive'] ?? true) as bool,
     );
   }
 }

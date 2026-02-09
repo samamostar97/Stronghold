@@ -67,8 +67,7 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     showDialog(
       context: context,
       builder: (_) => SeminarAttendeesDialog(
-        seminarId: seminar.id,
-        topic: seminar.topic,
+        seminar: seminar,
         service: ref.read(seminarServiceProvider),
       ),
     );

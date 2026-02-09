@@ -4,7 +4,6 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import 'data_table_widgets.dart';
 import 'small_button.dart';
-import 'status_pill.dart';
 
 class MembershipPackagesTable extends StatelessWidget {
   const MembershipPackagesTable({
@@ -26,7 +25,6 @@ class MembershipPackagesTable extends StatelessWidget {
           TableHeaderCell(text: 'Naziv paketa', flex: 3),
           TableHeaderCell(text: 'Cijena', flex: 2),
           TableHeaderCell(text: 'Opis', flex: 4),
-          TableHeaderCell(text: 'Status', flex: 1),
           TableHeaderCell(text: 'Akcije', flex: 2, alignRight: true),
         ]),
       ),
@@ -44,13 +42,6 @@ class MembershipPackagesTable extends StatelessWidget {
             TableDataCell(
                 text: (p.description?.isEmpty ?? true) ? '-' : p.description!,
                 flex: 4, muted: true),
-            Expanded(
-              flex: 1,
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: p.isActive ? StatusPill.active() : StatusPill.inactive(),
-              ),
-            ),
             TableActionCell(flex: 2, children: [
               SmallButton(
                   text: 'Izmijeni', color: AppColors.secondary, onTap: () => onEdit(p)),
