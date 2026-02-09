@@ -2,12 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../providers/appointment_provider.dart';
 import '../providers/notification_provider.dart';
+import '../providers/profile_provider.dart';
 import 'glass_card.dart';
+
+/// Unified notification item for display
+class _NotifItem {
+  final String type;
+  final String title;
+  final String message;
+  final DateTime date;
+  final int? backendId;
+  final bool isRead;
+
+  const _NotifItem({
+    required this.type,
+    required this.title,
+    required this.message,
+    required this.date,
+    this.backendId,
+    this.isRead = false,
+  });
+}
 
 class HomeNotifications extends ConsumerStatefulWidget {
   const HomeNotifications({super.key});
@@ -20,13 +40,98 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(
-        () => ref.read(userNotificationProvider.notifier).load());
+    Future.microtask(() {
+      ref.read(userNotificationProvider.notifier).load();
+      ref.read(myAppointmentsProvider.notifier).load();
+    });
+  }
+
+  List<_NotifItem> _buildNotificationList() {
+    final items = <_NotifItem>[];
+    final now = DateTime.now();
+    final sevenDaysFromNow = now.add(const Duration(days: 7));
+
+    // Backend notifications (orders, etc.)
+    final backendState = ref.watch(userNotificationProvider);
+    for (final n in backendState.items) {
+      items.add(_NotifItem(
+        type: n.type,
+        title: n.title,
+        message: n.message,
+        date: n.createdAt,
+        backendId: n.id,
+        isRead: n.isRead,
+      ));
+    }
+
+    // Upcoming appointments within 7 days
+    final appointmentState = ref.watch(myAppointmentsProvider);
+    for (final a in appointmentState.items) {
+      if (a.appointmentDate.isAfter(now) &&
+          a.appointmentDate.isBefore(sevenDaysFromNow)) {
+        final daysUntil = a.appointmentDate.difference(now).inDays;
+        final professional = a.trainerName ?? a.nutritionistName ?? '';
+        final dateStr = DateFormat('dd.MM', 'bs').format(a.appointmentDate);
+        final timeStr = DateFormat('HH:mm').format(a.appointmentDate);
+
+        String dayLabel;
+        if (daysUntil == 0) {
+          dayLabel = 'danas';
+        } else if (daysUntil == 1) {
+          dayLabel = 'sutra';
+        } else {
+          dayLabel = 'za $daysUntil dana';
+        }
+
+        items.add(_NotifItem(
+          type: 'appointment_reminder',
+          title: 'Termin $dayLabel',
+          message: '$professional - $dateStr u $timeStr',
+          date: a.appointmentDate,
+        ));
+      }
+    }
+
+    // Membership expiring within 7 days
+    final membershipAsync = ref.watch(membershipHistoryProvider);
+    membershipAsync.whenData((payments) {
+      final active = payments.where((p) => p.isActive).toList();
+      for (final m in active) {
+        final daysLeft = m.endDate.difference(now).inDays;
+        if (daysLeft <= 7 && daysLeft >= 0) {
+          String dayLabel;
+          if (daysLeft == 0) {
+            dayLabel = 'danas';
+          } else if (daysLeft == 1) {
+            dayLabel = 'sutra';
+          } else {
+            dayLabel = 'za $daysLeft dana';
+          }
+
+          items.add(_NotifItem(
+            type: 'membership_expiry',
+            title: 'Clanarina istice $dayLabel',
+            message: '${m.packageName} istice ${DateFormat('dd.MM.yyyy').format(m.endDate)}',
+            date: m.endDate,
+          ));
+        }
+      }
+    });
+
+    // Sort: unread first, then by date (newest/soonest first)
+    items.sort((a, b) {
+      if (a.isRead != b.isRead) return a.isRead ? 1 : -1;
+      return a.date.compareTo(b.date);
+    });
+
+    return items;
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(userNotificationProvider);
+    final backendState = ref.watch(userNotificationProvider);
+    final items = _buildNotificationList();
+    final hasUnread = items.any((n) => !n.isRead && n.backendId != null);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +140,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('Obavijesti', style: AppTextStyles.headingSm),
-            if (state.unreadCount > 0)
+            if (hasUnread)
               GestureDetector(
                 onTap: () =>
                     ref.read(userNotificationProvider.notifier).markAllAsRead(),
@@ -48,12 +153,12 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
           ],
         ),
         const SizedBox(height: AppSpacing.md),
-        if (state.isLoading && state.items.isEmpty)
+        if (backendState.isLoading && items.isEmpty)
           _loadingState()
-        else if (state.items.isEmpty)
+        else if (items.isEmpty)
           _emptyState()
         else
-          ...state.items.take(5).map((n) => Padding(
+          ...items.take(6).map((n) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
                 child: _notificationCard(n),
               )),
@@ -103,17 +208,17 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
     );
   }
 
-  Widget _notificationCard(NotificationDTO notification) {
-    final icon = _iconForType(notification.type);
-    final color = _colorForType(notification.type);
-    final timeAgo = _formatTimeAgo(notification.createdAt);
+  Widget _notificationCard(_NotifItem item) {
+    final icon = _iconForType(item.type);
+    final color = _colorForType(item.type);
+    final timeLabel = _formatTimeLabel(item);
 
     return GlassCard(
-      onTap: notification.isRead
-          ? null
-          : () => ref
+      onTap: (!item.isRead && item.backendId != null)
+          ? () => ref
               .read(userNotificationProvider.notifier)
-              .markAsRead(notification.id),
+              .markAsRead(item.backendId!)
+          : null,
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -135,14 +240,14 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
                   children: [
                     Expanded(
                       child: Text(
-                        notification.title,
-                        style: notification.isRead
+                        item.title,
+                        style: item.isRead
                             ? AppTextStyles.bodyMd
                             : AppTextStyles.bodyBold,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (!notification.isRead)
+                    if (!item.isRead && item.backendId != null)
                       Container(
                         width: 8,
                         height: 8,
@@ -155,14 +260,14 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  notification.message,
+                  item.message,
                   style: AppTextStyles.bodySm,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  timeAgo,
+                  timeLabel,
                   style: AppTextStyles.caption
                       .copyWith(color: AppColors.textDark),
                 ),
@@ -208,14 +313,23 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
     }
   }
 
-  String _formatTimeAgo(DateTime date) {
-    final now = DateTime.now();
-    final diff = now.difference(date);
+  String _formatTimeLabel(_NotifItem item) {
+    // For local (computed) notifications, show relative future time
+    if (item.backendId == null) {
+      final now = DateTime.now();
+      final diff = item.date.difference(now);
+      if (diff.inDays == 0) return 'Danas';
+      if (diff.inDays == 1) return 'Sutra';
+      return 'Za ${diff.inDays} dana';
+    }
 
+    // For backend notifications, show relative past time
+    final now = DateTime.now();
+    final diff = now.difference(item.date);
     if (diff.inMinutes < 1) return 'Upravo';
     if (diff.inMinutes < 60) return '${diff.inMinutes}min';
     if (diff.inHours < 24) return '${diff.inHours}h';
     if (diff.inDays < 7) return '${diff.inDays}d';
-    return DateFormat('dd.MM.yyyy').format(date);
+    return DateFormat('dd.MM.yyyy').format(item.date);
   }
 }
