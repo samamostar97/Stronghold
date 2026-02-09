@@ -10,6 +10,7 @@ namespace Stronghold.Infrastructure.Mapping
         {
             // Supplement -> SupplementResponse
             TypeAdapterConfig<Supplement, SupplementResponse>.NewConfig()
+                .Map(dest => dest.ImageUrl, src => src.SupplementImageUrl)
                 .Map(dest => dest.SupplementCategoryName, src => src.SupplementCategory != null ? src.SupplementCategory.Name : string.Empty)
                 .Map(dest => dest.SupplierName, src => src.Supplier != null ? src.Supplier.Name : string.Empty);
 
