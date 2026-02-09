@@ -1,0 +1,29 @@
+/// Matches backend AdminAppointmentResponse
+class AdminAppointmentResponse {
+  final int id;
+  final String userName;
+  final String? trainerName;
+  final String? nutritionistName;
+  final DateTime appointmentDate;
+  final String type;
+
+  const AdminAppointmentResponse({
+    required this.id,
+    required this.userName,
+    this.trainerName,
+    this.nutritionistName,
+    required this.appointmentDate,
+    required this.type,
+  });
+
+  factory AdminAppointmentResponse.fromJson(Map<String, dynamic> json) {
+    return AdminAppointmentResponse(
+      id: (json['id'] ?? 0) as int,
+      userName: (json['userName'] ?? '') as String,
+      trainerName: json['trainerName'] as String?,
+      nutritionistName: json['nutritionistName'] as String?,
+      appointmentDate: DateTime.parse(json['appointmentDate'] as String),
+      type: (json['type'] ?? '') as String,
+    );
+  }
+}

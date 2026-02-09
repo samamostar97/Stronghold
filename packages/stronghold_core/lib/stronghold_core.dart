@@ -28,6 +28,7 @@ export 'models/filters/supplier_query_filter.dart';
 export 'models/filters/trainer_query_filter.dart';
 export 'models/filters/user_query_filter.dart';
 export 'models/filters/slow_moving_product_query_filter.dart';
+export 'models/filters/appointment_query_filter.dart';
 
 // Requests
 export 'models/requests/assign_membership_request.dart';
@@ -64,6 +65,8 @@ export 'models/responses/notification_response.dart';
 export 'models/responses/order_response.dart';
 export 'models/responses/review_response.dart';
 export 'models/responses/seminar_response.dart';
+export 'models/responses/seminar_attendee_response.dart';
+export 'models/responses/admin_appointment_response.dart';
 export 'models/responses/supplement_category_response.dart';
 export 'models/responses/supplement_response.dart';
 export 'models/responses/supplier_response.dart';
@@ -83,6 +86,7 @@ export 'services/order_service.dart';
 export 'services/reports_service.dart';
 export 'services/review_service.dart';
 export 'services/seminar_service.dart';
+export 'services/appointment_service.dart';
 export 'services/supplement_category_service.dart';
 export 'services/supplement_service.dart';
 export 'services/supplier_service.dart';
