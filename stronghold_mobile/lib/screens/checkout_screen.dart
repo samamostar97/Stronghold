@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../providers/address_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/checkout_provider.dart';
-import 'order_history_screen.dart';
+import '../widgets/checkout_address_step.dart';
+import '../widgets/checkout_confirmation_step.dart';
+import '../widgets/checkout_payment_step.dart';
+import '../widgets/checkout_review_step.dart';
+import '../widgets/checkout_step_indicator.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
   const CheckoutScreen({super.key});
@@ -13,10 +23,26 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 }
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
+  int _currentStep = 0;
   bool _isProcessing = false;
   String? _errorMessage;
+  AddressResponse? _address;
 
-  Future<void> _handleCheckout() async {
+  static const _stepTitles = [
+    'Pregled narudzbe',
+    'Adresa dostave',
+    'Placanje',
+    'Potvrda',
+  ];
+
+  void _goToStep(int step) {
+    setState(() {
+      _currentStep = step;
+      _errorMessage = null;
+    });
+  }
+
+  Future<void> _handlePayment() async {
     setState(() {
       _isProcessing = true;
       _errorMessage = null;
@@ -26,11 +52,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cartNotifier = ref.read(cartProvider.notifier);
     final checkoutNotifier = ref.read(checkoutProvider.notifier);
 
+    // Fetch address for snapshot
+    final addressAsync = ref.read(addressProvider);
+    _address = addressAsync.valueOrNull;
+
     String? paymentIntentId;
     bool paymentSucceeded = false;
 
     try {
-      // Step 1: Create PaymentIntent on backend
+      // Step 1: Create PaymentIntent
       final checkoutResponse = await checkoutNotifier.createPaymentIntent(
         cartState.items,
       );
@@ -54,106 +84,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         cartState.items,
       );
 
-      // Step 5: Clear cart and navigate to success
+      // Step 5: Clear cart, go to confirmation
       cartNotifier.clear();
 
       if (mounted) {
-        setState(() => _isProcessing = false);
-        // Show success and navigate to order history
-        await showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            backgroundColor: const Color(0xFF1a1a2e),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-              side: BorderSide(
-                color: const Color(0xFF4CAF50).withValues(alpha: 0.3),
-              ),
-            ),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFF4CAF50),
-                      width: 3,
-                    ),
-                  ),
-                  child: const Icon(
-                    Icons.check_rounded,
-                    size: 40,
-                    color: Color(0xFF4CAF50),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Narudzba uspjesna!',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Vasa narudzba je uspjesno kreirana.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // close dialog
-                    // Pop back to home and push order history
-                    Navigator.popUntil(context, (route) => route.isFirst);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const OrderHistoryScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  child: const Text(
-                    'PREGLEDAJ NARUDZBE',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
+        setState(() {
+          _isProcessing = false;
+          _currentStep = 3;
+        });
       }
     } on StripeException catch (e) {
       if (mounted) {
         setState(() {
           _isProcessing = false;
-          if (e.error.code == FailureCode.Canceled) {
-            _errorMessage = null; // User cancelled, not an error
-          } else {
-            _errorMessage = e.error.localizedMessage ?? 'Greska prilikom placanja';
+          if (e.error.code != FailureCode.Canceled) {
+            _errorMessage =
+                e.error.localizedMessage ?? 'Greska prilikom placanja';
           }
         });
       }
@@ -162,7 +108,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         setState(() {
           _isProcessing = false;
           if (paymentSucceeded) {
-            // Payment went through but order confirmation failed
             _errorMessage =
                 'Uplata je uspjela, ali kreiranje narudzbe nije. '
                 'Kontaktirajte podrsku sa ID: $paymentIntentId';
@@ -177,254 +122,105 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   Widget build(BuildContext context) {
     final cartState = ref.watch(cartProvider);
-    final items = cartState.items;
 
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1a1a2e), Color(0xFF16213e)],
-          ),
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              // App bar
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: _isProcessing ? null : () => Navigator.pop(context),
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0f0f1a),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: const Color(0xFFe63946).withValues(alpha: 0.2),
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.arrow_back,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    const Expanded(
-                      child: Text(
-                        'Pregled narudzbe',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Order summary
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Stavke narudzbe',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.8),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Items list
-                      ...items.map((item) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF0f0f1a),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFe63946).withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        item.supplement.name,
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        '${item.supplement.price.toStringAsFixed(2)} KM x ${item.quantity}',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: Colors.white.withValues(alpha: 0.5),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Text(
-                                  '${item.totalPrice.toStringAsFixed(2)} KM',
-                                  style: const TextStyle(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFFe63946),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )),
-
-                      const SizedBox(height: 16),
-
-                      // Total
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF0f0f1a),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: const Color(0xFFe63946).withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              'Ukupno za placanje:',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.white,
-                              ),
-                            ),
-                            Text(
-                              '${cartState.totalAmount.toStringAsFixed(2)} KM',
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.w700,
-                                color: Color(0xFFe63946),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      if (_errorMessage != null) ...[
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFe63946).withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(0xFFe63946).withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.error_outline,
-                                color: Color(0xFFe63946),
-                                size: 20,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  _errorMessage!,
-                                  style: const TextStyle(
-                                    color: Color(0xFFe63946),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-
-              // Pay button
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: GestureDetector(
-                  onTap: _isProcessing ? null : _handleCheckout,
-                  child: Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: _isProcessing
-                          ? const Color(0xFFe63946).withValues(alpha: 0.5)
-                          : const Color(0xFFe63946),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFe63946).withValues(alpha: 0.3),
-                          blurRadius: 15,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: _isProcessing
-                        ? const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            ),
-                          )
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.lock_outline,
-                                color: Colors.white,
-                                size: 22,
-                              ),
-                              SizedBox(width: 10),
-                              Text(
-                                'PLATI',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: 1,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ],
-                          ),
-                  ),
-                ),
-              ),
-            ],
-          ),
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // App bar
+            _appBar(),
+            const SizedBox(height: AppSpacing.md),
+            // Step indicator
+            CheckoutStepIndicator(currentStep: _currentStep),
+            const SizedBox(height: AppSpacing.lg),
+            // Step content
+            Expanded(child: _buildStep(cartState)),
+          ],
         ),
       ),
     );
+  }
+
+  Widget _appBar() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.screenPadding,
+        AppSpacing.screenPadding,
+        AppSpacing.screenPadding,
+        0,
+      ),
+      child: Row(
+        children: [
+          if (_currentStep < 3) ...[
+            GestureDetector(
+              onTap: _isProcessing
+                  ? null
+                  : () {
+                      if (_currentStep == 0) {
+                        Navigator.pop(context);
+                      } else {
+                        _goToStep(_currentStep - 1);
+                      }
+                    },
+              child: Container(
+                width: AppSpacing.touchTarget,
+                height: AppSpacing.touchTarget,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Icon(LucideIcons.arrowLeft,
+                    color: AppColors.textPrimary, size: 20),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+          ],
+          Expanded(
+            child: Text(
+              _stepTitles[_currentStep],
+              style: AppTextStyles.headingMd,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStep(CartState cartState) {
+    switch (_currentStep) {
+      case 0:
+        return CheckoutReviewStep(
+          items: cartState.items,
+          total: cartState.totalAmount,
+          onBack: () => Navigator.pop(context),
+          onNext: () => _goToStep(1),
+        );
+      case 1:
+        return CheckoutAddressStep(
+          onBack: () => _goToStep(0),
+          onNext: () {
+            // Refetch address before going to payment
+            final addr = ref.read(addressProvider).valueOrNull;
+            setState(() => _address = addr);
+            _goToStep(2);
+          },
+        );
+      case 2:
+        return CheckoutPaymentStep(
+          items: cartState.items,
+          total: cartState.totalAmount,
+          address: _address,
+          isProcessing: _isProcessing,
+          error: _errorMessage,
+          onBack: () => _goToStep(1),
+          onPay: _handlePayment,
+        );
+      case 3:
+        return CheckoutConfirmationStep(address: _address);
+      default:
+        return const SizedBox.shrink();
+    }
   }
 }
