@@ -400,19 +400,6 @@ namespace Stronghold.Infrastructure.Services
 
             await SendCancellationEmailAsync(order, reason);
 
-            // Create notification for admin
-            try
-            {
-                var reasonSuffix = !string.IsNullOrEmpty(reason) ? $": {reason}" : "";
-                await _notificationService.CreateAsync(
-                    "order_cancelled",
-                    "Narudzba otkazana",
-                    $"Narudzba #{order.Id} je otkazana{reasonSuffix}",
-                    order.Id,
-                    "Order");
-            }
-            catch { /* Don't fail cancellation on notification error */ }
-
             // Notify user about cancellation
             try
             {
