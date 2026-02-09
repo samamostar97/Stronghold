@@ -51,9 +51,11 @@ export 'models/requests/update_supplement_request.dart';
 export 'models/requests/update_supplier_request.dart';
 export 'models/requests/update_trainer_request.dart';
 export 'models/requests/update_user_request.dart';
+export 'models/requests/upsert_address_request.dart';
 
 // Responses
 export 'models/responses/active_member_response.dart';
+export 'models/responses/address_response.dart';
 export 'models/responses/business_report_dto.dart';
 export 'models/responses/current_visitor_response.dart';
 export 'models/responses/faq_response.dart';
@@ -92,4 +94,5 @@ export 'services/supplement_service.dart';
 export 'services/supplier_service.dart';
 export 'services/trainer_service.dart';
 export 'services/user_service.dart';
+export 'services/address_service.dart';
 export 'services/visit_service.dart';
