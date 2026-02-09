@@ -69,16 +69,17 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
     final now = DateTime.now();
     final sevenDaysFromNow = now.add(const Duration(days: 7));
 
-    // Backend notifications (orders, etc.)
+    // Backend notifications (only unread)
     final backendState = ref.watch(userNotificationProvider);
     for (final n in backendState.items) {
+      if (n.isRead) continue;
       items.add(_NotifItem(
         type: n.type,
         title: n.title,
         message: n.message,
         date: n.createdAt,
         backendId: n.id,
-        isRead: n.isRead,
+        isRead: false,
       ));
     }
 
