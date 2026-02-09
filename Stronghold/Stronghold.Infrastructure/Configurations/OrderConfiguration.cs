@@ -13,6 +13,7 @@ public class OrderConfiguration : BaseEntityConfiguration<Order>
         builder.Property(o => o.TotalAmount).HasPrecision(18, 2).IsRequired();
         builder.Property(o => o.PurchaseDate).IsRequired();
         builder.Property(o => o.StripePaymentId).HasMaxLength(255);
+        builder.Property(o => o.CancellationReason).HasMaxLength(500);
 
         builder.HasOne(o => o.User)
             .WithMany(u => u.Orders)

@@ -12,17 +12,19 @@ class OrderDetailsDialog extends StatelessWidget {
     super.key,
     required this.order,
     required this.onMarkDelivered,
+    required this.onCancelOrder,
   });
 
   final OrderResponse order;
   final VoidCallback onMarkDelivered;
+  final void Function(String? reason) onCancelOrder;
 
   String _fmtDate(DateTime dt) => DateFormat('dd.MM.yyyy HH:mm').format(dt);
   String _fmtCurrency(double a) => '${a.toStringAsFixed(2)} KM';
 
   @override
   Widget build(BuildContext context) {
-    final canDeliver = order.status != OrderStatus.delivered;
+    final isProcessing = order.status == OrderStatus.processing;
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
@@ -39,9 +41,11 @@ class OrderDetailsDialog extends StatelessWidget {
                 Text('Narudzba #${order.id}',
                     style: AppTextStyles.headingMd),
                 const SizedBox(width: AppSpacing.lg),
-                order.status == OrderStatus.delivered
-                    ? StatusPill.delivered()
-                    : StatusPill.pending(),
+                switch (order.status) {
+                  OrderStatus.delivered => StatusPill.delivered(),
+                  OrderStatus.cancelled => StatusPill.cancelled(),
+                  _ => StatusPill.pending(),
+                },
                 const Spacer(),
                 IconButton(
                   icon: Icon(LucideIcons.x,
@@ -51,6 +55,10 @@ class OrderDetailsDialog extends StatelessWidget {
               ]),
               const SizedBox(height: AppSpacing.xl),
               _infoCard(),
+              if (order.status == OrderStatus.cancelled) ...[
+                const SizedBox(height: AppSpacing.md),
+                _cancellationCard(),
+              ],
               const SizedBox(height: AppSpacing.xl),
               Text('Stavke narudzbe', style: AppTextStyles.headingSm),
               const SizedBox(height: AppSpacing.md),
@@ -65,7 +73,25 @@ class OrderDetailsDialog extends StatelessWidget {
                         style: AppTextStyles.bodyMd
                             .copyWith(color: AppColors.textMuted)),
                   ),
-                  if (canDeliver) ...[
+                  if (isProcessing) ...[
+                    const SizedBox(width: AppSpacing.md),
+                    ElevatedButton.icon(
+                      onPressed: () => _showCancelDialog(context),
+                      icon: Icon(LucideIcons.xCircle, size: 18),
+                      label: Text('Otkazi narudzbu',
+                          style: AppTextStyles.bodyBold
+                              .copyWith(color: Colors.white)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(AppSpacing.radiusSm)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                            vertical: AppSpacing.md),
+                      ),
+                    ),
                     const SizedBox(width: AppSpacing.md),
                     ElevatedButton.icon(
                       onPressed: onMarkDelivered,
@@ -88,6 +114,139 @@ class OrderDetailsDialog extends StatelessWidget {
                 ],
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _cancellationCard() => Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: AppColors.error.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(LucideIcons.alertTriangle,
+                  color: AppColors.error, size: 16),
+              const SizedBox(width: AppSpacing.sm),
+              Text('Narudzba otkazana',
+                  style: AppTextStyles.bodyBold
+                      .copyWith(color: AppColors.error)),
+            ]),
+            if (order.cancelledAt != null) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _InfoRow(
+                  label: 'Datum otkazivanja',
+                  value: _fmtDate(order.cancelledAt!)),
+            ],
+            if (order.cancellationReason != null &&
+                order.cancellationReason!.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.sm),
+              _InfoRow(label: 'Razlog', value: order.cancellationReason!),
+            ],
+          ],
+        ),
+      );
+
+  void _showCancelDialog(BuildContext context) {
+    final reasonController = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.surfaceSolid,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 450),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xxl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Otkazivanje narudzbe',
+                    style: AppTextStyles.headingSm),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                    'Da li ste sigurni da zelite otkazati narudzbu #${order.id}? '
+                    'Ako je placena putem Stripe-a, refund ce biti automatski izvrsen.',
+                    style: AppTextStyles.bodyMd),
+                const SizedBox(height: AppSpacing.lg),
+                TextField(
+                  controller: reasonController,
+                  maxLines: 3,
+                  style: AppTextStyles.bodyMd
+                      .copyWith(color: AppColors.textPrimary),
+                  decoration: InputDecoration(
+                    hintText: 'Razlog otkazivanja (opciono)',
+                    hintStyle: AppTextStyles.bodyMd
+                        .copyWith(color: AppColors.textMuted),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    border: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusSm),
+                      borderSide:
+                          const BorderSide(color: AppColors.border),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusSm),
+                      borderSide:
+                          const BorderSide(color: AppColors.border),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius:
+                          BorderRadius.circular(AppSpacing.radiusSm),
+                      borderSide:
+                          const BorderSide(color: AppColors.primary),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: Text('Odustani',
+                          style: AppTextStyles.bodyMd
+                              .copyWith(color: AppColors.textMuted)),
+                    ),
+                    const SizedBox(width: AppSpacing.md),
+                    ElevatedButton(
+                      onPressed: () {
+                        final reason =
+                            reasonController.text.trim().isEmpty
+                                ? null
+                                : reasonController.text.trim();
+                        Navigator.of(ctx).pop();
+                        Navigator.of(context).pop();
+                        onCancelOrder(reason);
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.error,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusSm)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.xl,
+                            vertical: AppSpacing.md),
+                      ),
+                      child: Text('Otkazi narudzbu',
+                          style: AppTextStyles.bodyBold
+                              .copyWith(color: Colors.white)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

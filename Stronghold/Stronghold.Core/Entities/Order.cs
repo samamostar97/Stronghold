@@ -9,6 +9,8 @@ public class Order : BaseEntity
     public DateTime PurchaseDate { get; set; }
     public OrderStatus Status { get; set; } = OrderStatus.Processing;
     public string? StripePaymentId { get; set; }
+    public DateTime? CancelledAt { get; set; }
+    public string? CancellationReason { get; set; }
 
     // Navigation properties
     public User User { get; set; } = null!;

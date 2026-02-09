@@ -26,6 +26,8 @@ class OrderHistoryCard extends StatelessWidget {
         return AppColors.warning;
       case 'delivered':
         return AppColors.success;
+      case 'cancelled':
+        return AppColors.error;
       default:
         return AppColors.textMuted;
     }

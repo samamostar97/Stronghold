@@ -126,4 +126,10 @@ class OrderListNotifier
     // Don't await - refresh in background so success shows immediately
     refresh();
   }
+
+  /// Cancel an order and refresh the list
+  Future<void> cancelOrder(int orderId, {String? reason}) async {
+    await _service.cancelOrder(orderId, reason: reason);
+    refresh();
+  }
 }

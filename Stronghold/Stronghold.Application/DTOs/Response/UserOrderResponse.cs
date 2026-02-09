@@ -9,6 +9,8 @@ namespace Stronghold.Application.DTOs.Response
         public DateTime PurchaseDate { get; set; }
         public OrderStatus Status { get; set; }
         public string StatusName => Status.ToString();
+        public DateTime? CancelledAt { get; set; }
+        public string? CancellationReason { get; set; }
         public List<UserOrderItemResponse> OrderItems { get; set; } = new();
     }
 }

@@ -61,6 +61,8 @@ class Order {
         return 'U obradi';
       case 'delivered':
         return 'Dostavljeno';
+      case 'cancelled':
+        return 'Otkazano';
       default:
         return statusName;
     }

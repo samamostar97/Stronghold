@@ -31,6 +31,9 @@ class StatusPill extends StatelessWidget {
   factory StatusPill.delivered() =>
       const StatusPill(label: 'Dostavljeno', color: AppColors.primary);
 
+  factory StatusPill.cancelled() =>
+      const StatusPill(label: 'Otkazano', color: AppColors.error);
+
   @override
   Widget build(BuildContext context) {
     return Container(

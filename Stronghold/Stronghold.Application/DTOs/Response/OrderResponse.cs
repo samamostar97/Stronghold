@@ -13,6 +13,8 @@ namespace Stronghold.Application.DTOs.Response
         public OrderStatus Status { get; set; }
         public string StatusName => Status.ToString();
         public string? StripePaymentId { get; set; }
+        public DateTime? CancelledAt { get; set; }
+        public string? CancellationReason { get; set; }
         public List<OrderItemResponse> OrderItems { get; set; } = new();
     }
 }

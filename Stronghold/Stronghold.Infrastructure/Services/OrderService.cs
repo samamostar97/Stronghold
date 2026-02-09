@@ -21,6 +21,7 @@ namespace Stronghold.Infrastructure.Services
         private readonly StrongholdDbContext _context;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly INotificationService _notificationService;
         private readonly PaymentIntentService _paymentIntentService;
 
         public OrderService(
@@ -29,7 +30,8 @@ namespace Stronghold.Infrastructure.Services
             IRepository<User, int> userRepository,
             StrongholdDbContext context,
             IMapper mapper,
-            IEmailService emailService)
+            IEmailService emailService,
+            INotificationService notificationService)
         {
             _repository = repository;
             _supplementRepository = supplementRepository;
@@ -37,6 +39,7 @@ namespace Stronghold.Infrastructure.Services
             _context = context;
             _mapper = mapper;
             _emailService = emailService;
+            _notificationService = notificationService;
             _paymentIntentService = new PaymentIntentService();
         }
 
@@ -95,6 +98,9 @@ namespace Stronghold.Infrastructure.Services
 
             if (order.Status == OrderStatus.Delivered)
                 throw new InvalidOperationException("Narudžba je već označena kao isporučena.");
+
+            if (order.Status == OrderStatus.Cancelled)
+                throw new InvalidOperationException("Otkazana narudžba ne može biti označena kao isporučena.");
 
             order.Status = OrderStatus.Delivered;
             await _repository.UpdateAsync(order);
@@ -291,6 +297,19 @@ namespace Stronghold.Infrastructure.Services
                     await SendPaymentConfirmationEmailAsync(user, order, orderItems, supplements);
                 }
 
+                // Create notification for admin
+                try
+                {
+                    var userName = user != null ? $"{user.FirstName} {user.LastName}" : "Korisnik";
+                    await _notificationService.CreateAsync(
+                        "new_order",
+                        "Nova narudzba",
+                        $"{userName} je narucio/la za {order.TotalAmount:F2} KM",
+                        order.Id,
+                        "Order");
+                }
+                catch { /* Don't fail order on notification error */ }
+
                 return new UserOrderResponse
                 {
                     Id = order.Id,
@@ -311,6 +330,64 @@ namespace Stronghold.Infrastructure.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<OrderResponse> CancelOrderAsync(int orderId, string? reason)
+        {
+            var query = _repository.AsQueryable()
+                .Include(o => o.User)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Supplement);
+
+            var order = await query.FirstOrDefaultAsync(o => o.Id == orderId);
+            if (order == null)
+                throw new KeyNotFoundException($"Narudžba sa id '{orderId}' nije pronađena.");
+
+            if (order.Status == OrderStatus.Cancelled)
+                throw new InvalidOperationException("Narudžba je već otkazana.");
+
+            if (order.Status == OrderStatus.Delivered)
+                throw new InvalidOperationException("Isporučena narudžba ne može biti otkazana.");
+
+            // Attempt Stripe refund if payment was made
+            if (!string.IsNullOrEmpty(order.StripePaymentId))
+            {
+                try
+                {
+                    var refundService = new RefundService();
+                    await refundService.CreateAsync(new RefundCreateOptions
+                    {
+                        PaymentIntent = order.StripePaymentId
+                    });
+                }
+                catch (StripeException ex)
+                {
+                    throw new InvalidOperationException(
+                        $"Stripe refund nije uspio: {ex.Message}");
+                }
+            }
+
+            order.Status = OrderStatus.Cancelled;
+            order.CancelledAt = DateTime.UtcNow;
+            order.CancellationReason = reason;
+            await _repository.UpdateAsync(order);
+
+            await SendCancellationEmailAsync(order, reason);
+
+            // Create notification for admin
+            try
+            {
+                var reasonSuffix = !string.IsNullOrEmpty(reason) ? $": {reason}" : "";
+                await _notificationService.CreateAsync(
+                    "order_cancelled",
+                    "Narudzba otkazana",
+                    $"Narudzba #{order.Id} je otkazana{reasonSuffix}",
+                    order.Id,
+                    "Order");
+            }
+            catch { /* Don't fail cancellation on notification error */ }
+
+            return _mapper.Map<OrderResponse>(order);
         }
 
         // =====================
@@ -395,6 +472,48 @@ namespace Stronghold.Infrastructure.Services
             await _emailService.SendEmailAsync(
                 user.Email,
                 $"Potvrda narudžbe #{order.Id} — Uplata primljena",
+                emailBody);
+        }
+
+        private async Task SendCancellationEmailAsync(Order order, string? reason)
+        {
+            var itemsList = string.Join("", order.OrderItems.Select(oi =>
+                $"<li>{oi.Supplement.Name} x{oi.Quantity} — {oi.UnitPrice:F2} KM</li>"));
+
+            var reasonText = !string.IsNullOrEmpty(reason)
+                ? $"<p><strong>Razlog:</strong> {reason}</p>"
+                : "";
+
+            var emailBody = $@"
+                <html>
+                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
+                    <h2 style='color: #e63946;'>Narudžba #{order.Id} je otkazana</h2>
+                    <p>Poštovani/a {order.User.FirstName},</p>
+
+                    <div style='background-color: #f8d7da; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #e63946;'>
+                        <p style='margin: 0; font-size: 16px;'>
+                            <strong>Vaša narudžba je otkazana.</strong><br/>
+                            Ukoliko je uplata izvršena, refund će biti procesiran automatski.
+                        </p>
+                    </div>
+
+                    {reasonText}
+
+                    <h3>Stavke narudžbe:</h3>
+                    <ul>{itemsList}</ul>
+                    <p><strong>Iznos za refund: {order.TotalAmount:F2} KM</strong></p>
+
+                    <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'/>
+                    <p style='color: #666; font-size: 14px;'>
+                        Ako imate pitanja, slobodno nas kontaktirajte.
+                    </p>
+                    <p>Srdačan pozdrav,<br/><strong>Stronghold Tim</strong></p>
+                </body>
+                </html>";
+
+            await _emailService.SendEmailAsync(
+                order.User.Email,
+                $"Narudžba #{order.Id} — Otkazana",
                 emailBody);
         }
 

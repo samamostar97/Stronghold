@@ -63,8 +63,26 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
           Navigator.of(ctx).pop();
           await _markDelivered(order);
         },
+        onCancelOrder: (reason) async {
+          await _cancelOrder(order, reason);
+        },
       ),
     );
+  }
+
+  Future<void> _cancelOrder(OrderResponse order, String? reason) async {
+    if (order.status != OrderStatus.processing) return;
+    try {
+      await ref
+          .read(orderListProvider.notifier)
+          .cancelOrder(order.id, reason: reason);
+      if (mounted) showSuccessAnimation(context);
+    } catch (e) {
+      if (mounted) {
+        showErrorAnimation(context,
+            message: ErrorHandler.getContextualMessage(e, 'cancel-order'));
+      }
+    }
   }
 
   Future<void> _markDelivered(OrderResponse order) async {

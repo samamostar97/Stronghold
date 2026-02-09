@@ -18,14 +18,15 @@ class ProfileSettingsScreen extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                  horizontal: AppSpacing.screenPadding, vertical: AppSpacing.sm),
               child: Row(
                 children: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(LucideIcons.arrowLeft,
-                        color: AppColors.textPrimary),
-                  ),
+                  if (Navigator.canPop(context))
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(LucideIcons.arrowLeft,
+                          color: AppColors.textPrimary),
+                    ),
                   Expanded(
                     child:
                         Text('Postavke profila', style: AppTextStyles.headingMd),

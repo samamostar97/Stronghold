@@ -11,6 +11,7 @@ namespace Stronghold.Application.IServices
         Task<PagedResult<OrderResponse>> GetPagedAsync(OrderQueryFilter filter);
         Task<OrderResponse> GetByIdAsync(int id);
         Task<OrderResponse> MarkAsDeliveredAsync(int orderId);
+        Task<OrderResponse> CancelOrderAsync(int orderId, string? reason);
 
         // User-specific methods
         Task<PagedResult<UserOrderResponse>> GetOrdersByUserIdAsync(int userId, OrderQueryFilter filter);

@@ -2,6 +2,7 @@
 enum OrderStatus {
   processing,
   delivered,
+  cancelled,
 }
 
 /// Helper extension for OrderStatus
@@ -12,6 +13,8 @@ extension OrderStatusExtension on OrderStatus {
         return 'U obradi';
       case OrderStatus.delivered:
         return 'Dostavljeno';
+      case OrderStatus.cancelled:
+        return 'Otkazano';
     }
   }
 
@@ -21,6 +24,8 @@ extension OrderStatusExtension on OrderStatus {
         return OrderStatus.processing;
       case 1:
         return OrderStatus.delivered;
+      case 2:
+        return OrderStatus.cancelled;
       default:
         return OrderStatus.processing;
     }
@@ -32,6 +37,8 @@ extension OrderStatusExtension on OrderStatus {
         return OrderStatus.processing;
       case 'delivered':
         return OrderStatus.delivered;
+      case 'cancelled':
+        return OrderStatus.cancelled;
       default:
         return OrderStatus.processing;
     }
@@ -78,6 +85,8 @@ class OrderResponse {
   final OrderStatus status;
   final String statusName;
   final String? stripePaymentId;
+  final DateTime? cancelledAt;
+  final String? cancellationReason;
   final List<OrderItemResponse> orderItems;
 
   const OrderResponse({
@@ -90,6 +99,8 @@ class OrderResponse {
     required this.status,
     required this.statusName,
     this.stripePaymentId,
+    this.cancelledAt,
+    this.cancellationReason,
     required this.orderItems,
   });
 
@@ -122,6 +133,10 @@ class OrderResponse {
       status: parsedStatus,
       statusName: (json['statusName'] ?? '') as String,
       stripePaymentId: json['stripePaymentId'] as String?,
+      cancelledAt: json['cancelledAt'] != null
+          ? DateTime.parse(json['cancelledAt'] as String)
+          : null,
+      cancellationReason: json['cancellationReason'] as String?,
       orderItems: itemsList,
     );
   }

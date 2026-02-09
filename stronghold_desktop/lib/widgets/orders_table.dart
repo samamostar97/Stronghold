@@ -63,9 +63,11 @@ class OrdersTable extends StatelessWidget {
               flex: 2,
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: o.status == OrderStatus.delivered
-                    ? StatusPill.delivered()
-                    : StatusPill.pending(),
+                child: switch (o.status) {
+                  OrderStatus.delivered => StatusPill.delivered(),
+                  OrderStatus.cancelled => StatusPill.cancelled(),
+                  _ => StatusPill.pending(),
+                },
               ),
             ),
             TableActionCell(flex: 2, children: [

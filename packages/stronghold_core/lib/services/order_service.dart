@@ -38,4 +38,13 @@ class OrderService {
       parser: (json) => OrderResponse.fromJson(json as Map<String, dynamic>),
     );
   }
+
+  /// Cancel an order (admin only)
+  Future<OrderResponse> cancelOrder(int id, {String? reason}) async {
+    return _client.patch<OrderResponse>(
+      '$_basePath/$id/cancel',
+      body: reason != null ? {'reason': reason} : {},
+      parser: (json) => OrderResponse.fromJson(json as Map<String, dynamic>),
+    );
+  }
 }

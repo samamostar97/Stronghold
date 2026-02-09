@@ -55,6 +55,14 @@ namespace Stronghold.API.Controllers
             return Ok(result);
         }
 
+        [Authorize(Roles = "Admin")]
+        [HttpPatch("{id}/cancel")]
+        public async Task<ActionResult<OrderResponse>> CancelOrder(int id, [FromBody] CancelOrderRequest? request)
+        {
+            var result = await _service.CancelOrderAsync(id, request?.Reason);
+            return Ok(result);
+        }
+
         // =====================
         // User endpoints (ownership-based)
         // =====================
