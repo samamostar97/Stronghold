@@ -8,6 +8,7 @@ import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
+import '../widgets/particle_background.dart';
 import 'login_success_screen.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -110,10 +111,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
+      body: Stack(
+        children: [
+          const Positioned.fill(child: ParticleBackground()),
+          SafeArea(
+            child: Column(
+              children: [
+                Padding(
               padding: const EdgeInsets.symmetric(
                   horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
               child: Row(
@@ -327,8 +331,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 ),
               ),
             ),
-          ],
-        ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
