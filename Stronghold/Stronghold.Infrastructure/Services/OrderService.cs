@@ -107,6 +107,19 @@ namespace Stronghold.Infrastructure.Services
 
             await SendDeliveryEmailAsync(order);
 
+            // Notify user about delivery
+            try
+            {
+                await _notificationService.CreateForUserAsync(
+                    order.UserId,
+                    "order_delivered",
+                    "Narudzba isporucena",
+                    $"Vasa narudzba #{order.Id} je isporucena.",
+                    order.Id,
+                    "Order");
+            }
+            catch { /* Don't fail delivery on notification error */ }
+
             return _mapper.Map<OrderResponse>(order);
         }
 
@@ -310,6 +323,19 @@ namespace Stronghold.Infrastructure.Services
                 }
                 catch { /* Don't fail order on notification error */ }
 
+                // Create notification for user
+                try
+                {
+                    await _notificationService.CreateForUserAsync(
+                        userId,
+                        "order_confirmed",
+                        "Narudzba zaprimljena",
+                        $"Vasa narudzba #{order.Id} ({order.TotalAmount:F2} KM) je zaprimljena i priprema se.",
+                        order.Id,
+                        "Order");
+                }
+                catch { /* Don't fail order on notification error */ }
+
                 return new UserOrderResponse
                 {
                     Id = order.Id,
@@ -382,6 +408,19 @@ namespace Stronghold.Infrastructure.Services
                     "order_cancelled",
                     "Narudzba otkazana",
                     $"Narudzba #{order.Id} je otkazana{reasonSuffix}",
+                    order.Id,
+                    "Order");
+            }
+            catch { /* Don't fail cancellation on notification error */ }
+
+            // Notify user about cancellation
+            try
+            {
+                await _notificationService.CreateForUserAsync(
+                    order.UserId,
+                    "order_cancelled",
+                    "Narudzba otkazana",
+                    $"Vasa narudzba #{order.Id} je otkazana. Refund ce biti procesiran automatski.",
                     order.Id,
                     "Order");
             }

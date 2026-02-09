@@ -15,7 +15,13 @@ public class NotificationConfiguration : BaseEntityConfiguration<Notification>
         builder.Property(n => n.Message).HasMaxLength(500).IsRequired();
         builder.Property(n => n.RelatedEntityType).HasMaxLength(50);
 
+        builder.HasOne(n => n.User)
+            .WithMany(u => u.Notifications)
+            .HasForeignKey(n => n.UserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
         builder.HasIndex(n => n.IsRead);
         builder.HasIndex(n => n.CreatedAt);
+        builder.HasIndex(n => n.UserId);
     }
 }
