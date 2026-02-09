@@ -115,10 +115,10 @@ public static class StrongholdDbContextDataSeed
 
         var packages = new List<MembershipPackage>
         {
-            new() { PackageName = "Basic Standard", PackagePrice = 60.00m, Description = "24/7 pristup teretani", IsActive = true },
-            new() { PackageName = "Premium Standard", PackagePrice = 90.00m, Description = "24/7 pristup teretani sa uključenim grupnim treninzima", IsActive = true },
-            new() { PackageName = "Basic Duo", PackagePrice = 100.00m, Description = "24/7 pristup teretani za parove", IsActive = true },
-            new() { PackageName = "Premium Duo", PackagePrice = 150.00m, Description = "24/7 pristup teretani za parove sa uključenim grupnim treninzima", IsActive = true }
+            new() { PackageName = "Basic Standard", PackagePrice = 60.00m, Description = "24/7 pristup teretani" },
+            new() { PackageName = "Premium Standard", PackagePrice = 90.00m, Description = "24/7 pristup teretani sa uključenim grupnim treninzima" },
+            new() { PackageName = "Basic Duo", PackagePrice = 100.00m, Description = "24/7 pristup teretani za parove" },
+            new() { PackageName = "Premium Duo", PackagePrice = 150.00m, Description = "24/7 pristup teretani za parove sa uključenim grupnim treninzima" }
         };
 
         await context.MembershipPackages.AddRangeAsync(packages);

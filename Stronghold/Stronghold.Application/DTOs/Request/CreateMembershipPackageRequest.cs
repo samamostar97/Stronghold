@@ -14,7 +14,5 @@ namespace Stronghold.Application.DTOs.Request
 
         [StringLength(500, ErrorMessage = "Opis paketa može imati najviše 500 karaktera.")]
         public string? Description { get; set; }
-
-        public bool IsActive { get; set; } = true;
     }
 }

@@ -426,7 +426,7 @@ namespace Stronghold.Infrastructure.Services
 
             var packages = await _context.MembershipPackages
                 .AsNoTracking()
-                .Where(p => !p.IsDeleted && p.IsActive)
+                .Where(p => !p.IsDeleted)
                 .Select(p => new
                 {
                     p.Id,
