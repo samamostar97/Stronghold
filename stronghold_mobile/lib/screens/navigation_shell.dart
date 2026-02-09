@@ -3,8 +3,6 @@ import '../constants/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
 import 'home_screen.dart';
 import 'supplement_shop_screen.dart';
-import 'appointment_screen.dart';
-import 'user_progress_screen.dart';
 import 'profile_settings_screen.dart';
 
 class NavigationShell extends StatefulWidget {
@@ -26,22 +24,13 @@ class NavigationShell extends StatefulWidget {
 class _NavigationShellState extends State<NavigationShell> {
   int _currentIndex = 0;
 
-  void _switchToTab(int index) {
-    if (index >= 0 && index < 5) {
-      setState(() => _currentIndex = index);
-    }
-  }
-
   late final List<Widget> _screens = [
     HomeScreen(
       userName: widget.userName,
       userImageUrl: widget.userImageUrl,
       hasActiveMembership: widget.hasActiveMembership,
-      onTabSwitch: _switchToTab,
     ),
     const SupplementShopScreen(),
-    const AppointmentScreen(),
-    const UserProgressScreen(),
     const ProfileSettingsScreen(),
   ];
 

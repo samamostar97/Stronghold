@@ -17,8 +17,6 @@ class AppBottomNav extends StatelessWidget {
   static const _items = [
     _NavItem(icon: LucideIcons.home, label: 'Pocetna'),
     _NavItem(icon: LucideIcons.shoppingBag, label: 'Prodavnica'),
-    _NavItem(icon: LucideIcons.calendar, label: 'Termini'),
-    _NavItem(icon: LucideIcons.trendingUp, label: 'Napredak'),
     _NavItem(icon: LucideIcons.user, label: 'Profil'),
   ];
 

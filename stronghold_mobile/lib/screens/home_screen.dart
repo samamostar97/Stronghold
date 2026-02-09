@@ -1,30 +1,31 @@
 import 'package:flutter/material.dart';
 import '../constants/app_spacing.dart';
+import '../widgets/home_hall_of_fame_teaser.dart';
 import '../widgets/home_header.dart';
-import '../widgets/home_hub_grid.dart';
 import '../widgets/home_membership_card.dart';
+import '../widgets/home_next_appointment.dart';
+import '../widgets/home_progress_bar.dart';
 
 class HomeScreen extends StatelessWidget {
   final String userName;
   final String? userImageUrl;
   final bool hasActiveMembership;
-  final ValueChanged<int> onTabSwitch;
 
   const HomeScreen({
     super.key,
     required this.userName,
     this.userImageUrl,
     required this.hasActiveMembership,
-    required this.onTabSwitch,
   });
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               HomeHeader(
                 userName: userName,
@@ -35,9 +36,12 @@ class HomeScreen extends StatelessWidget {
                 hasActiveMembership: hasActiveMembership,
               ),
               const SizedBox(height: AppSpacing.xl),
-              Expanded(
-                child: HomeHubGrid(onTabSwitch: onTabSwitch),
-              ),
+              const HomeNextAppointment(),
+              const SizedBox(height: AppSpacing.lg),
+              const HomeProgressBar(),
+              const SizedBox(height: AppSpacing.xl),
+              const HomeHallOfFameTeaser(),
+              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
