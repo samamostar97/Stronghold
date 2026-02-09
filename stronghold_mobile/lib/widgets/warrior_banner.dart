@@ -11,28 +11,43 @@ import '../providers/profile_provider.dart';
 import '../screens/navigation_shell.dart';
 import '../utils/image_utils.dart';
 import 'glass_card.dart';
+import 'profile_image_picker.dart';
 
-class WarriorBanner extends ConsumerWidget {
+class WarriorBanner extends ConsumerStatefulWidget {
   const WarriorBanner({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<WarriorBanner> createState() => _WarriorBannerState();
+}
+
+class _WarriorBannerState extends ConsumerState<WarriorBanner> {
+  String? _localImageUrl;
+  bool _imageOverridden = false;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     final progressAsync = ref.watch(userProgressProvider);
     final membershipAsync = ref.watch(membershipHistoryProvider);
 
     final name = user?.displayName ?? '';
-    final imageUrl = user?.profileImageUrl;
+    final rawImageUrl = user?.profileImageUrl;
+    final displayImageUrl = _imageOverridden
+        ? (_localImageUrl != null ? getFullImageUrl(_localImageUrl!) : null)
+        : (rawImageUrl != null ? getFullImageUrl(rawImageUrl) : null);
 
     return GlassCard(
       child: Column(
         children: [
           Row(
             children: [
-              // Avatar with level badge
-              _avatarWithBadge(
-                imageUrl: imageUrl != null ? getFullImageUrl(imageUrl) : null,
-                level: progressAsync.valueOrNull?.level,
+              // Avatar with level badge - tappable for image change
+              GestureDetector(
+                onTap: () => _openImagePicker(rawImageUrl),
+                child: _avatarWithBadge(
+                  imageUrl: displayImageUrl,
+                  level: progressAsync.valueOrNull?.level,
+                ),
               ),
               const SizedBox(width: AppSpacing.lg),
               // Name + membership status
@@ -69,6 +84,20 @@ class WarriorBanner extends ConsumerWidget {
           _xpProgressBar(progressAsync),
         ],
       ),
+    );
+  }
+
+  void _openImagePicker(String? currentImageUrl) {
+    showProfileImagePicker(
+      context: context,
+      ref: ref,
+      currentImageUrl: currentImageUrl,
+      onChanged: (newUrl) {
+        setState(() {
+          _localImageUrl = newUrl;
+          _imageOverridden = true;
+        });
+      },
     );
   }
 

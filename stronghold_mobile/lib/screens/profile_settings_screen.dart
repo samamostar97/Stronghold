@@ -9,6 +9,8 @@ import '../providers/cart_provider.dart';
 import '../utils/image_utils.dart';
 import '../widgets/avatar_widget.dart';
 import '../widgets/glass_card.dart';
+import '../widgets/profile_image_picker.dart';
+import 'address_screen.dart';
 import 'change_password_screen.dart';
 import 'login_screen.dart';
 
@@ -22,6 +24,8 @@ class ProfileSettingsScreen extends ConsumerStatefulWidget {
 
 class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   bool _isLoggingOut = false;
+  String? _localImageUrl;
+  bool _imageOverridden = false;
 
   Future<void> _handleLogout() async {
     setState(() => _isLoggingOut = true);
@@ -40,6 +44,20 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     }
   }
 
+  void _openImagePicker(String? currentImageUrl) {
+    showProfileImagePicker(
+      context: context,
+      ref: ref,
+      currentImageUrl: currentImageUrl,
+      onChanged: (newUrl) {
+        setState(() {
+          _localImageUrl = newUrl;
+          _imageOverridden = true;
+        });
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
@@ -55,7 +73,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               const SizedBox(height: AppSpacing.sm),
               Text('Profil', style: AppTextStyles.headingLg),
               const SizedBox(height: AppSpacing.xl),
-              // User card
+              // User card - tappable for image change
               _userCard(user),
               const SizedBox(height: AppSpacing.xxl),
               // Settings section
@@ -63,6 +81,18 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                   style: AppTextStyles.label
                       .copyWith(color: AppColors.textMuted)),
               const SizedBox(height: AppSpacing.md),
+              _navOption(
+                icon: LucideIcons.mapPin,
+                color: AppColors.secondary,
+                title: 'Adresa za dostavu',
+                subtitle: 'Dodaj ili promijeni adresu',
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const AddressScreen()),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
               _navOption(
                 icon: LucideIcons.lock,
                 color: AppColors.accent,
@@ -88,16 +118,21 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
   Widget _userCard(dynamic user) {
     final name = user?.displayName ?? '';
     final email = user?.email ?? '';
-    final imageUrl = user?.profileImageUrl;
+    final rawImageUrl = user?.profileImageUrl;
     final initials = _getInitials(name);
 
+    final displayImageUrl = _imageOverridden
+        ? (_localImageUrl != null ? getFullImageUrl(_localImageUrl!) : null)
+        : (rawImageUrl != null ? getFullImageUrl(rawImageUrl) : null);
+
     return GlassCard(
+      onTap: () => _openImagePicker(rawImageUrl),
       child: Row(
         children: [
           AvatarWidget(
             initials: initials,
             size: 56,
-            imageUrl: imageUrl != null ? getFullImageUrl(imageUrl) : null,
+            imageUrl: displayImageUrl,
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
@@ -112,6 +147,8 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               ],
             ),
           ),
+          const Icon(LucideIcons.camera,
+              color: AppColors.textDark, size: 18),
         ],
       ),
     );
