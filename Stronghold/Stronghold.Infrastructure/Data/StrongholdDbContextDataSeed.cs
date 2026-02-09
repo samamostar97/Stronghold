@@ -175,46 +175,45 @@ public static class StrongholdDbContextDataSeed
         var preworkout = categories.First(c => c.Name == "Pre-workout").Id;
         var gaineri = categories.First(c => c.Name == "Mass gaineri").Id;
 
+        // 25 supplements total (indices 0-24)
         var supplements = new List<Supplement>
         {
-            // Proteini
-            new() { Name = "Whey Protein Gold 2kg", Price = 89.00m, Description = "Premium whey protein izolat sa 24g proteina po porciji", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/whey-protein-gold.png" },
-            new() { Name = "Casein Protein 1kg", Price = 65.00m, Description = "Sporo oslobađajući kazein protein idealan za noć", SupplementCategoryId = proteini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/casein-protein.png" },
-            new() { Name = "Vegan Protein Mix 1kg", Price = 55.00m, Description = "Biljni protein od graška i riže", SupplementCategoryId = proteini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/vegan-protein-mix.png" },
-            new() { Name = "Whey Isolate 1kg", Price = 75.00m, Description = "Čisti whey izolat sa minimalnim mastima i ugljikohidratima", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/whey-isolate.png" },
-            new() { Name = "Egg Protein 900g", Price = 60.00m, Description = "Protein iz jaja, odličan za one sa intolerancijom na laktozu", SupplementCategoryId = proteini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/egg-protein.png" },
+            // Proteini (0-3)
+            new() { Name = "Whey Protein Gold 2kg", Price = 89.00m, Description = "Premium whey protein izolat sa 24g proteina po porciji", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_whey-protein-gold.jpg" },
+            new() { Name = "Casein Protein 1kg", Price = 65.00m, Description = "Sporo oslobađajući kazein protein idealan za noć", SupplementCategoryId = proteini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_casein-protein.jpg" },
+            new() { Name = "Vegan Protein Mix 1kg", Price = 55.00m, Description = "Biljni protein od graška i riže", SupplementCategoryId = proteini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_vegan-protein.jpg" },
+            new() { Name = "Whey Isolate 1kg", Price = 75.00m, Description = "Čisti whey izolat sa minimalnim mastima i ugljikohidratima", SupplementCategoryId = proteini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_whey-isolate.jpg" },
 
-            // Kreatin
-            new() { Name = "Kreatin Monohidrat 500g", Price = 35.00m, Description = "Čisti kreatin monohidrat za povećanje snage", SupplementCategoryId = kreatin, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/kreatin-monohidrat-500.png" },
-            new() { Name = "Kreatin HCL 120 kapsula", Price = 45.00m, Description = "Kreatin hidrohlorid za bolju apsorpciju", SupplementCategoryId = kreatin, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/kreatin-hcl.png" },
-            new() { Name = "Kre-Alkalyn 120 kapsula", Price = 50.00m, Description = "Puferovani kreatin bez potrebe za fazom punjenja", SupplementCategoryId = kreatin, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/kre-alkalyn.png" },
-            new() { Name = "Kreatin Monohidrat 1kg", Price = 55.00m, Description = "Ekonomično pakovanje kreatina za dugoročnu upotrebu", SupplementCategoryId = kreatin, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/kreatin-monohidrat-1kg.png" },
+            // Kreatin (4-6)
+            new() { Name = "Kreatin Monohidrat 500g", Price = 35.00m, Description = "Čisti kreatin monohidrat za povećanje snage", SupplementCategoryId = kreatin, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_kreatin-monohidrat.jpg" },
+            new() { Name = "Kreatin HCL 120 kapsula", Price = 45.00m, Description = "Kreatin hidrohlorid za bolju apsorpciju", SupplementCategoryId = kreatin, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_kreatin-hcl.jpg" },
+            new() { Name = "Kre-Alkalyn 120 kapsula", Price = 50.00m, Description = "Puferovani kreatin bez potrebe za fazom punjenja", SupplementCategoryId = kreatin, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_kre-alkalyn.jpg" },
 
-            // Aminokiseline
-            new() { Name = "BCAA 2:1:1 400g", Price = 40.00m, Description = "Razgranati aminokiselinski lanac za oporavak mišića", SupplementCategoryId = amino, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/bcaa.png" },
-            new() { Name = "EAA 350g", Price = 48.00m, Description = "Esencijalne aminokiseline za kompletnu podršku mišićima", SupplementCategoryId = amino, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/eaa.png" },
-            new() { Name = "Glutamin 500g", Price = 38.00m, Description = "L-Glutamin za oporavak i imunitet", SupplementCategoryId = amino, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/glutamin.png" },
-            new() { Name = "L-Karnitin 1000ml", Price = 32.00m, Description = "Tečni L-karnitin za sagorijevanje masti", SupplementCategoryId = amino, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/l-karnitin.png" },
-            new() { Name = "Beta Alanin 300g", Price = 35.00m, Description = "Za povećanje izdržljivosti tokom treninga", SupplementCategoryId = amino, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/beta-alanin.png" },
+            // Aminokiseline (7-11)
+            new() { Name = "BCAA 2:1:1 400g", Price = 40.00m, Description = "Razgranati aminokiselinski lanac za oporavak mišića", SupplementCategoryId = amino, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_bcaa.jpg" },
+            new() { Name = "EAA 350g", Price = 48.00m, Description = "Esencijalne aminokiseline za kompletnu podršku mišićima", SupplementCategoryId = amino, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_eaa.jpg" },
+            new() { Name = "Glutamin 500g", Price = 38.00m, Description = "L-Glutamin za oporavak i imunitet", SupplementCategoryId = amino, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_glutamin.jpg" },
+            new() { Name = "L-Karnitin 1000ml", Price = 32.00m, Description = "Tečni L-karnitin za sagorijevanje masti", SupplementCategoryId = amino, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_l-karnitin.jpg" },
+            new() { Name = "Beta Alanin 300g", Price = 35.00m, Description = "Za povećanje izdržljivosti tokom treninga", SupplementCategoryId = amino, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_beta-alanin.jpg" },
 
-            // Vitamini i minerali
-            new() { Name = "Multivitamin kompleks 60 tableta", Price = 25.00m, Description = "Kompletan multivitamin za sportiste", SupplementCategoryId = vitamini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/multivitamin.png" },
-            new() { Name = "Vitamin D3 5000IU 120 kapsula", Price = 18.00m, Description = "Vitamin D3 za kosti i imunitet", SupplementCategoryId = vitamini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/vitamin-d3.png" },
-            new() { Name = "Omega 3 120 kapsula", Price = 28.00m, Description = "Riblje ulje sa EPA i DHA", SupplementCategoryId = vitamini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/omega-3.png" },
-            new() { Name = "ZMA 90 kapsula", Price = 22.00m, Description = "Cink, magnezijum i vitamin B6 za bolji san i oporavak", SupplementCategoryId = vitamini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/zma.png" },
-            new() { Name = "Magnezijum Citrat 120 tableta", Price = 15.00m, Description = "Magnezijum za mišiće i nervni sistem", SupplementCategoryId = vitamini, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/magnezijum-citrat.png" },
+            // Vitamini i minerali (12-16)
+            new() { Name = "Multivitamin kompleks 60 tableta", Price = 25.00m, Description = "Kompletan multivitamin za sportiste", SupplementCategoryId = vitamini, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_multivitamin.jpg" },
+            new() { Name = "Vitamin D3 5000IU 120 kapsula", Price = 18.00m, Description = "Vitamin D3 za kosti i imunitet", SupplementCategoryId = vitamini, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_vitamin-d3.jpg" },
+            new() { Name = "Omega 3 120 kapsula", Price = 28.00m, Description = "Riblje ulje sa EPA i DHA", SupplementCategoryId = vitamini, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_omega-3.jpg" },
+            new() { Name = "ZMA 90 kapsula", Price = 22.00m, Description = "Cink, magnezijum i vitamin B6 za bolji san i oporavak", SupplementCategoryId = vitamini, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_zma.jpg" },
+            new() { Name = "Magnezijum Citrat 120 tableta", Price = 15.00m, Description = "Magnezijum za mišiće i nervni sistem", SupplementCategoryId = vitamini, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_magnezijum-citrat.jpg" },
 
-            // Pre-workout
-            new() { Name = "Pre-Workout Extreme 300g", Price = 42.00m, Description = "Snažna pre-workout formula sa kofeinom i beta alaninom", SupplementCategoryId = preworkout, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/pre-workout-extreme.png" },
-            new() { Name = "Pump Matrix 350g", Price = 38.00m, Description = "Pre-workout bez stimulansa za bolju pumpu", SupplementCategoryId = preworkout, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/pump-matrix.png" },
-            new() { Name = "Energy Boost 250g", Price = 30.00m, Description = "Lagani pre-workout za početnike", SupplementCategoryId = preworkout, SupplierId = suppliers[2].Id, SupplementImageUrl = "/images/supplements/energy-boost.png" },
-            new() { Name = "Nitric Oxide Booster 200g", Price = 35.00m, Description = "Za poboljšanje protoka krvi i izdržljivosti", SupplementCategoryId = preworkout, SupplierId = suppliers[1].Id, SupplementImageUrl = "/images/supplements/nitric-oxide-booster.png" },
+            // Pre-workout (17-20)
+            new() { Name = "Pre-Workout Extreme 300g", Price = 42.00m, Description = "Snažna pre-workout formula sa kofeinom i beta alaninom", SupplementCategoryId = preworkout, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_pre-workout-extreme.jpg" },
+            new() { Name = "Pump Matrix 350g", Price = 38.00m, Description = "Pre-workout bez stimulansa za bolju pumpu", SupplementCategoryId = preworkout, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_pump-matrix.jpg" },
+            new() { Name = "Energy Boost 250g", Price = 30.00m, Description = "Lagani pre-workout za početnike", SupplementCategoryId = preworkout, SupplierId = suppliers[2].Id, SupplementImageUrl = "/uploads/supplements/seed_energy-boost.jpg" },
+            new() { Name = "Nitric Oxide Booster 200g", Price = 35.00m, Description = "Za poboljšanje protoka krvi i izdržljivosti", SupplementCategoryId = preworkout, SupplierId = suppliers[1].Id, SupplementImageUrl = "/uploads/supplements/seed_nitric-oxide-booster.jpg" },
 
-            // Mass gaineri
-            new() { Name = "Mass Gainer 3kg", Price = 70.00m, Description = "Visokokalorični gainer za povećanje mase", SupplementCategoryId = gaineri, SupplierId = suppliers[3].Id, SupplementImageUrl = "/images/supplements/mass-gainer.png" },
-            new() { Name = "Serious Mass 2.7kg", Price = 65.00m, Description = "Gainer sa kompleksnim ugljikohidratima", SupplementCategoryId = gaineri, SupplierId = suppliers[4].Id, SupplementImageUrl = "/images/supplements/serious-mass.png" },
-            new() { Name = "Clean Gainer 2kg", Price = 58.00m, Description = "Gainer sa manje šećera i više proteina", SupplementCategoryId = gaineri, SupplierId = suppliers[5].Id, SupplementImageUrl = "/images/supplements/clean-gainer.png" },
-            new() { Name = "Weight Gainer Pro 4kg", Price = 85.00m, Description = "Profesionalni gainer za hard gainere", SupplementCategoryId = gaineri, SupplierId = suppliers[0].Id, SupplementImageUrl = "/images/supplements/weight-gainer-pro.png" }
+            // Mass gaineri (21-24)
+            new() { Name = "Mass Gainer 3kg", Price = 70.00m, Description = "Visokokalorični gainer za povećanje mase", SupplementCategoryId = gaineri, SupplierId = suppliers[3].Id, SupplementImageUrl = "/uploads/supplements/seed_mass-gainer.jpg" },
+            new() { Name = "Serious Mass 2.7kg", Price = 65.00m, Description = "Gainer sa kompleksnim ugljikohidratima", SupplementCategoryId = gaineri, SupplierId = suppliers[4].Id, SupplementImageUrl = "/uploads/supplements/seed_serious-mass.jpg" },
+            new() { Name = "Clean Gainer 2kg", Price = 58.00m, Description = "Gainer sa manje šećera i više proteina", SupplementCategoryId = gaineri, SupplierId = suppliers[5].Id, SupplementImageUrl = "/uploads/supplements/seed_clean-gainer.jpg" },
+            new() { Name = "Weight Gainer Pro 4kg", Price = 85.00m, Description = "Profesionalni gainer za hard gainere", SupplementCategoryId = gaineri, SupplierId = suppliers[0].Id, SupplementImageUrl = "/uploads/supplements/seed_weight-gainer-pro.jpg" }
         };
 
         await context.Supplements.AddRangeAsync(supplements);
@@ -249,7 +248,8 @@ public static class StrongholdDbContextDataSeed
             new() { FirstName = "Adnan", LastName = "Mujić", Email = "adnan.mujic@stronghold.ba", PhoneNumber = "+38762234567" },
             new() { FirstName = "Amra", LastName = "Karić", Email = "amra.karic@stronghold.ba", PhoneNumber = "+38762345678" },
             new() { FirstName = "Emir", LastName = "Softić", Email = "emir.softic@stronghold.ba", PhoneNumber = "+38762456789" },
-            new() { FirstName = "Lamija", LastName = "Bašić", Email = "lamija.basic@stronghold.ba", PhoneNumber = "+38762567890" }
+            new() { FirstName = "Lamija", LastName = "Bašić", Email = "lamija.basic@stronghold.ba", PhoneNumber = "+38762567890" },
+            new() { FirstName = "Dženan", LastName = "Čolić", Email = "dzenan.colic@stronghold.ba", PhoneNumber = "+38762678901" }
         };
 
         await context.Nutritionists.AddRangeAsync(nutritionists);
@@ -267,7 +267,11 @@ public static class StrongholdDbContextDataSeed
             new() { Question = "Da li nudite probni trening?", Answer = "Da, nudimo besplatan probni trening za sve nove članove. Kontaktirajte nas za zakazivanje." },
             new() { Question = "Šta je uključeno u Premium paket?", Answer = "Premium paket uključuje 24/7 pristup teretani i neograničene grupne treninge (yoga, pilates, crossfit, spinning)." },
             new() { Question = "Kako mogu otkazati članarinu?", Answer = "Članarinu možete otkazati u bilo kojem trenutku sa otkaznim rokom od 30 dana." },
-            new() { Question = "Da li imate parking?", Answer = "Da, imamo besplatan parking za članove sa preko 50 parking mjesta." }
+            new() { Question = "Da li imate parking?", Answer = "Da, imamo besplatan parking za članove sa preko 50 parking mjesta." },
+            new() { Question = "Kako funkcioniše XP sistem?", Answer = "XP sistem nagrađuje vašu aktivnost u teretani. Dobijate 150 XP za svaki sat treninga. Ako propustite dan treninga (u okviru zadnjih 30 dana), gubite 100 XP. Za svaki level potrebno je 2500 XP, a maksimalan level je 10. Pratite svoj napredak u sekciji 'Moj napredak'." },
+            new() { Question = "Da li mogu dovesti prijatelja na probni trening?", Answer = "Da, svaki član može dovesti jednog prijatelja na besplatan probni trening jednom mjesečno. Prijatelj mora popuniti pristupnicu na recepciji." },
+            new() { Question = "Koje grupne treninge nudite?", Answer = "Nudimo raznovrsne grupne treninge: yoga, pilates, crossfit, spinning, HIIT, funkcionalni trening i boks. Raspored treninga možete pogledati u aplikaciji ili na recepciji." },
+            new() { Question = "Kako mogu pratiti svoj napredak?", Answer = "Vaš napredak možete pratiti kroz mobilnu aplikaciju u sekciji 'Moj napredak'. Tamo ćete vidjeti vaš XP, level, historiju posjeta teretani, kao i statistike vaših treninga." }
         };
 
         await context.FAQs.AddRangeAsync(faqs);
@@ -280,11 +284,14 @@ public static class StrongholdDbContextDataSeed
 
         var seminars = new List<Seminar>
         {
-            new() { Topic = "Osnove pravilne ishrane za sportiste", SpeakerName = "Dr. Selma Hodžić", EventDate = DateTime.UtcNow.AddDays(14) },
-            new() { Topic = "Kako izbjeći povrede tokom treninga", SpeakerName = "Amar Hadžić", EventDate = DateTime.UtcNow.AddDays(21) },
-            new() { Topic = "Suplementacija za početnike", SpeakerName = "Adnan Mujić", EventDate = DateTime.UtcNow.AddDays(28) },
-            new() { Topic = "Mentalna priprema i motivacija", SpeakerName = "Lejla Begović", EventDate = DateTime.UtcNow.AddDays(35) },
-            new() { Topic = "Trening snage vs. kardio - šta je bolje?", SpeakerName = "Eldin Mahmutović", EventDate = DateTime.UtcNow.AddDays(42) }
+            new() { Topic = "Osnove pravilne ishrane za sportiste", SpeakerName = "Dr. Selma Hodžić", EventDate = DateTime.UtcNow.AddDays(14), MaxCapacity = 25 },
+            new() { Topic = "Kako izbjeći povrede tokom treninga", SpeakerName = "Amar Hadžić", EventDate = DateTime.UtcNow.AddDays(21), MaxCapacity = 20 },
+            new() { Topic = "Suplementacija za početnike", SpeakerName = "Adnan Mujić", EventDate = DateTime.UtcNow.AddDays(28), MaxCapacity = 30 },
+            new() { Topic = "Mentalna priprema i motivacija", SpeakerName = "Lejla Begović", EventDate = DateTime.UtcNow.AddDays(35), MaxCapacity = 20 },
+            new() { Topic = "Trening snage vs. kardio - šta je bolje?", SpeakerName = "Eldin Mahmutović", EventDate = DateTime.UtcNow.AddDays(42), MaxCapacity = 25 },
+            new() { Topic = "Pravilna tehnika deadlifta i čučnja", SpeakerName = "Mirza Delić", EventDate = DateTime.UtcNow.AddDays(49), MaxCapacity = 15 },
+            new() { Topic = "Oporavak i regeneracija nakon treninga", SpeakerName = "Amra Karić", EventDate = DateTime.UtcNow.AddDays(56), MaxCapacity = 20 },
+            new() { Topic = "Planiranje obroka za sportiste", SpeakerName = "Dr. Selma Hodžić", EventDate = DateTime.UtcNow.AddDays(63), MaxCapacity = 25 }
         };
 
         await context.Seminars.AddRangeAsync(seminars);
@@ -307,9 +314,10 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761000000",
                 Gender = Gender.Male,
                 Role = Role.Admin,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_admin.jpg"
             },
-            // Gym Members
+            // Gym Members (indices 0-8 after filtering by Role)
             new()
             {
                 FirstName = "Member",
@@ -319,7 +327,8 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761999999",
                 Gender = Gender.Male,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_member.jpg"
             },
             new()
             {
@@ -330,7 +339,8 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761111111",
                 Gender = Gender.Male,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("haris123")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("haris123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_haris.muslimovic.jpg"
             },
             new()
             {
@@ -341,7 +351,8 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761222222",
                 Gender = Gender.Female,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("amela123")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("amela123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_amela.sabanovic.jpg"
             },
             new()
             {
@@ -352,7 +363,8 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761333333",
                 Gender = Gender.Male,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("dino123")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("dino123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_dino.causevic.jpg"
             },
             new()
             {
@@ -363,7 +375,8 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761444444",
                 Gender = Gender.Female,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("lejla123")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("lejla123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_lejla.imamovic.jpg"
             },
             new()
             {
@@ -374,7 +387,8 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761555555",
                 Gender = Gender.Male,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("armin123")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("armin123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_armin.fazlic.jpg"
             },
             new()
             {
@@ -385,7 +399,32 @@ public static class StrongholdDbContextDataSeed
                 PhoneNumber = "+38761666666",
                 Gender = Gender.Female,
                 Role = Role.GymMember,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("naida123")
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("naida123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_naida.hrustic.jpg"
+            },
+            new()
+            {
+                FirstName = "Emina",
+                LastName = "Hadžić",
+                Username = "member2",
+                Email = "emina.hadzic@gmail.com",
+                PhoneNumber = "+38761777777",
+                Gender = Gender.Female,
+                Role = Role.GymMember,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("test"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_member2.jpg"
+            },
+            new()
+            {
+                FirstName = "Tarik",
+                LastName = "Hodžić",
+                Username = "tarik.hodzic",
+                Email = "tarik.hodzic@gmail.com",
+                PhoneNumber = "+38761888888",
+                Gender = Gender.Male,
+                Role = Role.GymMember,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("tarik123"),
+                ProfileImageUrl = "/uploads/profile-pictures/seed_tarik.hodzic.jpg"
             }
         };
 
@@ -407,13 +446,16 @@ public static class StrongholdDbContextDataSeed
             new() { UserId = users[2].Id, MembershipPackageId = packages[2].Id, StartDate = DateTime.UtcNow.AddDays(-15), EndDate = DateTime.UtcNow.AddMonths(1).AddDays(-15) },
             new() { UserId = users[3].Id, MembershipPackageId = packages[3].Id, StartDate = DateTime.UtcNow.AddMonths(-3), EndDate = DateTime.UtcNow },
             new() { UserId = users[4].Id, MembershipPackageId = packages[0].Id, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow.AddMonths(3) },
-            new() { UserId = users[5].Id, MembershipPackageId = packages[1].Id, StartDate = DateTime.UtcNow.AddDays(-7), EndDate = DateTime.UtcNow.AddMonths(1).AddDays(-7) }
+            new() { UserId = users[5].Id, MembershipPackageId = packages[1].Id, StartDate = DateTime.UtcNow.AddDays(-7), EndDate = DateTime.UtcNow.AddMonths(1).AddDays(-7) },
+            new() { UserId = users[6].Id, MembershipPackageId = packages[0].Id, StartDate = DateTime.UtcNow.AddDays(-20), EndDate = DateTime.UtcNow.AddMonths(1).AddDays(-20) },
+            new() { UserId = users[7].Id, MembershipPackageId = packages[1].Id, StartDate = DateTime.UtcNow.AddDays(-10), EndDate = DateTime.UtcNow.AddMonths(2).AddDays(-10) },
+            new() { UserId = users[8].Id, MembershipPackageId = packages[0].Id, StartDate = DateTime.UtcNow.AddDays(-5), EndDate = DateTime.UtcNow.AddMonths(1).AddDays(-5) }
         };
 
         await context.Memberships.AddRangeAsync(memberships);
         await context.SaveChangesAsync();
 
-        // Create payment history for each membership
+        // Payment history for each membership
         var paymentHistory = new List<MembershipPaymentHistory>();
         foreach (var membership in memberships)
         {
@@ -423,11 +465,34 @@ public static class StrongholdDbContextDataSeed
                 UserId = membership.UserId,
                 MembershipPackageId = membership.MembershipPackageId,
                 AmountPaid = package.PackagePrice,
-                PaymentDate = membership.StartDate.AddDays(-1), // Payment made 1 day before start date
+                PaymentDate = membership.StartDate.AddDays(-1),
                 StartDate = membership.StartDate,
                 EndDate = membership.EndDate
             });
         }
+
+        // Extra historical payments for some users (shows renewal history)
+        var memberUser = users[0];
+        paymentHistory.Add(new MembershipPaymentHistory
+        {
+            UserId = memberUser.Id,
+            MembershipPackageId = packages[0].Id,
+            AmountPaid = packages[0].PackagePrice,
+            PaymentDate = DateTime.UtcNow.AddMonths(-5).AddDays(-1),
+            StartDate = DateTime.UtcNow.AddMonths(-5),
+            EndDate = DateTime.UtcNow.AddMonths(-2)
+        });
+
+        var haris = users[1];
+        paymentHistory.Add(new MembershipPaymentHistory
+        {
+            UserId = haris.Id,
+            MembershipPackageId = packages[1].Id,
+            AmountPaid = packages[1].PackagePrice,
+            PaymentDate = DateTime.UtcNow.AddMonths(-4).AddDays(-1),
+            StartDate = DateTime.UtcNow.AddMonths(-4),
+            EndDate = DateTime.UtcNow.AddMonths(-1)
+        });
 
         await context.MembershipPaymentHistory.AddRangeAsync(paymentHistory);
         await context.SaveChangesAsync();
@@ -443,16 +508,26 @@ public static class StrongholdDbContextDataSeed
 
         var appointments = new List<Appointment>
         {
-            // Trener appointments
+            // Trainer appointments
             new() { UserId = users[0].Id, TrainerId = trainers[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(2).AddHours(10) },
             new() { UserId = users[1].Id, TrainerId = trainers[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(3).AddHours(14) },
             new() { UserId = users[2].Id, TrainerId = trainers[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(4).AddHours(16) },
             new() { UserId = users[3].Id, TrainerId = trainers[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(5).AddHours(9) },
             new() { UserId = users[4].Id, TrainerId = trainers[3].Id, AppointmentDate = DateTime.UtcNow.AddDays(6).AddHours(11) },
+            new() { UserId = users[5].Id, TrainerId = trainers[4].Id, AppointmentDate = DateTime.UtcNow.AddDays(7).AddHours(15) },
+            new() { UserId = users[6].Id, TrainerId = trainers[5].Id, AppointmentDate = DateTime.UtcNow.AddDays(8).AddHours(10) },
+            new() { UserId = users[7].Id, TrainerId = trainers[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(9).AddHours(13) },
+            new() { UserId = users[8].Id, TrainerId = trainers[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(10).AddHours(16) },
+            new() { UserId = users[0].Id, TrainerId = trainers[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(11).AddHours(8) },
             // Nutritionist appointments
-            new() { UserId = users[0].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(7).AddHours(13) },
-            new() { UserId = users[2].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(8).AddHours(15) },
-            new() { UserId = users[5].Id, NutritionistId = nutritionists[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(9).AddHours(10) }
+            new() { UserId = users[0].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(3).AddHours(13) },
+            new() { UserId = users[2].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(5).AddHours(15) },
+            new() { UserId = users[5].Id, NutritionistId = nutritionists[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(7).AddHours(10) },
+            new() { UserId = users[7].Id, NutritionistId = nutritionists[3].Id, AppointmentDate = DateTime.UtcNow.AddDays(9).AddHours(11) },
+            new() { UserId = users[8].Id, NutritionistId = nutritionists[4].Id, AppointmentDate = DateTime.UtcNow.AddDays(11).AddHours(14) },
+            new() { UserId = users[1].Id, NutritionistId = nutritionists[5].Id, AppointmentDate = DateTime.UtcNow.AddDays(12).AddHours(9) },
+            new() { UserId = users[4].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(13).AddHours(16) },
+            new() { UserId = users[6].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(14).AddHours(12) }
         };
 
         await context.Appointments.AddRangeAsync(appointments);
@@ -466,8 +541,164 @@ public static class StrongholdDbContextDataSeed
         var users = await context.Users.Where(u => u.Role == Role.GymMember).ToListAsync();
         var supplements = await context.Supplements.ToListAsync();
 
+        // 18 orders spread across ~85 days, 14 Delivered + 4 Processing
         var orders = new List<Order>
         {
+            // Order 1: Armin - Casein + Omega 3
+            new()
+            {
+                UserId = users[5].Id,
+                TotalAmount = 93.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-85),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[1].Id, Quantity = 1, UnitPrice = supplements[1].Price },
+                    new() { SupplementId = supplements[14].Id, Quantity = 1, UnitPrice = supplements[14].Price }
+                }
+            },
+            // Order 2: Naida - Vegan Protein
+            new()
+            {
+                UserId = users[6].Id,
+                TotalAmount = 55.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-75),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[2].Id, Quantity = 1, UnitPrice = supplements[2].Price }
+                }
+            },
+            // Order 3: Haris - Pre-Workout + BCAA
+            new()
+            {
+                UserId = users[1].Id,
+                TotalAmount = 82.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-65),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[17].Id, Quantity = 1, UnitPrice = supplements[17].Price },
+                    new() { SupplementId = supplements[7].Id, Quantity = 1, UnitPrice = supplements[7].Price }
+                }
+            },
+            // Order 4: Armin - Pre-Workout
+            new()
+            {
+                UserId = users[5].Id,
+                TotalAmount = 42.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-55),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[17].Id, Quantity = 1, UnitPrice = supplements[17].Price }
+                }
+            },
+            // Order 5: Amela - Whey Isolate
+            new()
+            {
+                UserId = users[2].Id,
+                TotalAmount = 75.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-50),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[3].Id, Quantity = 1, UnitPrice = supplements[3].Price }
+                }
+            },
+            // Order 6: Dino - Kreatin 500g + Multivitamin
+            new()
+            {
+                UserId = users[3].Id,
+                TotalAmount = 60.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-45),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[4].Id, Quantity = 1, UnitPrice = supplements[4].Price },
+                    new() { SupplementId = supplements[12].Id, Quantity = 1, UnitPrice = supplements[12].Price }
+                }
+            },
+            // Order 7: Emina - Whey Gold + Glutamin
+            new()
+            {
+                UserId = users[7].Id,
+                TotalAmount = 127.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-40),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[0].Id, Quantity = 1, UnitPrice = supplements[0].Price },
+                    new() { SupplementId = supplements[9].Id, Quantity = 1, UnitPrice = supplements[9].Price }
+                }
+            },
+            // Order 8: Tarik - Mass Gainer + Pre-Workout
+            new()
+            {
+                UserId = users[8].Id,
+                TotalAmount = 112.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-35),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[21].Id, Quantity = 1, UnitPrice = supplements[21].Price },
+                    new() { SupplementId = supplements[17].Id, Quantity = 1, UnitPrice = supplements[17].Price }
+                }
+            },
+            // Order 9: Member - Serious Mass + Beta Alanin
+            new()
+            {
+                UserId = users[0].Id,
+                TotalAmount = 100.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-30),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[22].Id, Quantity = 1, UnitPrice = supplements[22].Price },
+                    new() { SupplementId = supplements[11].Id, Quantity = 1, UnitPrice = supplements[11].Price }
+                }
+            },
+            // Order 10: Lejla - Multivitamin + Omega 3
+            new()
+            {
+                UserId = users[4].Id,
+                TotalAmount = 53.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-25),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[12].Id, Quantity = 1, UnitPrice = supplements[12].Price },
+                    new() { SupplementId = supplements[14].Id, Quantity = 1, UnitPrice = supplements[14].Price }
+                }
+            },
+            // Order 11: Lejla - Whey Gold + Pre-Workout + Kreatin HCL
+            new()
+            {
+                UserId = users[4].Id,
+                TotalAmount = 176.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-20),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[0].Id, Quantity = 1, UnitPrice = supplements[0].Price },
+                    new() { SupplementId = supplements[17].Id, Quantity = 1, UnitPrice = supplements[17].Price },
+                    new() { SupplementId = supplements[5].Id, Quantity = 1, UnitPrice = supplements[5].Price }
+                }
+            },
+            // Order 12: Naida - Kre-Alkalyn + EAA
+            new()
+            {
+                UserId = users[6].Id,
+                TotalAmount = 98.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-15),
+                Status = OrderStatus.Delivered,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[6].Id, Quantity = 1, UnitPrice = supplements[6].Price },
+                    new() { SupplementId = supplements[8].Id, Quantity = 1, UnitPrice = supplements[8].Price }
+                }
+            },
+            // Order 13: Member - Whey Gold + Kreatin 500g
             new()
             {
                 UserId = users[0].Id,
@@ -477,9 +708,22 @@ public static class StrongholdDbContextDataSeed
                 OrderItems = new List<OrderItem>
                 {
                     new() { SupplementId = supplements[0].Id, Quantity = 1, UnitPrice = supplements[0].Price },
-                    new() { SupplementId = supplements[5].Id, Quantity = 1, UnitPrice = supplements[5].Price }
+                    new() { SupplementId = supplements[4].Id, Quantity = 1, UnitPrice = supplements[4].Price }
                 }
             },
+            // Order 14: Emina - Pump Matrix (Processing)
+            new()
+            {
+                UserId = users[7].Id,
+                TotalAmount = 38.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-7),
+                Status = OrderStatus.Processing,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[18].Id, Quantity = 1, UnitPrice = supplements[18].Price }
+                }
+            },
+            // Order 15: Haris - Whey Gold
             new()
             {
                 UserId = users[1].Id,
@@ -491,19 +735,34 @@ public static class StrongholdDbContextDataSeed
                     new() { SupplementId = supplements[0].Id, Quantity = 1, UnitPrice = supplements[0].Price }
                 }
             },
+            // Order 16: Tarik - Whey Isolate + ZMA (Processing)
+            new()
+            {
+                UserId = users[8].Id,
+                TotalAmount = 97.00m,
+                PurchaseDate = DateTime.UtcNow.AddDays(-4),
+                Status = OrderStatus.Processing,
+                OrderItems = new List<OrderItem>
+                {
+                    new() { SupplementId = supplements[3].Id, Quantity = 1, UnitPrice = supplements[3].Price },
+                    new() { SupplementId = supplements[15].Id, Quantity = 1, UnitPrice = supplements[15].Price }
+                }
+            },
+            // Order 17: Amela - BCAA x2 + Multivitamin + ZMA (Processing)
             new()
             {
                 UserId = users[2].Id,
-                TotalAmount = 147.00m,
+                TotalAmount = 127.00m,
                 PurchaseDate = DateTime.UtcNow.AddDays(-3),
                 Status = OrderStatus.Processing,
                 OrderItems = new List<OrderItem>
                 {
-                    new() { SupplementId = supplements[9].Id, Quantity = 2, UnitPrice = supplements[9].Price },
-                    new() { SupplementId = supplements[14].Id, Quantity = 1, UnitPrice = supplements[14].Price },
-                    new() { SupplementId = supplements[17].Id, Quantity = 1, UnitPrice = supplements[17].Price }
+                    new() { SupplementId = supplements[7].Id, Quantity = 2, UnitPrice = supplements[7].Price },
+                    new() { SupplementId = supplements[12].Id, Quantity = 1, UnitPrice = supplements[12].Price },
+                    new() { SupplementId = supplements[15].Id, Quantity = 1, UnitPrice = supplements[15].Price }
                 }
             },
+            // Order 18: Dino - Mass Gainer (Processing)
             new()
             {
                 UserId = users[3].Id,
@@ -512,20 +771,7 @@ public static class StrongholdDbContextDataSeed
                 Status = OrderStatus.Processing,
                 OrderItems = new List<OrderItem>
                 {
-                    new() { SupplementId = supplements[23].Id, Quantity = 1, UnitPrice = supplements[23].Price }
-                }
-            },
-            new()
-            {
-                UserId = users[4].Id,
-                TotalAmount = 180.00m,
-                PurchaseDate = DateTime.UtcNow.AddDays(-20),
-                Status = OrderStatus.Delivered,
-                OrderItems = new List<OrderItem>
-                {
-                    new() { SupplementId = supplements[0].Id, Quantity = 1, UnitPrice = supplements[0].Price },
-                    new() { SupplementId = supplements[19].Id, Quantity = 1, UnitPrice = supplements[19].Price },
-                    new() { SupplementId = supplements[6].Id, Quantity = 1, UnitPrice = supplements[6].Price }
+                    new() { SupplementId = supplements[21].Id, Quantity = 1, UnitPrice = supplements[21].Price }
                 }
             }
         };
@@ -541,16 +787,34 @@ public static class StrongholdDbContextDataSeed
         var users = await context.Users.Where(u => u.Role == Role.GymMember).ToListAsync();
         var supplements = await context.Supplements.ToListAsync();
 
+        // 16 reviews - each respects purchase rules (only Delivered orders, 1 review per user per supplement)
         var reviews = new List<Review>
         {
+            // Member reviewed: Whey Gold (order 13), Kreatin 500g (order 13), Serious Mass (order 9)
             new() { UserId = users[0].Id, SupplementId = supplements[0].Id, Rating = 5, Comment = "Odličan protein, ukus je fantastičan i dobro se otapa!" },
+            new() { UserId = users[0].Id, SupplementId = supplements[4].Id, Rating = 5, Comment = "Primjetio sam poboljšanje snage već nakon 2 sedmice korištenja." },
+            new() { UserId = users[0].Id, SupplementId = supplements[22].Id, Rating = 4, Comment = "Dobar gainer za one koji teško dobijaju na masi." },
+            // Haris reviewed: Whey Gold (order 15), BCAA (order 3)
             new() { UserId = users[1].Id, SupplementId = supplements[0].Id, Rating = 4, Comment = "Dobar proizvod, ali cijena je malo visoka." },
-            new() { UserId = users[2].Id, SupplementId = supplements[5].Id, Rating = 5, Comment = "Primjetio sam poboljšanje snage već nakon 2 sedmice korištenja." },
-            new() { UserId = users[3].Id, SupplementId = supplements[9].Id, Rating = 4, Comment = "BCAA pomaže sa oporavkom, preporučujem." },
-            new() { UserId = users[4].Id, SupplementId = supplements[19].Id, Rating = 5, Comment = "Najbolji pre-workout koji sam probao, daje energiju bez nervoze." },
-            new() { UserId = users[5].Id, SupplementId = supplements[14].Id, Rating = 3, Comment = "Solidan multivitamin, ništa posebno ali radi posao." },
-            new() { UserId = users[0].Id, SupplementId = supplements[23].Id, Rating = 4, Comment = "Dobar gainer za one koji teško dobijaju na masi." },
-            new() { UserId = users[2].Id, SupplementId = supplements[1].Id, Rating = 5, Comment = "Kazein je super za prije spavanja, osjećam se manje gladan ujutro." }
+            new() { UserId = users[1].Id, SupplementId = supplements[7].Id, Rating = 4, Comment = "BCAA pomaže sa oporavkom nakon teških treninga, preporučujem." },
+            // Amela reviewed: Whey Isolate (order 5)
+            new() { UserId = users[2].Id, SupplementId = supplements[3].Id, Rating = 5, Comment = "Kazein je super kvalitete, lako se miješa i ima odličan ukus." },
+            // Dino reviewed: Kreatin 500g (order 6)
+            new() { UserId = users[3].Id, SupplementId = supplements[4].Id, Rating = 4, Comment = "Klasičan kreatin, radi posao. Dobra vrijednost za novac." },
+            // Lejla reviewed: Pre-Workout (order 11), Multivitamin (order 10)
+            new() { UserId = users[4].Id, SupplementId = supplements[17].Id, Rating = 5, Comment = "Najbolji pre-workout koji sam probala, daje energiju bez nervoze." },
+            new() { UserId = users[4].Id, SupplementId = supplements[12].Id, Rating = 3, Comment = "Solidan multivitamin, ništa posebno ali radi posao." },
+            // Armin reviewed: Casein (order 1), Pre-Workout (order 4)
+            new() { UserId = users[5].Id, SupplementId = supplements[1].Id, Rating = 3, Comment = "Okej kazein, ukus mogao biti bolji ali kvaliteta je tu." },
+            new() { UserId = users[5].Id, SupplementId = supplements[17].Id, Rating = 5, Comment = "Fantastičan pre-workout, osjećam razliku na svakom treningu." },
+            // Naida reviewed: Vegan Protein (order 2), Kre-Alkalyn (order 12)
+            new() { UserId = users[6].Id, SupplementId = supplements[2].Id, Rating = 4, Comment = "Odličan vegan protein, nema teškog osjećaja u stomaku." },
+            new() { UserId = users[6].Id, SupplementId = supplements[6].Id, Rating = 5, Comment = "Kre-Alkalyn je super, nema nadutosti kao kod običnog kreatina." },
+            // Emina reviewed: Whey Gold (order 7)
+            new() { UserId = users[7].Id, SupplementId = supplements[0].Id, Rating = 5, Comment = "Vrhunski protein, čokoladni ukus je savršen! Definitivno kupujem opet." },
+            // Tarik reviewed: Mass Gainer (order 8), Pre-Workout (order 8)
+            new() { UserId = users[8].Id, SupplementId = supplements[21].Id, Rating = 4, Comment = "Dobar mass gainer, pomaže sa kalorijskim sufiksom." },
+            new() { UserId = users[8].Id, SupplementId = supplements[17].Id, Rating = 4, Comment = "Solidan pre-workout, daje dobru energiju za trening." }
         };
 
         await context.Reviews.AddRangeAsync(reviews);
@@ -568,11 +832,12 @@ public static class StrongholdDbContextDataSeed
         var lejla = users.First(u => u.FirstName == "Lejla");
         var armin = users.First(u => u.FirstName == "Armin");
         var naida = users.First(u => u.FirstName == "Naida");
+        var emina = users.First(u => u.FirstName == "Emina");
+        var tarik = users.First(u => u.FirstName == "Tarik");
 
         var now = DateTime.UtcNow;
         var gymVisits = new List<GymVisit>();
 
-        // Helper to add a visit with check-in at a given date/hour and a duration in minutes
         void AddVisit(int userId, DateTime date, int startHour, int durationMinutes)
         {
             var checkIn = date.Date.AddHours(startHour);
@@ -584,7 +849,6 @@ public static class StrongholdDbContextDataSeed
             });
         }
 
-        // Generate visits for the last 45 days
         for (int daysAgo = 45; daysAgo >= 0; daysAgo--)
         {
             var date = now.AddDays(-daysAgo);
@@ -592,29 +856,38 @@ public static class StrongholdDbContextDataSeed
 
             // Haris: ~5-6 visits/week, 1.5-2h each (skips ~1 day/week, usually Sunday)
             if (dayOfWeek != DayOfWeek.Sunday || daysAgo % 3 == 0)
-                AddVisit(haris.Id, date, 7, 90 + (daysAgo % 4) * 10); // 90-120 min
+                AddVisit(haris.Id, date, 7, 90 + (daysAgo % 4) * 10);
 
             // Amela: ~4 visits/week, 1-1.5h each (skips Wed, Sat, sometimes Sun)
             if (dayOfWeek != DayOfWeek.Wednesday && dayOfWeek != DayOfWeek.Saturday && dayOfWeek != DayOfWeek.Sunday)
-                AddVisit(amela.Id, date, 17, 60 + (daysAgo % 3) * 15); // 60-90 min
+                AddVisit(amela.Id, date, 17, 60 + (daysAgo % 3) * 15);
 
             // Dino: ~3-4 visits/week, 1-2h each (Mon, Tue, Thu, Sat)
             if (dayOfWeek is DayOfWeek.Monday or DayOfWeek.Tuesday or DayOfWeek.Thursday or DayOfWeek.Saturday)
-                AddVisit(dino.Id, date, 18, 60 + (daysAgo % 5) * 15); // 60-120 min
+                AddVisit(dino.Id, date, 18, 60 + (daysAgo % 5) * 15);
 
             // Lejla: ~2-3 visits/week, 1h each (Mon, Wed, Fri but sometimes skips Fri)
             if (dayOfWeek == DayOfWeek.Monday || dayOfWeek == DayOfWeek.Wednesday ||
                 (dayOfWeek == DayOfWeek.Friday && daysAgo % 3 != 0))
-                AddVisit(lejla.Id, date, 10, 55 + (daysAgo % 2) * 10); // 55-65 min
+                AddVisit(lejla.Id, date, 10, 55 + (daysAgo % 2) * 10);
 
             // Armin: ~1-2 visits/week, 0.5-1h each (scattered, mostly Tue and Sat)
             if ((dayOfWeek == DayOfWeek.Tuesday && daysAgo % 2 == 0) ||
                 (dayOfWeek == DayOfWeek.Saturday))
-                AddVisit(armin.Id, date, 20, 30 + (daysAgo % 4) * 10); // 30-60 min
+                AddVisit(armin.Id, date, 20, 30 + (daysAgo % 4) * 10);
 
             // Naida: ~4-5 visits/week, 1-1.5h each (skips Thu and sometimes Sun)
             if (dayOfWeek != DayOfWeek.Thursday && (dayOfWeek != DayOfWeek.Sunday || daysAgo % 2 == 0))
-                AddVisit(naida.Id, date, 8, 60 + (daysAgo % 3) * 15); // 60-90 min
+                AddVisit(naida.Id, date, 8, 60 + (daysAgo % 3) * 15);
+
+            // Emina: ~3-4 visits/week, 1-1.5h each (Mon, Wed, Fri, sometimes Sat)
+            if (dayOfWeek == DayOfWeek.Monday || dayOfWeek == DayOfWeek.Wednesday ||
+                dayOfWeek == DayOfWeek.Friday || (dayOfWeek == DayOfWeek.Saturday && daysAgo % 2 == 0))
+                AddVisit(emina.Id, date, 16, 60 + (daysAgo % 3) * 15);
+
+            // Tarik: ~5 visits/week, 1-2h each (skips Sunday)
+            if (dayOfWeek != DayOfWeek.Sunday)
+                AddVisit(tarik.Id, date, 19, 60 + (daysAgo % 5) * 15);
         }
 
         await context.GymVisits.AddRangeAsync(gymVisits);
@@ -630,29 +903,52 @@ public static class StrongholdDbContextDataSeed
 
         var attendees = new List<SeminarAttendee>();
 
-        // Seminar 0: 3 attendees
+        // Seminar 0 (Ishrana): 4 attendees
         attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-5) });
         attendees.Add(new SeminarAttendee { UserId = users[1].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-4) });
         attendees.Add(new SeminarAttendee { UserId = users[5].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-3) });
+        attendees.Add(new SeminarAttendee { UserId = users[7].Id, SeminarId = seminars[0].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
 
-        // Seminar 1: 4 attendees
+        // Seminar 1 (Povrede): 5 attendees
         attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-4) });
         attendees.Add(new SeminarAttendee { UserId = users[2].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-3) });
         attendees.Add(new SeminarAttendee { UserId = users[3].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
         attendees.Add(new SeminarAttendee { UserId = users[4].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[8].Id, SeminarId = seminars[1].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
 
-        // Seminar 2: 2 attendees
+        // Seminar 2 (Suplementacija): 3 attendees
         attendees.Add(new SeminarAttendee { UserId = users[1].Id, SeminarId = seminars[2].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
         attendees.Add(new SeminarAttendee { UserId = users[3].Id, SeminarId = seminars[2].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[7].Id, SeminarId = seminars[2].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
 
-        // Seminar 3: 3 attendees
+        // Seminar 3 (Mentalna priprema): 4 attendees
         attendees.Add(new SeminarAttendee { UserId = users[2].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-3) });
         attendees.Add(new SeminarAttendee { UserId = users[4].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
         attendees.Add(new SeminarAttendee { UserId = users[5].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[6].Id, SeminarId = seminars[3].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
 
-        // Seminar 4: 2 attendees
+        // Seminar 4 (Snaga vs kardio): 3 attendees
         attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[4].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
         attendees.Add(new SeminarAttendee { UserId = users[5].Id, SeminarId = seminars[4].Id, RegisteredAt = DateTime.UtcNow });
+        attendees.Add(new SeminarAttendee { UserId = users[8].Id, SeminarId = seminars[4].Id, RegisteredAt = DateTime.UtcNow });
+
+        // Seminar 5 (Deadlift i cucanj): 5 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[1].Id, SeminarId = seminars[5].Id, RegisteredAt = DateTime.UtcNow.AddDays(-2) });
+        attendees.Add(new SeminarAttendee { UserId = users[3].Id, SeminarId = seminars[5].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[4].Id, SeminarId = seminars[5].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[6].Id, SeminarId = seminars[5].Id, RegisteredAt = DateTime.UtcNow });
+        attendees.Add(new SeminarAttendee { UserId = users[8].Id, SeminarId = seminars[5].Id, RegisteredAt = DateTime.UtcNow });
+
+        // Seminar 6 (Oporavak): 3 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[0].Id, SeminarId = seminars[6].Id, RegisteredAt = DateTime.UtcNow.AddDays(-1) });
+        attendees.Add(new SeminarAttendee { UserId = users[2].Id, SeminarId = seminars[6].Id, RegisteredAt = DateTime.UtcNow });
+        attendees.Add(new SeminarAttendee { UserId = users[7].Id, SeminarId = seminars[6].Id, RegisteredAt = DateTime.UtcNow });
+
+        // Seminar 7 (Planiranje obroka): 4 attendees
+        attendees.Add(new SeminarAttendee { UserId = users[1].Id, SeminarId = seminars[7].Id, RegisteredAt = DateTime.UtcNow });
+        attendees.Add(new SeminarAttendee { UserId = users[4].Id, SeminarId = seminars[7].Id, RegisteredAt = DateTime.UtcNow });
+        attendees.Add(new SeminarAttendee { UserId = users[6].Id, SeminarId = seminars[7].Id, RegisteredAt = DateTime.UtcNow });
+        attendees.Add(new SeminarAttendee { UserId = users[7].Id, SeminarId = seminars[7].Id, RegisteredAt = DateTime.UtcNow });
 
         await context.SeminarAttendees.AddRangeAsync(attendees);
         await context.SaveChangesAsync();
