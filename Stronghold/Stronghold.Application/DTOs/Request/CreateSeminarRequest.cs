@@ -14,5 +14,9 @@ namespace Stronghold.Application.DTOs.Request
 
         [Required(ErrorMessage = "Datum seminara je obavezan.")]
         public DateTime EventDate { get; set; }
+
+        [Required(ErrorMessage = "Maksimalni kapacitet je obavezan.")]
+        [Range(1, 10000, ErrorMessage = "Kapacitet mora biti između 1 i 10000.")]
+        public int MaxCapacity { get; set; }
     }
 }

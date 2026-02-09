@@ -60,6 +60,65 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
+        public async Task<PagedResult<AdminAppointmentResponse>> GetAllAppointmentsAsync(AppointmentQueryFilter filter)
+        {
+            var baseQuery = _appointmentRepository.AsQueryable()
+                .Include(x => x.User)
+                .Include(x => x.Trainer)
+                .Include(x => x.Nutritionist)
+                .AsQueryable();
+
+            // Search filter
+            if (!string.IsNullOrEmpty(filter.Search))
+            {
+                var search = filter.Search.ToLower();
+                baseQuery = baseQuery.Where(x =>
+                    (x.User.FirstName + " " + x.User.LastName).ToLower().Contains(search) ||
+                    (x.Trainer != null && (x.Trainer.FirstName + " " + x.Trainer.LastName).ToLower().Contains(search)) ||
+                    (x.Nutritionist != null && (x.Nutritionist.FirstName + " " + x.Nutritionist.LastName).ToLower().Contains(search)));
+            }
+
+            // Sorting
+            IQueryable<Appointment> query;
+            if (!string.IsNullOrEmpty(filter.OrderBy))
+            {
+                query = filter.OrderBy.ToLower() switch
+                {
+                    "date" => baseQuery.OrderBy(x => x.AppointmentDate),
+                    "datedesc" => baseQuery.OrderByDescending(x => x.AppointmentDate),
+                    "user" => baseQuery.OrderBy(x => x.User.FirstName).ThenBy(x => x.User.LastName),
+                    "userdesc" => baseQuery.OrderByDescending(x => x.User.FirstName).ThenByDescending(x => x.User.LastName),
+                    _ => baseQuery.OrderByDescending(x => x.AppointmentDate)
+                };
+            }
+            else
+            {
+                query = baseQuery.OrderByDescending(x => x.AppointmentDate);
+            }
+
+            var totalCount = await query.CountAsync();
+
+            var appointments = await query
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .Select(x => new AdminAppointmentResponse
+                {
+                    Id = x.Id,
+                    UserName = x.User.FirstName + " " + x.User.LastName,
+                    TrainerName = x.Trainer != null ? x.Trainer.FirstName + " " + x.Trainer.LastName : null,
+                    NutritionistName = x.Nutritionist != null ? x.Nutritionist.FirstName + " " + x.Nutritionist.LastName : null,
+                    AppointmentDate = x.AppointmentDate,
+                    Type = x.TrainerId != null ? "Trener" : "Nutricionista",
+                }).ToListAsync();
+
+            return new PagedResult<AdminAppointmentResponse>
+            {
+                Items = appointments,
+                TotalCount = totalCount,
+                PageNumber = filter.PageNumber,
+            };
+        }
+
         public async Task CancelAppointmentAsync(int userId, int appointmentId)
         {
             var appointment = await _appointmentRepository.AsQueryable()

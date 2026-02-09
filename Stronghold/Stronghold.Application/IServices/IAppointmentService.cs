@@ -8,5 +8,6 @@ namespace Stronghold.Application.IServices
     {
         Task<PagedResult<AppointmentResponse>> GetAppointmentsByUserIdAsync(int userId, AppointmentQueryFilter filter);
         Task CancelAppointmentAsync(int userId, int appointmentId);
+        Task<PagedResult<AdminAppointmentResponse>> GetAllAppointmentsAsync(AppointmentQueryFilter filter);
     }
 }

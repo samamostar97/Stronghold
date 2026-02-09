@@ -1,5 +1,6 @@
 using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
+using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Request;
 using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.Exceptions;
@@ -75,6 +76,38 @@ namespace Stronghold.Infrastructure.Services
             return query.OrderByDescending(x => x.EventDate);
         }
 
+        // Override to include attendee count in paged results
+        public override async Task<PagedResult<SeminarResponse>> GetPagedAsync(SeminarQueryFilter filter)
+        {
+            var result = await base.GetPagedAsync(filter);
+
+            if (result.Items.Any())
+            {
+                var seminarIds = result.Items.Select(s => s.Id).ToList();
+                var attendeeCounts = await _attendeeRepository.AsQueryable()
+                    .Where(a => seminarIds.Contains(a.SeminarId))
+                    .GroupBy(a => a.SeminarId)
+                    .Select(g => new { SeminarId = g.Key, Count = g.Count() })
+                    .ToDictionaryAsync(x => x.SeminarId, x => x.Count);
+
+                foreach (var seminar in result.Items)
+                {
+                    seminar.CurrentAttendees = attendeeCounts.GetValueOrDefault(seminar.Id, 0);
+                }
+            }
+
+            return result;
+        }
+
+        // Override to include attendee count in single item result
+        public override async Task<SeminarResponse> GetByIdAsync(int id)
+        {
+            var result = await base.GetByIdAsync(id);
+            result.CurrentAttendees = await _attendeeRepository.AsQueryable()
+                .CountAsync(a => a.SeminarId == id);
+            return result;
+        }
+
         public async Task<IEnumerable<UserSeminarResponse>> GetUpcomingSeminarsAsync(int userId)
         {
             var userAttendances = _attendeeRepository.AsQueryable()
@@ -89,14 +122,25 @@ namespace Stronghold.Infrastructure.Services
                 SpeakerName = x.SpeakerName,
                 EventDate = x.EventDate,
                 IsAttending = userAttendances.Contains(x.Id),
+                MaxCapacity = x.MaxCapacity,
+                CurrentAttendees = x.SeminarAttendees.Count(),
+                IsFull = x.SeminarAttendees.Count() >= x.MaxCapacity,
             }).ToListAsync();
             return seminarListDTO;
         }
 
         public async Task AttendSeminarAsync(int userId, int seminarId)
         {
-            var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.EventDate > DateTime.UtcNow && x.Id == seminarId);
-            if (!seminarExists) throw new KeyNotFoundException("Seminar ne postoji, ili je zavrsio");
+            var seminar = await _repository.AsQueryable()
+                .FirstOrDefaultAsync(x => x.EventDate > DateTime.UtcNow && x.Id == seminarId);
+            if (seminar == null) throw new KeyNotFoundException("Seminar ne postoji, ili je zavrsio");
+
+            // Check capacity
+            var attendeeCount = await _attendeeRepository.AsQueryable()
+                .CountAsync(x => x.SeminarId == seminarId);
+            if (attendeeCount >= seminar.MaxCapacity)
+                throw new InvalidOperationException("Seminar je popunjen. Nema slobodnih mjesta.");
+
             var isAlreadyAttending = await _attendeeRepository.AsQueryable().AnyAsync(x => x.UserId == userId && x.SeminarId == seminarId);
             if (isAlreadyAttending) throw new InvalidOperationException("Korisnik je vec prijavljen na ovaj seminar");
             var addAttendance = new SeminarAttendee()
@@ -123,6 +167,26 @@ namespace Stronghold.Infrastructure.Services
             var isAttending = await _attendeeRepository.AsQueryable().FirstOrDefaultAsync(x => x.UserId == userId && x.SeminarId == seminarId);
             if (isAttending == null) throw new InvalidOperationException("Niste prijavljeni na ovaj seminar");
             await _attendeeRepository.DeleteAsync(isAttending);
+        }
+
+        public async Task<IEnumerable<SeminarAttendeeResponse>> GetSeminarAttendeesAsync(int seminarId)
+        {
+            var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Id == seminarId);
+            if (!seminarExists) throw new KeyNotFoundException("Seminar ne postoji.");
+
+            var attendees = await _attendeeRepository.AsQueryable()
+                .Where(a => a.SeminarId == seminarId)
+                .Include(a => a.User)
+                .OrderBy(a => a.RegisteredAt)
+                .Select(a => new SeminarAttendeeResponse
+                {
+                    UserId = a.UserId,
+                    UserName = a.User.FirstName + " " + a.User.LastName,
+                    RegisteredAt = a.RegisteredAt,
+                })
+                .ToListAsync();
+
+            return attendees;
         }
     }
 }

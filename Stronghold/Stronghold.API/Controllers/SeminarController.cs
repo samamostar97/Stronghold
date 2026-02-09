@@ -92,5 +92,13 @@ namespace Stronghold.API.Controllers
         {
             return base.Delete(id);
         }
+
+        [HttpGet("{id}/attendees")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<IEnumerable<SeminarAttendeeResponse>>> GetSeminarAttendees(int id)
+        {
+            var result = await _seminarService.GetSeminarAttendeesAsync(id);
+            return Ok(result);
+        }
     }
 }

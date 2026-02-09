@@ -29,6 +29,13 @@ namespace Stronghold.API.Controllers
             return Ok(await _service.GetAppointmentsByUserIdAsync(userId.Value, filter));
         }
 
+        [HttpGet("admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult<PagedResult<AdminAppointmentResponse>>> GetAllAppointments([FromQuery] AppointmentQueryFilter filter)
+        {
+            return Ok(await _service.GetAllAppointmentsAsync(filter));
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> Cancel(int id)
         {

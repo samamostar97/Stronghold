@@ -6,5 +6,7 @@ namespace Stronghold.Application.DTOs.Response
         public string Topic { get; set; } = string.Empty;
         public string SpeakerName { get; set; } = string.Empty;
         public DateTime EventDate { get; set; }
+        public int MaxCapacity { get; set; }
+        public int CurrentAttendees { get; set; }
     }
 }

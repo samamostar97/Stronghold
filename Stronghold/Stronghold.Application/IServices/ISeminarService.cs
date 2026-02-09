@@ -10,5 +10,6 @@ namespace Stronghold.Application.IServices
         Task<IEnumerable<UserSeminarResponse>> GetUpcomingSeminarsAsync(int userId);
         Task AttendSeminarAsync(int userId, int seminarId);
         Task CancelAttendanceAsync(int userId, int seminarId);
+        Task<IEnumerable<SeminarAttendeeResponse>> GetSeminarAttendeesAsync(int seminarId);
     }
 }

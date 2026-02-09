@@ -11,5 +11,8 @@ namespace Stronghold.Application.DTOs.Request
         public string? SpeakerName { get; set; }
 
         public DateTime? EventDate { get; set; }
+
+        [Range(1, 10000, ErrorMessage = "Kapacitet mora biti između 1 i 10000.")]
+        public int? MaxCapacity { get; set; }
     }
 }
