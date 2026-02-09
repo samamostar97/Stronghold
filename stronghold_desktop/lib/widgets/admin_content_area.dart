@@ -7,6 +7,7 @@ import '../screens/faq_screen.dart';
 import '../screens/leaderboard_screen.dart';
 import '../screens/membership_packages_screen.dart';
 import '../screens/memberships_screen.dart';
+import '../screens/appointments_screen.dart';
 import '../screens/nutritionists_screen.dart';
 import '../screens/orders_screen.dart';
 import '../screens/reviews_screen.dart';
@@ -70,6 +71,8 @@ class AdminContentArea extends StatelessWidget {
         return const TrainersScreen();
       case AdminScreen.nutritionists:
         return const NutritionistsScreen();
+      case AdminScreen.appointments:
+        return const AppointmentsScreen();
       case AdminScreen.supplements:
         return const SupplementsScreen();
       case AdminScreen.categories:
