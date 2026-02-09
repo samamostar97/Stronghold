@@ -28,6 +28,7 @@ public class StrongholdDbContext : DbContext
     public DbSet<FAQ> FAQs => Set<FAQ>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Address> Addresses => Set<Address>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

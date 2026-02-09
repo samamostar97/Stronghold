@@ -105,6 +105,7 @@ public static class StrongholdDbContextDataSeed
         await SeedAppointmentsAsync(context);
         await SeedOrdersAsync(context);
         await SeedReviewsAsync(context);
+        await SeedAddressesAsync(context);
 
         await context.SaveChangesAsync();
     }
@@ -951,6 +952,32 @@ public static class StrongholdDbContextDataSeed
         attendees.Add(new SeminarAttendee { UserId = users[7].Id, SeminarId = seminars[7].Id, RegisteredAt = DateTime.UtcNow });
 
         await context.SeminarAttendees.AddRangeAsync(attendees);
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedAddressesAsync(StrongholdDbContext context)
+    {
+        if (await context.Addresses.AnyAsync()) return;
+
+        var members = await context.Users
+            .Where(u => u.Role == Role.GymMember)
+            .OrderBy(u => u.Id)
+            .ToListAsync();
+
+        var addresses = new List<Address>
+        {
+            new() { UserId = members[0].Id, Street = "Marsala Tita 25", City = "Sarajevo", PostalCode = "71000" },
+            new() { UserId = members[1].Id, Street = "Zmaja od Bosne 8", City = "Sarajevo", PostalCode = "71000" },
+            new() { UserId = members[2].Id, Street = "Kralja Tvrtka 15", City = "Mostar", PostalCode = "88000" },
+            new() { UserId = members[3].Id, Street = "Ferhadija 30", City = "Sarajevo", PostalCode = "71000" },
+            new() { UserId = members[4].Id, Street = "Bulevar Meše Selimovića 12", City = "Sarajevo", PostalCode = "71000" },
+            new() { UserId = members[5].Id, Street = "Branilaca Sarajeva 20", City = "Sarajevo", PostalCode = "71000" },
+            new() { UserId = members[6].Id, Street = "Titova 7", City = "Tuzla", PostalCode = "75000" },
+            new() { UserId = members[7].Id, Street = "Kulina bana 5", City = "Zenica", PostalCode = "72000" },
+            new() { UserId = members[8].Id, Street = "Obala Kulina bana 18", City = "Sarajevo", PostalCode = "71000" },
+        };
+
+        await context.Addresses.AddRangeAsync(addresses);
         await context.SaveChangesAsync();
     }
 }

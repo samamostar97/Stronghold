@@ -12,6 +12,11 @@ public class Order : BaseEntity
     public DateTime? CancelledAt { get; set; }
     public string? CancellationReason { get; set; }
 
+    // Shipping address snapshot
+    public string? ShippingStreet { get; set; }
+    public string? ShippingCity { get; set; }
+    public string? ShippingPostalCode { get; set; }
+
     // Navigation properties
     public User User { get; set; } = null!;
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
