@@ -36,14 +36,32 @@ class HomeNotifications extends ConsumerStatefulWidget {
   ConsumerState<HomeNotifications> createState() => _HomeNotificationsState();
 }
 
-class _HomeNotificationsState extends ConsumerState<HomeNotifications> {
+class _HomeNotificationsState extends ConsumerState<HomeNotifications>
+    with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(userNotificationProvider.notifier).load();
-      ref.read(myAppointmentsProvider.notifier).load();
-    });
+    WidgetsBinding.instance.addObserver(this);
+    Future.microtask(() => _refresh());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Refresh when app comes back to foreground
+    if (state == AppLifecycleState.resumed) {
+      _refresh();
+    }
+  }
+
+  void _refresh() {
+    ref.read(userNotificationProvider.notifier).load();
+    ref.read(myAppointmentsProvider.notifier).load();
   }
 
   List<_NotifItem> _buildNotificationList() {

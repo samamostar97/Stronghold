@@ -4,17 +4,35 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
+import '../providers/notification_provider.dart';
 import '../widgets/home_explore_grid.dart';
 import '../widgets/home_notifications.dart';
 import '../widgets/warrior_banner.dart';
+import 'navigation_shell.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int? _previousIndex;
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     final name = user?.firstName ?? '';
+
+    // Refresh notifications when user switches back to home tab
+    final currentIndex = ref.watch(bottomNavIndexProvider);
+    if (_previousIndex != null && _previousIndex != 0 && currentIndex == 0) {
+      Future.microtask(() {
+        ref.read(userNotificationProvider.notifier).load();
+      });
+    }
+    _previousIndex = currentIndex;
 
     return Scaffold(
       backgroundColor: AppColors.background,
