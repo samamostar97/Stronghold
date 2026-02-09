@@ -4,6 +4,8 @@ class Seminar {
   final String speakerName;
   final DateTime eventDate;
   final bool isAttending;
+  final int maxCapacity;
+  final int currentAttendees;
 
   Seminar({
     required this.id,
@@ -11,7 +13,11 @@ class Seminar {
     required this.speakerName,
     required this.eventDate,
     required this.isAttending,
+    required this.maxCapacity,
+    required this.currentAttendees,
   });
+
+  bool get isFull => currentAttendees >= maxCapacity;
 
   factory Seminar.fromJson(Map<String, dynamic> json) {
     return Seminar(
@@ -20,6 +26,8 @@ class Seminar {
       speakerName: json['speakerName'] as String,
       eventDate: DateTime.parse(json['eventDate'] as String),
       isAttending: json['isAttending'] as bool? ?? false,
+      maxCapacity: json['maxCapacity'] as int? ?? 0,
+      currentAttendees: json['currentAttendees'] as int? ?? 0,
     );
   }
 }

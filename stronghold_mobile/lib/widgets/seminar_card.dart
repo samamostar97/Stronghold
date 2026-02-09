@@ -49,6 +49,8 @@ class SeminarCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           _infoRow(LucideIcons.calendar, 'Datum:',
               formatDateDDMMYYYY(seminar.eventDate)),
+          const SizedBox(height: AppSpacing.sm),
+          _capacityRow(),
           const SizedBox(height: AppSpacing.lg),
           if (seminar.isAttending)
             OutlineButton(
@@ -58,6 +60,8 @@ class SeminarCard extends StatelessWidget {
               color: AppColors.error,
               fullWidth: true,
             )
+          else if (seminar.isFull)
+            StatusPill(label: 'Popunjeno', color: AppColors.error)
           else
             GradientButton(
               label: 'Prijavi se',
@@ -68,6 +72,31 @@ class SeminarCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Widget _capacityRow() {
+    final ratio = seminar.maxCapacity > 0
+        ? (seminar.currentAttendees / seminar.maxCapacity).clamp(0.0, 1.0)
+        : 0.0;
+    final color = seminar.isFull
+        ? AppColors.error
+        : ratio > 0.8
+            ? AppColors.warning
+            : AppColors.success;
+
+    return Row(children: [
+      Icon(LucideIcons.users, size: 16, color: AppColors.textMuted),
+      const SizedBox(width: AppSpacing.sm),
+      Text('Mjesta:', style: AppTextStyles.bodySm),
+      const SizedBox(width: AppSpacing.xs),
+      Text(
+        '${seminar.currentAttendees}/${seminar.maxCapacity}',
+        style: AppTextStyles.bodyMd.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    ]);
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
