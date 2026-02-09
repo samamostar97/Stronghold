@@ -9,12 +9,8 @@ import '../providers/cart_provider.dart';
 import '../utils/image_utils.dart';
 import '../widgets/avatar_widget.dart';
 import '../widgets/glass_card.dart';
-import 'appointment_screen.dart';
 import 'change_password_screen.dart';
-import 'leaderboard_screen.dart';
 import 'login_screen.dart';
-import 'order_history_screen.dart';
-import 'user_progress_screen.dart';
 
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -61,59 +57,6 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               const SizedBox(height: AppSpacing.xl),
               // User card
               _userCard(user),
-              const SizedBox(height: AppSpacing.xxl),
-              // Navigation section
-              Text('OPCIJE',
-                  style: AppTextStyles.label
-                      .copyWith(color: AppColors.textMuted)),
-              const SizedBox(height: AppSpacing.md),
-              _navOption(
-                icon: LucideIcons.trendingUp,
-                color: AppColors.primary,
-                title: 'Moj napredak',
-                subtitle: 'Level, XP i statistike',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const UserProgressScreen()),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _navOption(
-                icon: LucideIcons.calendar,
-                color: AppColors.secondary,
-                title: 'Termini',
-                subtitle: 'Zakazani termini i rasporedi',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const AppointmentScreen()),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _navOption(
-                icon: LucideIcons.package,
-                color: AppColors.success,
-                title: 'Moje narudzbe',
-                subtitle: 'Historija kupovina',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const OrderHistoryScreen()),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              _navOption(
-                icon: LucideIcons.trophy,
-                color: AppColors.warning,
-                title: 'Hall of Fame',
-                subtitle: 'Rang lista clanova',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const LeaderboardScreen()),
-                ),
-              ),
               const SizedBox(height: AppSpacing.xxl),
               // Settings section
               Text('POSTAVKE',
