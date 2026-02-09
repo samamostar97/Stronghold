@@ -2,14 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'config/stripe_config.dart';
 import 'constants/app_colors.dart';
 import 'constants/app_theme.dart';
 import 'screens/login_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize locale data for date formatting
+  await initializeDateFormatting('bs');
 
   // Initialize API config for mobile
   // For Android emulator use: http://10.0.2.2:5034

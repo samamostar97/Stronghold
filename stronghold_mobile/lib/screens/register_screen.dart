@@ -78,11 +78,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
-            builder: (_) => LoginSuccessScreen(
-              userName: user.displayName,
-              userImageUrl: user.profileImageUrl,
-              hasActiveMembership: user.hasActiveMembership,
-            ),
+            builder: (_) => const LoginSuccessScreen(),
           ),
         );
       }

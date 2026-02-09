@@ -6,16 +6,7 @@ import 'supplement_shop_screen.dart';
 import 'profile_settings_screen.dart';
 
 class NavigationShell extends StatefulWidget {
-  final String userName;
-  final String? userImageUrl;
-  final bool hasActiveMembership;
-
-  const NavigationShell({
-    super.key,
-    required this.userName,
-    this.userImageUrl,
-    required this.hasActiveMembership,
-  });
+  const NavigationShell({super.key});
 
   @override
   State<NavigationShell> createState() => _NavigationShellState();
@@ -24,14 +15,10 @@ class NavigationShell extends StatefulWidget {
 class _NavigationShellState extends State<NavigationShell> {
   int _currentIndex = 0;
 
-  late final List<Widget> _screens = [
-    HomeScreen(
-      userName: widget.userName,
-      userImageUrl: widget.userImageUrl,
-      hasActiveMembership: widget.hasActiveMembership,
-    ),
-    const SupplementShopScreen(),
-    const ProfileSettingsScreen(),
+  static const _screens = <Widget>[
+    HomeScreen(),
+    SupplementShopScreen(),
+    ProfileSettingsScreen(),
   ];
 
   @override

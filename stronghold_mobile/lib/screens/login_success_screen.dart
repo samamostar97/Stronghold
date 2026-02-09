@@ -6,16 +6,7 @@ import '../constants/app_text_styles.dart';
 import 'navigation_shell.dart';
 
 class LoginSuccessScreen extends StatefulWidget {
-  final String userName;
-  final String? userImageUrl;
-  final bool hasActiveMembership;
-
-  const LoginSuccessScreen({
-    super.key,
-    required this.userName,
-    this.userImageUrl,
-    required this.hasActiveMembership,
-  });
+  const LoginSuccessScreen({super.key});
 
   @override
   State<LoginSuccessScreen> createState() => _LoginSuccessScreenState();
@@ -53,11 +44,7 @@ class _LoginSuccessScreenState extends State<LoginSuccessScreen>
           context,
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                NavigationShell(
-              userName: widget.userName,
-              userImageUrl: widget.userImageUrl,
-              hasActiveMembership: widget.hasActiveMembership,
-            ),
+                const NavigationShell(),
             transitionsBuilder:
                 (context, animation, secondaryAnimation, child) =>
                     FadeTransition(opacity: animation, child: child),
