@@ -7,6 +7,7 @@ class DashboardState {
   final BusinessReportDTO? businessReport;
   final MembershipPopularityReportDTO? membershipReport;
   final List<CurrentVisitorResponse> currentVisitors;
+  final List<ActivityFeedItemDTO> activityFeed;
   final bool isLoading;
   final String? error;
 
@@ -14,6 +15,7 @@ class DashboardState {
     this.businessReport,
     this.membershipReport,
     this.currentVisitors = const [],
+    this.activityFeed = const [],
     this.isLoading = false,
     this.error,
   });
@@ -22,6 +24,7 @@ class DashboardState {
     BusinessReportDTO? businessReport,
     MembershipPopularityReportDTO? membershipReport,
     List<CurrentVisitorResponse>? currentVisitors,
+    List<ActivityFeedItemDTO>? activityFeed,
     bool? isLoading,
     String? error,
   }) {
@@ -29,6 +32,7 @@ class DashboardState {
       businessReport: businessReport ?? this.businessReport,
       membershipReport: membershipReport ?? this.membershipReport,
       currentVisitors: currentVisitors ?? this.currentVisitors,
+      activityFeed: activityFeed ?? this.activityFeed,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -51,12 +55,14 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
         _reportsService.getBusinessReport(),
         _reportsService.getMembershipPopularityReport(),
         _visitService.getCurrentVisitors(),
+        _reportsService.getActivityFeed(),
       ]);
 
       state = DashboardState(
         businessReport: results[0] as BusinessReportDTO,
         membershipReport: results[1] as MembershipPopularityReportDTO,
         currentVisitors: List<CurrentVisitorResponse>.from(results[2] as List),
+        activityFeed: results[3] as List<ActivityFeedItemDTO>,
         isLoading: false,
       );
     } catch (e) {

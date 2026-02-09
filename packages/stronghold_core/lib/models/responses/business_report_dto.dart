@@ -56,16 +56,87 @@ class WeekdayVisitsDTO {
   }
 }
 
+class DailySalesDTO {
+  final DateTime date;
+  final num revenue;
+  final int orderCount;
+
+  DailySalesDTO({
+    required this.date,
+    required this.revenue,
+    required this.orderCount,
+  });
+
+  factory DailySalesDTO.fromJson(Map<String, dynamic> json) {
+    return DailySalesDTO(
+      date: DateTime.parse(json['date'] as String),
+      revenue: (json['revenue'] ?? 0) as num,
+      orderCount: (json['orderCount'] ?? 0) as int,
+    );
+  }
+}
+
+class RevenueBreakdownDTO {
+  final num todayRevenue;
+  final num thisWeekRevenue;
+  final num thisMonthRevenue;
+  final num averageOrderValue;
+  final int todayOrderCount;
+
+  RevenueBreakdownDTO({
+    required this.todayRevenue,
+    required this.thisWeekRevenue,
+    required this.thisMonthRevenue,
+    required this.averageOrderValue,
+    required this.todayOrderCount,
+  });
+
+  factory RevenueBreakdownDTO.fromJson(Map<String, dynamic> json) {
+    return RevenueBreakdownDTO(
+      todayRevenue: (json['todayRevenue'] ?? 0) as num,
+      thisWeekRevenue: (json['thisWeekRevenue'] ?? 0) as num,
+      thisMonthRevenue: (json['thisMonthRevenue'] ?? 0) as num,
+      averageOrderValue: (json['averageOrderValue'] ?? 0) as num,
+      todayOrderCount: (json['todayOrderCount'] ?? 0) as int,
+    );
+  }
+}
+
+class ActivityFeedItemDTO {
+  final String type;
+  final String description;
+  final DateTime timestamp;
+  final String? userName;
+
+  ActivityFeedItemDTO({
+    required this.type,
+    required this.description,
+    required this.timestamp,
+    this.userName,
+  });
+
+  factory ActivityFeedItemDTO.fromJson(Map<String, dynamic> json) {
+    return ActivityFeedItemDTO(
+      type: (json['type'] ?? '') as String,
+      description: (json['description'] ?? '') as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      userName: json['userName'] as String?,
+    );
+  }
+}
+
 class BusinessReportDTO {
   final int thisWeekVisits;
   final int lastWeekVisits;
-  final num weekChangePct; // decimal u backendu
+  final num weekChangePct;
   final num thisMonthRevenue;
   final num lastMonthRevenue;
   final num monthChangePct;
   final int activeMemberships;
   final List<WeekdayVisitsDTO> visitsByWeekday;
   final BestSellerDTO? bestsellerLast30Days;
+  final List<DailySalesDTO> dailySales;
+  final RevenueBreakdownDTO? revenueBreakdown;
 
   BusinessReportDTO({
     required this.thisWeekVisits,
@@ -77,6 +148,8 @@ class BusinessReportDTO {
     required this.activeMemberships,
     required this.visitsByWeekday,
     required this.bestsellerLast30Days,
+    required this.dailySales,
+    this.revenueBreakdown,
   });
 
   factory BusinessReportDTO.fromJson(Map<String, dynamic> json) {
@@ -86,6 +159,14 @@ class BusinessReportDTO {
         <WeekdayVisitsDTO>[];
 
     final bs = json['bestsellerLast30Days'];
+
+    final sales = (json['dailySales'] as List<dynamic>?)
+            ?.map((e) => DailySalesDTO.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <DailySalesDTO>[];
+
+    final rb = json['revenueBreakdown'];
+
     return BusinessReportDTO(
       thisWeekVisits: (json['thisWeekVisits'] ?? 0) as int,
       lastWeekVisits: (json['lastWeekVisits'] ?? 0) as int,
@@ -97,6 +178,9 @@ class BusinessReportDTO {
       visitsByWeekday: visits,
       bestsellerLast30Days:
           bs == null ? null : BestSellerDTO.fromJson(bs as Map<String, dynamic>),
+      dailySales: sales,
+      revenueBreakdown:
+          rb == null ? null : RevenueBreakdownDTO.fromJson(rb as Map<String, dynamic>),
     );
   }
 }

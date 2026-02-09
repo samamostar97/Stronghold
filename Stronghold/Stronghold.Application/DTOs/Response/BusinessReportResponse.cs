@@ -11,6 +11,8 @@ namespace Stronghold.Application.DTOs.Response
         public int ActiveMemberships { get; set; }
         public List<WeekdayVisitsResponse> VisitsByWeekday { get; set; } = new();
         public BestSellerResponse? BestsellerLast30Days { get; set; }
+        public List<DailySalesResponse> DailySales { get; set; } = new();
+        public RevenueBreakdownResponse RevenueBreakdown { get; set; } = new();
     }
 
     public class WeekdayVisitsResponse
@@ -24,5 +26,29 @@ namespace Stronghold.Application.DTOs.Response
         public int SupplementId { get; set; }
         public string Name { get; set; } = string.Empty;
         public int QuantitySold { get; set; }
+    }
+
+    public class DailySalesResponse
+    {
+        public DateTime Date { get; set; }
+        public decimal Revenue { get; set; }
+        public int OrderCount { get; set; }
+    }
+
+    public class RevenueBreakdownResponse
+    {
+        public decimal TodayRevenue { get; set; }
+        public decimal ThisWeekRevenue { get; set; }
+        public decimal ThisMonthRevenue { get; set; }
+        public decimal AverageOrderValue { get; set; }
+        public int TodayOrderCount { get; set; }
+    }
+
+    public class ActivityFeedItemResponse
+    {
+        public string Type { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public DateTime Timestamp { get; set; }
+        public string? UserName { get; set; }
     }
 }

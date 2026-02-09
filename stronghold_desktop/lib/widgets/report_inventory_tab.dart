@@ -7,8 +7,10 @@ import '../providers/list_state.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/reports_provider.dart';
+import 'bar_chart.dart';
 import 'data_table_widgets.dart';
 import 'gradient_button.dart';
+import 'horizontal_bar_chart.dart';
 import 'pagination_controls.dart';
 import 'report_export_button.dart';
 
@@ -30,6 +32,7 @@ class ReportInventoryTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final summaryAsync = ref.watch(inventorySummaryProvider(daysToAnalyze));
+    final reportAsync = ref.watch(inventoryReportProvider(daysToAnalyze));
     final productsState = ref.watch(slowMovingProductsProvider);
 
     return SingleChildScrollView(
@@ -39,6 +42,8 @@ class ReportInventoryTab extends ConsumerWidget {
           _exportRow(),
           const SizedBox(height: AppSpacing.xl),
           _summaryCards(summaryAsync),
+          const SizedBox(height: AppSpacing.xxl),
+          _chartsSection(reportAsync),
           const SizedBox(height: AppSpacing.xxl),
           _productsSection(ref, productsState),
         ],
@@ -88,6 +93,112 @@ class ReportInventoryTab extends ConsumerWidget {
             color: AppColors.secondary,
           )),
         ]),
+      );
+
+  Widget _chartsSection(AsyncValue<InventoryReportDTO> async) => async.when(
+        loading: () => const SizedBox(
+          height: 240,
+          child: Center(
+              child: CircularProgressIndicator(color: AppColors.primary)),
+        ),
+        error: (_, __) => const SizedBox.shrink(),
+        data: (report) {
+          final products = report.slowMovingProducts;
+          if (products.isEmpty) return const SizedBox.shrink();
+
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              final wide = constraints.maxWidth >= 800;
+
+              // Category breakdown data
+              final categoryGroups = <String, int>{};
+              for (final p in products) {
+                categoryGroups[p.categoryName] =
+                    (categoryGroups[p.categoryName] ?? 0) + 1;
+              }
+              final categoryColors = [
+                AppColors.accent,
+                AppColors.orange,
+                AppColors.primary,
+                AppColors.secondary,
+                AppColors.error,
+                AppColors.warning,
+                AppColors.success,
+              ];
+              final categoryItems = categoryGroups.entries.toList()
+                ..sort((a, b) => b.value.compareTo(a.value));
+              final barItems = categoryItems
+                  .map((e) => BarChartItem(
+                        label: e.key.length > 12
+                            ? '${e.key.substring(0, 10)}..'
+                            : e.key,
+                        value: e.value.toDouble(),
+                        color: categoryColors[
+                            categoryItems.indexOf(e) % categoryColors.length],
+                      ))
+                  .toList();
+
+              // Top slow movers data
+              final sorted = products.toList()
+                ..sort((a, b) =>
+                    b.daysSinceLastSale.compareTo(a.daysSinceLastSale));
+              final topData = sorted
+                  .take(8)
+                  .map((p) => (
+                        label: p.name.length > 14
+                            ? '${p.name.substring(0, 12)}..'
+                            : p.name,
+                        value: p.daysSinceLastSale.toDouble(),
+                      ))
+                  .toList();
+
+              final categoryChart = _ChartCard(
+                icon: LucideIcons.pieChart,
+                title: 'Po kategorijama',
+                child: barItems.isEmpty
+                    ? Center(
+                        child: Text('Nema podataka',
+                            style: AppTextStyles.bodyMd))
+                    : BarChart(
+                        items: barItems,
+                        height: 200,
+                        barWidth: barItems.length > 6 ? 18 : 24,
+                      ),
+              );
+
+              final slowMoversChart = _ChartCard(
+                icon: LucideIcons.clock,
+                title: 'Najduze bez prodaje',
+                child: topData.isEmpty
+                    ? Center(
+                        child: Text('Nema podataka',
+                            style: AppTextStyles.bodyMd))
+                    : HorizontalBarChart(
+                        data: topData,
+                        accentColor: AppColors.orange,
+                      ),
+              );
+
+              if (wide) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: categoryChart),
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(child: slowMoversChart),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  categoryChart,
+                  const SizedBox(height: AppSpacing.lg),
+                  slowMoversChart,
+                ],
+              );
+            },
+          );
+        },
       );
 
   Widget _productsSection(
@@ -222,6 +333,42 @@ class _SummaryCard extends StatelessWidget {
           ),
         ),
       ]),
+    );
+  }
+}
+
+class _ChartCard extends StatelessWidget {
+  const _ChartCard({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [
+            Icon(icon, color: AppColors.textSecondary, size: 18),
+            const SizedBox(width: AppSpacing.sm),
+            Text(title, style: AppTextStyles.headingSm),
+          ]),
+          const SizedBox(height: AppSpacing.xl),
+          child,
+        ],
+      ),
     );
   }
 }

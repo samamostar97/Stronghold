@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_spacing.dart';
-import '../constants/app_text_styles.dart';
+import '../providers/notification_provider.dart';
 import '../widgets/admin_content_area.dart';
+import '../widgets/admin_top_bar.dart';
 import '../widgets/app_sidebar.dart';
-import '../widgets/avatar_widget.dart';
 import '../widgets/command_palette.dart';
-import 'login_screen.dart';
+import '../widgets/success_animation.dart';
 
 /// All available admin screens.
 enum AdminScreen {
@@ -79,21 +78,50 @@ final _screenById = {
   for (final s in AdminScreen.values) s.name: s,
 };
 
+const _screenTitles = <AdminScreen, String>{
+  AdminScreen.dashboardHome: 'Kontrolna ploca',
+  AdminScreen.currentVisitors: 'Trenutno u teretani',
+  AdminScreen.memberships: 'Clanarine',
+  AdminScreen.membershipPackages: 'Paketi clanarina',
+  AdminScreen.users: 'Korisnici',
+  AdminScreen.trainers: 'Treneri',
+  AdminScreen.nutritionists: 'Nutricionisti',
+  AdminScreen.supplements: 'Suplementi',
+  AdminScreen.categories: 'Kategorije',
+  AdminScreen.suppliers: 'Dobavljaci',
+  AdminScreen.orders: 'Kupovine',
+  AdminScreen.faq: 'FAQ',
+  AdminScreen.reviews: 'Recenzije',
+  AdminScreen.seminars: 'Seminari',
+  AdminScreen.businessReport: 'Biznis izvjestaji',
+  AdminScreen.leaderboard: 'Rang lista',
+};
+
 // ---------------------------------------------------------------------------
 // MAIN DASHBOARD SHELL
 // ---------------------------------------------------------------------------
 
-class AdminDashboardScreen extends StatefulWidget {
+class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  State<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+  ConsumerState<AdminDashboardScreen> createState() =>
+      _AdminDashboardScreenState();
 }
 
-class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
+class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
   AdminScreen _selected = AdminScreen.dashboardHome;
   bool _collapsed = false;
   bool? _userCollapse;
+  int _prevUnreadCount = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(notificationProvider.notifier).startPolling();
+    });
+  }
 
   void _onSelect(String id) {
     final screen = _screenById[id];
@@ -109,6 +137,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Listen for new notifications and show toast
+    ref.listen<NotificationState>(notificationProvider, (prev, next) {
+      if (prev != null && next.unreadCount > _prevUnreadCount && _prevUnreadCount >= 0) {
+        final diff = next.unreadCount - _prevUnreadCount;
+        if (diff > 0 && prev.unreadCount > 0) {
+          showSuccessAnimation(context,
+              message: 'Nova obavjestenja ($diff)');
+        }
+      }
+      _prevUnreadCount = next.unreadCount;
+    });
     return CallbackShortcuts(
       bindings: {
         const SingleActivator(LogicalKeyboardKey.keyK, control: true): () =>
@@ -133,12 +172,23 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                       onSelect: _onSelect,
                       collapsed: collapsed,
                       onToggleCollapse: _toggleCollapse,
-                      bottom: _SidebarProfile(collapsed: collapsed),
                     ),
                     Expanded(
-                      child: AdminContentArea(
-                        selectedScreen: _selected,
-                        onNavigate: (s) => setState(() => _selected = s),
+                      child: Column(
+                        children: [
+                          AdminTopBar(
+                            title: _screenTitles[_selected] ?? '',
+                            onNavigateToOrders: () =>
+                                setState(() => _selected = AdminScreen.orders),
+                          ),
+                          Expanded(
+                            child: AdminContentArea(
+                              selectedScreen: _selected,
+                              onNavigate: (s) =>
+                                  setState(() => _selected = s),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -152,80 +202,3 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   }
 }
 
-// ---------------------------------------------------------------------------
-// SIDEBAR PROFILE
-// ---------------------------------------------------------------------------
-
-class _SidebarProfile extends StatelessWidget {
-  const _SidebarProfile({required this.collapsed});
-
-  final bool collapsed;
-
-  Future<void> _logout(BuildContext context) async {
-    await TokenStorage.clear();
-    if (context.mounted) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-        (route) => false,
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      offset: const Offset(0, -100),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
-      color: AppColors.surfaceSolid,
-      onSelected: (v) {
-        if (v == 'logout') _logout(context);
-      },
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          value: 'profile',
-          child: Row(children: [
-            const Icon(LucideIcons.user,
-                color: AppColors.textSecondary, size: 18),
-            const SizedBox(width: AppSpacing.md),
-            Text('Profil', style: AppTextStyles.bodyMd
-                .copyWith(color: AppColors.textPrimary)),
-          ]),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
-          value: 'logout',
-          child: Row(children: [
-            const Icon(LucideIcons.logOut,
-                color: AppColors.error, size: 18),
-            const SizedBox(width: AppSpacing.md),
-            Text('Odjavi se', style: AppTextStyles.bodyMd
-                .copyWith(color: AppColors.error)),
-          ]),
-        ),
-      ],
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            if (collapsed || constraints.maxWidth < 80) {
-              return const Center(
-                  child: AvatarWidget(initials: 'AD', size: 36));
-            }
-            return Row(children: [
-              const AvatarWidget(initials: 'AD', size: 36),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text('Admin', style: AppTextStyles.bodyBold,
-                    overflow: TextOverflow.ellipsis),
-              ),
-              Icon(LucideIcons.chevronUp,
-                  color: AppColors.textMuted, size: 16),
-            ]);
-          },
-        ),
-      ),
-    );
-  }
-}

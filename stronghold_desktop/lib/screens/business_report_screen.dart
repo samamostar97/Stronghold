@@ -199,8 +199,8 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
           unselectedLabelStyle: AppTextStyles.bodyMd,
           tabs: [
             Tab(
-                text: 'Pregled',
-                icon: Icon(LucideIcons.layoutDashboard, size: 20)),
+                text: 'Prihodi',
+                icon: Icon(LucideIcons.banknote, size: 20)),
             Tab(
                 text: 'Inventar',
                 icon: Icon(LucideIcons.package, size: 20)),

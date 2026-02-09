@@ -58,6 +58,17 @@ class ReportsService {
     );
   }
 
+  /// Get activity feed
+  Future<List<ActivityFeedItemDTO>> getActivityFeed({int count = 20}) async {
+    return _client.get<List<ActivityFeedItemDTO>>(
+      '/api/reports/activity',
+      queryParameters: {'count': count.toString()},
+      parser: (json) => (json as List<dynamic>)
+          .map((e) => ActivityFeedItemDTO.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
   /// Export business report to Excel and save to file
   Future<void> exportBusinessToExcel(String savePath) async {
     final bytes = await _client.getBytes('/api/reports/export/excel');

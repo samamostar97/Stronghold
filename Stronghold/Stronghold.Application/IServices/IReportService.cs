@@ -17,5 +17,6 @@ namespace Stronghold.Application.IServices
         Task<byte[]> ExportInventoryReportToPdfAsync(int daysToAnalyze = 30);
         Task<byte[]> ExportMembershipPopularityToExcelAsync();
         Task<byte[]> ExportMembershipPopularityToPdfAsync();
+        Task<List<ActivityFeedItemResponse>> GetActivityFeedAsync(int count = 20);
     }
 }

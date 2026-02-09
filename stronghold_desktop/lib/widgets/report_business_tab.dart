@@ -6,13 +6,14 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/reports_provider.dart';
-import 'bar_chart.dart';
+import 'dashboard_revenue_summary.dart';
+import 'dashboard_sales_chart.dart';
 import 'gradient_button.dart';
 import 'report_export_button.dart';
 import 'shimmer_loading.dart';
 import 'stat_card.dart';
 
-/// Business overview tab content for the report screen.
+/// Revenue tab content for the report screen.
 class ReportBusinessTab extends ConsumerWidget {
   const ReportBusinessTab({
     super.key,
@@ -59,8 +60,7 @@ class _Body extends StatelessWidget {
     return LayoutBuilder(builder: (context, c) {
       final w = c.maxWidth;
       final statsCols = w < 600 ? 1 : (w < 900 ? 2 : 3);
-      final chartsCols = w < 900 ? 1 : 2;
-      final chartAspect = chartsCols == 1 ? (16 / 9) : (4 / 3);
+      final bottomCols = w < 900 ? 1 : 2;
 
       return SingleChildScrollView(
         child: Column(
@@ -68,9 +68,11 @@ class _Body extends StatelessWidget {
           children: [
             _exportRow(),
             const SizedBox(height: AppSpacing.xl),
-            _statsGrid(statsCols),
-            const SizedBox(height: AppSpacing.xxxl),
-            _chartsGrid(chartsCols, chartAspect),
+            _statsGrid(statsCols, w),
+            const SizedBox(height: AppSpacing.xxl),
+            DashboardSalesChart(dailySales: report.dailySales),
+            const SizedBox(height: AppSpacing.xxl),
+            _bottomSection(bottomCols, w),
           ],
         ),
       );
@@ -86,214 +88,177 @@ class _Body extends StatelessWidget {
         ],
       );
 
-  Widget _statsGrid(int cols) => LayoutBuilder(builder: (context, c) {
-        const gap = 20.0;
-        final cardW = (c.maxWidth - gap * (cols - 1)) / cols;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            SizedBox(
-              width: cardW,
-              child: StatCard(
-                title: 'POSJETE OVE SEDMICE',
-                value: '${report.thisWeekVisits}',
-                trendValue:
-                    '${report.weekChangePct.toStringAsFixed(1)}% vs prosle sedmice',
-                isPositive: report.weekChangePct >= 0,
-                accentColor: AppColors.primary,
-              ),
-            ),
-            SizedBox(
-              width: cardW,
-              child: StatCard(
-                title: 'PRODAJA OVOG MJESECA',
-                value: '${report.thisMonthRevenue} KM',
-                trendValue:
-                    '${report.monthChangePct.toStringAsFixed(1)}% vs proslog mjeseca',
-                isPositive: report.monthChangePct >= 0,
-                accentColor: AppColors.success,
-              ),
-            ),
-            SizedBox(
-              width: cardW,
-              child: StatCard(
-                title: 'AKTIVNIH CLANARINA',
-                value: '${report.activeMemberships}',
-                accentColor: AppColors.warning,
-              ),
-            ),
-          ],
-        );
-      });
+  Widget _statsGrid(int cols, double maxWidth) {
+    const gap = 20.0;
+    final cardW = (maxWidth - gap * (cols - 1)) / cols;
+    final rb = report.revenueBreakdown;
 
-  Widget _chartsGrid(int cols, double chartAspect) =>
-      LayoutBuilder(builder: (context, c) {
-        const gap = 20.0;
-        final cardW = (c.maxWidth - gap * (cols - 1)) / cols;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            SizedBox(
-              width: cardW,
-              child: _ChartCard(
-                title: 'Sedmicna posjecenost po danima',
-                child: AspectRatio(
-                  aspectRatio: chartAspect,
-                  child:
-                      _WeekdayBarChart(visitsByWeekday: report.visitsByWeekday),
-                ),
-              ),
-            ),
-            SizedBox(
-              width: cardW,
-              child: _ChartCard(
-                title: 'Bestseller suplement',
-                child: _BestSeller(
-                  name: report.bestsellerLast30Days?.name ?? 'N/A',
-                  units: report.bestsellerLast30Days?.quantitySold ?? 0,
-                ),
-              ),
-            ),
-          ],
-        );
-      });
+    return Wrap(
+      spacing: gap,
+      runSpacing: gap,
+      children: [
+        SizedBox(
+          width: cardW,
+          child: StatCard(
+            title: 'PRODAJA OVOG MJESECA',
+            value: '${report.thisMonthRevenue.toStringAsFixed(2)} KM',
+            trendValue:
+                '${report.monthChangePct.toStringAsFixed(1)}% vs proslog mjeseca',
+            isPositive: report.monthChangePct >= 0,
+            accentColor: AppColors.success,
+          ),
+        ),
+        SizedBox(
+          width: cardW,
+          child: StatCard(
+            title: 'PRODAJA DANAS',
+            value: '${rb?.todayRevenue.toStringAsFixed(2) ?? '0.00'} KM',
+            trendValue: '${rb?.todayOrderCount ?? 0} narudzbi danas',
+            isPositive: (rb?.todayOrderCount ?? 0) > 0,
+            accentColor: AppColors.primary,
+          ),
+        ),
+        SizedBox(
+          width: cardW,
+          child: StatCard(
+            title: 'PROSJECNA NARUDZBA',
+            value: '${rb?.averageOrderValue.toStringAsFixed(2) ?? '0.00'} KM',
+            accentColor: AppColors.warning,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _bottomSection(int cols, double maxWidth) {
+    if (cols == 1) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DashboardRevenueSummary(breakdown: report.revenueBreakdown),
+          const SizedBox(height: AppSpacing.xxl),
+          _BestSellerCard(bestseller: report.bestsellerLast30Days),
+        ],
+      );
+    }
+
+    const gap = 20.0;
+    final cardW = (maxWidth - gap) / 2;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: cardW,
+          child: DashboardRevenueSummary(breakdown: report.revenueBreakdown),
+        ),
+        const SizedBox(width: gap),
+        SizedBox(
+          width: cardW,
+          child: _BestSellerCard(bestseller: report.bestsellerLast30Days),
+        ),
+      ],
+    );
+  }
 }
 
 // ── Private helpers ─────────────────────────────────────────────────────
 
-class _ChartCard extends StatelessWidget {
-  const _ChartCard({required this.title, required this.child});
-  final String title;
-  final Widget child;
+class _BestSellerCard extends StatelessWidget {
+  const _BestSellerCard({required this.bestseller});
+  final BestSellerDTO? bestseller;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
+      padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(title, style: AppTextStyles.headingSm),
+          Text('Bestseller suplement', style: AppTextStyles.headingSm),
           const SizedBox(height: AppSpacing.xl),
-          child,
+          if (bestseller == null)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
+              child: Center(
+                child: Text('Nema podataka', style: AppTextStyles.bodyMd),
+              ),
+            )
+          else
+            _BestSellerContent(
+                name: bestseller!.name, units: bestseller!.quantitySold),
         ],
       ),
     );
   }
 }
 
-class _WeekdayBarChart extends StatelessWidget {
-  const _WeekdayBarChart({required this.visitsByWeekday});
-  final List<WeekdayVisitsDTO> visitsByWeekday;
-
-  static const _dayLabels = ['Pon', 'Uto', 'Sri', 'Cet', 'Pet', 'Sub', 'Ned'];
-  static const _backendToDisplay = {1: 0, 2: 1, 3: 2, 4: 3, 5: 4, 6: 5, 0: 6};
-
-  @override
-  Widget build(BuildContext context) {
-    final data = List.filled(7, 0);
-    for (final entry in visitsByWeekday) {
-      final idx = _backendToDisplay[entry.day];
-      if (idx != null) data[idx] = entry.count;
-    }
-    return BarChart(
-      items: [
-        for (int i = 0; i < 7; i++)
-          BarChartItem(
-            label: _dayLabels[i],
-            value: data[i].toDouble(),
-            color: AppColors.accent,
-          ),
-      ],
-      height: 200,
-      barWidth: 28,
-    );
-  }
-}
-
-class _BestSeller extends StatelessWidget {
-  const _BestSeller({required this.name, required this.units});
+class _BestSellerContent extends StatelessWidget {
+  const _BestSellerContent({required this.name, required this.units});
   final String name;
   final int units;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      final narrow = c.maxWidth < 400;
-      return Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: narrow
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [_icon(), const SizedBox(height: AppSpacing.lg), _info(true)],
-              )
-            : Row(children: [
-                _icon(),
-                const SizedBox(width: AppSpacing.xxl),
-                Expanded(child: _info(false)),
-              ]),
-      );
-    });
-  }
-
-  Widget _icon() => Container(
-        width: 120,
-        height: 120,
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          border: Border.all(color: AppColors.border, width: 2),
+    return Row(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+            border: Border.all(color: AppColors.border, width: 2),
+          ),
+          alignment: Alignment.center,
+          child: Icon(LucideIcons.pill, color: AppColors.accent, size: 40),
         ),
-        alignment: Alignment.center,
-        child: Icon(LucideIcons.pill, color: AppColors.accent, size: 56),
-      );
-
-  Widget _info(bool center) => Column(
-        crossAxisAlignment:
-            center ? CrossAxisAlignment.center : CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(name,
-              style: AppTextStyles.headingMd,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: center ? TextAlign.center : TextAlign.left),
-          const SizedBox(height: AppSpacing.xs),
-          Text('Suplement',
-              style: AppTextStyles.bodyMd, maxLines: 1, overflow: TextOverflow.ellipsis),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment:
-                center ? MainAxisAlignment.center : MainAxisAlignment.start,
-            crossAxisAlignment: CrossAxisAlignment.end,
+        const SizedBox(width: AppSpacing.xl),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text('$units',
-                  style: AppTextStyles.statLg.copyWith(color: AppColors.accent)),
-              const SizedBox(width: AppSpacing.sm),
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Text('prodatih jedinica',
-                      style: AppTextStyles.bodyMd,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
-                ),
+              Text(name,
+                  style: AppTextStyles.headingMd,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis),
+              const SizedBox(height: AppSpacing.xs),
+              Text('Suplement',
+                  style: AppTextStyles.bodyMd,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text('$units',
+                      style: AppTextStyles.statLg
+                          .copyWith(color: AppColors.accent)),
+                  const SizedBox(width: AppSpacing.sm),
+                  Flexible(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text('prodatih (30d)',
+                          style: AppTextStyles.bodyMd,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text('u posljednjih 30 dana',
-              style: AppTextStyles.bodySm.copyWith(color: AppColors.success)),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 }
 
 class _ErrorState extends StatelessWidget {

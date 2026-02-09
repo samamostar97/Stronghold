@@ -42,9 +42,9 @@ class _CommandPaletteOverlayState
   @override
   void initState() {
     super.initState();
-    ref.read(commandPaletteProvider.notifier).open();
     _searchController.addListener(_onQueryChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(commandPaletteProvider.notifier).open();
       _focusNode.requestFocus();
     });
   }
@@ -128,33 +128,36 @@ class _CommandPaletteOverlayState
             alignment: const Alignment(0, -0.3),
             child: GestureDetector(
               onTap: () {},
-              child: Container(
-                width: 560,
-                constraints: const BoxConstraints(maxHeight: 460),
-                decoration: BoxDecoration(
-                  color: AppColors.surfaceSolid.withValues(alpha: 0.97),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-                  border: Border.all(
-                      color: AppColors.border.withValues(alpha: 0.6)),
-                  boxShadow: AppShadows.elevatedShadow,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _searchField(),
-                    Container(height: 1,
-                        color: AppColors.border.withValues(alpha: 0.5)),
-                    if (state.filteredResults.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xxl),
-                        child: Text('Nema rezultata',
-                            style: AppTextStyles.bodyMd.copyWith(
-                                color: AppColors.textMuted)),
-                      )
-                    else
-                      _resultsList(state),
-                    _footer(),
-                  ],
+              child: Material(
+                type: MaterialType.transparency,
+                child: Container(
+                  width: 560,
+                  constraints: const BoxConstraints(maxHeight: 460),
+                  decoration: BoxDecoration(
+                    color: AppColors.surfaceSolid.withValues(alpha: 0.97),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+                    border: Border.all(
+                        color: AppColors.border.withValues(alpha: 0.6)),
+                    boxShadow: AppShadows.elevatedShadow,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _searchField(),
+                      Container(height: 1,
+                          color: AppColors.border.withValues(alpha: 0.5)),
+                      if (state.filteredResults.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.all(AppSpacing.xxl),
+                          child: Text('Nema rezultata',
+                              style: AppTextStyles.bodyMd.copyWith(
+                                  color: AppColors.textMuted)),
+                        )
+                      else
+                        _resultsList(state),
+                      _footer(),
+                    ],
+                  ),
                 ),
               ),
             ),

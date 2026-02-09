@@ -103,6 +103,83 @@ namespace Stronghold.Infrastructure.Services
                 .OrderByDescending(x => x.Quantity)
                 .FirstOrDefaultAsync();
 
+            // Daily sales breakdown (last 30 days)
+            var dailyOrderData = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.PurchaseDate >= since && o.PurchaseDate <= now)
+                .GroupBy(o => o.PurchaseDate.Date)
+                .Select(g => new
+                {
+                    Date = g.Key,
+                    Revenue = g.Sum(x => x.TotalAmount),
+                    OrderCount = g.Count()
+                })
+                .ToListAsync();
+
+            var dailySales = new List<DailySalesResponse>();
+            for (var d = since.Date; d <= now.Date; d = d.AddDays(1))
+            {
+                var entry = dailyOrderData.FirstOrDefault(x => x.Date == d);
+                dailySales.Add(new DailySalesResponse
+                {
+                    Date = d,
+                    Revenue = entry?.Revenue ?? 0m,
+                    OrderCount = entry?.OrderCount ?? 0
+                });
+            }
+
+            // Revenue breakdown (today / this week / this month)
+            var todayStart = now.Date;
+            var todayEnd = todayStart.AddDays(1);
+
+            var todayOrderRevenue = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+
+            var todayMembershipRevenue = await _context.MembershipPaymentHistory
+                .AsNoTracking()
+                .Where(p => p.PaymentDate >= todayStart && p.PaymentDate < todayEnd)
+                .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
+
+            var weekOrderRevenue = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.PurchaseDate >= startOfWeek && o.PurchaseDate < startOfNextWeek)
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+
+            var weekMembershipRevenue = await _context.MembershipPaymentHistory
+                .AsNoTracking()
+                .Where(p => p.PaymentDate >= startOfWeek && p.PaymentDate < startOfNextWeek)
+                .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
+
+            var monthOrderRevenue = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.PurchaseDate >= startOfMonth && o.PurchaseDate < startOfNextMonth)
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
+
+            var todayOrderCount = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
+                .CountAsync();
+
+            // Average order value (this month)
+            var monthOrderCount = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.PurchaseDate >= startOfMonth && o.PurchaseDate < startOfNextMonth)
+                .CountAsync();
+
+            var monthTotalOrderRevenue = monthOrderRevenue;
+            var avgOrderValue = monthOrderCount > 0 ? Math.Round(monthTotalOrderRevenue / monthOrderCount, 2) : 0m;
+
+            var revenueBreakdown = new RevenueBreakdownResponse
+            {
+                TodayRevenue = todayOrderRevenue + todayMembershipRevenue,
+                ThisWeekRevenue = weekOrderRevenue + weekMembershipRevenue,
+                ThisMonthRevenue = monthOrderRevenue + thisMonthRevenue,
+                AverageOrderValue = avgOrderValue,
+                TodayOrderCount = todayOrderCount
+            };
+
             return new BusinessReportResponse
             {
                 ThisWeekVisits = thisWeekVisits,
@@ -123,7 +200,10 @@ namespace Stronghold.Infrastructure.Services
                         SupplementId = bestseller.SupplementId,
                         Name = bestseller.Name,
                         QuantitySold = bestseller.Quantity
-                    }
+                    },
+
+                DailySales = dailySales,
+                RevenueBreakdown = revenueBreakdown
             };
         }
 
@@ -425,6 +505,68 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
+        public async Task<List<ActivityFeedItemResponse>> GetActivityFeedAsync(int count = 20)
+        {
+            var feed = new List<ActivityFeedItemResponse>();
+
+            // Recent orders
+            var recentOrders = await _context.Orders
+                .AsNoTracking()
+                .Include(o => o.User)
+                .OrderByDescending(o => o.PurchaseDate)
+                .Take(count)
+                .Select(o => new ActivityFeedItemResponse
+                {
+                    Type = "order",
+                    Description = $"Nova narudzba - {o.TotalAmount:F2} KM",
+                    Timestamp = o.PurchaseDate,
+                    UserName = o.User.FirstName + " " + o.User.LastName
+                })
+                .ToListAsync();
+
+            feed.AddRange(recentOrders);
+
+            // Recent user registrations
+            var recentRegistrations = await _context.Users
+                .AsNoTracking()
+                .OrderByDescending(u => u.CreatedAt)
+                .Take(count)
+                .Select(u => new ActivityFeedItemResponse
+                {
+                    Type = "registration",
+                    Description = "Novi korisnik registrovan",
+                    Timestamp = u.CreatedAt,
+                    UserName = u.FirstName + " " + u.LastName
+                })
+                .ToListAsync();
+
+            feed.AddRange(recentRegistrations);
+
+            // Recent memberships
+            var recentMemberships = await _context.Memberships
+                .AsNoTracking()
+                .Include(m => m.User)
+                .Include(m => m.MembershipPackage)
+                .OrderByDescending(m => m.CreatedAt)
+                .Take(count)
+                .Select(m => new ActivityFeedItemResponse
+                {
+                    Type = "membership",
+                    Description = $"Nova clanarina - {m.MembershipPackage.PackageName}",
+                    Timestamp = m.CreatedAt,
+                    UserName = m.User.FirstName + " " + m.User.LastName
+                })
+                .ToListAsync();
+
+            feed.AddRange(recentMemberships);
+
+            // Sort all combined and take the requested count
+            return feed
+                .OrderByDescending(f => f.Timestamp)
+                .Take(count)
+                .ToList();
+        }
+
         private static DateTime GetStartOfWeekUtc(DateTime utcNow)
         {
             // Monday-based week
@@ -493,77 +635,80 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("A2").Value = $"Datum generisanja: {DateTime.Now:dd.MM.yyyy HH:mm}";
             worksheet.Range("A2:C2").Merge();
 
-            // Weekly visits section
-            worksheet.Cell("A4").Value = "SEDMIČNA POSJEĆENOST";
+            // Monthly revenue section
+            worksheet.Cell("A4").Value = "MJESEČNA PRODAJA";
             worksheet.Cell("A4").Style.Font.Bold = true;
 
-            worksheet.Cell("A5").Value = "Posjete ove sedmice:";
-            worksheet.Cell("B5").Value = report.ThisWeekVisits;
+            worksheet.Cell("A5").Value = "Prihod ovog mjeseca:";
+            worksheet.Cell("B5").Value = $"{report.ThisMonthRevenue:F2} KM";
 
-            worksheet.Cell("A6").Value = "Posjete prošle sedmice:";
-            worksheet.Cell("B6").Value = report.LastWeekVisits;
+            worksheet.Cell("A6").Value = "Prihod prošlog mjeseca:";
+            worksheet.Cell("B6").Value = $"{report.LastMonthRevenue:F2} KM";
 
             worksheet.Cell("A7").Value = "Promjena (%):";
-            worksheet.Cell("B7").Value = $"{report.WeekChangePct:F2}%";
+            worksheet.Cell("B7").Value = $"{report.MonthChangePct:F2}%";
 
-            // Monthly revenue section
-            worksheet.Cell("A9").Value = "MJESEČNA PRODAJA";
+            // Revenue breakdown
+            worksheet.Cell("A9").Value = "PREGLED PRIHODA";
             worksheet.Cell("A9").Style.Font.Bold = true;
 
-            worksheet.Cell("A10").Value = "Prihod ovog mjeseca:";
-            worksheet.Cell("B10").Value = $"{report.ThisMonthRevenue:F2} KM";
-
-            worksheet.Cell("A11").Value = "Prihod prošlog mjeseca:";
-            worksheet.Cell("B11").Value = $"{report.LastMonthRevenue:F2} KM";
-
-            worksheet.Cell("A12").Value = "Promjena (%):";
-            worksheet.Cell("B12").Value = $"{report.MonthChangePct:F2}%";
-
-            // Active memberships
-            worksheet.Cell("A14").Value = "AKTIVNE ČLANARINE";
-            worksheet.Cell("A14").Style.Font.Bold = true;
-
-            worksheet.Cell("A15").Value = "Broj aktivnih članova:";
-            worksheet.Cell("B15").Value = report.ActiveMemberships;
-
-            // Visits by weekday
-            worksheet.Cell("A17").Value = "POSJETE PO DANIMA U SEDMICI";
-            worksheet.Cell("A17").Style.Font.Bold = true;
-
-            var dayNames = new Dictionary<DayOfWeek, string>
+            if (report.RevenueBreakdown != null)
             {
-                { DayOfWeek.Monday, "Ponedjeljak" },
-                { DayOfWeek.Tuesday, "Utorak" },
-                { DayOfWeek.Wednesday, "Srijeda" },
-                { DayOfWeek.Thursday, "Četvrtak" },
-                { DayOfWeek.Friday, "Petak" },
-                { DayOfWeek.Saturday, "Subota" },
-                { DayOfWeek.Sunday, "Nedjelja" }
-            };
+                worksheet.Cell("A10").Value = "Prihod danas:";
+                worksheet.Cell("B10").Value = $"{report.RevenueBreakdown.TodayRevenue:F2} KM";
 
-            var row = 18;
-            foreach (var visit in report.VisitsByWeekday)
-            {
-                worksheet.Cell($"A{row}").Value = dayNames[visit.Day];
-                worksheet.Cell($"B{row}").Value = visit.Count;
-                row++;
+                worksheet.Cell("A11").Value = "Prihod ove sedmice:";
+                worksheet.Cell("B11").Value = $"{report.RevenueBreakdown.ThisWeekRevenue:F2} KM";
+
+                worksheet.Cell("A12").Value = "Prihod ovog mjeseca:";
+                worksheet.Cell("B12").Value = $"{report.RevenueBreakdown.ThisMonthRevenue:F2} KM";
+
+                worksheet.Cell("A13").Value = "Prosječna vrijednost narudžbe:";
+                worksheet.Cell("B13").Value = $"{report.RevenueBreakdown.AverageOrderValue:F2} KM";
+
+                worksheet.Cell("A14").Value = "Narudžbi danas:";
+                worksheet.Cell("B14").Value = report.RevenueBreakdown.TodayOrderCount;
             }
 
             // Bestseller
-            worksheet.Cell($"A{row + 1}").Value = "BESTSELLER (POSLJEDNJIH 30 DANA)";
-            worksheet.Cell($"A{row + 1}").Style.Font.Bold = true;
+            worksheet.Cell("A16").Value = "BESTSELLER (POSLJEDNJIH 30 DANA)";
+            worksheet.Cell("A16").Style.Font.Bold = true;
 
             if (report.BestsellerLast30Days != null)
             {
-                worksheet.Cell($"A{row + 2}").Value = "Naziv:";
-                worksheet.Cell($"B{row + 2}").Value = report.BestsellerLast30Days.Name;
+                worksheet.Cell("A17").Value = "Naziv:";
+                worksheet.Cell("B17").Value = report.BestsellerLast30Days.Name;
 
-                worksheet.Cell($"A{row + 3}").Value = "Prodato jedinica:";
-                worksheet.Cell($"B{row + 3}").Value = report.BestsellerLast30Days.QuantitySold;
+                worksheet.Cell("A18").Value = "Prodato jedinica:";
+                worksheet.Cell("B18").Value = report.BestsellerLast30Days.QuantitySold;
             }
             else
             {
-                worksheet.Cell($"A{row + 2}").Value = "Nema podataka";
+                worksheet.Cell("A17").Value = "Nema podataka";
+            }
+
+            // Daily sales breakdown
+            var row = 20;
+            worksheet.Cell($"A{row}").Value = "DNEVNA PRODAJA (POSLJEDNJIH 30 DANA)";
+            worksheet.Cell($"A{row}").Style.Font.Bold = true;
+
+            if (report.DailySales != null && report.DailySales.Any())
+            {
+                row++;
+                worksheet.Cell($"A{row}").Value = "Datum";
+                worksheet.Cell($"A{row}").Style.Font.Bold = true;
+                worksheet.Cell($"B{row}").Value = "Prihod (KM)";
+                worksheet.Cell($"B{row}").Style.Font.Bold = true;
+                worksheet.Cell($"C{row}").Value = "Broj narudžbi";
+                worksheet.Cell($"C{row}").Style.Font.Bold = true;
+
+                foreach (var sale in report.DailySales)
+                {
+                    row++;
+                    worksheet.Cell($"A{row}").Value = sale.Date.ToString("dd.MM.yyyy");
+                    worksheet.Cell($"B{row}").Value = $"{sale.Revenue:F2}";
+                    worksheet.Cell($"C{row}").Value = sale.OrderCount;
+                }
             }
 
             // Auto-fit columns
@@ -577,17 +722,6 @@ namespace Stronghold.Infrastructure.Services
         public async Task<byte[]> ExportToPdfAsync()
         {
             var report = await GetBusinessReportAsync();
-
-            var dayNames = new Dictionary<DayOfWeek, string>
-            {
-                { DayOfWeek.Monday, "Ponedjeljak" },
-                { DayOfWeek.Tuesday, "Utorak" },
-                { DayOfWeek.Wednesday, "Srijeda" },
-                { DayOfWeek.Thursday, "Četvrtak" },
-                { DayOfWeek.Friday, "Petak" },
-                { DayOfWeek.Saturday, "Subota" },
-                { DayOfWeek.Sunday, "Nedjelja" }
-            };
 
             var document = Document.Create(container =>
             {
@@ -607,29 +741,8 @@ namespace Stronghold.Infrastructure.Services
 
                     page.Content().PaddingVertical(20).Column(col =>
                     {
-                        // Weekly visits
-                        col.Item().Text("Sedmična posjećenost").Bold().FontSize(14);
-                        col.Item().PaddingTop(10).Table(table =>
-                        {
-                            table.ColumnsDefinition(columns =>
-                            {
-                                columns.RelativeColumn(2);
-                                columns.RelativeColumn(1);
-                            });
-
-                            table.Cell().Text("Posjete ove sedmice:");
-                            table.Cell().Text($"{report.ThisWeekVisits}").Bold();
-
-                            table.Cell().Text("Posjete prošle sedmice:");
-                            table.Cell().Text($"{report.LastWeekVisits}");
-
-                            table.Cell().Text("Promjena:");
-                            var changeColor = report.WeekChangePct >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
-                            var changeSign = report.WeekChangePct >= 0 ? "↑" : "↓";
-                            table.Cell().Text($"{changeSign} {Math.Abs(report.WeekChangePct):F1}%").FontColor(changeColor).Bold();
-                        });
-
-                        col.Item().PaddingTop(20).Text("Mjesečna prodaja").Bold().FontSize(14);
+                        // Monthly revenue
+                        col.Item().Text("Mjesečna prodaja").Bold().FontSize(14);
                         col.Item().PaddingTop(10).Table(table =>
                         {
                             table.ColumnsDefinition(columns =>
@@ -646,35 +759,40 @@ namespace Stronghold.Infrastructure.Services
 
                             table.Cell().Text("Promjena:");
                             var changeColor = report.MonthChangePct >= 0 ? Colors.Green.Darken2 : Colors.Red.Darken2;
-                            var changeSign = report.MonthChangePct >= 0 ? "↑" : "↓";
-                            table.Cell().Text($"{changeSign} {Math.Abs(report.MonthChangePct):F1}%").FontColor(changeColor).Bold();
+                            var changeSign = report.MonthChangePct >= 0 ? "+" : "";
+                            table.Cell().Text($"{changeSign}{report.MonthChangePct:F1}%").FontColor(changeColor).Bold();
                         });
 
-                        col.Item().PaddingTop(20).Text("Aktivne članarine").Bold().FontSize(14);
-                        col.Item().PaddingTop(10).Text($"Broj aktivnih članova: {report.ActiveMemberships}").Bold().FontSize(18).FontColor(Colors.Red.Darken2);
-
-                        col.Item().PaddingTop(20).Text("Posjete po danima u sedmici").Bold().FontSize(14);
-                        col.Item().PaddingTop(10).Table(table =>
+                        // Revenue breakdown
+                        if (report.RevenueBreakdown != null)
                         {
-                            table.ColumnsDefinition(columns =>
+                            col.Item().PaddingTop(20).Text("Pregled prihoda").Bold().FontSize(14);
+                            col.Item().PaddingTop(10).Table(table =>
                             {
-                                columns.RelativeColumn(2);
-                                columns.RelativeColumn(1);
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(1);
+                                });
+
+                                table.Cell().Text("Prihod danas:");
+                                table.Cell().Text($"{report.RevenueBreakdown.TodayRevenue:F2} KM").Bold();
+
+                                table.Cell().Text("Prihod ove sedmice:");
+                                table.Cell().Text($"{report.RevenueBreakdown.ThisWeekRevenue:F2} KM");
+
+                                table.Cell().Text("Prihod ovog mjeseca:");
+                                table.Cell().Text($"{report.RevenueBreakdown.ThisMonthRevenue:F2} KM");
+
+                                table.Cell().Text("Prosječna vrijednost narudžbe:");
+                                table.Cell().Text($"{report.RevenueBreakdown.AverageOrderValue:F2} KM");
+
+                                table.Cell().Text("Narudžbi danas:");
+                                table.Cell().Text($"{report.RevenueBreakdown.TodayOrderCount}").Bold();
                             });
+                        }
 
-                            table.Header(header =>
-                            {
-                                header.Cell().Text("Dan").Bold();
-                                header.Cell().Text("Broj posjeta").Bold();
-                            });
-
-                            foreach (var visit in report.VisitsByWeekday)
-                            {
-                                table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text(dayNames[visit.Day]);
-                                table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5).Text($"{visit.Count}");
-                            }
-                        });
-
+                        // Bestseller
                         col.Item().PaddingTop(20).Text("Bestseller (posljednjih 30 dana)").Bold().FontSize(14);
                         if (report.BestsellerLast30Days != null)
                         {
@@ -690,6 +808,35 @@ namespace Stronghold.Infrastructure.Services
                         else
                         {
                             col.Item().PaddingTop(10).Text("Nema podataka").Italic().FontColor(Colors.Grey.Medium);
+                        }
+
+                        // Daily sales table
+                        if (report.DailySales != null && report.DailySales.Any())
+                        {
+                            col.Item().PaddingTop(20).Text("Dnevna prodaja (posljednjih 30 dana)").Bold().FontSize(14);
+                            col.Item().PaddingTop(10).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(2);
+                                    columns.RelativeColumn(1);
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().Text("Datum").Bold();
+                                    header.Cell().Text("Prihod (KM)").Bold();
+                                    header.Cell().Text("Narudžbi").Bold();
+                                });
+
+                                foreach (var sale in report.DailySales.Take(30))
+                                {
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3).Text(sale.Date.ToString("dd.MM.yyyy"));
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3).Text($"{sale.Revenue:F2}");
+                                    table.Cell().BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(3).Text($"{sale.OrderCount}");
+                                }
+                            });
                         }
                     });
 
