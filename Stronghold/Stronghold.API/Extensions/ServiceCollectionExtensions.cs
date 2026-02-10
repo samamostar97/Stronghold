@@ -136,21 +136,35 @@ public static class ServiceCollectionExtensions
 
     public static async Task SeedDatabaseAsync(this WebApplication app)
     {
-        if (!app.Environment.IsDevelopment())
-            return;
+        const int maxRetries = 5;
+        const int delaySeconds = 5;
 
-        using var scope = app.Services.CreateScope();
-        var context = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
-
-        var shouldClear = Environment.GetEnvironmentVariable("CLEAR_DATABASE")?.ToLower() == "true";
-        if (shouldClear)
+        for (var attempt = 1; attempt <= maxRetries; attempt++)
         {
-            Console.WriteLine("Clearing database...");
-            await StrongholdDbContextDataSeed.ClearDatabaseAsync(context);
-            Console.WriteLine("Database cleared successfully.");
-        }
+            try
+            {
+                using var scope = app.Services.CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
 
-        await StrongholdDbContextDataSeed.SeedAsync(context);
+                await StrongholdDbContextDataSeed.SeedAsync(context);
+                Console.WriteLine("Database seeded successfully.");
+                return;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Database seed attempt {attempt}/{maxRetries} failed: {ex.Message}");
+
+                if (attempt < maxRetries)
+                {
+                    Console.WriteLine($"Retrying in {delaySeconds} seconds...");
+                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                }
+                else
+                {
+                    Console.WriteLine("All seed attempts failed. Starting API without seed data.");
+                }
+            }
+        }
     }
 
     private static string BuildConnectionString()

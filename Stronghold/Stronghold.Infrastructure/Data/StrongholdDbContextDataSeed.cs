@@ -47,6 +47,14 @@ public static class StrongholdDbContextDataSeed
         context.PasswordResetTokens.RemoveRange(passwordResetTokens);
         await context.SaveChangesAsync();
 
+        var addresses = await context.Addresses.IgnoreQueryFilters().ToListAsync();
+        context.Addresses.RemoveRange(addresses);
+        await context.SaveChangesAsync();
+
+        var notifications = await context.Notifications.IgnoreQueryFilters().ToListAsync();
+        context.Notifications.RemoveRange(notifications);
+        await context.SaveChangesAsync();
+
         var users = await context.Users.IgnoreQueryFilters().ToListAsync();
         context.Users.RemoveRange(users);
         await context.SaveChangesAsync();
@@ -963,6 +971,12 @@ public static class StrongholdDbContextDataSeed
             .Where(u => u.Role == Role.GymMember)
             .OrderBy(u => u.Id)
             .ToListAsync();
+
+        if (members.Count < 9)
+        {
+            Console.WriteLine($"Warning: Expected 9 gym members for address seeding, found {members.Count}. Skipping address seed.");
+            return;
+        }
 
         var addresses = new List<Address>
         {

@@ -12,15 +12,12 @@ builder.Services
 
 var app = builder.Build();
 
-// Seed database (development only)
+// Seed database
 await app.SeedDatabaseAsync();
 
 // Configure pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseMiddleware<ExceptionHandlerMiddleware>();
 app.UseHttpsRedirection();
