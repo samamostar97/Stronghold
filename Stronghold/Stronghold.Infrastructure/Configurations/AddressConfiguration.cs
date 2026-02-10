@@ -17,7 +17,7 @@ public class AddressConfiguration : BaseEntityConfiguration<Address>
             .HasDefaultValue("Bosna i Hercegovina");
 
         builder.HasOne(a => a.User)
-            .WithOne()
+            .WithOne(u => u.Address)
             .HasForeignKey<Address>(a => a.UserId)
             .OnDelete(DeleteBehavior.Cascade);
 
