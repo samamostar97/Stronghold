@@ -42,6 +42,55 @@ docker-compose down -v
 docker-compose up --build
 ```
 
+## Docker - korisne komande
+
+```bash
+# Pokretanje svih servisa
+docker-compose up -d
+
+# Pokretanje sa rebuildom (nakon promjena u kodu)
+docker-compose up --build -d
+
+# Zaustavljanje svih servisa
+docker-compose down
+
+# Reset baze (brise volume sa podacima, seed se ponovo pokrece)
+docker-compose down -v
+docker-compose up --build -d
+
+# Pregled logova svih servisa
+docker-compose logs -f
+
+# Logovi samo API servisa
+docker-compose logs -f api
+
+# Logovi samo Worker servisa
+docker-compose logs -f worker
+
+# Status kontejnera
+docker-compose ps
+
+# Restart jednog servisa (npr. API nakon promjene koda)
+docker-compose up --build -d api
+
+# Pristup SQL Server bazi iz kontejnera
+docker exec -it stronghold-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C
+
+# Provjera health statusa
+docker inspect --format='{{.State.Health.Status}}' stronghold-sqlserver-1
+
+# Ako se API ne pokrece - provjeri da li SQL Server i RabbitMQ rade
+docker-compose ps
+docker-compose logs api
+
+# Ako port 5034 vec zauzet
+netstat -ano | findstr :5034
+taskkill /F /PID <PID_BROJ>
+
+# Potpuno ciscenje (brise sve kontejnere, slike i volumene)
+docker-compose down -v --rmi all
+```
+
 ## Pokretanje Flutter aplikacija
 
 Preduvjeti: Flutter SDK
