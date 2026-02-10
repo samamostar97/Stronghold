@@ -38,9 +38,12 @@ class OrderDetailsDialog extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(children: [
-                Text('Narudzba #${order.id}',
-                    style: AppTextStyles.headingMd),
-                const SizedBox(width: AppSpacing.lg),
+                Flexible(
+                  child: Text('Narudzba #${order.id}',
+                      style: AppTextStyles.headingMd,
+                      overflow: TextOverflow.ellipsis),
+                ),
+                const SizedBox(width: AppSpacing.md),
                 switch (order.status) {
                   OrderStatus.delivered => StatusPill.delivered(),
                   OrderStatus.cancelled => StatusPill.cancelled(),
@@ -64,54 +67,58 @@ class OrderDetailsDialog extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               Flexible(child: _itemsTable()),
               const SizedBox(height: AppSpacing.xl),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text('Zatvori',
-                        style: AppTextStyles.bodyMd
-                            .copyWith(color: AppColors.textMuted)),
-                  ),
-                  if (isProcessing) ...[
-                    const SizedBox(width: AppSpacing.md),
-                    ElevatedButton.icon(
-                      onPressed: () => _showCancelDialog(context),
-                      icon: Icon(LucideIcons.xCircle, size: 18),
-                      label: Text('Otkazi narudzbu',
-                          style: AppTextStyles.bodyBold
-                              .copyWith(color: Colors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.error,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppSpacing.radiusSm)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xl,
-                            vertical: AppSpacing.md),
-                      ),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: Text('Zatvori',
+                          style: AppTextStyles.bodyMd
+                              .copyWith(color: AppColors.textMuted)),
                     ),
-                    const SizedBox(width: AppSpacing.md),
-                    ElevatedButton.icon(
-                      onPressed: onMarkDelivered,
-                      icon: Icon(LucideIcons.checkCircle, size: 18),
-                      label: Text('Oznaci kao dostavljeno',
-                          style: AppTextStyles.bodyBold
-                              .copyWith(color: AppColors.background)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        foregroundColor: AppColors.background,
-                        shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppSpacing.radiusSm)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xl,
-                            vertical: AppSpacing.md),
+                    if (isProcessing) ...[
+                      const SizedBox(width: AppSpacing.md),
+                      ElevatedButton.icon(
+                        onPressed: () => _showCancelDialog(context),
+                        icon: Icon(LucideIcons.xCircle, size: 18),
+                        label: Text('Otkazi narudzbu',
+                            style: AppTextStyles.bodyBold
+                                .copyWith(color: Colors.white)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.error,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusSm)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xl,
+                              vertical: AppSpacing.md),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: AppSpacing.md),
+                      ElevatedButton.icon(
+                        onPressed: onMarkDelivered,
+                        icon: Icon(LucideIcons.checkCircle, size: 18),
+                        label: Text('Oznaci kao dostavljeno',
+                            style: AppTextStyles.bodyBold
+                                .copyWith(color: AppColors.background)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.success,
+                          foregroundColor: AppColors.background,
+                          shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusSm)),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xl,
+                              vertical: AppSpacing.md),
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ],
           ),
@@ -385,11 +392,18 @@ class _InfoRow extends StatelessWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(width: 120, child: Text(label, style: AppTextStyles.bodyMd)),
+        SizedBox(
+          width: 120,
+          child: Text(label,
+              style: AppTextStyles.bodyMd,
+              overflow: TextOverflow.ellipsis),
+        ),
+        const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Text(value,
               style:
-                  AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary)),
+                  AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
+              overflow: TextOverflow.ellipsis),
         ),
       ],
     );

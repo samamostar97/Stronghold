@@ -46,18 +46,35 @@ class DashboardActivityFeed extends StatelessWidget {
             itemBuilder: (context, i) => _ActivityRow(item: items[i]),
           );
 
+    if (!expand) {
+      return GlassCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            header,
+            const SizedBox(height: AppSpacing.lg),
+            Flexible(child: content),
+          ],
+        ),
+      );
+    }
+
     return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
-        children: [
-          header,
-          const SizedBox(height: AppSpacing.lg),
-          if (expand)
-            Expanded(child: content)
-          else
-            content,
-        ],
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxHeight < 100;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (!compact) ...[
+                header,
+                const SizedBox(height: AppSpacing.lg),
+              ],
+              Expanded(child: content),
+            ],
+          );
+        },
       ),
     );
   }

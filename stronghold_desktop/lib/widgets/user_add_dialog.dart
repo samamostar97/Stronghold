@@ -67,9 +67,15 @@ class _UserAddDialogState extends ConsumerState<UserAddDialog> {
       final userId =
           await ref.read(userListProvider.notifier).create(request);
       if (_selectedImagePath != null) {
-        await ref
-            .read(userListProvider.notifier)
-            .uploadImage(userId, _selectedImagePath!);
+        try {
+          await ref
+              .read(userListProvider.notifier)
+              .uploadImage(userId, _selectedImagePath!);
+        } catch (_) {
+          // user created but image upload failed
+          if (mounted) Navigator.of(context).pop(true);
+          return;
+        }
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {

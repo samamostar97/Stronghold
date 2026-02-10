@@ -86,11 +86,14 @@ class DataTableContainer extends StatelessWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: Column(
-          children: [
-            header,
-            if (itemCount == 0)
-              Expanded(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxHeight < 80;
+            return Column(
+              children: [
+                if (!compact) header,
+                if (itemCount == 0)
+                  Expanded(
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -123,7 +126,9 @@ class DataTableContainer extends StatelessWidget {
                   itemBuilder: itemBuilder,
                 ),
               ),
-          ],
+              ],
+            );
+          },
         ),
       ),
     );

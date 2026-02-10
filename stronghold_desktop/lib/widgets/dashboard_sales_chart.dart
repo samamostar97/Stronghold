@@ -93,34 +93,41 @@ class _DashboardSalesChartState extends State<DashboardSalesChart>
     );
 
     return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
-        children: [
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxHeight < 80;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
             children: [
-              Expanded(
-                child: Text('Prodaja (30 dana)', style: AppTextStyles.headingSm),
-              ),
-              _SummaryChip(
-                label: 'Ukupno',
-                value: '${totalRevenue.toStringAsFixed(0)} KM',
-                color: AppColors.success,
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              _SummaryChip(
-                label: 'Narudzbe',
-                value: '$totalOrders',
-                color: AppColors.primary,
-              ),
+              if (!compact) ...[
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text('Prodaja (30 dana)', style: AppTextStyles.headingSm),
+                    ),
+                    _SummaryChip(
+                      label: 'Ukupno',
+                      value: '${totalRevenue.toStringAsFixed(0)} KM',
+                      color: AppColors.success,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    _SummaryChip(
+                      label: 'Narudzbe',
+                      value: '$totalOrders',
+                      color: AppColors.primary,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+              if (widget.expand)
+                Expanded(child: chartArea)
+              else
+                SizedBox(height: 200, child: chartArea),
             ],
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          if (widget.expand)
-            Expanded(child: chartArea)
-          else
-            SizedBox(height: 200, child: chartArea),
-        ],
+          );
+        },
       ),
     );
   }

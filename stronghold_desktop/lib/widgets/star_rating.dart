@@ -11,19 +11,23 @@ class StarRating extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: List.generate(5, (i) {
-        final filled = i < rating;
-        return Padding(
-          padding: EdgeInsets.only(right: i < 4 ? 2 : 0),
-          child: Icon(
-            LucideIcons.star,
-            size: size,
-            color: filled ? AppColors.warning : AppColors.textDark,
-          ),
-        );
-      }),
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(5, (i) {
+          final filled = i < rating;
+          return Padding(
+            padding: EdgeInsets.only(right: i < 4 ? 2 : 0),
+            child: Icon(
+              LucideIcons.star,
+              size: size,
+              color: filled ? AppColors.warning : AppColors.textDark,
+            ),
+          );
+        }),
+      ),
     );
   }
 }

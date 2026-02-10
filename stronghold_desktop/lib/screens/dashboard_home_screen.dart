@@ -94,11 +94,14 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
                             flex: 2,
                             child: Column(
                               children: [
-                                _TodaySalesCard(
-                                  breakdown: report?.revenueBreakdown,
+                                Flexible(
+                                  child: _TodaySalesCard(
+                                    breakdown: report?.revenueBreakdown,
+                                  ),
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
                                 Expanded(
+                                  flex: 2,
                                   child: DashboardActivityFeed(
                                     items: state.activityFeed,
                                     expand: true,
@@ -403,7 +406,12 @@ class _TodaySalesCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.topLeft,
+        child: SizedBox(
+          width: 295,
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -443,26 +451,34 @@ class _TodaySalesCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xs,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                ),
-                child: Text(
-                  'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
-                  style: AppTextStyles.caption.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
+              Flexible(
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    ),
+                    child: Text(
+                      'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ),
               ),
             ],
           ),
         ],
+      ),
+        ),
       ),
     );
   }

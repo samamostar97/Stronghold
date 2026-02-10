@@ -212,18 +212,25 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
       );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(child: widget.tableBuilder(widget.state.items)),
-        const SizedBox(height: AppSpacing.lg),
-        PaginationControls(
-          currentPage: widget.state.currentPage,
-          totalPages: widget.state.totalPages,
-          totalCount: widget.state.totalCount,
-          onPageChanged: widget.onPageChanged,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final showPagination = constraints.maxHeight > 120;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: widget.tableBuilder(widget.state.items)),
+            if (showPagination) ...[
+              const SizedBox(height: AppSpacing.lg),
+              PaginationControls(
+                currentPage: widget.state.currentPage,
+                totalPages: widget.state.totalPages,
+                totalCount: widget.state.totalCount,
+                onPageChanged: widget.onPageChanged,
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

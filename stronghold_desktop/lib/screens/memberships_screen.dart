@@ -82,6 +82,10 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
       if (mounted) {
         showSuccessAnimation(context);
         ref.invalidate(userHasActiveMembershipProvider(user.id));
+        ref.invalidate(userPaymentsProvider(UserPaymentsParams(
+          userId: user.id,
+          filter: MembershipQueryFilter(pageSize: 10),
+        )));
       }
     } catch (e) {
       if (mounted) {

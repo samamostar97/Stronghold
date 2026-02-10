@@ -230,23 +230,27 @@ class _MemberTileState extends State<_MemberTile> {
                     style: AppTextStyles.bodyBold,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 2),
-                Row(children: [
-                  Text(widget.member.username,
-                      style: AppTextStyles.bodySm),
-                  const SizedBox(width: AppSpacing.md),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.accent.withValues(alpha: 0.15),
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusSm),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Row(children: [
+                    Text(widget.member.username,
+                        style: AppTextStyles.bodySm),
+                    const SizedBox(width: AppSpacing.md),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withValues(alpha: 0.15),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusSm),
+                      ),
+                      child: Text(widget.member.packageName,
+                          style: AppTextStyles.badge
+                              .copyWith(color: AppColors.accent)),
                     ),
-                    child: Text(widget.member.packageName,
-                        style: AppTextStyles.badge
-                            .copyWith(color: AppColors.accent)),
-                  ),
-                ]),
+                  ]),
+                ),
               ],
             ),
           ),
