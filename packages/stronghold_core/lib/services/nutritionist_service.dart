@@ -11,8 +11,11 @@ class NutritionistService extends CrudService<
     CreateNutritionistRequest,
     UpdateNutritionistRequest,
     NutritionistQueryFilter> {
+  final ApiClient _apiClient;
+
   NutritionistService(ApiClient client)
-      : super(
+      : _apiClient = client,
+        super(
           client: client,
           basePath: '/api/nutritionist',
           responseParser: NutritionistResponse.fromJson,
@@ -25,4 +28,15 @@ class NutritionistService extends CrudService<
   @override
   Map<String, dynamic> toUpdateJson(UpdateNutritionistRequest request) =>
       request.toJson();
+
+  /// Get available hours for a nutritionist on a specific date
+  Future<List<int>> getAvailableHours(
+      int nutritionistId, DateTime date) async {
+    return _apiClient.get<List<int>>(
+      '/api/nutritionist/$nutritionistId/available-hours',
+      queryParameters: {'date': date.toIso8601String()},
+      parser: (json) =>
+          (json as List<dynamic>).map((e) => (e as num).toInt()).toList(),
+    );
+  }
 }

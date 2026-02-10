@@ -52,6 +52,8 @@ export 'models/requests/update_supplier_request.dart';
 export 'models/requests/update_trainer_request.dart';
 export 'models/requests/update_user_request.dart';
 export 'models/requests/upsert_address_request.dart';
+export 'models/requests/admin_create_appointment_request.dart';
+export 'models/requests/admin_update_appointment_request.dart';
 
 // Responses
 export 'models/responses/active_member_response.dart';

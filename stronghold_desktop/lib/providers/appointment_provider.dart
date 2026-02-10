@@ -73,4 +73,24 @@ class AppointmentListNotifier extends StateNotifier<
     state = state.copyWithFilter(newFilter);
     await load();
   }
+
+  Future<int> create(AdminCreateAppointmentRequest request) async {
+    final id = await _service.adminCreate(request);
+    await refresh();
+    return id;
+  }
+
+  Future<void> update(int id, AdminUpdateAppointmentRequest request) async {
+    await _service.adminUpdate(id, request);
+    await refresh();
+  }
+
+  Future<void> delete(int id) async {
+    await _service.adminDelete(id);
+    if (state.items.length == 1 && state.currentPage > 1) {
+      await goToPage(state.currentPage - 1);
+    } else {
+      await refresh();
+    }
+  }
 }

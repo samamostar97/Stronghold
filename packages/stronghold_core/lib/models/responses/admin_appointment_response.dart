@@ -1,6 +1,9 @@
 /// Matches backend AdminAppointmentResponse
 class AdminAppointmentResponse {
   final int id;
+  final int userId;
+  final int? trainerId;
+  final int? nutritionistId;
   final String userName;
   final String? trainerName;
   final String? nutritionistName;
@@ -9,6 +12,9 @@ class AdminAppointmentResponse {
 
   const AdminAppointmentResponse({
     required this.id,
+    required this.userId,
+    this.trainerId,
+    this.nutritionistId,
     required this.userName,
     this.trainerName,
     this.nutritionistName,
@@ -19,6 +25,9 @@ class AdminAppointmentResponse {
   factory AdminAppointmentResponse.fromJson(Map<String, dynamic> json) {
     return AdminAppointmentResponse(
       id: (json['id'] ?? 0) as int,
+      userId: (json['userId'] ?? 0) as int,
+      trainerId: json['trainerId'] as int?,
+      nutritionistId: json['nutritionistId'] as int?,
       userName: (json['userName'] ?? '') as String,
       trainerName: json['trainerName'] as String?,
       nutritionistName: json['nutritionistName'] as String?,

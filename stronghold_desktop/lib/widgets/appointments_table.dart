@@ -2,15 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
 import 'data_table_widgets.dart';
+import 'small_button.dart';
 
 class AppointmentsTable extends StatelessWidget {
   const AppointmentsTable({
     super.key,
     required this.appointments,
+    required this.onEdit,
+    required this.onDelete,
   });
 
   final List<AdminAppointmentResponse> appointments;
+  final ValueChanged<AdminAppointmentResponse> onEdit;
+  final ValueChanged<AdminAppointmentResponse> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +28,7 @@ class AppointmentsTable extends StatelessWidget {
           TableHeaderCell(text: 'Osoblje', flex: 3),
           TableHeaderCell(text: 'Datum', flex: 2),
           TableHeaderCell(text: 'Satnica', flex: 1),
+          TableHeaderCell(text: 'Akcije', flex: 2, alignRight: true),
         ]),
       ),
       itemCount: appointments.length,
@@ -50,6 +57,19 @@ class AppointmentsTable extends StatelessWidget {
               flex: 1,
               muted: isPast,
             ),
+            TableActionCell(flex: 2, children: [
+              SmallButton(
+                text: 'Izmijeni',
+                color: AppColors.secondary,
+                onTap: () => onEdit(a),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SmallButton(
+                text: 'Obrisi',
+                color: AppColors.error,
+                onTap: () => onDelete(a),
+              ),
+            ]),
           ]),
         );
       },

@@ -11,8 +11,11 @@ class TrainerService extends CrudService<
     CreateTrainerRequest,
     UpdateTrainerRequest,
     TrainerQueryFilter> {
+  final ApiClient _apiClient;
+
   TrainerService(ApiClient client)
-      : super(
+      : _apiClient = client,
+        super(
           client: client,
           basePath: '/api/trainer',
           responseParser: TrainerResponse.fromJson,
@@ -25,4 +28,14 @@ class TrainerService extends CrudService<
   @override
   Map<String, dynamic> toUpdateJson(UpdateTrainerRequest request) =>
       request.toJson();
+
+  /// Get available hours for a trainer on a specific date
+  Future<List<int>> getAvailableHours(int trainerId, DateTime date) async {
+    return _apiClient.get<List<int>>(
+      '/api/trainer/$trainerId/available-hours',
+      queryParameters: {'date': date.toIso8601String()},
+      parser: (json) =>
+          (json as List<dynamic>).map((e) => (e as num).toInt()).toList(),
+    );
+  }
 }

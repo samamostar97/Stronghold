@@ -147,6 +147,9 @@ class ErrorHandler {
       'create-faq': 'Dodavanje FAQ-a nije uspjelo.',
       'update-faq': 'Izmjena FAQ-a nije uspjela.',
       'delete-faq': 'Brisanje FAQ-a nije uspjelo.',
+      'create-appointment': 'Dodavanje termina nije uspjelo.',
+      'update-appointment': 'Izmjena termina nije uspjela.',
+      'delete-appointment': 'Brisanje termina nije uspjelo.',
     };
 
     // Check for specific error types and provide more context

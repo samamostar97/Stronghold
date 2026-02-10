@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.DTOs.Request;
 using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.Filters;
 using Stronghold.Application.IServices;
@@ -44,6 +45,30 @@ namespace Stronghold.API.Controllers
                 return Unauthorized();
 
             await _service.CancelAppointmentAsync(userId.Value, id);
+            return NoContent();
+        }
+
+        [HttpPost("admin")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> AdminCreate([FromBody] AdminCreateAppointmentRequest request)
+        {
+            var id = await _service.AdminCreateAsync(request);
+            return CreatedAtAction(nameof(GetAllAppointments), new { id }, new { id });
+        }
+
+        [HttpPut("admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> AdminUpdate(int id, [FromBody] AdminUpdateAppointmentRequest request)
+        {
+            await _service.AdminUpdateAsync(id, request);
+            return NoContent();
+        }
+
+        [HttpDelete("admin/{id}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> AdminDelete(int id)
+        {
+            await _service.AdminDeleteAsync(id);
             return NoContent();
         }
     }
