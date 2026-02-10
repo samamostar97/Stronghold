@@ -103,7 +103,7 @@ class _LoginFormState extends State<LoginForm>
                 Text('Prijavite se na administratorski panel',
                     style: AppTextStyles.bodyMd),
                 const SizedBox(height: AppSpacing.xxxl + 8),
-                _label('EMAIL ADRESA'),
+                _label('KORISNICKO IME'),
                 const SizedBox(height: AppSpacing.sm),
                 _emailField(),
                 const SizedBox(height: AppSpacing.xl),
@@ -133,10 +133,10 @@ class _LoginFormState extends State<LoginForm>
 
   Widget _emailField() => _FocusGlowField(
         controller: _emailCtl,
-        hint: 'admin@stronghold.com',
-        prefix: LucideIcons.mail,
+        hint: 'Unesite korisnicko ime',
+        prefix: LucideIcons.user,
         validator: (v) =>
-            (v == null || v.isEmpty) ? 'Molimo unesite email' : null,
+            (v == null || v.isEmpty) ? 'Molimo unesite korisnicko ime' : null,
       );
 
   Widget _passwordField() => _FocusGlowField(

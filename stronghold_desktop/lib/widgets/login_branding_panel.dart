@@ -54,13 +54,6 @@ class LoginBrandingPanel extends StatelessWidget {
             _logo(),
             const SizedBox(height: AppSpacing.xxxl + 8),
             _headline(),
-            const SizedBox(height: AppSpacing.xl),
-            Text(
-              'Upravljajte clanovima, pratite performanse i odrzavajte\n'
-              'svoju teretanu na vrhunskom nivou.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMd,
-            ),
           ]),
         ),
       ),
