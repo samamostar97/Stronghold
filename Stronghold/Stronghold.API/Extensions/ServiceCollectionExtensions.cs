@@ -65,6 +65,7 @@ public static class ServiceCollectionExtensions
 
         // Background services
         services.AddHostedService<MembershipExpiryNotificationService>();
+        services.AddHostedService<AppointmentReminderService>();
 
         return services;
     }
