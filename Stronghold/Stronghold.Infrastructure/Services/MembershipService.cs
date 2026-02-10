@@ -44,8 +44,9 @@ namespace Stronghold.Infrastructure.Services
             var paymentHistory = await _paymentHistoryRepo.AsQueryable()
                 .Where(p => p.UserId == userId
                     && p.MembershipPackageId == activeMembership.MembershipPackageId
-                    && p.StartDate == activeMembership.StartDate
+                    && p.EndDate > DateTime.UtcNow
                     && !p.IsDeleted)
+                .OrderByDescending(p => p.PaymentDate)
                 .FirstOrDefaultAsync();
 
             if (paymentHistory != null)
