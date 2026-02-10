@@ -17,6 +17,7 @@ import '../widgets/search_bar_widget.dart';
 import '../widgets/shop_recommendations.dart';
 import '../widgets/supplement_card.dart';
 import 'cart_screen.dart';
+import 'navigation_shell.dart';
 import 'supplement_detail_screen.dart';
 
 class SupplementShopScreen extends ConsumerStatefulWidget {
@@ -107,7 +108,7 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
       child: Row(children: [
-        _iconBtn(LucideIcons.arrowLeft, () => Navigator.pop(context)),
+        _iconBtn(LucideIcons.arrowLeft, () => ref.read(bottomNavIndexProvider.notifier).state = 0),
         const SizedBox(width: AppSpacing.lg),
         Expanded(child: Text('Prodavnica', style: AppTextStyles.headingMd)),
         GestureDetector(

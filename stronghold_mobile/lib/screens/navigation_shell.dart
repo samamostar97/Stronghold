@@ -23,9 +23,9 @@ class NavigationShell extends ConsumerWidget {
     final currentIndex = ref.watch(bottomNavIndexProvider);
 
     return PopScope(
-      canPop: currentIndex == 0,
+      canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) {
+        if (!didPop && currentIndex != 0) {
           ref.read(bottomNavIndexProvider.notifier).state = 0;
         }
       },
