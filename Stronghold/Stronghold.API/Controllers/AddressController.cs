@@ -30,6 +30,16 @@ public class AddressController : UserControllerBase
         return Ok(result);
     }
 
+    [Authorize(Roles = "Admin")]
+    [HttpGet("{userId:int}")]
+    public async Task<ActionResult<AddressResponse>> GetUserAddress(int userId)
+    {
+        var result = await _service.GetByUserIdAsync(userId);
+        if (result == null) return NotFound();
+
+        return Ok(result);
+    }
+
     [HttpPut("my")]
     public async Task<ActionResult<AddressResponse>> UpsertMyAddress([FromBody] UpsertAddressRequest request)
     {

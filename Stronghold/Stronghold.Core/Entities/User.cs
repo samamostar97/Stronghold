@@ -24,4 +24,5 @@ public class User : BaseEntity
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     public ICollection<SeminarAttendee> SeminarAttendees { get; set; } = new List<SeminarAttendee>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public Address? Address { get; set; }
 }

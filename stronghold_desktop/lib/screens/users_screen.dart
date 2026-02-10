@@ -9,6 +9,7 @@ import '../widgets/success_animation.dart';
 import '../widgets/user_add_dialog.dart';
 import '../widgets/user_edit_dialog.dart';
 import '../widgets/users_table.dart';
+import '../widgets/user_detail_drawer.dart';
 import '../utils/error_handler.dart';
 
 /// Users management screen using CrudListScaffold.
@@ -20,6 +21,8 @@ class UsersScreen extends ConsumerStatefulWidget {
 }
 
 class _UsersScreenState extends ConsumerState<UsersScreen> {
+  UserResponse? _detailUser;
+
   @override
   void initState() {
     super.initState();
@@ -73,32 +76,54 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     }
   }
 
+  void _showDetails(UserResponse user) {
+    setState(() => _detailUser = user);
+  }
+
+  void _closeDetails() {
+    setState(() => _detailUser = null);
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(userListProvider);
     final notifier = ref.read(userListProvider.notifier);
 
-    return CrudListScaffold<UserResponse, UserQueryFilter>(
-      title: 'Upravljanje korisnicima',
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addUser,
-      searchHint: 'Pretrazi korisnike...',
-      addButtonText: '+ Dodaj korisnika',
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'firstname', label: 'Ime (A-Z)'),
-        SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
-        SortOption(value: 'datedesc', label: 'Najnovije prvo'),
+    return Stack(
+      children: [
+        CrudListScaffold<UserResponse, UserQueryFilter>(
+          title: 'Upravljanje korisnicima',
+          state: state,
+          onRefresh: notifier.refresh,
+          onSearch: notifier.setSearch,
+          onSort: notifier.setOrderBy,
+          onPageChanged: notifier.goToPage,
+          onAdd: _addUser,
+          searchHint: 'Pretrazi korisnike...',
+          addButtonText: '+ Dodaj korisnika',
+          sortOptions: const [
+            SortOption(value: null, label: 'Zadano'),
+            SortOption(value: 'firstname', label: 'Ime (A-Z)'),
+            SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
+            SortOption(value: 'datedesc', label: 'Najnovije prvo'),
+          ],
+          tableBuilder: (items) => UsersTable(
+            users: items,
+            onEdit: _editUser,
+            onDelete: _deleteUser,
+            onDetails: _showDetails,
+          ),
+        ),
+        if (_detailUser != null)
+          UserDetailDrawer(
+            user: _detailUser!,
+            onClose: _closeDetails,
+            onEdit: () {
+              _closeDetails();
+              _editUser(_detailUser!);
+            },
+          ),
       ],
-      tableBuilder: (items) => UsersTable(
-        users: items,
-        onEdit: _editUser,
-        onDelete: _deleteUser,
-      ),
     );
   }
 }

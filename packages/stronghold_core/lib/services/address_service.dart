@@ -23,6 +23,20 @@ class AddressService {
     }
   }
 
+  /// Admin: get a specific user's delivery address.
+  Future<AddressResponse?> getByUserId(int userId) async {
+    try {
+      return await _client.get<AddressResponse>(
+        '$_basePath/$userId',
+        parser: (json) =>
+            AddressResponse.fromJson(json as Map<String, dynamic>),
+      );
+    } catch (e) {
+      if (e.toString().contains('404')) return null;
+      rethrow;
+    }
+  }
+
   /// Create or update the current user's delivery address.
   Future<AddressResponse> upsertMyAddress(UpsertAddressRequest request) async {
     return _client.put<AddressResponse>(

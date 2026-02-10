@@ -14,11 +14,13 @@ class UsersTable extends StatelessWidget {
     required this.users,
     required this.onEdit,
     required this.onDelete,
+    this.onDetails,
   });
 
   final List<UserResponse> users;
   final ValueChanged<UserResponse> onEdit;
   final ValueChanged<UserResponse> onDelete;
+  final ValueChanged<UserResponse>? onDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class UsersTable extends StatelessWidget {
             TableHeaderCell(text: 'Korisnicko ime', flex: 2),
             TableHeaderCell(text: 'Email', flex: 3),
             TableHeaderCell(text: 'Telefon', flex: 2),
-            TableHeaderCell(text: 'Akcije', flex: 2, alignRight: true),
+            TableHeaderCell(text: 'Akcije', flex: 3, alignRight: true),
           ],
         ),
       ),
@@ -42,6 +44,7 @@ class UsersTable extends StatelessWidget {
         isLast: i == users.length - 1,
         onEdit: () => onEdit(users[i]),
         onDelete: () => onDelete(users[i]),
+        onDetails: onDetails != null ? () => onDetails!(users[i]) : null,
       ),
     );
   }
@@ -54,6 +57,7 @@ class _UserRow extends StatelessWidget {
     required this.isLast,
     required this.onEdit,
     required this.onDelete,
+    this.onDetails,
   });
 
   final UserResponse user;
@@ -61,6 +65,7 @@ class _UserRow extends StatelessWidget {
   final bool isLast;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback? onDetails;
 
   @override
   Widget build(BuildContext context) {
@@ -112,8 +117,15 @@ class _UserRow extends StatelessWidget {
           TableDataCell(text: user.email, flex: 3, muted: true),
           TableDataCell(text: user.phoneNumber, flex: 2, muted: true),
           TableActionCell(
-            flex: 2,
+            flex: 3,
             children: [
+              if (onDetails != null)
+                SmallButton(
+                    text: 'Detalji',
+                    color: AppColors.primary,
+                    onTap: onDetails!),
+              if (onDetails != null)
+                const SizedBox(width: AppSpacing.sm),
               SmallButton(
                   text: 'Izmijeni',
                   color: AppColors.secondary,
