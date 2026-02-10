@@ -13,6 +13,8 @@ public class SupplierConfiguration : BaseEntityConfiguration<Supplier>
         builder.Property(s => s.Name).HasMaxLength(100).IsRequired();
         builder.Property(s => s.Website).HasMaxLength(500);
 
-        builder.HasIndex(s => s.Name).IsUnique();
+        builder.HasIndex(s => s.Name)
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }
