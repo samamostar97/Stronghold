@@ -5,6 +5,7 @@ import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../providers/list_state.dart';
 import '../providers/membership_provider.dart';
 import '../providers/membership_package_provider.dart';
 import '../utils/error_handler.dart';
@@ -134,7 +135,7 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
         ),
       );
 
-  Widget _buildForm(dynamic packagesState) {
+  Widget _buildForm(ListState<MembershipPackageResponse, MembershipPackageQueryFilter> packagesState) {
     if (packagesState.isLoading) {
       return const Center(
         child: Padding(

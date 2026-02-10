@@ -5,9 +5,11 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../screens/appointment_screen.dart';
 import '../screens/cart_screen.dart';
+import '../screens/faq_screen.dart';
 import '../screens/leaderboard_screen.dart';
 import '../screens/nutritionist_list_screen.dart';
 import '../screens/order_history_screen.dart';
+import '../screens/review_history_screen.dart';
 import '../screens/seminar_screen.dart';
 import '../screens/trainer_list_screen.dart';
 import '../screens/user_progress_screen.dart';
@@ -177,5 +179,19 @@ const _items = <_ExploreItem>[
     title: 'Korpa',
     hint: 'Trenutna korpa',
     screen: CartScreen(),
+  ),
+  _ExploreItem(
+    icon: LucideIcons.star,
+    color: AppColors.warning,
+    title: 'Recenzije',
+    hint: 'Moje recenzije',
+    screen: ReviewHistoryScreen(),
+  ),
+  _ExploreItem(
+    icon: LucideIcons.helpCircle,
+    color: AppColors.textMuted,
+    title: 'FAQ',
+    hint: 'Cesta pitanja',
+    screen: FaqScreen(),
   ),
 ];
