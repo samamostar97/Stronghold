@@ -52,7 +52,7 @@ public class ProfileController : UserControllerBase
         };
 
         var imageUrl = await _service.UploadProfilePictureAsync(userId.Value, fileRequest);
-        return Ok(imageUrl);
+        return Ok(new { url = imageUrl });
     }
 
     [HttpDelete("picture")]

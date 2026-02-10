@@ -28,6 +28,9 @@ RUN dotnet publish "./Stronghold.API.csproj" -c $BUILD_CONFIGURATION -o /app/pub
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
+USER root
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN mkdir -p /app/wwwroot/uploads && chown -R $APP_UID:$APP_UID /app/wwwroot
+USER $APP_UID
 ENTRYPOINT ["dotnet", "Stronghold.API.dll"]

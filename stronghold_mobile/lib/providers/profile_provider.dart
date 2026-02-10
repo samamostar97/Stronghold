@@ -64,7 +64,7 @@ class ProfilePictureNotifier extends StateNotifier<ProfilePictureState> {
         '/api/profile/picture',
         filePath,
         'file',
-        parser: (json) => json as String,
+        parser: (json) => (json as Map<String, dynamic>)['url'] as String,
       );
       state = state.copyWith(isLoading: false);
       return result;
