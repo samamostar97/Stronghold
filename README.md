@@ -56,12 +56,12 @@ Aplikacija ima dvije korisnicke uloge:
 
 ### Desktop verzija (Admin)
 
-Korisnicko ime : admin   
-Password : test              
+Korisnicko ime : desktop
+Password : test
 
 ### Mobilna verzija (GymMember)
 
-Korisnicko ime : member   
-Password : test  
+Korisnicko ime : mobile
+Password : test
 
 

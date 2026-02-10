@@ -310,7 +310,7 @@ public static class StrongholdDbContextDataSeed
             {
                 FirstName = "Admin",
                 LastName = "Stronghold",
-                Username = "admin",
+                Username = "desktop",
                 Email = "admin@stronghold.ba",
                 PhoneNumber = "+38761000000",
                 Gender = Gender.Male,
@@ -323,8 +323,8 @@ public static class StrongholdDbContextDataSeed
             {
                 FirstName = "Member",
                 LastName = "Stronghold",
-                Username = "member",
-                Email = "member@stronghold.ba",
+                Username = "mobile",
+                Email = "mobile_stronghold@gmail.com",
                 PhoneNumber = "+38761999999",
                 Gender = Gender.Male,
                 Role = Role.GymMember,
