@@ -77,7 +77,8 @@ class _UserDetailDrawerState extends ConsumerState<UserDetailDrawer> {
     return Container(
       width: 400,
       color: AppColors.surfaceSolid,
-      padding: const EdgeInsets.all(AppSpacing.xxl),
+      padding: EdgeInsets.fromLTRB(
+          AppSpacing.xxl, AppSpacing.md, AppSpacing.xxl, AppSpacing.xxl),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,91 +90,103 @@ class _UserDetailDrawerState extends ConsumerState<UserDetailDrawer> {
                 icon: const Icon(LucideIcons.x,
                     color: AppColors.textMuted, size: 20),
                 onPressed: widget.onClose,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            // Avatar + name + email
-            Center(
-              child: user.profileImageUrl != null
-                  ? ClipRRect(
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusMd),
-                      child: Image.network(
-                        ApiConfig.imageUrl(user.profileImageUrl!),
-                        width: 72,
-                        height: 72,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) =>
-                            AvatarWidget(initials: initials, size: 72),
-                      ),
-                    )
-                  : AvatarWidget(initials: initials, size: 72),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Center(
-              child: Text(user.fullName,
-                  style: AppTextStyles.headingMd,
-                  textAlign: TextAlign.center),
-            ),
-            const SizedBox(height: 4),
-            Center(
-              child: Text(user.email,
-                  style: AppTextStyles.bodySm,
-                  textAlign: TextAlign.center),
-            ),
-            const SizedBox(height: AppSpacing.xxl),
-
-            // Personal info section
-            _sectionLabel('LICNI PODACI'),
             const SizedBox(height: AppSpacing.md),
-            _infoRow(LucideIcons.user, 'Korisnicko ime', user.username),
-            _infoRow(LucideIcons.phone, 'Telefon', user.phoneNumber),
-            _infoRow(LucideIcons.users, 'Spol', user.genderDisplay),
-            const SizedBox(height: AppSpacing.xxl),
-
-            // Address section
-            _sectionLabel('ADRESA ZA DOSTAVU'),
-            const SizedBox(height: AppSpacing.md),
-            if (_loadingAddress)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                child: Center(
-                  child: SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                ),
-              )
-            else if (_address != null) ...[
-              _infoRow(LucideIcons.mapPin, 'Ulica', _address!.street),
-              _infoRow(LucideIcons.building2, 'Grad', _address!.city),
-              _infoRow(LucideIcons.hash, 'Postanski broj', _address!.postalCode),
-              _infoRow(LucideIcons.globe, 'Drzava', _address!.country),
-            ] else
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                child: Row(
+            // Scrollable content
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(LucideIcons.mapPinOff,
-                        size: 16, color: AppColors.textMuted),
-                    const SizedBox(width: AppSpacing.md),
-                    Text('Nema sacuvane adrese',
-                        style: AppTextStyles.bodyMd
-                            .copyWith(color: AppColors.textMuted)),
+                    // Avatar + name + email
+                    Center(
+                      child: user.profileImageUrl != null
+                          ? ClipRRect(
+                              borderRadius:
+                                  BorderRadius.circular(AppSpacing.radiusMd),
+                              child: Image.network(
+                                ApiConfig.imageUrl(user.profileImageUrl!),
+                                width: 72,
+                                height: 72,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    AvatarWidget(initials: initials, size: 72),
+                              ),
+                            )
+                          : AvatarWidget(initials: initials, size: 72),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Center(
+                      child: Text(user.fullName,
+                          style: AppTextStyles.headingMd,
+                          textAlign: TextAlign.center),
+                    ),
+                    const SizedBox(height: 4),
+                    Center(
+                      child: Text(user.email,
+                          style: AppTextStyles.bodySm,
+                          textAlign: TextAlign.center),
+                    ),
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // Personal info section
+                    _sectionLabel('LICNI PODACI'),
+                    const SizedBox(height: AppSpacing.md),
+                    _infoRow(LucideIcons.user, 'Korisnicko ime', user.username),
+                    _infoRow(LucideIcons.phone, 'Telefon', user.phoneNumber),
+                    _infoRow(LucideIcons.users, 'Spol', user.genderDisplay),
+                    const SizedBox(height: AppSpacing.xxl),
+
+                    // Address section
+                    _sectionLabel('ADRESA ZA DOSTAVU'),
+                    const SizedBox(height: AppSpacing.md),
+                    if (_loadingAddress)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        child: Center(
+                          child: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.primary,
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (_address != null) ...[
+                      _infoRow(LucideIcons.mapPin, 'Ulica', _address!.street),
+                      _infoRow(LucideIcons.building2, 'Grad', _address!.city),
+                      _infoRow(LucideIcons.hash, 'Postanski broj', _address!.postalCode),
+                      _infoRow(LucideIcons.globe, 'Drzava', _address!.country),
+                    ] else
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                        child: Row(
+                          children: [
+                            Icon(LucideIcons.mapPinOff,
+                                size: 16, color: AppColors.textMuted),
+                            const SizedBox(width: AppSpacing.md),
+                            Text('Nema sacuvane adrese',
+                                style: AppTextStyles.bodyMd
+                                    .copyWith(color: AppColors.textMuted)),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
-
-            const Spacer(),
-            if (widget.onEdit != null)
+            ),
+            if (widget.onEdit != null) ...[
+              const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
                 child: GradientButton(text: 'Uredi', onTap: widget.onEdit!),
               ),
+            ],
           ],
         ),
       ),

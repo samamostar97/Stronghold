@@ -119,8 +119,9 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
             user: _detailUser!,
             onClose: _closeDetails,
             onEdit: () {
+              final user = _detailUser!;
               _closeDetails();
-              _editUser(_detailUser!);
+              _editUser(user);
             },
           ),
       ],
