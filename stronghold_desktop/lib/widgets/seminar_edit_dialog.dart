@@ -8,6 +8,7 @@ import '../utils/error_handler.dart';
 import '../utils/validators.dart';
 import 'date_picker_field.dart';
 import 'dialog_text_field.dart';
+import 'error_animation.dart';
 
 class SeminarEditDialog extends StatefulWidget {
   const SeminarEditDialog({
@@ -54,10 +55,9 @@ class _State extends State<SeminarEditDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_eventDate.isBefore(DateTime.now())) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Datum seminara ne moze biti u proslosti'),
-        ),
+      showErrorAnimation(
+        context,
+        message: 'Datum seminara ne moze biti u proslosti',
       );
       return;
     }
