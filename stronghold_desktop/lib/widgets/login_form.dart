@@ -67,18 +67,28 @@ class _LoginFormState extends State<LoginForm>
         context,
         MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
       );
-    } catch (e) {
+    } on ApiException catch (e) {
       if (!mounted) return;
       setState(() {
         _loading = false;
-        final msg = e.toString();
-        if (msg.contains('ACCESS_DENIED')) {
-          _error = 'Pristup odbijen. Samo administratori mogu pristupiti.';
-        } else if (msg.contains('INVALID_CREDENTIALS')) {
+        if (e.isUnauthorized) {
           _error = 'Neispravan username ili lozinka.';
+        } else if (e.isForbidden) {
+          _error = e.message;
+        } else if (e.isServerError) {
+          _error = 'Greska na serveru. Pokusajte ponovo.';
         } else {
-          _error = 'Greska prilikom prijave. Pokusajte ponovo.';
+          _error = e.message.isNotEmpty
+              ? e.message
+              : 'Greska prilikom prijave. Pokusajte ponovo.';
         }
+      });
+      _shakeCtl.forward(from: 0);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+        _error = 'Greska prilikom prijave. Pokusajte ponovo.';
       });
       _shakeCtl.forward(from: 0);
     }

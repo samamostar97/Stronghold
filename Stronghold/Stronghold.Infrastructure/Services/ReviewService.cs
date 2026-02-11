@@ -75,7 +75,7 @@ namespace Stronghold.Infrastructure.Services
 
         public override Task<ReviewResponse> UpdateAsync(int id, UpdateReviewRequest dto)
         {
-            throw new NotSupportedException("Recenzije se ne mogu mijenjati");
+            throw new InvalidOperationException("Recenzije se ne mogu mijenjati");
         }
 
 
