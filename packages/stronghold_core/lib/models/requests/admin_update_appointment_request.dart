@@ -1,3 +1,5 @@
+import '../common/appointment_date_utils.dart';
+
 class AdminUpdateAppointmentRequest {
   final int? trainerId;
   final int? nutritionistId;
@@ -12,6 +14,6 @@ class AdminUpdateAppointmentRequest {
   Map<String, dynamic> toJson() => {
         if (trainerId != null) 'trainerId': trainerId,
         if (nutritionistId != null) 'nutritionistId': nutritionistId,
-        'appointmentDate': appointmentDate.toIso8601String(),
+        'appointmentDate': AppointmentDateUtils.toApiDateTime(appointmentDate),
       };
 }

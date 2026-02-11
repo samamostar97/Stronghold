@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 /// Matches backend SeminarAttendeeResponse
 class SeminarAttendeeResponse {
   final int userId;
@@ -14,7 +16,9 @@ class SeminarAttendeeResponse {
     return SeminarAttendeeResponse(
       userId: (json['userId'] ?? 0) as int,
       userName: (json['userName'] ?? '') as String,
-      registeredAt: DateTime.parse(json['registeredAt'] as String),
+      registeredAt: DateTimeUtils.parseApiDateTime(
+        json['registeredAt'] as String,
+      ),
     );
   }
 }

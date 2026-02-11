@@ -15,18 +15,19 @@ class MembershipService {
 
   /// Assign a membership to a user
   Future<void> assignMembership(AssignMembershipRequest request) async {
-    await _client.post<void>(
-      _path,
-      body: request.toJson(),
-      parser: (_) {},
-    );
+    await _client.post<void>(_path, body: request.toJson(), parser: (_) {});
   }
 
   /// Revoke a user's membership
   Future<void> revokeMembership(int userId) async {
-    await _client.patch<void>(
-      '$_path?id=$userId',
-      parser: (_) {},
+    await _client.patch<void>('$_path?id=$userId', parser: (_) {});
+  }
+
+  /// Check whether a user currently has an active membership
+  Future<bool> hasActiveMembership(int userId) async {
+    return _client.get<bool>(
+      '$_path/$userId/is-active',
+      parser: (json) => json as bool,
     );
   }
 
@@ -42,7 +43,7 @@ class MembershipService {
       queryParameters: queryParams,
       parser: (json) => PagedResult.fromJson(
         json,
-        (item) => MembershipPaymentResponse.fromJson(item as Map<String, dynamic>),
+        (item) => MembershipPaymentResponse.fromJson(item),
       ),
     );
   }

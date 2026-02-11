@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 /// Membership payment response from backend
 class MembershipPaymentResponse {
   final int id;
@@ -24,9 +26,11 @@ class MembershipPaymentResponse {
       membershipPackageId: json['membershipPackageId'] as int,
       packageName: json['packageName'] as String,
       amountPaid: (json['amountPaid'] as num).toDouble(),
-      paymentDate: DateTime.parse(json['paymentDate'] as String),
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
+      paymentDate: DateTimeUtils.parseApiDateTime(
+        json['paymentDate'] as String,
+      ),
+      startDate: DateTimeUtils.parseApiDateTime(json['startDate'] as String),
+      endDate: DateTimeUtils.parseApiDateTime(json['endDate'] as String),
     );
   }
 }

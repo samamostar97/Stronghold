@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 /// User with active membership, returned by GET /api/memberships/active-members.
 class ActiveMemberResponse {
   final int userId;
@@ -26,7 +28,9 @@ class ActiveMemberResponse {
       username: (json['username'] ?? '') as String,
       profileImageUrl: json['profileImageUrl'] as String?,
       packageName: (json['packageName'] ?? '') as String,
-      membershipEndDate: DateTime.parse(json['membershipEndDate'] as String),
+      membershipEndDate: DateTimeUtils.parseApiDateTime(
+        json['membershipEndDate'] as String,
+      ),
     );
   }
 

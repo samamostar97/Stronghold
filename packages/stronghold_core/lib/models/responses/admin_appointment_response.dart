@@ -1,3 +1,5 @@
+import '../common/appointment_date_utils.dart';
+
 /// Matches backend AdminAppointmentResponse
 class AdminAppointmentResponse {
   final int id;
@@ -31,7 +33,8 @@ class AdminAppointmentResponse {
       userName: (json['userName'] ?? '') as String,
       trainerName: json['trainerName'] as String?,
       nutritionistName: json['nutritionistName'] as String?,
-      appointmentDate: DateTime.parse(json['appointmentDate'] as String),
+      appointmentDate:
+          AppointmentDateUtils.parse(json['appointmentDate'] as String),
       type: (json['type'] ?? '') as String,
     );
   }

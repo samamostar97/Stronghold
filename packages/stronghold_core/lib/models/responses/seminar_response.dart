@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 /// Matches backend SeminarResponse
 class SeminarResponse {
   final int id;
@@ -21,7 +23,7 @@ class SeminarResponse {
       id: (json['id'] ?? 0) as int,
       topic: (json['topic'] ?? '') as String,
       speakerName: (json['speakerName'] ?? '') as String,
-      eventDate: DateTime.parse(json['eventDate'] as String),
+      eventDate: DateTimeUtils.parseApiDateTime(json['eventDate'] as String),
       maxCapacity: (json['maxCapacity'] ?? 0) as int,
       currentAttendees: (json['currentAttendees'] ?? 0) as int,
     );
