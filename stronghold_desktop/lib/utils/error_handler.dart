@@ -139,6 +139,7 @@ class ErrorHandler {
       'create-seminar': 'Dodavanje seminara nije uspjelo.',
       'update-seminar': 'Izmjena seminara nije uspjela.',
       'delete-seminar': 'Brisanje seminara nije uspjelo.',
+      'cancel-seminar': 'Otkazivanje seminara nije uspjelo.',
       'load-orders': 'Učitavanje narudžbi nije uspjelo.',
       'deliver-order': 'Označavanje narudžbe kao dostavljene nije uspjelo.',
       'load-reviews': 'Učitavanje recenzija nije uspjelo.',

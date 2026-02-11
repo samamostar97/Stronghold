@@ -11,5 +11,7 @@ namespace Stronghold.Application.Filters
     {
         public string? Search { get; set; }
         public string? OrderBy { get; set; }
+        public bool? IsCancelled { get; set; }
+        public string? Status { get; set; }
     }
 }

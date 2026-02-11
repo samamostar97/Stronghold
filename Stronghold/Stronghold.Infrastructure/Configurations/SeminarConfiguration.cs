@@ -14,5 +14,6 @@ public class SeminarConfiguration : BaseEntityConfiguration<Seminar>
         builder.Property(s => s.SpeakerName).HasMaxLength(100).IsRequired();
         builder.Property(s => s.EventDate).IsRequired();
         builder.Property(s => s.MaxCapacity).IsRequired();
+        builder.Property(s => s.IsCancelled).HasDefaultValue(false).IsRequired();
     }
 }

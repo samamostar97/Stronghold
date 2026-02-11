@@ -6,71 +6,111 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'data_table_widgets.dart';
 import 'small_button.dart';
+import 'status_pill.dart';
 
 class SeminarsTable extends StatelessWidget {
   const SeminarsTable({
     super.key,
     required this.seminars,
     required this.onEdit,
-    required this.onDelete,
+    required this.onCancel,
     required this.onViewAttendees,
   });
 
   final List<SeminarResponse> seminars;
   final ValueChanged<SeminarResponse> onEdit;
-  final ValueChanged<SeminarResponse> onDelete;
+  final ValueChanged<SeminarResponse> onCancel;
   final ValueChanged<SeminarResponse> onViewAttendees;
 
   @override
   Widget build(BuildContext context) {
     return DataTableContainer(
       header: const TableHeader(
-        child: Row(children: [
-          TableHeaderCell(text: 'Naziv teme', flex: 3),
-          TableHeaderCell(text: 'Voditelj', flex: 2),
-          TableHeaderCell(text: 'Popunjenost', flex: 2),
-          TableHeaderCell(text: 'Datum', flex: 2),
-          TableHeaderCell(text: 'Satnica', flex: 1),
-          TableHeaderCell(text: 'Akcije', flex: 3, alignRight: true),
-        ]),
+        child: Row(
+          children: [
+            TableHeaderCell(text: 'Naziv teme', flex: 3),
+            TableHeaderCell(text: 'Voditelj', flex: 2),
+            TableHeaderCell(text: 'Popunjenost', flex: 2),
+            TableHeaderCell(text: 'Datum', flex: 2),
+            TableHeaderCell(text: 'Satnica', flex: 1),
+            TableHeaderCell(text: 'Status', flex: 2),
+            TableHeaderCell(text: 'Akcije', flex: 3, alignRight: true),
+          ],
+        ),
       ),
       itemCount: seminars.length,
       itemBuilder: (context, i) {
         final s = seminars[i];
+        final status = s.status.toLowerCase();
+        final canEdit = status == 'active';
+        final canCancel = status == 'active';
+
         return HoverableTableRow(
           index: i,
           isLast: i == seminars.length - 1,
-          child: Row(children: [
-            TableDataCell(text: s.topic, flex: 3, bold: true),
-            TableDataCell(text: s.speakerName, flex: 2),
-            Expanded(
-              flex: 2,
-              child: _CapacityIndicator(
-                current: s.currentAttendees,
-                max: s.maxCapacity,
+          child: Row(
+            children: [
+              TableDataCell(text: s.topic, flex: 3, bold: true),
+              TableDataCell(text: s.speakerName, flex: 2),
+              Expanded(
+                flex: 2,
+                child: _CapacityIndicator(
+                  current: s.currentAttendees,
+                  max: s.maxCapacity,
+                ),
               ),
-            ),
-            TableDataCell(
-                text: DateFormat('dd.MM.yyyy').format(s.eventDate), flex: 2),
-            TableDataCell(
-                text: DateFormat('HH:mm').format(s.eventDate), flex: 1),
-            TableActionCell(flex: 3, children: [
-              SmallButton(
-                  text: 'Detalji',
-                  color: AppColors.primary,
-                  onTap: () => onViewAttendees(s)),
-              const SizedBox(width: AppSpacing.sm),
-              SmallButton(
-                  text: 'Izmijeni',
-                  color: AppColors.secondary,
-                  onTap: () => onEdit(s)),
-              const SizedBox(width: AppSpacing.sm),
-              SmallButton(
-                  text: 'Obrisi',
-                  color: AppColors.error,
-                  onTap: () => onDelete(s)),
-            ]),
-          ]),
+              TableDataCell(
+                text: DateFormat('dd.MM.yyyy').format(s.eventDate),
+                flex: 2,
+              ),
+              TableDataCell(
+                text: DateFormat('HH:mm').format(s.eventDate),
+                flex: 1,
+              ),
+              Expanded(
+                flex: 2,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: switch (status) {
+                    'cancelled' => const StatusPill(
+                      label: 'Otkazan',
+                      color: AppColors.error,
+                    ),
+                    'finished' => const StatusPill(
+                      label: 'Zavrsen',
+                      color: AppColors.textMuted,
+                    ),
+                    _ => const StatusPill(
+                      label: 'Aktivan',
+                      color: AppColors.success,
+                    ),
+                  },
+                ),
+              ),
+              TableActionCell(
+                flex: 3,
+                children: [
+                  SmallButton(
+                    text: 'Detalji',
+                    color: AppColors.primary,
+                    onTap: () => onViewAttendees(s),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(
+                    text: 'Izmijeni',
+                    color: canEdit ? AppColors.secondary : AppColors.textMuted,
+                    onTap: canEdit ? () => onEdit(s) : () {},
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(
+                    text: 'Otkazi',
+                    color: canCancel ? AppColors.warning : AppColors.textMuted,
+                    onTap: canCancel ? () => onCancel(s) : () {},
+                  ),
+                ],
+              ),
+            ],
+          ),
         );
       },
     );
@@ -89,8 +129,8 @@ class _CapacityIndicator extends StatelessWidget {
     final color = isFull
         ? AppColors.error
         : ratio > 0.8
-            ? AppColors.warning
-            : AppColors.success;
+        ? AppColors.warning
+        : AppColors.success;
 
     return Text(
       '$current/$max',

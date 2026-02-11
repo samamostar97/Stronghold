@@ -36,6 +36,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
     this.addButtonText = '+ Dodaj',
     this.sortOptions = const [],
     this.loadingColumnFlex,
+    this.extraFilter,
   });
 
   final ListState<T, TFilter> state;
@@ -49,6 +50,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
   final String addButtonText;
   final List<SortOption> sortOptions;
   final List<int>? loadingColumnFlex;
+  final Widget? extraFilter;
 
   @override
   ConsumerState<CrudListScaffold<T, TFilter>> createState() =>
@@ -89,10 +91,17 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
+        final pad = w > 1200
+            ? 40.0
+            : w > 800
+            ? 24.0
+            : 16.0;
 
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
+          padding: EdgeInsets.symmetric(
+            horizontal: pad,
+            vertical: AppSpacing.xl,
+          ),
           child: Container(
             padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
             decoration: BoxDecoration(
@@ -129,6 +138,10 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
             const SizedBox(height: AppSpacing.md),
             _buildSortDropdown(),
           ],
+          if (widget.extraFilter != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            widget.extraFilter!,
+          ],
           const SizedBox(height: AppSpacing.md),
           GradientButton(text: widget.addButtonText, onTap: widget.onAdd),
         ],
@@ -147,6 +160,10 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
         if (widget.sortOptions.isNotEmpty) ...[
           const SizedBox(width: AppSpacing.lg),
           _buildSortDropdown(),
+        ],
+        if (widget.extraFilter != null) ...[
+          const SizedBox(width: AppSpacing.lg),
+          widget.extraFilter!,
         ],
         const SizedBox(width: AppSpacing.lg),
         GradientButton(text: widget.addButtonText, onTap: widget.onAdd),
@@ -168,13 +185,18 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
           hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
           dropdownColor: AppColors.surfaceSolid,
           style: AppTextStyles.bodyBold,
-          icon: Icon(LucideIcons.arrowUpDown,
-              color: AppColors.textMuted, size: 16),
+          icon: Icon(
+            LucideIcons.arrowUpDown,
+            color: AppColors.textMuted,
+            size: 16,
+          ),
           items: widget.sortOptions
-              .map((opt) => DropdownMenuItem<String?>(
-                    value: opt.value,
-                    child: Text(opt.label),
-                  ))
+              .map(
+                (opt) => DropdownMenuItem<String?>(
+                  value: opt.value,
+                  child: Text(opt.label),
+                ),
+              )
               .toList(),
           onChanged: (value) {
             setState(() => _selectedOrderBy = value);
@@ -199,8 +221,11 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
           children: [
             Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
             const SizedBox(height: AppSpacing.sm),
-            Text(widget.state.error!, style: AppTextStyles.bodyMd,
-                textAlign: TextAlign.center),
+            Text(
+              widget.state.error!,
+              style: AppTextStyles.bodyMd,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppSpacing.lg),
             GradientButton(text: 'Pokusaj ponovo', onTap: widget.onRefresh),
           ],

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 import '../providers/seminar_provider.dart';
 import '../widgets/crud_list_scaffold.dart';
 import '../widgets/success_animation.dart';
@@ -20,6 +24,8 @@ class SeminarsScreen extends ConsumerStatefulWidget {
 }
 
 class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
+  String? _selectedStatus;
+
   @override
   void initState() {
     super.initState();
@@ -73,25 +79,64 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     );
   }
 
-  Future<void> _deleteSeminar(SeminarResponse seminar) async {
+  Future<void> _cancelSeminar(SeminarResponse seminar) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => ConfirmDialog(
-        title: 'Potvrda brisanja',
+        title: 'Potvrda otkazivanja',
         message:
-            'Jeste li sigurni da zelite obrisati seminar "${seminar.topic}"?',
+            'Jeste li sigurni da zelite otkazati seminar "${seminar.topic}"?',
       ),
     );
     if (confirmed != true) return;
+
     try {
-      await ref.read(seminarListProvider.notifier).delete(seminar.id);
+      await ref.read(seminarListProvider.notifier).cancelSeminar(seminar.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message: ErrorHandler.getContextualMessage(e, 'delete-seminar'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'cancel-seminar'),
+        );
       }
     }
+  }
+
+  Widget _buildStatusFilter(SeminarListNotifier notifier) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _selectedStatus,
+          hint: Text('Status', style: AppTextStyles.bodyMd),
+          dropdownColor: AppColors.surfaceSolid,
+          style: AppTextStyles.bodyBold,
+          icon: Icon(LucideIcons.filter, color: AppColors.textMuted, size: 16),
+          items: const [
+            DropdownMenuItem<String?>(value: null, child: Text('Svi')),
+            DropdownMenuItem<String?>(value: 'active', child: Text('Aktivni')),
+            DropdownMenuItem<String?>(
+              value: 'cancelled',
+              child: Text('Otkazani'),
+            ),
+            DropdownMenuItem<String?>(
+              value: 'finished',
+              child: Text('Zavrseni'),
+            ),
+          ],
+          onChanged: (value) {
+            setState(() => _selectedStatus = value);
+            notifier.setStatus(value);
+          },
+        ),
+      ),
+    );
   }
 
   @override
@@ -108,16 +153,17 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
       onAdd: _addSeminar,
       searchHint: 'Pretrazi po temi ili voditelju...',
       addButtonText: '+ Dodaj seminar',
+      extraFilter: _buildStatusFilter(notifier),
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
         SortOption(value: 'topic', label: 'Tema (A-Z)'),
         SortOption(value: 'speakername', label: 'Voditelj (A-Z)'),
-        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+        SortOption(value: 'eventdatedesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => SeminarsTable(
         seminars: items,
         onEdit: _editSeminar,
-        onDelete: _deleteSeminar,
+        onCancel: _cancelSeminar,
         onViewAttendees: _viewAttendees,
       ),
     );

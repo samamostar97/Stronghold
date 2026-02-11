@@ -38,7 +38,10 @@ class SeminarCard extends StatelessWidget {
               Expanded(
                 child: Text(seminar.topic, style: AppTextStyles.headingSm),
               ),
-              if (seminar.isAttending) ...[
+              if (seminar.isCancelled) ...[
+                const SizedBox(width: AppSpacing.sm),
+                StatusPill(label: 'Otkazan', color: AppColors.error),
+              ] else if (seminar.isAttending) ...[
                 const SizedBox(width: AppSpacing.sm),
                 StatusPill(label: 'Prijavljen', color: AppColors.success),
               ],
@@ -47,12 +50,17 @@ class SeminarCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _infoRow(LucideIcons.user, 'Predavac:', seminar.speakerName),
           const SizedBox(height: AppSpacing.sm),
-          _infoRow(LucideIcons.calendar, 'Datum:',
-              formatDateDDMMYYYY(seminar.eventDate)),
+          _infoRow(
+            LucideIcons.calendar,
+            'Datum:',
+            formatDateDDMMYYYY(seminar.eventDate),
+          ),
           const SizedBox(height: AppSpacing.sm),
           _capacityRow(),
           const SizedBox(height: AppSpacing.lg),
-          if (seminar.isAttending)
+          if (seminar.isCancelled)
+            StatusPill(label: 'Nedostupno', color: AppColors.textMuted)
+          else if (seminar.isAttending)
             OutlineButton(
               label: 'Odjavi se',
               isLoading: isCancelLoading,
@@ -81,34 +89,41 @@ class SeminarCard extends StatelessWidget {
     final color = seminar.isFull
         ? AppColors.error
         : ratio > 0.8
-            ? AppColors.warning
-            : AppColors.success;
+        ? AppColors.warning
+        : AppColors.success;
 
-    return Row(children: [
-      Icon(LucideIcons.users, size: 16, color: AppColors.textMuted),
-      const SizedBox(width: AppSpacing.sm),
-      Text('Mjesta:', style: AppTextStyles.bodySm),
-      const SizedBox(width: AppSpacing.xs),
-      Text(
-        '${seminar.currentAttendees}/${seminar.maxCapacity}',
-        style: AppTextStyles.bodyMd.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
+    return Row(
+      children: [
+        Icon(LucideIcons.users, size: 16, color: AppColors.textMuted),
+        const SizedBox(width: AppSpacing.sm),
+        Text('Mjesta:', style: AppTextStyles.bodySm),
+        const SizedBox(width: AppSpacing.xs),
+        Text(
+          '${seminar.currentAttendees}/${seminar.maxCapacity}',
+          style: AppTextStyles.bodyMd.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
         ),
-      ),
-    ]);
+      ],
+    );
   }
 
   Widget _infoRow(IconData icon, String label, String value) {
-    return Row(children: [
-      Icon(icon, size: 16, color: AppColors.textMuted),
-      const SizedBox(width: AppSpacing.sm),
-      Text(label, style: AppTextStyles.bodySm),
-      const SizedBox(width: AppSpacing.xs),
-      Expanded(
-        child: Text(value,
-            style: AppTextStyles.bodyMd, overflow: TextOverflow.ellipsis),
-      ),
-    ]);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: AppColors.textMuted),
+        const SizedBox(width: AppSpacing.sm),
+        Text(label, style: AppTextStyles.bodySm),
+        const SizedBox(width: AppSpacing.xs),
+        Expanded(
+          child: Text(
+            value,
+            style: AppTextStyles.bodyMd,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
   }
 }

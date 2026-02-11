@@ -55,6 +55,15 @@ namespace Stronghold.API.Controllers
             await _seminarService.CancelAttendanceAsync(userId.Value, id);
             return NoContent();
         }
+
+        [HttpPatch("{id}/cancel")]
+        [Authorize(Roles = "Admin")]
+        public async Task<ActionResult> CancelSeminarAsync(int id)
+        {
+            await _seminarService.CancelSeminarAsync(id);
+            return NoContent();
+        }
+
         [Authorize(Roles = "Admin,GymMember")]
         [HttpGet("GetAll")]
 

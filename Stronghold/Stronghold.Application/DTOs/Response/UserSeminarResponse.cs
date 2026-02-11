@@ -10,5 +10,7 @@ namespace Stronghold.Application.DTOs.Response
         public int MaxCapacity { get; set; }
         public int CurrentAttendees { get; set; }
         public bool IsFull { get; set; }
+        public bool IsCancelled { get; set; }
+        public string Status { get; set; } = "active";
     }
 }
