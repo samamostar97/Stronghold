@@ -136,6 +136,9 @@ class _State extends ConsumerState<AppointmentAddDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
@@ -169,6 +172,7 @@ class _State extends ConsumerState<AppointmentAddDialog> {
                           label: 'Datum termina',
                           value: _selectedDate,
                           includeTime: false,
+                          firstDate: tomorrow,
                           onChanged: (dt) {
                             setState(() => _selectedDate = dt);
                             _fetchAvailableHours();

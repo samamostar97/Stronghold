@@ -1,3 +1,5 @@
+import 'package:stronghold_core/stronghold_core.dart';
+
 class Seminar {
   final int id;
   final String topic;
@@ -24,7 +26,7 @@ class Seminar {
       id: json['id'] as int,
       topic: json['topic'] as String,
       speakerName: json['speakerName'] as String,
-      eventDate: DateTime.parse(json['eventDate'] as String),
+      eventDate: DateTimeUtils.parseApiDateTime(json['eventDate'] as String),
       isAttending: json['isAttending'] as bool? ?? false,
       maxCapacity: json['maxCapacity'] as int? ?? 0,
       currentAttendees: json['currentAttendees'] as int? ?? 0,

@@ -100,15 +100,15 @@ class _State extends ConsumerState<AppointmentEditDialog> {
 
       // Always include the current appointment's hour since backend
       // allows updating the same slot (x.Id != id check)
-      final currentHour = widget.appointment.appointmentDate.hour;
+      final appointmentLocal = widget.appointment.appointmentDate.toLocal();
+      final currentHour = appointmentLocal.hour;
       final isSameStaff = (_staffType == 'trainer' &&
               _selectedStaffId == widget.appointment.trainerId) ||
           (_staffType == 'nutritionist' &&
               _selectedStaffId == widget.appointment.nutritionistId);
-      final isSameDate = _selectedDate.year ==
-              widget.appointment.appointmentDate.year &&
-          _selectedDate.month == widget.appointment.appointmentDate.month &&
-          _selectedDate.day == widget.appointment.appointmentDate.day;
+      final isSameDate = _selectedDate.year == appointmentLocal.year &&
+          _selectedDate.month == appointmentLocal.month &&
+          _selectedDate.day == appointmentLocal.day;
 
       if (isSameStaff && isSameDate && !hours.contains(currentHour)) {
         hours = [...hours, currentHour]..sort();
@@ -168,6 +168,9 @@ class _State extends ConsumerState<AppointmentEditDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
@@ -201,6 +204,7 @@ class _State extends ConsumerState<AppointmentEditDialog> {
                           label: 'Datum termina',
                           value: _selectedDate,
                           includeTime: false,
+                          firstDate: tomorrow,
                           onChanged: (dt) {
                             setState(() => _selectedDate = dt);
                             _fetchAvailableHours();

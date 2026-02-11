@@ -1,3 +1,5 @@
+import 'package:stronghold_core/stronghold_core.dart';
+
 class Appointment {
   final int id;
   final String? trainerName;
@@ -16,7 +18,8 @@ class Appointment {
       id: json['id'] as int,
       trainerName: json['trainerName'] as String?,
       nutritionistName: json['nutritionistName'] as String?,
-      appointmentDate: DateTime.parse(json['appointmentDate'] as String),
+      appointmentDate:
+          AppointmentDateUtils.parse(json['appointmentDate'] as String),
     );
   }
 }

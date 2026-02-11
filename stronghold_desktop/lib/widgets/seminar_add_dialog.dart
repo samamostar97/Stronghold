@@ -35,29 +35,46 @@ class _State extends State<SeminarAddDialog> {
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_eventDate.isBefore(DateTime.now())) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Datum seminara ne moze biti u proslosti'),
+        ),
+      );
+      return;
+    }
+
     setState(() => _saving = true);
     try {
-      await widget.onCreate(CreateSeminarRequest(
-        topic: _topic.text.trim(),
-        speakerName: _speaker.text.trim(),
-        eventDate: _eventDate,
-        maxCapacity: int.parse(_capacity.text.trim()),
-      ));
+      await widget.onCreate(
+        CreateSeminarRequest(
+          topic: _topic.text.trim(),
+          speakerName: _speaker.text.trim(),
+          eventDate: _eventDate,
+          maxCapacity: int.parse(_capacity.text.trim()),
+        ),
+      );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        Navigator.of(context)
-            .pop(ErrorHandler.getContextualMessage(e, 'create-seminar'));
+        Navigator.of(
+          context,
+        ).pop(ErrorHandler.getContextualMessage(e, 'create-seminar'));
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Padding(
@@ -69,46 +86,58 @@ class _State extends State<SeminarAddDialog> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(children: [
-                    Expanded(
-                        child: Text('Dodaj seminar',
-                            style: AppTextStyles.headingMd)),
-                    IconButton(
-                      icon: Icon(LucideIcons.x,
-                          color: AppColors.textMuted, size: 20),
-                      onPressed: () => Navigator.of(context).pop(false),
-                    ),
-                  ]),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Dodaj seminar',
+                          style: AppTextStyles.headingMd,
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          LucideIcons.x,
+                          color: AppColors.textMuted,
+                          size: 20,
+                        ),
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: AppSpacing.xl),
                   DialogTextField(
-                      controller: _topic,
-                      label: 'Naziv teme',
-                      validator: (v) => Validators.stringLength(v, 2, 100)),
+                    controller: _topic,
+                    label: 'Naziv teme',
+                    validator: (v) => Validators.stringLength(v, 2, 100),
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   DialogTextField(
-                      controller: _speaker,
-                      label: 'Voditelj',
-                      validator: (v) => Validators.stringLength(v, 2, 100)),
+                    controller: _speaker,
+                    label: 'Voditelj',
+                    validator: (v) => Validators.stringLength(v, 2, 100),
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   DialogTextField(
-                      controller: _capacity,
-                      label: 'Maksimalni kapacitet',
-                      keyboardType: TextInputType.number,
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return 'Kapacitet je obavezan';
-                        }
-                        final n = int.tryParse(v.trim());
-                        if (n == null || n < 1 || n > 10000) {
-                          return 'Unesite broj od 1 do 10000';
-                        }
-                        return null;
-                      }),
+                    controller: _capacity,
+                    label: 'Maksimalni kapacitet',
+                    keyboardType: TextInputType.number,
+                    validator: (v) {
+                      if (v == null || v.trim().isEmpty) {
+                        return 'Kapacitet je obavezan';
+                      }
+                      final n = int.tryParse(v.trim());
+                      if (n == null || n < 1 || n > 10000) {
+                        return 'Unesite broj od 1 do 10000';
+                      }
+                      return null;
+                    },
+                  ),
                   const SizedBox(height: AppSpacing.lg),
                   DatePickerField(
                     label: 'Datum i satnica',
                     value: _eventDate,
                     includeTime: true,
+                    firstDate: today,
                     onChanged: (dt) => setState(() => _eventDate = dt),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
@@ -119,9 +148,12 @@ class _State extends State<SeminarAddDialog> {
                         onPressed: _saving
                             ? null
                             : () => Navigator.of(context).pop(false),
-                        child: Text('Odustani',
-                            style: AppTextStyles.bodyMd
-                                .copyWith(color: AppColors.textMuted)),
+                        child: Text(
+                          'Odustani',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
                       ),
                       const SizedBox(width: AppSpacing.md),
                       ElevatedButton(
@@ -130,22 +162,30 @@ class _State extends State<SeminarAddDialog> {
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.background,
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusSm)),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusSm,
+                            ),
+                          ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xxl,
-                              vertical: AppSpacing.md),
+                            horizontal: AppSpacing.xxl,
+                            vertical: AppSpacing.md,
+                          ),
                         ),
                         child: _saving
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.background))
-                            : Text('Dodaj',
-                                style: AppTextStyles.bodyBold
-                                    .copyWith(color: AppColors.background)),
+                                  strokeWidth: 2,
+                                  color: AppColors.background,
+                                ),
+                              )
+                            : Text(
+                                'Dodaj',
+                                style: AppTextStyles.bodyBold.copyWith(
+                                  color: AppColors.background,
+                                ),
+                              ),
                       ),
                     ],
                   ),

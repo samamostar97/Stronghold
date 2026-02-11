@@ -74,7 +74,9 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
         setState(() => _isSaving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Greska prilikom cuvanja adrese: ${e.toString().replaceFirst("Exception: ", "")}'),
+            content: Text(
+              'Greska prilikom cuvanja adrese: ${e.toString().replaceFirst("Exception: ", "")}',
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -103,14 +105,18 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                   loading: () => _loadingState(),
                   error: (_, _) => _addressForm(),
                   data: (address) {
-                    if (_savedAddress == null && address != null && !_isEditing) {
+                    if (_savedAddress == null &&
+                        address != null &&
+                        !_isEditing) {
                       _savedAddress = address;
                       _populateForm(address);
                     }
                     if (_savedAddress != null && !_isEditing) {
                       return _addressPreview(_savedAddress!);
                     }
-                    if (address != null && !_isEditing && _savedAddress == null) {
+                    if (address != null &&
+                        !_isEditing &&
+                        _savedAddress == null) {
                       _populateForm(address);
                     }
                     return _addressForm();
@@ -214,8 +220,11 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
             label: 'Ulica i broj',
             hint: 'npr. Marsala Tita 5',
             icon: LucideIcons.home,
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Unesite ulicu i broj' : null,
+            validator: (v) => v == null || v.trim().isEmpty
+                ? 'Unesite ulicu i broj'
+                : (v.trim().length > 200
+                      ? 'Ulica moze imati najvise 200 karaktera'
+                      : null),
           ),
           const SizedBox(height: AppSpacing.lg),
           _textField(
@@ -223,8 +232,11 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
             label: 'Grad',
             hint: 'npr. Sarajevo',
             icon: LucideIcons.building2,
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Unesite grad' : null,
+            validator: (v) => v == null || v.trim().isEmpty
+                ? 'Unesite grad'
+                : (v.trim().length > 100
+                      ? 'Grad moze imati najvise 100 karaktera'
+                      : null),
           ),
           const SizedBox(height: AppSpacing.lg),
           _textField(
@@ -233,8 +245,11 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
             hint: 'npr. 71000',
             icon: LucideIcons.mail,
             keyboardType: TextInputType.number,
-            validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Unesite postanski broj' : null,
+            validator: (v) => v == null || v.trim().isEmpty
+                ? 'Unesite postanski broj'
+                : (v.trim().length > 20
+                      ? 'Postanski broj moze imati najvise 20 karaktera'
+                      : null),
           ),
           const SizedBox(height: AppSpacing.lg),
           // Country (read-only)
@@ -242,7 +257,11 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               children: [
-                const Icon(LucideIcons.globe, size: 20, color: AppColors.textMuted),
+                const Icon(
+                  LucideIcons.globe,
+                  size: 20,
+                  color: AppColors.textMuted,
+                ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -250,7 +269,10 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                     children: [
                       Text('Drzava', style: AppTextStyles.caption),
                       const SizedBox(height: AppSpacing.xs),
-                      Text('Bosna i Hercegovina', style: AppTextStyles.bodyBold),
+                      Text(
+                        'Bosna i Hercegovina',
+                        style: AppTextStyles.bodyBold,
+                      ),
                     ],
                   ),
                 ),
@@ -268,7 +290,9 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                       height: 44,
                       decoration: BoxDecoration(
                         color: AppColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
                         border: Border.all(color: AppColors.border),
                       ),
                       child: Center(
@@ -333,7 +357,10 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.primary,
+                width: 1.5,
+              ),
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
@@ -374,8 +401,11 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(LucideIcons.arrowLeft,
-                          size: 16, color: AppColors.textSecondary),
+                      const Icon(
+                        LucideIcons.arrowLeft,
+                        size: 16,
+                        color: AppColors.textSecondary,
+                      ),
                       const SizedBox(width: AppSpacing.sm),
                       Text('Nazad', style: AppTextStyles.buttonMd),
                     ],

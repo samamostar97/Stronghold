@@ -13,20 +13,33 @@ class DatePickerField extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.includeTime = false,
+    this.firstDate,
+    this.lastDate,
   });
 
   final String label;
   final DateTime? value;
   final ValueChanged<DateTime> onChanged;
   final bool includeTime;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
 
   Future<void> _pick(BuildContext context) async {
     final theme = _pickerTheme(context);
+    final minDate = firstDate ?? DateTime(2020);
+    final maxDate = lastDate ?? DateTime(2035);
+    var initialDate = value ?? DateTime.now();
+    if (initialDate.isBefore(minDate)) {
+      initialDate = minDate;
+    } else if (initialDate.isAfter(maxDate)) {
+      initialDate = maxDate;
+    }
+
     final date = await showDatePicker(
       context: context,
-      initialDate: value ?? DateTime.now(),
-      firstDate: DateTime(2020),
-      lastDate: DateTime(2035),
+      initialDate: initialDate,
+      firstDate: minDate,
+      lastDate: maxDate,
       builder: (ctx, child) => Theme(data: theme, child: child!),
     );
     if (date == null || !context.mounted) return;

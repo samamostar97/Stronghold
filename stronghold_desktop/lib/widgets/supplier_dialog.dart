@@ -5,15 +5,12 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../utils/error_handler.dart';
+import '../utils/validators.dart';
 import 'dialog_text_field.dart';
 
 /// Add / Edit dialog for suppliers. Pass [initial] to edit.
 class SupplierDialog extends StatefulWidget {
-  const SupplierDialog({
-    super.key,
-    this.initial,
-    required this.onSave,
-  });
+  const SupplierDialog({super.key, this.initial, required this.onSave});
 
   final SupplierResponse? initial;
   final Future<void> Function(String name, String? website) onSave;
@@ -53,8 +50,9 @@ class _SupplierDialogState extends State<SupplierDialog> {
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(
-            ErrorHandler.getContextualMessage(e, 'supplier'));
+        Navigator.of(
+          context,
+        ).pop(ErrorHandler.getContextualMessage(e, 'supplier'));
       }
     }
   }
@@ -64,7 +62,8 @@ class _SupplierDialogState extends State<SupplierDialog> {
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Padding(
@@ -75,27 +74,35 @@ class _SupplierDialogState extends State<SupplierDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(children: [
-                  Expanded(child: Text(
-                      _isEdit ? 'Izmijeni dobavljaca' : 'Dodaj dobavljaca',
-                      style: AppTextStyles.headingMd)),
-                  IconButton(
-                    icon: Icon(LucideIcons.x,
-                        color: AppColors.textMuted, size: 20),
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
-                ]),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _isEdit ? 'Izmijeni dobavljaca' : 'Dodaj dobavljaca',
+                        style: AppTextStyles.headingMd,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        LucideIcons.x,
+                        color: AppColors.textMuted,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 DialogTextField(
                   controller: _name,
                   label: 'Naziv',
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Obavezno polje' : null,
+                  validator: (v) => Validators.stringLength(v, 2, 50),
                 ),
                 const SizedBox(height: AppSpacing.lg),
                 DialogTextField(
                   controller: _website,
                   label: 'Web stranica (opcionalno)',
+                  validator: (v) => Validators.website(v, required: false),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 Row(
@@ -105,9 +112,12 @@ class _SupplierDialogState extends State<SupplierDialog> {
                       onPressed: _saving
                           ? null
                           : () => Navigator.of(context).pop(false),
-                      child: Text('Odustani',
-                          style: AppTextStyles.bodyMd
-                              .copyWith(color: AppColors.textMuted)),
+                      child: Text(
+                        'Odustani',
+                        style: AppTextStyles.bodyMd.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.md),
                     ElevatedButton(
@@ -116,20 +126,30 @@ class _SupplierDialogState extends State<SupplierDialog> {
                         backgroundColor: AppColors.primary,
                         foregroundColor: AppColors.background,
                         shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(AppSpacing.radiusSm)),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
+                        ),
                         padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.xxl,
-                            vertical: AppSpacing.md),
+                          horizontal: AppSpacing.xxl,
+                          vertical: AppSpacing.md,
+                        ),
                       ),
                       child: _saving
                           ? const SizedBox(
-                              width: 20, height: 20,
+                              width: 20,
+                              height: 20,
                               child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: AppColors.background))
-                          : Text('Spremi',
-                              style: AppTextStyles.bodyBold
-                                  .copyWith(color: AppColors.background)),
+                                strokeWidth: 2,
+                                color: AppColors.background,
+                              ),
+                            )
+                          : Text(
+                              'Spremi',
+                              style: AppTextStyles.bodyBold.copyWith(
+                                color: AppColors.background,
+                              ),
+                            ),
                     ),
                   ],
                 ),

@@ -1,3 +1,5 @@
+import 'package:stronghold_core/stronghold_core.dart';
+
 class MembershipPayment {
   final int id;
   final String packageName;
@@ -20,9 +22,11 @@ class MembershipPayment {
       id: json['id'] as int,
       packageName: json['packageName'] as String,
       amountPaid: (json['amountPaid'] as num).toDouble(),
-      paymentDate: DateTime.parse(json['paymentDate'] as String),
-      startDate: DateTime.parse(json['startDate'] as String),
-      endDate: DateTime.parse(json['endDate'] as String),
+      paymentDate: DateTimeUtils.parseApiDateTime(
+        json['paymentDate'] as String,
+      ),
+      startDate: DateTimeUtils.parseApiDateTime(json['startDate'] as String),
+      endDate: DateTimeUtils.parseApiDateTime(json['endDate'] as String),
     );
   }
 

@@ -114,8 +114,11 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           label: 'Ulica i broj',
                           hint: 'npr. Marsala Tita 25',
                           icon: LucideIcons.mapPin,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Unesite ulicu' : null,
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? 'Unesite ulicu'
+                              : (v.trim().length > 200
+                                    ? 'Ulica moze imati najvise 200 karaktera'
+                                    : null),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _field(
@@ -123,8 +126,11 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           label: 'Grad',
                           hint: 'npr. Sarajevo',
                           icon: LucideIcons.building2,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Unesite grad' : null,
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? 'Unesite grad'
+                              : (v.trim().length > 100
+                                    ? 'Grad moze imati najvise 100 karaktera'
+                                    : null),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _field(
@@ -133,8 +139,11 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           hint: 'npr. 71000',
                           icon: LucideIcons.hash,
                           keyboardType: TextInputType.number,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Unesite postanski broj' : null,
+                          validator: (v) => v == null || v.trim().isEmpty
+                              ? 'Unesite postanski broj'
+                              : (v.trim().length > 20
+                                    ? 'Postanski broj moze imati najvise 20 karaktera'
+                                    : null),
                         ),
                       ],
                     ),
@@ -149,21 +158,32 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           height: 40,
                           decoration: BoxDecoration(
                             color: AppColors.primaryDim,
-                            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusMd,
+                            ),
                           ),
-                          child: const Icon(LucideIcons.globe,
-                              size: 18, color: AppColors.primary),
+                          child: const Icon(
+                            LucideIcons.globe,
+                            size: 18,
+                            color: AppColors.primary,
+                          ),
                         ),
                         const SizedBox(width: AppSpacing.lg),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text('Drzava', style: AppTextStyles.bodySm
-                                  .copyWith(color: AppColors.textMuted)),
+                              Text(
+                                'Drzava',
+                                style: AppTextStyles.bodySm.copyWith(
+                                  color: AppColors.textMuted,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text('Bosna i Hercegovina',
-                                  style: AppTextStyles.bodyBold),
+                              Text(
+                                'Bosna i Hercegovina',
+                                style: AppTextStyles.bodyBold,
+                              ),
                             ],
                           ),
                         ),
@@ -172,7 +192,9 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xxl),
                   GradientButton(
-                    label: existing != null ? 'Sacuvaj izmjene' : 'Dodaj adresu',
+                    label: existing != null
+                        ? 'Sacuvaj izmjene'
+                        : 'Dodaj adresu',
                     onPressed: _isLoading ? null : _save,
                     isLoading: _isLoading,
                   ),
@@ -196,8 +218,10 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-            style: AppTextStyles.bodySm.copyWith(color: AppColors.textMuted)),
+        Text(
+          label,
+          style: AppTextStyles.bodySm.copyWith(color: AppColors.textMuted),
+        ),
         const SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,

@@ -40,13 +40,11 @@ class UserPaymentsParams {
   int get hashCode => userId.hashCode ^ filter.pageNumber.hashCode ^ filter.pageSize.hashCode;
 }
 
-/// Check if a user has active membership (any payment with endDate > now)
+/// Check if a user has active membership using backend membership status source.
 final userHasActiveMembershipProvider = FutureProvider.family<bool, int>((ref, userId) async {
   final service = ref.watch(membershipServiceProvider);
   try {
-    final result = await service.getPayments(userId, MembershipQueryFilter(pageSize: 10));
-    final now = DateTime.now();
-    return result.items.any((payment) => payment.endDate.isAfter(now));
+    return await service.hasActiveMembership(userId);
   } catch (_) {
     return false;
   }

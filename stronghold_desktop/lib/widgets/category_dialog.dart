@@ -7,6 +7,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/supplement_category_provider.dart';
 import '../utils/error_handler.dart';
+import '../utils/validators.dart';
 import 'dialog_text_field.dart';
 
 /// Add / Edit dialog for categories. Pass [initial] to edit.
@@ -43,17 +44,21 @@ class _CategoryDialogState extends ConsumerState<CategoryDialog> {
     try {
       final svc = ref.read(supplementCategoryServiceProvider);
       if (_isEdit) {
-        await svc.update(widget.initial!.id,
-            UpdateSupplementCategoryRequest(name: _name.text.trim()));
+        await svc.update(
+          widget.initial!.id,
+          UpdateSupplementCategoryRequest(name: _name.text.trim()),
+        );
       } else {
         await svc.create(
-            CreateSupplementCategoryRequest(name: _name.text.trim()));
+          CreateSupplementCategoryRequest(name: _name.text.trim()),
+        );
       }
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
-        Navigator.of(context).pop(
-            ErrorHandler.getContextualMessage(e, 'category'));
+        Navigator.of(
+          context,
+        ).pop(ErrorHandler.getContextualMessage(e, 'category'));
       }
     }
   }
@@ -63,7 +68,8 @@ class _CategoryDialogState extends ConsumerState<CategoryDialog> {
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 500),
         child: Padding(
@@ -79,8 +85,7 @@ class _CategoryDialogState extends ConsumerState<CategoryDialog> {
                 DialogTextField(
                   controller: _name,
                   label: 'Naziv',
-                  validator: (v) =>
-                      v == null || v.isEmpty ? 'Obavezno polje' : null,
+                  validator: (v) => Validators.stringLength(v, 2, 100),
                 ),
                 const SizedBox(height: AppSpacing.xxl),
                 _actions(),
@@ -92,42 +97,61 @@ class _CategoryDialogState extends ConsumerState<CategoryDialog> {
     );
   }
 
-  Widget _header() => Row(children: [
-        Expanded(child: Text(
-            _isEdit ? 'Izmijeni kategoriju' : 'Dodaj kategoriju',
-            style: AppTextStyles.headingMd)),
-        IconButton(
-          icon: Icon(LucideIcons.x, color: AppColors.textMuted, size: 20),
-          onPressed: () => Navigator.of(context).pop(false),
+  Widget _header() => Row(
+    children: [
+      Expanded(
+        child: Text(
+          _isEdit ? 'Izmijeni kategoriju' : 'Dodaj kategoriju',
+          style: AppTextStyles.headingMd,
         ),
-      ]);
+      ),
+      IconButton(
+        icon: Icon(LucideIcons.x, color: AppColors.textMuted, size: 20),
+        onPressed: () => Navigator.of(context).pop(false),
+      ),
+    ],
+  );
 
   Widget _actions() => Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: _saving ? null : () => Navigator.of(context).pop(false),
-            child: Text('Odustani',
-                style: AppTextStyles.bodyMd.copyWith(color: AppColors.textMuted)),
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      TextButton(
+        onPressed: _saving ? null : () => Navigator.of(context).pop(false),
+        child: Text(
+          'Odustani',
+          style: AppTextStyles.bodyMd.copyWith(color: AppColors.textMuted),
+        ),
+      ),
+      const SizedBox(width: AppSpacing.md),
+      ElevatedButton(
+        onPressed: _saving ? null : _save,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.background,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
           ),
-          const SizedBox(width: AppSpacing.md),
-          ElevatedButton(
-            onPressed: _saving ? null : _save,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.background,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm)),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xxl, vertical: AppSpacing.md),
-            ),
-            child: _saving
-                ? const SizedBox(width: 20, height: 20,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.background))
-                : Text('Spremi', style: AppTextStyles.bodyBold
-                    .copyWith(color: AppColors.background)),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xxl,
+            vertical: AppSpacing.md,
           ),
-        ],
-      );
+        ),
+        child: _saving
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.background,
+                ),
+              )
+            : Text(
+                'Spremi',
+                style: AppTextStyles.bodyBold.copyWith(
+                  color: AppColors.background,
+                ),
+              ),
+      ),
+    ],
+  );
 }

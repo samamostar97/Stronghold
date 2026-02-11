@@ -35,6 +35,9 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
   }
 
   Future<void> _submit() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     if (_selectedPackage == null) {
       setState(() => _error = 'Molimo odaberite vrstu clanarine');
       return;
@@ -45,6 +48,10 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
     }
     if (_endDate == null) {
       setState(() => _error = 'Molimo odaberite kraj clanarine');
+      return;
+    }
+    if (_startDate!.isBefore(today)) {
+      setState(() => _error = 'Pocetak clanarine ne moze biti u proslosti');
       return;
     }
     if (_endDate!.isBefore(_startDate!)) {
@@ -58,14 +65,16 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
     try {
       await ref
           .read(membershipOperationsProvider.notifier)
-          .assignMembership(AssignMembershipRequest(
-            userId: widget.user.id,
-            membershipPackageId: _selectedPackage!.id,
-            amountPaid: _selectedPackage!.packagePrice,
-            paymentDate: _startDate!,
-            startDate: _startDate!,
-            endDate: _endDate!,
-          ));
+          .assignMembership(
+            AssignMembershipRequest(
+              userId: widget.user.id,
+              membershipPackageId: _selectedPackage!.id,
+              amountPaid: _selectedPackage!.packagePrice,
+              paymentDate: _startDate!,
+              startDate: _startDate!,
+              endDate: _endDate!,
+            ),
+          );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
@@ -83,7 +92,8 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
     return Dialog(
       backgroundColor: AppColors.surfaceSolid,
       shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl)),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+      ),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 450),
         child: Padding(
@@ -93,19 +103,29 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Row(children: [
-                  Expanded(
-                      child:
-                          Text('Dodaj uplatu', style: AppTextStyles.headingMd)),
-                  IconButton(
-                    icon: Icon(LucideIcons.x,
-                        color: AppColors.textMuted, size: 20),
-                    onPressed: () => Navigator.of(context).pop(false),
-                  ),
-                ]),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Dodaj uplatu',
+                        style: AppTextStyles.headingMd,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        LucideIcons.x,
+                        color: AppColors.textMuted,
+                        size: 20,
+                      ),
+                      onPressed: () => Navigator.of(context).pop(false),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: AppSpacing.xs),
-                Text('Unesite detalje nove uplate za clana',
-                    style: AppTextStyles.bodyMd),
+                Text(
+                  'Unesite detalje nove uplate za clana',
+                  style: AppTextStyles.bodyMd,
+                ),
                 const SizedBox(height: AppSpacing.xl),
                 _userCard(),
                 const SizedBox(height: AppSpacing.xl),
@@ -119,23 +139,31 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
   }
 
   Widget _userCard() => Container(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+    padding: const EdgeInsets.all(AppSpacing.lg),
+    decoration: BoxDecoration(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '${widget.user.firstName} ${widget.user.lastName}',
+          style: AppTextStyles.bodyBold.copyWith(fontSize: 16),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${widget.user.firstName} ${widget.user.lastName}',
-                style: AppTextStyles.bodyBold.copyWith(fontSize: 16)),
-            const SizedBox(height: AppSpacing.xs),
-            Text('@${widget.user.username}', style: AppTextStyles.bodySm),
-          ],
-        ),
-      );
+        const SizedBox(height: AppSpacing.xs),
+        Text('@${widget.user.username}', style: AppTextStyles.bodySm),
+      ],
+    ),
+  );
 
-  Widget _buildForm(ListState<MembershipPackageResponse, MembershipPackageQueryFilter> packagesState) {
+  Widget _buildForm(
+    ListState<MembershipPackageResponse, MembershipPackageQueryFilter>
+    packagesState,
+  ) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     if (packagesState.isLoading) {
       return const Center(
         child: Padding(
@@ -148,13 +176,14 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Text('Greska: ${packagesState.error}',
-              style: AppTextStyles.bodyMd.copyWith(color: AppColors.error)),
+          child: Text(
+            'Greska: ${packagesState.error}',
+            style: AppTextStyles.bodyMd.copyWith(color: AppColors.error),
+          ),
         ),
       );
     }
-    final packages =
-        packagesState.data?.items ?? <MembershipPackageResponse>[];
+    final packages = packagesState.data?.items ?? <MembershipPackageResponse>[];
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -174,15 +203,18 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
               isExpanded: true,
               dropdownColor: AppColors.surfaceSolid,
               items: packages
-                  .map((pkg) => DropdownMenuItem(
-                        value: pkg,
-                        child: Text(
-                          '${pkg.packageName ?? 'N/A'} - ${pkg.packagePrice.toStringAsFixed(2)} KM',
-                          style: AppTextStyles.bodyBold
-                              .copyWith(color: AppColors.textPrimary),
-                          overflow: TextOverflow.ellipsis,
+                  .map(
+                    (pkg) => DropdownMenuItem(
+                      value: pkg,
+                      child: Text(
+                        '${pkg.packageName ?? 'N/A'} - ${pkg.packagePrice.toStringAsFixed(2)} KM',
+                        style: AppTextStyles.bodyBold.copyWith(
+                          color: AppColors.textPrimary,
                         ),
-                      ))
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  )
                   .toList(),
               onChanged: (v) => setState(() => _selectedPackage = v),
             ),
@@ -192,12 +224,19 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
         DatePickerField(
           label: 'Pocetak clanarine',
           value: _startDate,
-          onChanged: (d) => setState(() => _startDate = d),
+          firstDate: today,
+          onChanged: (d) => setState(() {
+            _startDate = d;
+            if (_endDate != null && _endDate!.isBefore(d)) {
+              _endDate = d;
+            }
+          }),
         ),
         const SizedBox(height: AppSpacing.xl),
         DatePickerField(
           label: 'Kraj clanarine',
           value: _endDate,
+          firstDate: _startDate ?? today,
           onChanged: (d) => setState(() => _endDate = d),
         ),
         const SizedBox(height: AppSpacing.xl),
@@ -207,18 +246,22 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
             decoration: BoxDecoration(
               color: AppColors.errorDim,
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-              border:
-                  Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
             ),
-            child: Row(children: [
-              Icon(LucideIcons.alertCircle, color: AppColors.error, size: 20),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(_error!,
-                    style:
-                        AppTextStyles.bodySm.copyWith(color: AppColors.error)),
-              ),
-            ]),
+            child: Row(
+              children: [
+                Icon(LucideIcons.alertCircle, color: AppColors.error, size: 20),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    _error!,
+                    style: AppTextStyles.bodySm.copyWith(
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
         ],
@@ -231,17 +274,24 @@ class _State extends ConsumerState<MembershipPaymentDialog> {
               foregroundColor: AppColors.background,
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm)),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
             ),
             child: _saving
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: AppColors.background))
-                : Text('Dodaj uplatu',
-                    style: AppTextStyles.bodyBold
-                        .copyWith(color: AppColors.background)),
+                      strokeWidth: 2,
+                      color: AppColors.background,
+                    ),
+                  )
+                : Text(
+                    'Dodaj uplatu',
+                    style: AppTextStyles.bodyBold.copyWith(
+                      color: AppColors.background,
+                    ),
+                  ),
           ),
         ),
       ],
