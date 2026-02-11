@@ -4,6 +4,7 @@ using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.Filters;
 using Stronghold.Application.IServices;
+using Stronghold.Infrastructure.Common;
 
 namespace Stronghold.API.Controllers
 {
@@ -58,7 +59,7 @@ namespace Stronghold.API.Controllers
         public async Task<IActionResult> ExportToExcel()
         {
             var fileBytes = await _reportsService.ExportToExcelAsync();
-            var fileName = $"Stronghold_Izvjestaj_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            var fileName = $"Stronghold_Izvjestaj_{DateTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
@@ -66,7 +67,7 @@ namespace Stronghold.API.Controllers
         public async Task<IActionResult> ExportToPdf()
         {
             var fileBytes = await _reportsService.ExportToPdfAsync();
-            var fileName = $"Stronghold_Izvjestaj_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var fileName = $"Stronghold_Izvjestaj_{DateTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
             return File(fileBytes, "application/pdf", fileName);
         }
 
@@ -74,7 +75,7 @@ namespace Stronghold.API.Controllers
         public async Task<IActionResult> ExportInventoryToExcel([FromQuery] int daysToAnalyze = 30)
         {
             var fileBytes = await _reportsService.ExportInventoryReportToExcelAsync(daysToAnalyze);
-            var fileName = $"Stronghold_Inventar_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            var fileName = $"Stronghold_Inventar_{DateTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
@@ -82,7 +83,7 @@ namespace Stronghold.API.Controllers
         public async Task<IActionResult> ExportInventoryToPdf([FromQuery] int daysToAnalyze = 30)
         {
             var fileBytes = await _reportsService.ExportInventoryReportToPdfAsync(daysToAnalyze);
-            var fileName = $"Stronghold_Inventar_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var fileName = $"Stronghold_Inventar_{DateTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
             return File(fileBytes, "application/pdf", fileName);
         }
 
@@ -90,7 +91,7 @@ namespace Stronghold.API.Controllers
         public async Task<IActionResult> ExportMembershipPopularityToExcel()
         {
             var fileBytes = await _reportsService.ExportMembershipPopularityToExcelAsync();
-            var fileName = $"Stronghold_Clanarine_{DateTime.Now:yyyyMMdd_HHmm}.xlsx";
+            var fileName = $"Stronghold_Clanarine_{DateTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
@@ -98,7 +99,7 @@ namespace Stronghold.API.Controllers
         public async Task<IActionResult> ExportMembershipPopularityToPdf()
         {
             var fileBytes = await _reportsService.ExportMembershipPopularityToPdfAsync();
-            var fileName = $"Stronghold_Clanarine_{DateTime.Now:yyyyMMdd_HHmm}.pdf";
+            var fileName = $"Stronghold_Clanarine_{DateTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
             return File(fileBytes, "application/pdf", fileName);
         }
 

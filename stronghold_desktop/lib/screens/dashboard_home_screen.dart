@@ -9,9 +9,11 @@ import '../providers/dashboard_provider.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/error_handler.dart';
 import '../widgets/dashboard_admin_activity_feed.dart';
+import '../widgets/error_animation.dart';
 import '../widgets/dashboard_sales_chart.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/shimmer_loading.dart';
+import '../widgets/success_animation.dart';
 import 'admin_dashboard_screen.dart';
 
 class DashboardHomeScreen extends ConsumerStatefulWidget {
@@ -135,29 +137,20 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
                                             )
                                             .undo(id);
                                         if (context.mounted) {
-                                          ScaffoldMessenger.of(
+                                          showSuccessAnimation(
                                             context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Undo uspjesno izvrsen.',
-                                              ),
-                                            ),
+                                            message: 'Undo uspjesno izvrsen.',
                                           );
                                         }
                                       } catch (e) {
                                         if (context.mounted) {
-                                          ScaffoldMessenger.of(
+                                          showErrorAnimation(
                                             context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
+                                            message:
                                                 ErrorHandler.getContextualMessage(
                                                   e,
                                                   'undo-admin-activity',
                                                 ),
-                                              ),
-                                            ),
                                           );
                                         }
                                       }
@@ -198,23 +191,20 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
                                       .read(adminActivityProvider.notifier)
                                       .undo(id);
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Undo uspjesno izvrsen.'),
-                                      ),
+                                    showSuccessAnimation(
+                                      context,
+                                      message: 'Undo uspjesno izvrsen.',
                                     );
                                   }
                                 } catch (e) {
                                   if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
+                                    showErrorAnimation(
+                                      context,
+                                      message:
                                           ErrorHandler.getContextualMessage(
                                             e,
                                             'undo-admin-activity',
                                           ),
-                                        ),
-                                      ),
                                     );
                                   }
                                 }

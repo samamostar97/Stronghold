@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 /// Order status enum matching backend OrderStatus
 enum OrderStatus {
   processing,
@@ -128,13 +130,13 @@ class OrderResponse {
       userEmail: (json['userEmail'] ?? '') as String,
       totalAmount: ((json['totalAmount'] ?? 0) as num).toDouble(),
       purchaseDate: json['purchaseDate'] != null
-          ? DateTime.parse(json['purchaseDate'] as String)
+          ? DateTimeUtils.parseApiDateTime(json['purchaseDate'] as String)
           : DateTime.now(),
       status: parsedStatus,
       statusName: (json['statusName'] ?? '') as String,
       stripePaymentId: json['stripePaymentId'] as String?,
       cancelledAt: json['cancelledAt'] != null
-          ? DateTime.parse(json['cancelledAt'] as String)
+          ? DateTimeUtils.parseApiDateTime(json['cancelledAt'] as String)
           : null,
       cancellationReason: json['cancellationReason'] as String?,
       orderItems: itemsList,

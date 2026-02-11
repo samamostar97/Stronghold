@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Stronghold.Application.Common;
 
 namespace Stronghold.Application.DTOs.Request;
 
@@ -18,12 +19,13 @@ public class AdminUpdateAppointmentRequest : IValidatableObject
         if (TrainerId != null && NutritionistId != null)
             yield return new ValidationResult("Termin moze biti samo kod trenera ili nutricioniste, ne oba.");
 
-        var localDate = AppointmentDate.Kind == DateTimeKind.Utc ? AppointmentDate.ToLocalTime() : AppointmentDate;
+        var localDate = StrongholdTimeUtils.ToLocal(AppointmentDate);
+        var localNow = StrongholdTimeUtils.LocalNow;
 
-        if (localDate < DateTime.Now)
+        if (localDate < localNow)
             yield return new ValidationResult("Nemoguce unijeti datum u proslosti");
 
-        if (localDate.Date == DateTime.Today)
+        if (localDate.Date == StrongholdTimeUtils.LocalToday)
             yield return new ValidationResult("Nemoguce napraviti termin na isti dan");
 
         if (localDate.Hour < 9 || localDate.Hour >= 17)

@@ -121,7 +121,8 @@ class _ActivityRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canUndo = item.canUndo && !item.isUndone;
-    final remaining = item.undoAvailableUntil.difference(DateTime.now());
+    final remaining =
+        DateTimeUtils.toLocal(item.undoAvailableUntil).difference(DateTime.now());
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -211,12 +212,13 @@ class _ActivityRow extends StatelessWidget {
   }
 
   static String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
+    final localDt = DateTimeUtils.toLocal(dt);
+    final diff = DateTime.now().difference(localDt);
     if (diff.inMinutes < 1) return 'upravo sada';
     if (diff.inMinutes < 60) return 'prije ${diff.inMinutes} min';
     if (diff.inHours < 24) return 'prije ${diff.inHours}h';
     if (diff.inDays < 7) return 'prije ${diff.inDays}d';
-    return '${dt.day}.${dt.month}.${dt.year}';
+    return '${localDt.day}.${localDt.month}.${localDt.year}';
   }
 }
 

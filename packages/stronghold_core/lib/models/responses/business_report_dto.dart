@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 class BestSellerDTO {
   final int supplementId;
   final String name;
@@ -69,7 +71,7 @@ class DailySalesDTO {
 
   factory DailySalesDTO.fromJson(Map<String, dynamic> json) {
     return DailySalesDTO(
-      date: DateTime.parse(json['date'] as String),
+      date: DateTimeUtils.parseApiDateTime(json['date'] as String),
       revenue: (json['revenue'] ?? 0) as num,
       orderCount: (json['orderCount'] ?? 0) as int,
     );
@@ -119,7 +121,7 @@ class ActivityFeedItemDTO {
     return ActivityFeedItemDTO(
       type: (json['type'] ?? '') as String,
       description: (json['description'] ?? '') as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
+      timestamp: DateTimeUtils.parseApiDateTime(json['timestamp'] as String),
       userName: json['userName'] as String?,
     );
   }

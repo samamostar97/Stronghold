@@ -7,6 +7,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Infrastructure.Common;
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -123,9 +124,9 @@ namespace Stronghold.Infrastructure.Services
             const int workStartHour = 9;
             const int workEndHour = 17;
 
-            var localDate = date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date;
+            var localDate = DateTimeUtils.ToLocal(date);
             var targetDate = localDate.Date;
-            if (targetDate <= DateTime.Today)
+            if (targetDate <= DateTimeUtils.LocalToday)
             {
                 return Enumerable.Empty<int>();
             }
@@ -152,10 +153,10 @@ namespace Stronghold.Infrastructure.Services
 
         private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
         {
-            var localDate = date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date;
+            var localDate = DateTimeUtils.ToLocal(date);
 
-            if (localDate < DateTime.Now) throw new ArgumentException("Nemoguce unijeti datum u proslosti");
-            if (localDate.Date == DateTime.Today) throw new ArgumentException("Nemoguce napraviti termin na isti dan");
+            if (localDate < DateTimeUtils.LocalNow) throw new ArgumentException("Nemoguce unijeti datum u proslosti");
+            if (localDate.Date == DateTimeUtils.LocalToday) throw new ArgumentException("Nemoguce napraviti termin na isti dan");
             if (localDate.Hour < 9 || localDate.Hour >= 17) throw new ArgumentException("Termini su moguci samo izmedju 9:00 i 17:00");
             if (localDate.Minute != 0 || localDate.Second != 0 || localDate.Millisecond != 0)
                 throw new ArgumentException("Termin mora biti unesen na puni sat.");

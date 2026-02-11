@@ -110,7 +110,7 @@ class NotificationPopup extends StatelessWidget {
                   shrinkWrap: true,
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                   itemCount: notifications.length,
-                  separatorBuilder: (_, __) =>
+                  separatorBuilder: (_, _) =>
                       const Divider(color: AppColors.border, height: 1),
                   itemBuilder: (_, i) => _NotificationTile(
                     notification: notifications[i],
@@ -162,12 +162,13 @@ class _NotificationTile extends StatelessWidget {
   }
 
   String _timeAgo(DateTime dt) {
-    final diff = DateTime.now().difference(dt);
+    final localDt = DateTimeUtils.toLocal(dt);
+    final diff = DateTime.now().difference(localDt);
     if (diff.inMinutes < 1) return 'Upravo';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m';
     if (diff.inHours < 24) return '${diff.inHours}h';
     if (diff.inDays < 7) return '${diff.inDays}d';
-    return DateFormat('dd.MM.').format(dt);
+    return DateFormat('dd.MM.').format(localDt);
   }
 
   @override

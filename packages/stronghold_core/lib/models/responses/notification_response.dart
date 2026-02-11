@@ -1,3 +1,5 @@
+import '../common/date_time_utils.dart';
+
 /// Matches backend NotificationResponse
 class NotificationDTO {
   final int id;
@@ -28,7 +30,7 @@ class NotificationDTO {
       message: (json['message'] ?? '') as String,
       isRead: (json['isRead'] ?? false) as bool,
       createdAt: json['createdAt'] != null
-          ? DateTime.parse(json['createdAt'] as String)
+          ? DateTimeUtils.parseApiDateTime(json['createdAt'] as String)
           : DateTime.now(),
       relatedEntityId: json['relatedEntityId'] as int?,
       relatedEntityType: json['relatedEntityType'] as String?,

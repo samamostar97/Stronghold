@@ -50,7 +50,7 @@ public class MembershipExpiryNotificationService : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-        var today = DateTimeUtils.UtcToday;
+        var today = DateTimeUtils.LocalToday;
         var in1Day = today.AddDays(1);
         var in3Days = today.AddDays(3);
 

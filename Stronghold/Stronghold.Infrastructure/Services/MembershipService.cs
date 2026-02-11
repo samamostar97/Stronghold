@@ -193,7 +193,7 @@ namespace Stronghold.Infrastructure.Services
             var normalizedEndDate = DateTimeUtils.ToUtcDate(request.EndDate);
             var normalizedPaymentDate = DateTimeUtils.ToUtcDate(request.PaymentDate);
 
-            if (normalizedStartDate < DateTimeUtils.UtcToday)
+            if (normalizedStartDate.Date < DateTimeUtils.LocalToday.Date)
             {
                 throw new ArgumentException("Nemoguce unijeti datum u proslosti");
             }
