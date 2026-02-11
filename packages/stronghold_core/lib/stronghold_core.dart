@@ -60,6 +60,7 @@ export 'models/requests/admin_update_appointment_request.dart';
 
 // Responses
 export 'models/responses/active_member_response.dart';
+export 'models/responses/admin_activity_response.dart';
 export 'models/responses/address_response.dart';
 export 'models/responses/business_report_dto.dart';
 export 'models/responses/current_visitor_response.dart';
@@ -82,6 +83,7 @@ export 'models/responses/user_response.dart';
 
 // Services
 export 'services/crud_service.dart';
+export 'services/admin_activity_service.dart';
 export 'services/auth_service.dart';
 export 'services/faq_service.dart';
 export 'services/leaderboard_service.dart';

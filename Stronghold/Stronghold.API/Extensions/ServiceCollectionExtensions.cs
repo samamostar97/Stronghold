@@ -56,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAddressService, AddressService>();
+        services.AddScoped<IAdminActivityService, AdminActivityService>();
 
         // File storage
         services.AddScoped<IFileStorageService>(sp =>

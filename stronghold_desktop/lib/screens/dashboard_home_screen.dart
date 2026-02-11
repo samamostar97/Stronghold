@@ -4,9 +4,11 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../providers/admin_activity_provider.dart';
 import '../providers/dashboard_provider.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../widgets/dashboard_activity_feed.dart';
+import '../utils/error_handler.dart';
+import '../widgets/dashboard_admin_activity_feed.dart';
 import '../widgets/dashboard_sales_chart.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/shimmer_loading.dart';
@@ -26,12 +28,16 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(dashboardProvider.notifier).load());
+    Future.microtask(() {
+      ref.read(dashboardProvider.notifier).load();
+      ref.read(adminActivityProvider.notifier).load();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(dashboardProvider);
+    final adminActivityState = ref.watch(adminActivityProvider);
 
     if (state.isLoading && state.businessReport == null) {
       return const ShimmerDashboard();
@@ -44,8 +50,11 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
           children: [
             Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
             const SizedBox(height: AppSpacing.sm),
-            Text(state.error!, style: AppTextStyles.bodyMd,
-                textAlign: TextAlign.center),
+            Text(
+              state.error!,
+              style: AppTextStyles.bodyMd,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: AppSpacing.lg),
             GradientButton(
               text: 'Pokusaj ponovo',
@@ -61,11 +70,18 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final w = constraints.maxWidth;
-        final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
+        final pad = w > 1200
+            ? 40.0
+            : w > 800
+            ? 24.0
+            : 16.0;
         final wide = w >= 900;
 
         return Padding(
-          padding: EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
+          padding: EdgeInsets.symmetric(
+            horizontal: pad,
+            vertical: AppSpacing.xl,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -102,8 +118,50 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
                                 const SizedBox(height: AppSpacing.lg),
                                 Expanded(
                                   flex: 2,
-                                  child: DashboardActivityFeed(
-                                    items: state.activityFeed,
+                                  child: DashboardAdminActivityFeed(
+                                    items: adminActivityState.items,
+                                    isLoading: adminActivityState.isLoading,
+                                    undoInProgressIds:
+                                        adminActivityState.undoInProgressIds,
+                                    error: adminActivityState.error,
+                                    onRetry: () => ref
+                                        .read(adminActivityProvider.notifier)
+                                        .load(),
+                                    onUndo: (id) async {
+                                      try {
+                                        await ref
+                                            .read(
+                                              adminActivityProvider.notifier,
+                                            )
+                                            .undo(id);
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Undo uspjesno izvrsen.',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      } catch (e) {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                ErrorHandler.getContextualMessage(
+                                                  e,
+                                                  'undo-admin-activity',
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    },
                                     expand: true,
                                   ),
                                 ),
@@ -122,13 +180,45 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
                             ),
                           ),
                           const SizedBox(height: AppSpacing.lg),
-                          _TodaySalesCard(
-                            breakdown: report?.revenueBreakdown,
-                          ),
+                          _TodaySalesCard(breakdown: report?.revenueBreakdown),
                           const SizedBox(height: AppSpacing.lg),
                           Expanded(
-                            child: DashboardActivityFeed(
-                              items: state.activityFeed,
+                            child: DashboardAdminActivityFeed(
+                              items: adminActivityState.items,
+                              isLoading: adminActivityState.isLoading,
+                              undoInProgressIds:
+                                  adminActivityState.undoInProgressIds,
+                              error: adminActivityState.error,
+                              onRetry: () => ref
+                                  .read(adminActivityProvider.notifier)
+                                  .load(),
+                              onUndo: (id) async {
+                                try {
+                                  await ref
+                                      .read(adminActivityProvider.notifier)
+                                      .undo(id);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Undo uspjesno izvrsen.'),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          ErrorHandler.getContextualMessage(
+                                            e,
+                                            'undo-admin-activity',
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
                               expand: true,
                             ),
                           ),
@@ -197,17 +287,21 @@ class _QuickActionsBar extends StatelessWidget {
         }
         return Column(
           children: [
-            Row(children: [
-              Expanded(child: actions[0]),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(child: actions[1]),
-            ]),
+            Row(
+              children: [
+                Expanded(child: actions[0]),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(child: actions[1]),
+              ],
+            ),
             const SizedBox(height: AppSpacing.lg),
-            Row(children: [
-              Expanded(child: actions[2]),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(child: gym),
-            ]),
+            Row(
+              children: [
+                Expanded(child: actions[2]),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(child: gym),
+              ],
+            ),
           ],
         );
       },
@@ -300,10 +394,7 @@ class _ActionCardState extends State<_ActionCard> {
 }
 
 class _GymOccupancyCard extends StatefulWidget {
-  const _GymOccupancyCard({
-    required this.count,
-    required this.onTap,
-  });
+  const _GymOccupancyCard({required this.count, required this.onTap});
 
   final int count;
   final VoidCallback onTap;
@@ -357,8 +448,11 @@ class _GymOccupancyCardState extends State<_GymOccupancyCard> {
                   color: AppColors.accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                 ),
-                child:
-                    Icon(LucideIcons.users, color: AppColors.accent, size: 20),
+                child: Icon(
+                  LucideIcons.users,
+                  color: AppColors.accent,
+                  size: 20,
+                ),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
@@ -412,72 +506,79 @@ class _TodaySalesCard extends StatelessWidget {
         child: SizedBox(
           width: 295,
           child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(LucideIcons.banknote,
-                    color: AppColors.success, size: 18),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child:
-                    Text('Prodaja danas', style: AppTextStyles.headingSm),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${revenue.toStringAsFixed(2)} KM',
-                      style: AppTextStyles.stat.copyWith(
-                        color: AppColors.success,
-                      ),
-                    ),
-                    Text('$orders narudzbi', style: AppTextStyles.caption),
-                  ],
-                ),
-              ),
-              Flexible(
-                child: FittedBox(
-                  fit: BoxFit.scaleDown,
-                  alignment: Alignment.centerRight,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs,
-                    ),
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                      color: AppColors.success.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                     ),
+                    child: Icon(
+                      LucideIcons.banknote,
+                      color: AppColors.success,
+                      size: 18,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
                     child: Text(
-                      'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
+                      'Prodaja danas',
+                      style: AppTextStyles.headingSm,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${revenue.toStringAsFixed(2)} KM',
+                          style: AppTextStyles.stat.copyWith(
+                            color: AppColors.success,
+                          ),
+                        ),
+                        Text('$orders narudzbi', style: AppTextStyles.caption),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.xs,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
+                        ),
+                        child: Text(
+                          'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
         ),
       ),
     );

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
 using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Request;
 using Stronghold.Application.DTOs.Response;
@@ -97,6 +99,18 @@ namespace Stronghold.API.Controllers
             if (User.IsInRole("Admin"))
             {
                 await _service.DeleteAsync(id);
+
+                var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
+                var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
+                if (activityService != null)
+                {
+                    await activityService.LogDeleteAsync(
+                        userId.Value,
+                        adminUsername,
+                        nameof(Review),
+                        id);
+                }
+
                 return NoContent();
             }
 

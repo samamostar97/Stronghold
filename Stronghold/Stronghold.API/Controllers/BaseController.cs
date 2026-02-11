@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
@@ -61,6 +63,24 @@ namespace Stronghold.API.Controllers
         public virtual async Task<IActionResult> Delete(TKey id)
         {
             await _service.DeleteAsync(id);
+
+            if (User.IsInRole("Admin") && id is int entityId)
+            {
+                var adminUserId = GetCurrentUserId();
+                if (adminUserId.HasValue)
+                {
+                    var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
+                    var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
+                    if (activityService != null)
+                    {
+                        await activityService.LogDeleteAsync(
+                            adminUserId.Value,
+                            adminUsername,
+                            typeof(T).Name,
+                            entityId);
+                    }
+                }
+            }
 
             return NoContent();
         }

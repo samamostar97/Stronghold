@@ -55,6 +55,10 @@ public static class StrongholdDbContextDataSeed
         context.Notifications.RemoveRange(notifications);
         await context.SaveChangesAsync();
 
+        var adminActivityLogs = await context.AdminActivityLogs.IgnoreQueryFilters().ToListAsync();
+        context.AdminActivityLogs.RemoveRange(adminActivityLogs);
+        await context.SaveChangesAsync();
+
         var users = await context.Users.IgnoreQueryFilters().ToListAsync();
         context.Users.RemoveRange(users);
         await context.SaveChangesAsync();

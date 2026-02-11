@@ -150,6 +150,7 @@ class ErrorHandler {
       'create-appointment': 'Dodavanje termina nije uspjelo.',
       'update-appointment': 'Izmjena termina nije uspjela.',
       'delete-appointment': 'Brisanje termina nije uspjelo.',
+      'undo-admin-activity': 'Undo aktivnosti nije uspio.',
     };
 
     // Check for specific error types and provide more context
@@ -182,15 +183,27 @@ class ErrorHandler {
     // Common validation error patterns
     final patterns = [
       // Pattern: "Name" must be at least X characters
-      RegExp(r'"?(\w+)"?\s+must be at least (\d+) characters?', caseSensitive: false),
+      RegExp(
+        r'"?(\w+)"?\s+must be at least (\d+) characters?',
+        caseSensitive: false,
+      ),
       // Pattern: "Name" is too short (minimum X characters)
-      RegExp(r'"?(\w+)"?\s+is too short.*?minimum[:\s]+(\d+)', caseSensitive: false),
+      RegExp(
+        r'"?(\w+)"?\s+is too short.*?minimum[:\s]+(\d+)',
+        caseSensitive: false,
+      ),
       // Pattern: Field must not be empty
-      RegExp(r'"?(\w+)"?\s+(must not be empty|is required)', caseSensitive: false),
+      RegExp(
+        r'"?(\w+)"?\s+(must not be empty|is required)',
+        caseSensitive: false,
+      ),
       // Pattern: Invalid format
       RegExp(r'"?(\w+)"?\s+has invalid format', caseSensitive: false),
       // Pattern: Value is too long
-      RegExp(r'"?(\w+)"?\s+must be at most (\d+) characters?', caseSensitive: false),
+      RegExp(
+        r'"?(\w+)"?\s+must be at most (\d+) characters?',
+        caseSensitive: false,
+      ),
     ];
 
     for (var pattern in patterns) {
@@ -212,7 +225,8 @@ class ErrorHandler {
           'speakername': 'Voditelj',
         };
 
-        final translatedField = fieldTranslations[fieldName?.toLowerCase()] ?? fieldName;
+        final translatedField =
+            fieldTranslations[fieldName?.toLowerCase()] ?? fieldName;
 
         // Build appropriate message
         if (match.group(2) != null) {
@@ -224,7 +238,7 @@ class ErrorHandler {
             return '$translatedField može imati maksimalno $number znakova.';
           }
         } else if (errorString.toLowerCase().contains('empty') ||
-                   errorString.toLowerCase().contains('required')) {
+            errorString.toLowerCase().contains('required')) {
           return '$translatedField je obavezno polje.';
         } else if (errorString.toLowerCase().contains('invalid')) {
           return '$translatedField ima neispravan format.';
