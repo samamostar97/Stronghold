@@ -34,10 +34,6 @@ public class UserProfileService : IUserProfileService
         _paymentRepository = paymentRepository;
     }
 
-    // =====================
-    // Profile methods
-    // =====================
-
     public async Task<UserProfileResponse> GetProfileAsync(int userId)
     {
         var user = await _context.Users
@@ -108,10 +104,6 @@ public class UserProfileService : IUserProfileService
         await _context.SaveChangesAsync();
     }
 
-    // =====================
-    // Membership payment history (from UserMembershipService)
-    // =====================
-
     public async Task<IEnumerable<MembershipPaymentResponse>> GetMembershipPaymentHistoryAsync(int userId)
     {
         var paymentHistory = _paymentRepository.AsQueryable()
@@ -130,10 +122,6 @@ public class UserProfileService : IUserProfileService
 
         return resultDTO;
     }
-
-    // =====================
-    // Progress tracking (from UserProgressService)
-    // =====================
 
     public async Task<UserProgressResponse> GetProgressAsync(int userId)
     {

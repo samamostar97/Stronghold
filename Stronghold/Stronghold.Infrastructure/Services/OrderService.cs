@@ -419,10 +419,6 @@ namespace Stronghold.Infrastructure.Services
             return _mapper.Map<OrderResponse>(order);
         }
 
-        // =====================
-        // Email helpers
-        // =====================
-
         private async Task SendDeliveryEmailAsync(Order order)
         {
             var itemsList = string.Join("", order.OrderItems.Select(oi =>

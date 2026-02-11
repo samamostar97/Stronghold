@@ -25,7 +25,6 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
     extends ConsumerStatefulWidget {
   const CrudListScaffold({
     super.key,
-    required this.title,
     required this.state,
     required this.onRefresh,
     required this.onSearch,
@@ -39,7 +38,6 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
     this.loadingColumnFlex,
   });
 
-  final String title;
   final ListState<T, TFilter> state;
   final VoidCallback onRefresh;
   final ValueChanged<String?> onSearch;
@@ -105,8 +103,6 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text(widget.title, style: AppTextStyles.headingMd),
-                const SizedBox(height: AppSpacing.xxl),
                 _buildSearchBar(constraints),
                 const SizedBox(height: AppSpacing.xxl),
                 Expanded(child: _buildContent()),

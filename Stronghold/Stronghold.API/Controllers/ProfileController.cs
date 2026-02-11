@@ -18,10 +18,6 @@ public class ProfileController : UserControllerBase
         _service = service;
     }
 
-    // =====================
-    // Profile endpoints
-    // =====================
-
     [HttpGet]
     public async Task<ActionResult<UserProfileResponse>> GetProfile()
     {
@@ -66,10 +62,6 @@ public class ProfileController : UserControllerBase
         return NoContent();
     }
 
-    // =====================
-    // Membership history
-    // =====================
-
     [HttpGet("membership-history")]
     public async Task<ActionResult<IEnumerable<MembershipPaymentResponse>>> GetMembershipHistory()
     {
@@ -80,10 +72,6 @@ public class ProfileController : UserControllerBase
         var history = await _service.GetMembershipPaymentHistoryAsync(userId.Value);
         return Ok(history);
     }
-
-    // =====================
-    // Progress tracking
-    // =====================
 
     [HttpGet("progress")]
     public async Task<ActionResult<UserProgressResponse>> GetProgress()
@@ -103,10 +91,6 @@ public class ProfileController : UserControllerBase
         var progress = await _service.GetProgressAsync(userId);
         return Ok(progress);
     }
-
-    // =====================
-    // Leaderboard
-    // =====================
 
     [HttpGet("leaderboard")]
     public async Task<ActionResult<List<LeaderboardEntryResponse>>> GetLeaderboard()

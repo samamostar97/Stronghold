@@ -96,7 +96,6 @@ class _MembershipPackagesScreenState
 
     return CrudListScaffold<MembershipPackageResponse,
         MembershipPackageQueryFilter>(
-      title: 'Upravljanje paketima clanarina',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

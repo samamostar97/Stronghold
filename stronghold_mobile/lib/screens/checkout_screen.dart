@@ -60,13 +60,11 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     bool paymentSucceeded = false;
 
     try {
-      // Step 1: Create PaymentIntent
       final checkoutResponse = await checkoutNotifier.createPaymentIntent(
         cartState.items,
       );
       paymentIntentId = checkoutResponse.paymentIntentId;
 
-      // Step 2: Initialize Stripe PaymentSheet
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: checkoutResponse.clientSecret,
@@ -74,17 +72,14 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         ),
       );
 
-      // Step 3: Present PaymentSheet
       await Stripe.instance.presentPaymentSheet();
       paymentSucceeded = true;
 
-      // Step 4: Confirm order on backend
       await checkoutNotifier.confirmOrder(
         checkoutResponse.paymentIntentId,
         cartState.items,
       );
 
-      // Step 5: Clear cart, go to confirmation
       cartNotifier.clear();
 
       if (mounted) {

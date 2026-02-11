@@ -90,7 +90,6 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
     final notifier = ref.read(appointmentListProvider.notifier);
 
     return CrudListScaffold<AdminAppointmentResponse, AppointmentQueryFilter>(
-      title: 'Upravljanje terminima',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

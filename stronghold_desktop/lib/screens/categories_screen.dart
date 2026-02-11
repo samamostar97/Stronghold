@@ -82,7 +82,6 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
 
     return CrudListScaffold<SupplementCategoryResponse,
         SupplementCategoryQueryFilter>(
-      title: 'Upravljanje kategorijama',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

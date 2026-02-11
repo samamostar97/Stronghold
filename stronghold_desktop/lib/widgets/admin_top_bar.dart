@@ -69,10 +69,6 @@ class AdminTopBar extends ConsumerWidget {
   }
 }
 
-// ---------------------------------------------------------------------------
-// NOTIFICATION BELL
-// ---------------------------------------------------------------------------
-
 class _NotificationBell extends ConsumerStatefulWidget {
   const _NotificationBell({this.onNavigateToOrders});
 
@@ -202,10 +198,6 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
     );
   }
 }
-
-// ---------------------------------------------------------------------------
-// PROFILE DROPDOWN
-// ---------------------------------------------------------------------------
 
 class _ProfileDropdown extends StatelessWidget {
   const _ProfileDropdown({required this.onLogout});

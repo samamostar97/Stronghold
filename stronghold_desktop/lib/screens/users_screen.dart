@@ -92,7 +92,6 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     return Stack(
       children: [
         CrudListScaffold<UserResponse, UserQueryFilter>(
-          title: 'Upravljanje korisnicima',
           state: state,
           onRefresh: notifier.refresh,
           onSearch: notifier.setSearch,

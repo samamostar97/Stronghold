@@ -20,9 +20,6 @@ namespace Stronghold.API.Controllers
             _supplementService = service;
         }
 
-        // =====================
-        // Admin endpoints (inherited from BaseController)
-        // =====================
         [Authorize(Roles ="Admin")]
         [HttpDelete("{id}")]
         public override Task<IActionResult> Delete(int id)
@@ -67,9 +64,6 @@ namespace Stronghold.API.Controllers
             return NoContent();
         }
 
-        // =====================
-        // User endpoints - override with GymMember role
-        // =====================
         [Authorize(Roles ="Admin,GymMember")] 
         [HttpGet("GetAll")]
         public override Task<ActionResult<IEnumerable<SupplementResponse>>> GetAllAsync([FromQuery] SupplementQueryFilter filter)

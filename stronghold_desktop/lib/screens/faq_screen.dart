@@ -90,7 +90,6 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
     final notifier = ref.read(faqListProvider.notifier);
 
     return CrudListScaffold<FaqResponse, FaqQueryFilter>(
-      title: 'Upravljanje FAQ-om',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

@@ -79,7 +79,6 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
     final notifier = ref.read(supplementListProvider.notifier);
 
     return CrudListScaffold<SupplementResponse, SupplementQueryFilter>(
-      title: 'Upravljanje suplementima',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

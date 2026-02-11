@@ -19,10 +19,6 @@ namespace Stronghold.API.Controllers
             _service = service;
         }
 
-        // =====================
-        // Admin-only endpoints
-        // =====================
-
         [Authorize(Roles = "Admin")]
         [HttpGet("GetAllPaged")]
         public async Task<ActionResult<PagedResult<OrderResponse>>> GetAllPagedAsync([FromQuery] OrderQueryFilter filter)
@@ -63,10 +59,6 @@ namespace Stronghold.API.Controllers
             return Ok(result);
         }
 
-        // =====================
-        // User endpoints (ownership-based)
-        // =====================
-
         [Authorize]
         [HttpGet("my")]
         public async Task<ActionResult<PagedResult<UserOrderResponse>>> GetMyOrders([FromQuery] OrderQueryFilter filter)
@@ -77,10 +69,6 @@ namespace Stronghold.API.Controllers
             var result = await _service.GetOrdersByUserIdAsync(userId.Value, filter);
             return Ok(result);
         }
-
-        // =====================
-        // Checkout endpoints (merged from UserCheckoutController)
-        // =====================
 
         [Authorize]
         [HttpPost("checkout")]

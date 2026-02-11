@@ -91,7 +91,6 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
     final notifier = ref.read(supplierListProvider.notifier);
 
     return CrudListScaffold<SupplierResponse, SupplierQueryFilter>(
-      title: 'Upravljanje dobavljacima',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

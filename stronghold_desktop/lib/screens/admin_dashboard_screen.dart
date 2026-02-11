@@ -31,10 +31,6 @@ enum AdminScreen {
   leaderboard,
 }
 
-// ---------------------------------------------------------------------------
-// NAVIGATION DATA
-// ---------------------------------------------------------------------------
-
 const _navGroups = [
   NavGroup(items: [
     NavItem(id: 'dashboardHome', label: 'Kontrolna ploca',
@@ -100,10 +96,6 @@ const _screenTitles = <AdminScreen, String>{
   AdminScreen.businessReport: 'Biznis izvjestaji',
   AdminScreen.leaderboard: 'Rang lista',
 };
-
-// ---------------------------------------------------------------------------
-// MAIN DASHBOARD SHELL
-// ---------------------------------------------------------------------------
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});

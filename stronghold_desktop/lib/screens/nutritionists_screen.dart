@@ -93,7 +93,6 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
     final notifier = ref.read(nutritionistListProvider.notifier);
 
     return CrudListScaffold<NutritionistResponse, NutritionistQueryFilter>(
-      title: 'Upravljanje nutricionistima',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

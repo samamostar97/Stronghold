@@ -100,7 +100,6 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     final notifier = ref.read(seminarListProvider.notifier);
 
     return CrudListScaffold<SeminarResponse, SeminarQueryFilter>(
-      title: 'Upravljanje seminarima',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

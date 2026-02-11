@@ -89,7 +89,6 @@ class _TrainersScreenState extends ConsumerState<TrainersScreen> {
     final notifier = ref.read(trainerListProvider.notifier);
 
     return CrudListScaffold<TrainerResponse, TrainerQueryFilter>(
-      title: 'Upravljanje trenerima',
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

@@ -22,10 +22,6 @@ namespace Stronghold.API.Controllers
             _reviewService = service;
         }
 
-        // =====================
-        // User endpoints (ownership-based)
-        // =====================
-
         [HttpGet("my")]
         [Authorize(Roles = "GymMember")]
         public async Task<ActionResult<PagedResult<UserReviewResponse>>> GetMyReviews([FromQuery] ReviewQueryFilter filter)
