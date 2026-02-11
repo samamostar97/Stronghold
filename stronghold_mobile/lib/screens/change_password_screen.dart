@@ -6,6 +6,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
+import '../utils/validators.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
 
@@ -46,7 +47,9 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       _errorMessage = null;
     });
     try {
-      await ref.read(authProvider.notifier).changePassword(
+      await ref
+          .read(authProvider.notifier)
+          .changePassword(
             currentPassword: _currentPasswordCtrl.text,
             newPassword: _newPasswordCtrl.text,
           );
@@ -61,7 +64,8 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       final authState = ref.read(authProvider);
       setState(() {
         _isLoading = false;
-        _errorMessage = authState.error ??
+        _errorMessage =
+            authState.error ??
             'Greska prilikom povezivanja. Provjerite internet konekciju.';
       });
     }
@@ -69,8 +73,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
 
   Widget _eyeToggle(bool obscure, VoidCallback onPressed) {
     return IconButton(
-      icon: Icon(obscure ? LucideIcons.eye : LucideIcons.eyeOff,
-          color: AppColors.textMuted, size: 20),
+      icon: Icon(
+        obscure ? LucideIcons.eye : LucideIcons.eyeOff,
+        color: AppColors.textMuted,
+        size: 20,
+      ),
       onPressed: onPressed,
     );
   }
@@ -84,17 +91,23 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
+                horizontal: AppSpacing.sm,
+                vertical: AppSpacing.sm,
+              ),
               child: Row(
                 children: [
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(LucideIcons.arrowLeft,
-                        color: AppColors.textPrimary),
+                    icon: const Icon(
+                      LucideIcons.arrowLeft,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   Expanded(
-                    child: Text('Promijeni lozinku',
-                        style: AppTextStyles.headingMd),
+                    child: Text(
+                      'Promijeni lozinku',
+                      style: AppTextStyles.headingMd,
+                    ),
                   ),
                 ],
               ),
@@ -123,12 +136,18 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               color: AppColors.successDim,
               shape: BoxShape.circle,
             ),
-            child: const Icon(LucideIcons.check,
-                size: 64, color: AppColors.success),
+            child: const Icon(
+              LucideIcons.check,
+              size: 64,
+              color: AppColors.success,
+            ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text('Lozinka uspjesno promijenjena!',
-              style: AppTextStyles.headingSm, textAlign: TextAlign.center),
+          Text(
+            'Lozinka uspjesno promijenjena!',
+            style: AppTextStyles.headingSm,
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
@@ -149,8 +168,11 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                   color: AppColors.primaryDim,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(LucideIcons.lock,
-                    size: 40, color: AppColors.primary),
+                child: const Icon(
+                  LucideIcons.lock,
+                  size: 40,
+                  color: AppColors.primary,
+                ),
               ),
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -159,20 +181,23 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             TextFormField(
               controller: _currentPasswordCtrl,
               obscureText: _obscureCurrent,
-              style:
-                  AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.textPrimary,
+              ),
               textInputAction: TextInputAction.next,
               decoration: buildStrongholdInputDecoration(
                 hintText: 'Unesite trenutnu lozinku',
                 prefixIcon: LucideIcons.lock,
-                suffixIcon: _eyeToggle(_obscureCurrent,
-                    () => setState(() => _obscureCurrent = !_obscureCurrent)),
+                suffixIcon: _eyeToggle(
+                  _obscureCurrent,
+                  () => setState(() => _obscureCurrent = !_obscureCurrent),
+                ),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Molimo unesite trenutnu lozinku';
-                }
-                return null;
+                return FormValidators.required(
+                  value,
+                  message: 'Molimo unesite trenutnu lozinku',
+                );
               },
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -181,25 +206,31 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             TextFormField(
               controller: _newPasswordCtrl,
               obscureText: _obscureNew,
-              style:
-                  AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.textPrimary,
+              ),
               textInputAction: TextInputAction.next,
               decoration: buildStrongholdInputDecoration(
                 hintText: 'Unesite novu lozinku',
                 prefixIcon: LucideIcons.keyRound,
-                suffixIcon: _eyeToggle(_obscureNew,
-                    () => setState(() => _obscureNew = !_obscureNew)),
+                suffixIcon: _eyeToggle(
+                  _obscureNew,
+                  () => setState(() => _obscureNew = !_obscureNew),
+                ),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Molimo unesite novu lozinku';
+                final validationError = FormValidators.password(
+                  value,
+                  requiredMessage: 'Molimo unesite novu lozinku',
+                );
+                if (validationError != null) {
+                  return validationError;
                 }
-                if (value.length < 6) {
-                  return 'Lozinka mora imati najmanje 6 karaktera';
-                }
+
                 if (value == _currentPasswordCtrl.text) {
                   return 'Nova lozinka mora biti razlicita od trenutne';
                 }
+
                 return null;
               },
             ),
@@ -209,24 +240,25 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             TextFormField(
               controller: _confirmPasswordCtrl,
               obscureText: _obscureConfirm,
-              style:
-                  AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
+              style: AppTextStyles.bodyMd.copyWith(
+                color: AppColors.textPrimary,
+              ),
               textInputAction: TextInputAction.done,
               onFieldSubmitted: (_) => _handleChangePassword(),
               decoration: buildStrongholdInputDecoration(
                 hintText: 'Potvrdite novu lozinku',
                 prefixIcon: LucideIcons.keyRound,
-                suffixIcon: _eyeToggle(_obscureConfirm,
-                    () => setState(() => _obscureConfirm = !_obscureConfirm)),
+                suffixIcon: _eyeToggle(
+                  _obscureConfirm,
+                  () => setState(() => _obscureConfirm = !_obscureConfirm),
+                ),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) {
-                  return 'Molimo potvrdite novu lozinku';
-                }
-                if (value != _newPasswordCtrl.text) {
-                  return 'Lozinke se ne podudaraju';
-                }
-                return null;
+                return FormValidators.confirmPassword(
+                  value,
+                  _newPasswordCtrl.text,
+                  requiredMessage: 'Molimo potvrdite novu lozinku',
+                );
               },
             ),
             const SizedBox(height: AppSpacing.xl),
@@ -239,13 +271,19 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(LucideIcons.alertCircle,
-                        color: AppColors.error, size: 18),
+                    const Icon(
+                      LucideIcons.alertCircle,
+                      color: AppColors.error,
+                      size: 18,
+                    ),
                     const SizedBox(width: AppSpacing.sm),
                     Expanded(
-                      child: Text(_errorMessage!,
-                          style: AppTextStyles.bodySm
-                              .copyWith(color: AppColors.error)),
+                      child: Text(
+                        _errorMessage!,
+                        style: AppTextStyles.bodySm.copyWith(
+                          color: AppColors.error,
+                        ),
+                      ),
                     ),
                   ],
                 ),

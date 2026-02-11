@@ -6,6 +6,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
+import '../utils/validators.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/particle_background.dart';
@@ -36,18 +37,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
     try {
-      await ref.read(authProvider.notifier).login(
-            _usernameCtrl.text.trim(),
-            _passwordCtrl.text,
-          );
+      await ref
+          .read(authProvider.notifier)
+          .login(_usernameCtrl.text.trim(), _passwordCtrl.text);
       if (!mounted) return;
       final user = ref.read(authProvider).user;
       if (user != null) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const LoginSuccessScreen(),
-          ),
+          MaterialPageRoute(builder: (_) => const LoginSuccessScreen()),
         );
       }
     } catch (_) {}
@@ -68,7 +66,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.screenPadding),
+                  horizontal: AppSpacing.screenPadding,
+                ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -78,16 +77,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         color: AppColors.primaryDim,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(LucideIcons.dumbbell,
-                          size: 60, color: AppColors.primary),
+                      child: const Icon(
+                        LucideIcons.dumbbell,
+                        size: 60,
+                        color: AppColors.primary,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    Text('STRONGHOLD',
-                        style: AppTextStyles.stat.copyWith(letterSpacing: 4)),
+                    Text(
+                      'STRONGHOLD',
+                      style: AppTextStyles.stat.copyWith(letterSpacing: 4),
+                    ),
                     const SizedBox(height: AppSpacing.sm),
-                    Text('Dobrodosli nazad',
-                        style: AppTextStyles.bodyLg
-                            .copyWith(color: AppColors.textSecondary)),
+                    Text(
+                      'Dobrodosli nazad',
+                      style: AppTextStyles.bodyLg.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
                     const SizedBox(height: AppSpacing.xxxl + AppSpacing.lg),
                     GlassCard(
                       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -100,8 +107,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             const SizedBox(height: AppSpacing.sm),
                             TextFormField(
                               controller: _usernameCtrl,
-                              style: AppTextStyles.bodyMd
-                                  .copyWith(color: AppColors.textPrimary),
+                              style: AppTextStyles.bodyMd.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
                               keyboardType: TextInputType.text,
                               textInputAction: TextInputAction.next,
                               decoration: buildStrongholdInputDecoration(
@@ -109,10 +117,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 prefixIcon: LucideIcons.user,
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Molimo unesite korisnicko ime';
-                                }
-                                return null;
+                                return FormValidators.required(
+                                  value,
+                                  message: 'Molimo unesite korisnicko ime',
+                                );
                               },
                             ),
                             const SizedBox(height: AppSpacing.lg),
@@ -121,8 +129,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             TextFormField(
                               controller: _passwordCtrl,
                               obscureText: _obscurePassword,
-                              style: AppTextStyles.bodyMd
-                                  .copyWith(color: AppColors.textPrimary),
+                              style: AppTextStyles.bodyMd.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
                               textInputAction: TextInputAction.done,
                               onFieldSubmitted: (_) => _handleLogin(),
                               decoration: buildStrongholdInputDecoration(
@@ -137,15 +146,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                     size: 20,
                                   ),
                                   onPressed: () => setState(
-                                      () => _obscurePassword =
-                                          !_obscurePassword),
+                                    () => _obscurePassword = !_obscurePassword,
+                                  ),
                                 ),
                               ),
                               validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Molimo unesite lozinku';
-                                }
-                                return null;
+                                return FormValidators.required(
+                                  value,
+                                  message: 'Molimo unesite lozinku',
+                                );
                               },
                             ),
                             const SizedBox(height: AppSpacing.md),
@@ -155,15 +164,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 onTap: () => Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (_) =>
-                                          const ForgotPasswordScreen()),
+                                    builder: (_) =>
+                                        const ForgotPasswordScreen(),
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
-                                      vertical: AppSpacing.xs),
-                                  child: Text('Zaboravili ste lozinku?',
-                                      style: AppTextStyles.bodySm.copyWith(
-                                          color: AppColors.textSecondary)),
+                                    vertical: AppSpacing.xs,
+                                  ),
+                                  child: Text(
+                                    'Zaboravili ste lozinku?',
+                                    style: AppTextStyles.bodySm.copyWith(
+                                      color: AppColors.textSecondary,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
@@ -174,17 +188,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 decoration: BoxDecoration(
                                   color: AppColors.errorDim,
                                   borderRadius: BorderRadius.circular(
-                                      AppSpacing.radiusSm),
+                                    AppSpacing.radiusSm,
+                                  ),
                                 ),
                                 child: Row(
                                   children: [
-                                    const Icon(LucideIcons.alertCircle,
-                                        color: AppColors.error, size: 18),
+                                    const Icon(
+                                      LucideIcons.alertCircle,
+                                      color: AppColors.error,
+                                      size: 18,
+                                    ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Expanded(
-                                      child: Text(errorMessage,
-                                          style: AppTextStyles.bodySm.copyWith(
-                                              color: AppColors.error)),
+                                      child: Text(
+                                        errorMessage,
+                                        style: AppTextStyles.bodySm.copyWith(
+                                          color: AppColors.error,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -205,18 +226,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Nemate racun? ',
-                            style: AppTextStyles.bodyMd
-                                .copyWith(color: AppColors.textSecondary)),
+                        Text(
+                          'Nemate racun? ',
+                          style: AppTextStyles.bodyMd.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
                         GestureDetector(
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (_) => const RegisterScreen()),
+                              builder: (_) => const RegisterScreen(),
+                            ),
                           ),
-                          child: Text('Registrujte se',
-                              style: AppTextStyles.bodyBold
-                                  .copyWith(color: AppColors.primary)),
+                          child: Text(
+                            'Registrujte se',
+                            style: AppTextStyles.bodyBold.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
                         ),
                       ],
                     ),

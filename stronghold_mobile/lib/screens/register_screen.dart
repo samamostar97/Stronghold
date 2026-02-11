@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
+import '../utils/validators.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
 import '../widgets/particle_background.dart';
@@ -183,9 +183,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   LucideIcons.user,
                                   'Unesite vase ime',
                                   textCapitalization: TextCapitalization.words,
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Molimo unesite ime'
-                                      : null,
+                                  validator: (v) => FormValidators.stringLength(
+                                    v,
+                                    min: 2,
+                                    max: 100,
+                                    requiredMessage: 'Molimo unesite ime',
+                                    minMessage:
+                                        'Ime mora imati najmanje 2 karaktera',
+                                    maxMessage:
+                                        'Ime moze imati maksimalno 100 karaktera',
+                                  ),
                                 ),
                                 _field(
                                   'PREZIME',
@@ -193,9 +200,16 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   LucideIcons.user,
                                   'Unesite vase prezime',
                                   textCapitalization: TextCapitalization.words,
-                                  validator: (v) => v == null || v.isEmpty
-                                      ? 'Molimo unesite prezime'
-                                      : null,
+                                  validator: (v) => FormValidators.stringLength(
+                                    v,
+                                    min: 2,
+                                    max: 100,
+                                    requiredMessage: 'Molimo unesite prezime',
+                                    minMessage:
+                                        'Prezime mora imati najmanje 2 karaktera',
+                                    maxMessage:
+                                        'Prezime moze imati maksimalno 100 karaktera',
+                                  ),
                                 ),
                                 _field(
                                   'EMAIL',
@@ -205,13 +219,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   keyboardType: TextInputType.emailAddress,
                                   validator: (v) {
                                     if (_emailError != null) return _emailError;
-                                    if (v == null || v.isEmpty) {
-                                      return 'Molimo unesite email';
-                                    }
-                                    if (!ValidationUtils.isValidEmail(v)) {
-                                      return 'Unesite ispravnu email adresu';
-                                    }
-                                    return null;
+                                    return FormValidators.email(v);
                                   },
                                 ),
                                 _field(
@@ -222,15 +230,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   keyboardType: TextInputType.phone,
                                   validator: (v) {
                                     if (_phoneError != null) return _phoneError;
-                                    if (v == null || v.isEmpty) {
-                                      return 'Molimo unesite broj telefona';
-                                    }
-                                    if (!RegExp(
-                                      r'^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$',
-                                    ).hasMatch(v)) {
-                                      return 'Format: 061 123 456 ili +387 61 123 456';
-                                    }
-                                    return null;
+                                    return FormValidators.phoneBiH(v);
                                   },
                                 ),
                                 _field(
@@ -242,13 +242,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     if (_usernameError != null) {
                                       return _usernameError;
                                     }
-                                    if (v == null || v.isEmpty) {
-                                      return 'Molimo unesite korisnicko ime';
-                                    }
-                                    if (v.length < 3) {
-                                      return 'Korisnicko ime mora imati najmanje 3 karaktera';
-                                    }
-                                    return null;
+                                    return FormValidators.stringLength(
+                                      v,
+                                      min: 3,
+                                      max: 50,
+                                      requiredMessage:
+                                          'Molimo unesite korisnicko ime',
+                                      minMessage:
+                                          'Korisnicko ime mora imati najmanje 3 karaktera',
+                                      maxMessage:
+                                          'Korisnicko ime moze imati maksimalno 50 karaktera',
+                                    );
                                   },
                                 ),
                                 Text('LOZINKA', style: AppTextStyles.label),
@@ -272,13 +276,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     ),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Molimo unesite lozinku';
-                                    }
-                                    if (v.length < 6) {
-                                      return 'Lozinka mora imati najmanje 6 karaktera';
-                                    }
-                                    return null;
+                                    return FormValidators.password(
+                                      v,
+                                      requiredMessage: 'Molimo unesite lozinku',
+                                    );
                                   },
                                 ),
                                 const SizedBox(height: AppSpacing.lg),
@@ -307,13 +308,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                     ),
                                   ),
                                   validator: (v) {
-                                    if (v == null || v.isEmpty) {
-                                      return 'Molimo potvrdite lozinku';
-                                    }
-                                    if (v != _passwordCtrl.text) {
-                                      return 'Lozinke se ne podudaraju';
-                                    }
-                                    return null;
+                                    return FormValidators.confirmPassword(
+                                      v,
+                                      _passwordCtrl.text,
+                                      requiredMessage:
+                                          'Molimo potvrdite lozinku',
+                                    );
                                   },
                                 ),
                                 if (errorMessage != null &&

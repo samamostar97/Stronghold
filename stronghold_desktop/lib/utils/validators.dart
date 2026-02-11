@@ -1,8 +1,10 @@
+import 'package:stronghold_core/stronghold_core.dart';
+
 /// Reusable form validators matching backend DTO validation rules
 class Validators {
   /// Required field validation
   static String? required(String? value, [String message = 'Obavezno polje']) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return message;
     }
 
@@ -16,16 +18,15 @@ class Validators {
     int max, {
     bool required = true,
   }) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return required ? 'Obavezno polje' : null;
     }
 
-    final normalized = value.trim();
-    if (normalized.length < min) {
+    if (!ValidationUtils.hasMinLength(value, min)) {
       return 'Minimalno $min karaktera';
     }
 
-    if (normalized.length > max) {
+    if (!ValidationUtils.hasMaxLength(value, max)) {
       return 'Maksimalno $max karaktera';
     }
 
@@ -34,15 +35,15 @@ class Validators {
 
   /// Name validation (2-100 chars)
   static String? name(String? value, {String fieldName = 'Polje'}) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return 'Obavezno polje';
     }
 
-    if (value.trim().length < 2) {
+    if (!ValidationUtils.hasMinLength(value, 2)) {
       return '$fieldName mora imati najmanje 2 karaktera';
     }
 
-    if (value.trim().length > 100) {
+    if (!ValidationUtils.hasMaxLength(value, 100)) {
       return '$fieldName moze imati maksimalno 100 karaktera';
     }
 
@@ -51,15 +52,15 @@ class Validators {
 
   /// Username validation (3-50 chars)
   static String? username(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return 'Obavezno polje';
     }
 
-    if (value.trim().length < 3) {
+    if (!ValidationUtils.hasMinLength(value, 3)) {
       return 'Korisnicko ime mora imati najmanje 3 karaktera';
     }
 
-    if (value.trim().length > 50) {
+    if (!ValidationUtils.hasMaxLength(value, 50)) {
       return 'Korisnicko ime moze imati maksimalno 50 karaktera';
     }
 
@@ -68,20 +69,20 @@ class Validators {
 
   /// Email validation (5-255 chars, valid format)
   static String? email(String? value) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return 'Obavezno polje';
     }
 
-    final normalized = value.trim();
-    if (normalized.length < 5) {
+    final normalized = ValidationUtils.normalize(value);
+    if (!ValidationUtils.hasMinLength(normalized, 5, trim: false)) {
       return 'Email je prekratak';
     }
 
-    if (normalized.length > 255) {
+    if (!ValidationUtils.hasMaxLength(normalized, 255, trim: false)) {
       return 'Email moze imati maksimalno 255 karaktera';
     }
 
-    if (!RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,}$').hasMatch(normalized)) {
+    if (!ValidationUtils.isValidEmail(normalized)) {
       return 'Neispravan email format';
     }
 
@@ -90,22 +91,20 @@ class Validators {
 
   /// Website validation (optional, 5-100 chars if provided)
   static String? website(String? value, {bool required = false}) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return required ? 'Obavezno polje' : null;
     }
 
-    final normalized = value.trim();
-    if (normalized.length < 5) {
+    final normalized = ValidationUtils.normalize(value);
+    if (!ValidationUtils.hasMinLength(normalized, 5, trim: false)) {
       return 'Web stranica je prekratka';
     }
 
-    if (normalized.length > 100) {
+    if (!ValidationUtils.hasMaxLength(normalized, 100, trim: false)) {
       return 'Web stranica moze imati maksimalno 100 karaktera';
     }
 
-    if (!RegExp(
-      r'^(https?://)?(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/.*)?$',
-    ).hasMatch(normalized)) {
+    if (!ValidationUtils.isValidWebsite(normalized)) {
       return 'Unesite ispravnu web adresu (npr. www.example.com)';
     }
 
@@ -114,18 +113,20 @@ class Validators {
 
   /// Phone validation (Bosnian format, 9-20 chars)
   static String? phone(String? value, {bool required = true}) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return required ? 'Obavezno polje' : null;
     }
 
-    final normalized = value.trim();
-    if (!RegExp(
-      r'^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$',
-    ).hasMatch(normalized)) {
+    final normalized = ValidationUtils.normalize(value);
+    if (!ValidationUtils.isValidPhone(normalized)) {
       return 'Format: 061 123 456 ili +387 61 123 456';
     }
 
-    if (normalized.replaceAll(RegExp(r'[\s\-]'), '').length < 9) {
+    if (!ValidationUtils.hasMaxLength(normalized, 20, trim: false)) {
+      return 'Broj telefona moze imati maksimalno 20 karaktera';
+    }
+
+    if (ValidationUtils.phoneDigitsCount(normalized) < 9) {
       return 'Broj telefona prekratak';
     }
 
@@ -142,11 +143,11 @@ class Validators {
       return required ? 'Obavezno polje' : null;
     }
 
-    if (value.length < minLength) {
+    if (!ValidationUtils.hasMinLength(value, minLength, trim: false)) {
       return 'Lozinka mora imati najmanje $minLength karaktera';
     }
 
-    if (value.length > 100) {
+    if (!ValidationUtils.hasMaxLength(value, 100, trim: false)) {
       return 'Lozinka moze imati maksimalno 100 karaktera';
     }
 
@@ -155,11 +156,11 @@ class Validators {
 
   /// Price validation (0.01-10000)
   static String? price(String? value, {double min = 0.01, double max = 10000}) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return 'Obavezno polje';
     }
 
-    final parsed = double.tryParse(value.replaceAll(',', '.'));
+    final parsed = double.tryParse(value!.replaceAll(',', '.'));
     if (parsed == null) {
       return 'Neispravan broj';
     }
@@ -181,16 +182,16 @@ class Validators {
     int maxLength = 1000,
     bool required = false,
   }) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return required ? 'Opis je obavezan' : null;
     }
 
-    final normalized = value.trim();
-    if (normalized.length < 2) {
+    final normalized = ValidationUtils.normalize(value);
+    if (!ValidationUtils.hasMinLength(normalized, 2, trim: false)) {
       return 'Opis mora imati najmanje 2 karaktera';
     }
 
-    if (normalized.length > maxLength) {
+    if (!ValidationUtils.hasMaxLength(normalized, maxLength, trim: false)) {
       return 'Opis moze imati maksimalno $maxLength karaktera';
     }
 
@@ -211,11 +212,11 @@ class Validators {
 
   /// Integer range validation
   static String? intRange(String? value, int min, int max) {
-    if (value == null || value.trim().isEmpty) {
+    if (ValidationUtils.isBlank(value)) {
       return 'Obavezno polje';
     }
 
-    final parsed = int.tryParse(value.trim());
+    final parsed = int.tryParse(ValidationUtils.normalize(value));
     if (parsed == null) {
       return 'Neispravan broj';
     }

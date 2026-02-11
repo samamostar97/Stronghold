@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/address_provider.dart';
+import '../utils/validators.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
@@ -114,11 +115,13 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           label: 'Ulica i broj',
                           hint: 'npr. Marsala Tita 25',
                           icon: LucideIcons.mapPin,
-                          validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Unesite ulicu'
-                              : (v.trim().length > 200
-                                    ? 'Ulica moze imati najvise 200 karaktera'
-                                    : null),
+                          validator: (v) => FormValidators.requiredMaxLength(
+                            v,
+                            maxLength: 200,
+                            requiredMessage: 'Unesite ulicu',
+                            maxLengthMessage:
+                                'Ulica moze imati najvise 200 karaktera',
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _field(
@@ -126,11 +129,13 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           label: 'Grad',
                           hint: 'npr. Sarajevo',
                           icon: LucideIcons.building2,
-                          validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Unesite grad'
-                              : (v.trim().length > 100
-                                    ? 'Grad moze imati najvise 100 karaktera'
-                                    : null),
+                          validator: (v) => FormValidators.requiredMaxLength(
+                            v,
+                            maxLength: 100,
+                            requiredMessage: 'Unesite grad',
+                            maxLengthMessage:
+                                'Grad moze imati najvise 100 karaktera',
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _field(
@@ -139,11 +144,13 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                           hint: 'npr. 71000',
                           icon: LucideIcons.hash,
                           keyboardType: TextInputType.number,
-                          validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Unesite postanski broj'
-                              : (v.trim().length > 20
-                                    ? 'Postanski broj moze imati najvise 20 karaktera'
-                                    : null),
+                          validator: (v) => FormValidators.requiredMaxLength(
+                            v,
+                            maxLength: 20,
+                            requiredMessage: 'Unesite postanski broj',
+                            maxLengthMessage:
+                                'Postanski broj moze imati najvise 20 karaktera',
+                          ),
                         ),
                       ],
                     ),

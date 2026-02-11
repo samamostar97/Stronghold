@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../utils/input_decoration_utils.dart';
+import '../utils/validators.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
 
@@ -232,13 +232,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               prefixIcon: LucideIcons.mail,
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Molimo unesite email';
-              }
-              if (!ValidationUtils.isValidEmail(value)) {
-                return 'Unesite ispravnu email adresu';
-              }
-              return null;
+              return FormValidators.email(value);
             },
           ),
           const SizedBox(height: AppSpacing.xl),
@@ -276,9 +270,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               prefixIcon: LucideIcons.hash,
             ).copyWith(counterText: ''),
             validator: (value) {
-              if (value == null || value.isEmpty) return 'Molimo unesite kod';
-              if (value.length != 6) return 'Kod mora imati 6 cifara';
-              return null;
+              return FormValidators.verificationCode(value);
             },
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -298,13 +290,10 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Molimo unesite novu lozinku';
-              }
-              if (value.length < 6) {
-                return 'Lozinka mora imati najmanje 6 karaktera';
-              }
-              return null;
+              return FormValidators.password(
+                value,
+                requiredMessage: 'Molimo unesite novu lozinku',
+              );
             },
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -325,13 +314,11 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               ),
             ),
             validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Molimo potvrdite lozinku';
-              }
-              if (value != _newPasswordCtrl.text) {
-                return 'Lozinke se ne podudaraju';
-              }
-              return null;
+              return FormValidators.confirmPassword(
+                value,
+                _newPasswordCtrl.text,
+                requiredMessage: 'Molimo potvrdite lozinku',
+              );
             },
           ),
           const SizedBox(height: AppSpacing.xl),
