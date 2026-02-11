@@ -21,7 +21,18 @@ public class AdminCreateAppointmentRequest : IValidatableObject
         if (TrainerId != null && NutritionistId != null)
             yield return new ValidationResult("Termin moze biti samo kod trenera ili nutricioniste, ne oba.");
 
-        if (AppointmentDate <= DateTime.UtcNow)
-            yield return new ValidationResult("Datum termina mora biti u buducnosti.");
+        var localDate = AppointmentDate.Kind == DateTimeKind.Utc ? AppointmentDate.ToLocalTime() : AppointmentDate;
+
+        if (localDate < DateTime.Now)
+            yield return new ValidationResult("Nemoguce unijeti datum u proslosti");
+
+        if (localDate.Date == DateTime.Today)
+            yield return new ValidationResult("Nemoguce napraviti termin na isti dan");
+
+        if (localDate.Hour < 9 || localDate.Hour >= 17)
+            yield return new ValidationResult("Termini su moguci samo izmedju 9:00 i 17:00.");
+
+        if (localDate.Minute != 0 || localDate.Second != 0 || localDate.Millisecond != 0)
+            yield return new ValidationResult("Termin mora biti unesen na puni sat.");
     }
 }

@@ -10,6 +10,7 @@ namespace Stronghold.Application.IServices
         Task<MembershipResponse> AssignMembership(AssignMembershipRequest request);
         Task<PagedResult<MembershipPaymentResponse>> GetPaymentsAsync(int userId, MembershipQueryFilter filter);
         Task<bool> RevokeMembership(int userId);
+        Task<bool> HasActiveMembershipAsync(int userId);
         Task<PagedResult<ActiveMemberResponse>> GetActiveMembersAsync(ActiveMemberQueryFilter filter);
     }
 }

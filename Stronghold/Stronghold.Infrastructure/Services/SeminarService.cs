@@ -8,6 +8,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Infrastructure.Common;
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -15,32 +16,56 @@ namespace Stronghold.Infrastructure.Services
     {
         private readonly IRepository<SeminarAttendee, int> _attendeeRepository;
 
-        public SeminarService(IRepository<Seminar, int> repository, IRepository<SeminarAttendee, int> attendeeRepository, IMapper mapper) : base(repository, mapper)
+        public SeminarService(
+            IRepository<Seminar, int> repository,
+            IRepository<SeminarAttendee, int> attendeeRepository,
+            IMapper mapper) : base(repository, mapper)
         {
             _attendeeRepository = attendeeRepository;
         }
 
         protected override async Task BeforeCreateAsync(Seminar entity, CreateSeminarRequest dto)
         {
-            var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == dto.EventDate);
-            if (seminarExists) throw new ConflictException("Seminar sa ovom temom na odabrani datum već postoji.");
+            var normalizedEventDate = DateTimeUtils.ToUtc(dto.EventDate);
 
-            if (dto.EventDate < DateTime.UtcNow)
-                throw new ArgumentException("Nemoguće unijeti datum u prošlosti.");
+            var seminarExists = await _repository.AsQueryable()
+                .AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == normalizedEventDate);
+            if (seminarExists)
+            {
+                throw new ConflictException("Seminar sa ovom temom na odabrani datum vec postoji.");
+            }
+
+            if (normalizedEventDate < DateTimeUtils.UtcNow)
+            {
+                throw new ArgumentException("Nemoguce unijeti datum u proslosti.");
+            }
+
+            entity.EventDate = normalizedEventDate;
         }
 
         protected override async Task BeforeUpdateAsync(Seminar entity, UpdateSeminarRequest dto)
         {
-            var eventDate = dto.EventDate ?? entity.EventDate;
+            var eventDate = dto.EventDate.HasValue ? DateTimeUtils.ToUtc(dto.EventDate.Value) : entity.EventDate;
             var topic = !string.IsNullOrEmpty(dto.Topic) ? dto.Topic : entity.Topic;
 
-            if (dto.EventDate != null && dto.EventDate < DateTime.UtcNow)
-                throw new ArgumentException("Nemoguće unijeti datum u prošlosti.");
+            if (dto.EventDate != null && eventDate < DateTimeUtils.UtcNow)
+            {
+                throw new ArgumentException("Nemoguce unijeti datum u proslosti.");
+            }
 
             if (!string.IsNullOrEmpty(dto.Topic) || dto.EventDate != null)
             {
-                var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Topic.ToLower() == topic.ToLower() && x.EventDate == eventDate && x.Id != entity.Id);
-                if (seminarExists) throw new ConflictException("Seminar sa ovom temom već postoji na odabranom datumu.");
+                var seminarExists = await _repository.AsQueryable()
+                    .AnyAsync(x => x.Topic.ToLower() == topic.ToLower() && x.EventDate == eventDate && x.Id != entity.Id);
+                if (seminarExists)
+                {
+                    throw new ConflictException("Seminar sa ovom temom vec postoji na odabranom datumu.");
+                }
+            }
+
+            if (dto.EventDate != null)
+            {
+                dto.EventDate = eventDate;
             }
         }
 
@@ -52,14 +77,18 @@ namespace Stronghold.Infrastructure.Services
                 .AnyAsync();
 
             if (hasAttendees)
-                throw new EntityHasDependentsException("seminar", "učesnike");
+            {
+                throw new EntityHasDependentsException("seminar", "ucesnike");
+            }
         }
 
         protected override IQueryable<Seminar> ApplyFilter(IQueryable<Seminar> query, SeminarQueryFilter filter)
         {
             if (!string.IsNullOrEmpty(filter.Search))
+            {
                 query = query.Where(x => x.SpeakerName.ToLower().Contains(filter.Search.ToLower())
                                          || x.Topic.ToLower().Contains(filter.Search.ToLower()));
+            }
 
             if (!string.IsNullOrEmpty(filter.OrderBy))
             {
@@ -76,7 +105,6 @@ namespace Stronghold.Infrastructure.Services
             return query.OrderByDescending(x => x.EventDate);
         }
 
-        // Override to include attendee count in paged results
         public override async Task<PagedResult<SeminarResponse>> GetPagedAsync(SeminarQueryFilter filter)
         {
             var result = await base.GetPagedAsync(filter);
@@ -99,7 +127,6 @@ namespace Stronghold.Infrastructure.Services
             return result;
         }
 
-        // Override to include attendee count in single item result
         public override async Task<SeminarResponse> GetByIdAsync(int id)
         {
             var result = await base.GetByIdAsync(id);
@@ -110,12 +137,14 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<IEnumerable<UserSeminarResponse>> GetUpcomingSeminarsAsync(int userId)
         {
+            var now = DateTimeUtils.UtcNow;
+
             var userAttendances = _attendeeRepository.AsQueryable()
                 .Where(a => a.UserId == userId)
                 .Select(a => a.SeminarId);
 
-            var seminarList = _repository.AsQueryable().Where(x => x.EventDate > DateTime.UtcNow);
-            var seminarListDTO = await seminarList.Select(x => new UserSeminarResponse()
+            var seminarList = _repository.AsQueryable().Where(x => x.EventDate > now);
+            var seminarListDTO = await seminarList.Select(x => new UserSeminarResponse
             {
                 Id = x.Id,
                 Topic = x.Topic,
@@ -126,28 +155,40 @@ namespace Stronghold.Infrastructure.Services
                 CurrentAttendees = x.SeminarAttendees.Count(),
                 IsFull = x.SeminarAttendees.Count() >= x.MaxCapacity,
             }).ToListAsync();
+
             return seminarListDTO;
         }
 
         public async Task AttendSeminarAsync(int userId, int seminarId)
         {
-            var seminar = await _repository.AsQueryable()
-                .FirstOrDefaultAsync(x => x.EventDate > DateTime.UtcNow && x.Id == seminarId);
-            if (seminar == null) throw new KeyNotFoundException("Seminar ne postoji, ili je zavrsio");
+            var now = DateTimeUtils.UtcNow;
 
-            // Check capacity
+            var seminar = await _repository.AsQueryable()
+                .FirstOrDefaultAsync(x => x.EventDate > now && x.Id == seminarId);
+            if (seminar == null)
+            {
+                throw new KeyNotFoundException("Seminar ne postoji, ili je zavrsio");
+            }
+
             var attendeeCount = await _attendeeRepository.AsQueryable()
                 .CountAsync(x => x.SeminarId == seminarId);
             if (attendeeCount >= seminar.MaxCapacity)
+            {
                 throw new InvalidOperationException("Seminar je popunjen. Nema slobodnih mjesta.");
+            }
 
-            var isAlreadyAttending = await _attendeeRepository.AsQueryable().AnyAsync(x => x.UserId == userId && x.SeminarId == seminarId);
-            if (isAlreadyAttending) throw new InvalidOperationException("Korisnik je vec prijavljen na ovaj seminar");
-            var addAttendance = new SeminarAttendee()
+            var isAlreadyAttending = await _attendeeRepository.AsQueryable()
+                .AnyAsync(x => x.UserId == userId && x.SeminarId == seminarId);
+            if (isAlreadyAttending)
+            {
+                throw new InvalidOperationException("Korisnik je vec prijavljen na ovaj seminar");
+            }
+
+            var addAttendance = new SeminarAttendee
             {
                 UserId = userId,
                 SeminarId = seminarId,
-                RegisteredAt = DateTime.UtcNow,
+                RegisteredAt = now,
             };
 
             try
@@ -162,17 +203,32 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task CancelAttendanceAsync(int userId, int seminarId)
         {
-            var hasSeminarEnded = await _repository.AsQueryable().AnyAsync(x => x.Id == seminarId && x.EventDate < DateTime.UtcNow);
-            if (hasSeminarEnded) throw new InvalidOperationException("Nemoguce otkazati seminar u proslosti");
-            var isAttending = await _attendeeRepository.AsQueryable().FirstOrDefaultAsync(x => x.UserId == userId && x.SeminarId == seminarId);
-            if (isAttending == null) throw new InvalidOperationException("Niste prijavljeni na ovaj seminar");
+            var now = DateTimeUtils.UtcNow;
+
+            var hasSeminarEnded = await _repository.AsQueryable()
+                .AnyAsync(x => x.Id == seminarId && x.EventDate < now);
+            if (hasSeminarEnded)
+            {
+                throw new InvalidOperationException("Nemoguce otkazati seminar u proslosti");
+            }
+
+            var isAttending = await _attendeeRepository.AsQueryable()
+                .FirstOrDefaultAsync(x => x.UserId == userId && x.SeminarId == seminarId);
+            if (isAttending == null)
+            {
+                throw new InvalidOperationException("Niste prijavljeni na ovaj seminar");
+            }
+
             await _attendeeRepository.DeleteAsync(isAttending);
         }
 
         public async Task<IEnumerable<SeminarAttendeeResponse>> GetSeminarAttendeesAsync(int seminarId)
         {
             var seminarExists = await _repository.AsQueryable().AnyAsync(x => x.Id == seminarId);
-            if (!seminarExists) throw new KeyNotFoundException("Seminar ne postoji.");
+            if (!seminarExists)
+            {
+                throw new KeyNotFoundException("Seminar ne postoji.");
+            }
 
             var attendees = await _attendeeRepository.AsQueryable()
                 .Where(a => a.SeminarId == seminarId)

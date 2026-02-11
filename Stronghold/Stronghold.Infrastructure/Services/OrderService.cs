@@ -9,6 +9,7 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Infrastructure.Common;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services
@@ -190,7 +191,7 @@ namespace Stronghold.Infrastructure.Services
 
             var options = new PaymentIntentCreateOptions
             {
-                Amount = (long)Math.Round(totalAmount * 100m, MidpointRounding.AwayFromZero),
+                Amount = MoneyUtils.ToMinorUnits(totalAmount),
                 Currency = "bam",
                 Metadata = new Dictionary<string, string>
                 {
@@ -277,14 +278,16 @@ namespace Stronghold.Infrastructure.Services
                 }
 
                 // Verify total matches Stripe amount
-                var stripeTotal = stripeAmountCents / 100m;
-                if (totalAmount != stripeTotal)
+                var totalAmountCents = MoneyUtils.ToMinorUnits(totalAmount);
+                if (totalAmountCents != stripeAmountCents)
                     throw new InvalidOperationException("Iznos narudzbe ne odgovara uplati.");
+
+                var normalizedTotalAmount = MoneyUtils.ToMajorUnits(totalAmountCents);
 
                 var order = new Order
                 {
                     UserId = userId,
-                    TotalAmount = totalAmount,
+                    TotalAmount = normalizedTotalAmount,
                     PurchaseDate = DateTime.UtcNow,
                     Status = OrderStatus.Processing,
                     StripePaymentId = request.PaymentIntentId,

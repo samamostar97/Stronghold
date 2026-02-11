@@ -514,29 +514,36 @@ public static class StrongholdDbContextDataSeed
         var users = await context.Users.Where(u => u.Role == Role.GymMember).ToListAsync();
         var trainers = await context.Trainers.ToListAsync();
         var nutritionists = await context.Nutritionists.ToListAsync();
+        var baseDate = DateTime.Today;
+
+        static DateTime BuildAppointmentDate(DateTime date, int dayOffset, int hour)
+        {
+            var target = date.AddDays(dayOffset);
+            return new DateTime(target.Year, target.Month, target.Day, hour, 0, 0);
+        }
 
         var appointments = new List<Appointment>
         {
             // Trainer appointments
-            new() { UserId = users[0].Id, TrainerId = trainers[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(2).AddHours(10) },
-            new() { UserId = users[1].Id, TrainerId = trainers[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(3).AddHours(14) },
-            new() { UserId = users[2].Id, TrainerId = trainers[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(4).AddHours(16) },
-            new() { UserId = users[3].Id, TrainerId = trainers[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(5).AddHours(9) },
-            new() { UserId = users[4].Id, TrainerId = trainers[3].Id, AppointmentDate = DateTime.UtcNow.AddDays(6).AddHours(11) },
-            new() { UserId = users[5].Id, TrainerId = trainers[4].Id, AppointmentDate = DateTime.UtcNow.AddDays(7).AddHours(15) },
-            new() { UserId = users[6].Id, TrainerId = trainers[5].Id, AppointmentDate = DateTime.UtcNow.AddDays(8).AddHours(10) },
-            new() { UserId = users[7].Id, TrainerId = trainers[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(9).AddHours(13) },
-            new() { UserId = users[8].Id, TrainerId = trainers[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(10).AddHours(16) },
-            new() { UserId = users[0].Id, TrainerId = trainers[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(11).AddHours(8) },
+            new() { UserId = users[0].Id, TrainerId = trainers[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 2, 10) },
+            new() { UserId = users[1].Id, TrainerId = trainers[1].Id, AppointmentDate = BuildAppointmentDate(baseDate, 3, 14) },
+            new() { UserId = users[2].Id, TrainerId = trainers[2].Id, AppointmentDate = BuildAppointmentDate(baseDate, 4, 16) },
+            new() { UserId = users[3].Id, TrainerId = trainers[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 5, 9) },
+            new() { UserId = users[4].Id, TrainerId = trainers[3].Id, AppointmentDate = BuildAppointmentDate(baseDate, 6, 11) },
+            new() { UserId = users[5].Id, TrainerId = trainers[4].Id, AppointmentDate = BuildAppointmentDate(baseDate, 7, 15) },
+            new() { UserId = users[6].Id, TrainerId = trainers[5].Id, AppointmentDate = BuildAppointmentDate(baseDate, 8, 10) },
+            new() { UserId = users[7].Id, TrainerId = trainers[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 9, 13) },
+            new() { UserId = users[8].Id, TrainerId = trainers[1].Id, AppointmentDate = BuildAppointmentDate(baseDate, 10, 16) },
+            new() { UserId = users[0].Id, TrainerId = trainers[2].Id, AppointmentDate = BuildAppointmentDate(baseDate, 11, 9) },
             // Nutritionist appointments
-            new() { UserId = users[0].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(3).AddHours(13) },
-            new() { UserId = users[2].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(5).AddHours(15) },
-            new() { UserId = users[5].Id, NutritionistId = nutritionists[2].Id, AppointmentDate = DateTime.UtcNow.AddDays(7).AddHours(10) },
-            new() { UserId = users[7].Id, NutritionistId = nutritionists[3].Id, AppointmentDate = DateTime.UtcNow.AddDays(9).AddHours(11) },
-            new() { UserId = users[8].Id, NutritionistId = nutritionists[4].Id, AppointmentDate = DateTime.UtcNow.AddDays(11).AddHours(14) },
-            new() { UserId = users[1].Id, NutritionistId = nutritionists[5].Id, AppointmentDate = DateTime.UtcNow.AddDays(12).AddHours(9) },
-            new() { UserId = users[4].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = DateTime.UtcNow.AddDays(13).AddHours(16) },
-            new() { UserId = users[6].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = DateTime.UtcNow.AddDays(14).AddHours(12) }
+            new() { UserId = users[0].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 3, 13) },
+            new() { UserId = users[2].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = BuildAppointmentDate(baseDate, 5, 15) },
+            new() { UserId = users[5].Id, NutritionistId = nutritionists[2].Id, AppointmentDate = BuildAppointmentDate(baseDate, 7, 10) },
+            new() { UserId = users[7].Id, NutritionistId = nutritionists[3].Id, AppointmentDate = BuildAppointmentDate(baseDate, 9, 11) },
+            new() { UserId = users[8].Id, NutritionistId = nutritionists[4].Id, AppointmentDate = BuildAppointmentDate(baseDate, 11, 14) },
+            new() { UserId = users[1].Id, NutritionistId = nutritionists[5].Id, AppointmentDate = BuildAppointmentDate(baseDate, 12, 9) },
+            new() { UserId = users[4].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 13, 16) },
+            new() { UserId = users[6].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = BuildAppointmentDate(baseDate, 14, 12) }
         };
 
         await context.Appointments.AddRangeAsync(appointments);

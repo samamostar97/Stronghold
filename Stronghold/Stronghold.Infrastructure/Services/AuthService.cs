@@ -47,7 +47,9 @@ public class AuthService : IAuthService
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Username.ToLower() == request.Username.ToLower());
+            .FirstOrDefaultAsync(u =>
+                !u.IsDeleted &&
+                u.Username.ToLower() == request.Username.ToLower());
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
             throw new UnauthorizedAccessException("Neispravan username ili password");
@@ -57,11 +59,14 @@ public class AuthService : IAuthService
 
     public async Task<AuthResponse?> RegisterAsync(RegisterRequest request)
     {
-        var usernameExists = await _context.Users.AnyAsync(x => x.Username.ToLower() == request.Username.ToLower());
+        var usernameExists = await _context.Users
+            .AnyAsync(x => !x.IsDeleted && x.Username.ToLower() == request.Username.ToLower());
         if (usernameExists) throw new ConflictException("Ovaj username je zauzet");
-        var emailExists = await _context.Users.AnyAsync(x => x.Email.ToLower() == request.Email.ToLower());
+        var emailExists = await _context.Users
+            .AnyAsync(x => !x.IsDeleted && x.Email.ToLower() == request.Email.ToLower());
         if (emailExists) throw new ConflictException("Ovaj email je zauzet");
-        var numberExists = await _context.Users.AnyAsync(x => x.PhoneNumber == request.PhoneNumber);
+        var numberExists = await _context.Users
+            .AnyAsync(x => !x.IsDeleted && x.PhoneNumber == request.PhoneNumber);
         if (numberExists) throw new ConflictException("Ovaj broj je zauzet");
         
 
@@ -87,7 +92,7 @@ public class AuthService : IAuthService
         var token = GenerateJwtToken(user);
 
         var hasActiveMembership = await _context.Memberships
-            .AnyAsync(m => m.UserId == user.Id && m.EndDate >= DateTime.UtcNow);
+            .AnyAsync(m => m.UserId == user.Id && m.EndDate >= DateTime.UtcNow && !m.IsDeleted);
 
         return new AuthResponse
         {
@@ -105,7 +110,8 @@ public class AuthService : IAuthService
 
     public async Task ChangePasswordAsync(int userId, ChangePasswordRequest request)
     {
-        var user = await _context.Users.FindAsync(userId);
+        var user = await _context.Users
+            .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
         if (user == null)
             throw new KeyNotFoundException("Korisnik nije pronađen");
 
@@ -119,7 +125,9 @@ public class AuthService : IAuthService
     public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+            .FirstOrDefaultAsync(u =>
+                !u.IsDeleted &&
+                u.Email.ToLower() == request.Email.ToLower());
 
         if (user == null)
             throw new KeyNotFoundException("Korisnik sa ovim emailom ne postoji");
@@ -149,7 +157,9 @@ public class AuthService : IAuthService
     public async Task ResetPasswordAsync(ResetPasswordRequest request)
     {
         var user = await _context.Users
-            .FirstOrDefaultAsync(u => u.Email.ToLower() == request.Email.ToLower());
+            .FirstOrDefaultAsync(u =>
+                !u.IsDeleted &&
+                u.Email.ToLower() == request.Email.ToLower());
 
         if (user == null)
             throw new KeyNotFoundException("Korisnik nije pronađen");

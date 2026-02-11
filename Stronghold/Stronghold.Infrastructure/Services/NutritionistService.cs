@@ -22,10 +22,10 @@ namespace Stronghold.Infrastructure.Services
         protected override async Task BeforeCreateAsync(Nutritionist entity, CreateNutritionistRequest dto)
         {
             var emailExists = await _repository.AsQueryable().AnyAsync(x => x.Email.ToLower() == dto.Email.ToLower());
-            if (emailExists) throw new ConflictException("Email je već zauzet.");
+            if (emailExists) throw new ConflictException("Email je vec zauzet.");
 
             var phoneExists = await _repository.AsQueryable().AnyAsync(x => x.PhoneNumber == dto.PhoneNumber);
-            if (phoneExists) throw new ConflictException("Nutricionista sa ovim brojem telefona već postoji.");
+            if (phoneExists) throw new ConflictException("Nutricionista sa ovim brojem telefona vec postoji.");
         }
 
         protected override async Task BeforeUpdateAsync(Nutritionist entity, UpdateNutritionistRequest dto)
@@ -33,12 +33,13 @@ namespace Stronghold.Infrastructure.Services
             if (!string.IsNullOrEmpty(dto.Email))
             {
                 var emailExists = await _repository.AsQueryable().AnyAsync(x => x.Email.ToLower() == dto.Email.ToLower() && x.Id != entity.Id);
-                if (emailExists) throw new ConflictException("Email je već zauzet.");
+                if (emailExists) throw new ConflictException("Email je vec zauzet.");
             }
+
             if (!string.IsNullOrEmpty(dto.PhoneNumber))
             {
                 var phoneExists = await _repository.AsQueryable().AnyAsync(x => x.PhoneNumber == dto.PhoneNumber && x.Id != entity.Id);
-                if (phoneExists) throw new ConflictException("Nutricionista sa ovim brojem telefona već postoji.");
+                if (phoneExists) throw new ConflictException("Nutricionista sa ovim brojem telefona vec postoji.");
             }
         }
 
@@ -57,7 +58,7 @@ namespace Stronghold.Infrastructure.Services
         {
             if (!string.IsNullOrEmpty(filter.Search))
                 query = query.Where(x => x.FirstName.ToLower().Contains(filter.Search.ToLower())
-                                        || x.LastName.ToLower().Contains(filter.Search.ToLower()));
+                    || x.LastName.ToLower().Contains(filter.Search.ToLower()));
 
             if (!string.IsNullOrEmpty(filter.OrderBy))
             {
@@ -75,30 +76,29 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<AppointmentResponse> BookAppointmentAsync(int userId, int nutritionistId, DateTime date)
         {
-            if (date < DateTime.UtcNow) throw new ArgumentException("Nemoguce unijeti datum u proslosti");
-            if (date.Date == DateTime.Today) throw new ArgumentException("Nemoguce napraviti termin na isti dan");
-            if (date.Hour < 9 || date.Hour >= 17) throw new ArgumentException("Termini su mogući samo između 9:00 i 17:00");
+            var normalizedDate = NormalizeAndValidateAppointmentDate(date);
 
             var nutritionist = await _repository.GetByIdAsync(nutritionistId);
             if (nutritionist == null) throw new KeyNotFoundException("Nutricionist ne postoji.");
 
-            // User can only have 1 appointment per day (date-only check)
             var userHasAppointment = await _appointmentRepository.AsQueryable()
-                .AnyAsync(x => x.UserId == userId && x.AppointmentDate.Date == date.Date);
+                .AnyAsync(x => x.UserId == userId && x.AppointmentDate.Date == normalizedDate.Date);
             if (userHasAppointment) throw new ConflictException("Korisnik vec ima termin na ovaj datum.");
 
-            // Nutritionist availability check - 1 hour slots, check for overlap
-            var slotStart = date.AddHours(-1);
-            var slotEnd = date.AddHours(1);
+            // Appointment duration is fixed to 1h: overlap only if intervals intersect.
+            var slotStart = normalizedDate;
+            var slotEnd = normalizedDate.AddHours(1);
             var isNutritionistBusy = await _appointmentRepository.AsQueryable()
-                .AnyAsync(x => x.NutritionistId == nutritionistId && x.AppointmentDate >= slotStart && x.AppointmentDate <= slotEnd);
-            if (isNutritionistBusy) throw new InvalidOperationException("Odabrani nutricionist je zauzet u ovom terminu,pokušajte drugi termin.");
+                .AnyAsync(x => x.NutritionistId == nutritionistId
+                    && x.AppointmentDate < slotEnd
+                    && x.AppointmentDate.AddHours(1) > slotStart);
+            if (isNutritionistBusy) throw new InvalidOperationException("Odabrani nutricionist je zauzet u ovom terminu, pokusajte drugi termin.");
 
-            var newAppointment = new Appointment()
+            var newAppointment = new Appointment
             {
                 UserId = userId,
                 NutritionistId = nutritionistId,
-                AppointmentDate = date
+                AppointmentDate = normalizedDate
             };
 
             try
@@ -110,7 +110,7 @@ namespace Stronghold.Infrastructure.Services
                 throw new ConflictException("Odabrani nutricionist je zauzet u ovom terminu.");
             }
 
-            return new AppointmentResponse()
+            return new AppointmentResponse
             {
                 Id = newAppointment.Id,
                 NutritionistName = nutritionist.FirstName + " " + nutritionist.LastName,
@@ -123,21 +123,44 @@ namespace Stronghold.Infrastructure.Services
             const int workStartHour = 9;
             const int workEndHour = 17;
 
-            var bookedHours = await _appointmentRepository.AsQueryable()
-                .Where(x => x.NutritionistId == nutritionistId && x.AppointmentDate.Date == date.Date)
-                .Select(x => x.AppointmentDate.Hour)
+            var localDate = date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date;
+            var targetDate = localDate.Date;
+            if (targetDate <= DateTime.Today)
+            {
+                return Enumerable.Empty<int>();
+            }
+
+            var appointments = await _appointmentRepository.AsQueryable()
+                .Where(x => x.NutritionistId == nutritionistId && x.AppointmentDate.Date == targetDate)
+                .Select(x => x.AppointmentDate)
                 .ToListAsync();
 
             var availableHours = new List<int>();
             for (int hour = workStartHour; hour < workEndHour; hour++)
             {
-                if (!bookedHours.Contains(hour))
+                var slotStart = targetDate.AddHours(hour);
+                var slotEnd = slotStart.AddHours(1);
+                var isBusy = appointments.Any(x => x < slotEnd && x.AddHours(1) > slotStart);
+                if (!isBusy)
                 {
                     availableHours.Add(hour);
                 }
             }
 
             return availableHours;
+        }
+
+        private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
+        {
+            var localDate = date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date;
+
+            if (localDate < DateTime.Now) throw new ArgumentException("Nemoguce unijeti datum u proslosti");
+            if (localDate.Date == DateTime.Today) throw new ArgumentException("Nemoguce napraviti termin na isti dan");
+            if (localDate.Hour < 9 || localDate.Hour >= 17) throw new ArgumentException("Termini su moguci samo izmedju 9:00 i 17:00");
+            if (localDate.Minute != 0 || localDate.Second != 0 || localDate.Millisecond != 0)
+                throw new ArgumentException("Termin mora biti unesen na puni sat.");
+
+            return new DateTime(localDate.Year, localDate.Month, localDate.Day, localDate.Hour, 0, 0, localDate.Kind);
         }
     }
 }

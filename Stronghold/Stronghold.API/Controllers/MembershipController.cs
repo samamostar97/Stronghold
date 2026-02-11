@@ -30,6 +30,12 @@ namespace Stronghold.API.Controllers
             var result = await _membershipService.RevokeMembership(id);
             return Ok(result);
         }
+        [HttpGet("{userId}/is-active")]
+        public async Task<ActionResult<bool>> HasActiveMembership(int userId)
+        {
+            var result = await _membershipService.HasActiveMembershipAsync(userId);
+            return Ok(result);
+        }
         [HttpGet("{userId}/history")]
         public async Task<ActionResult<PagedResult<MembershipPaymentResponse>>> GetPayments(int userId, [FromQuery] MembershipQueryFilter filter)
         {

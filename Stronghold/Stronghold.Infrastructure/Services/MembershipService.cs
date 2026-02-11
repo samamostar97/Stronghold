@@ -6,6 +6,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Infrastructure.Common;
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -30,39 +31,69 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<bool> RevokeMembership(int userId)
         {
+            var now = DateTimeUtils.UtcNow;
+
             var userExists = await _userRepository.AsQueryable().AnyAsync(x => x.Id == userId && !x.IsDeleted);
-            if (!userExists) throw new KeyNotFoundException("User ne postoji");
+            if (!userExists)
+            {
+                throw new KeyNotFoundException("User ne postoji");
+            }
 
             var activeMembership = await _membershipRepository.AsQueryable()
-                .FirstOrDefaultAsync(x => x.UserId == userId && x.EndDate > DateTime.UtcNow && !x.IsDeleted);
-            if (activeMembership == null) throw new InvalidOperationException("User nema aktivnu clanarinu");
-
-            activeMembership.IsDeleted = true;
-            activeMembership.EndDate = DateTime.UtcNow;
-            await _membershipRepository.UpdateAsync(activeMembership);
-
-            var paymentHistory = await _paymentHistoryRepo.AsQueryable()
+                .FirstOrDefaultAsync(x => x.UserId == userId && x.EndDate > now && !x.IsDeleted);
+            var activePaymentHistories = await _paymentHistoryRepo.AsQueryable()
                 .Where(p => p.UserId == userId
-                    && p.MembershipPackageId == activeMembership.MembershipPackageId
-                    && p.EndDate > DateTime.UtcNow
+                    && p.StartDate <= now
+                    && p.EndDate > now
                     && !p.IsDeleted)
-                .OrderByDescending(p => p.PaymentDate)
-                .FirstOrDefaultAsync();
+                .ToListAsync();
 
-            if (paymentHistory != null)
+            if (activeMembership == null && activePaymentHistories.Count == 0)
             {
-                paymentHistory.EndDate = DateTime.UtcNow;
+                throw new InvalidOperationException("User nema aktivnu clanarinu");
+            }
+
+            if (activeMembership != null)
+            {
+                activeMembership.IsDeleted = true;
+                activeMembership.EndDate = now;
+                await _membershipRepository.UpdateAsync(activeMembership);
+            }
+
+            foreach (var paymentHistory in activePaymentHistories)
+            {
+                paymentHistory.EndDate = now;
                 await _paymentHistoryRepo.UpdateAsync(paymentHistory);
             }
 
             return true;
         }
 
+        public async Task<bool> HasActiveMembershipAsync(int userId)
+        {
+            var userExists = await _userRepository.AsQueryable().AnyAsync(x => x.Id == userId && !x.IsDeleted);
+            if (!userExists)
+            {
+                return false;
+            }
+
+            var now = DateTimeUtils.UtcNow;
+            return await _membershipRepository.AsQueryable()
+                .AnyAsync(x => x.UserId == userId && x.EndDate > now && !x.IsDeleted);
+        }
+
         public async Task<PagedResult<MembershipPaymentResponse>> GetPaymentsAsync(int userId, MembershipQueryFilter filter)
         {
             var userExists = await _userRepository.AsQueryable().AnyAsync(u => u.Id == userId && !u.IsDeleted);
             if (!userExists)
-                return new PagedResult<MembershipPaymentResponse> { Items = new(), TotalCount = 0, PageNumber = filter.PageNumber };
+            {
+                return new PagedResult<MembershipPaymentResponse>
+                {
+                    Items = new(),
+                    TotalCount = 0,
+                    PageNumber = filter.PageNumber
+                };
+            }
 
             var baseQuery = _paymentHistoryRepo.AsQueryable()
                 .AsNoTracking()
@@ -113,7 +144,7 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<PagedResult<ActiveMemberResponse>> GetActiveMembersAsync(ActiveMemberQueryFilter filter)
         {
-            var now = DateTime.UtcNow;
+            var now = DateTimeUtils.UtcNow;
 
             var baseQuery = _membershipRepository.AsQueryable()
                 .AsNoTracking()
@@ -131,7 +162,6 @@ namespace Stronghold.Infrastructure.Services
             }
 
             var query = baseQuery.OrderBy(m => m.User.FirstName).ThenBy(m => m.User.LastName);
-
             var totalCount = await query.CountAsync();
 
             var items = await query
@@ -159,51 +189,72 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<MembershipResponse> AssignMembership(AssignMembershipRequest request)
         {
-            if (request.StartDate < DateTime.Today)
-                throw new ArgumentException("Nemoguće unijeti datum u prošlosti");
-            if (request.EndDate < request.StartDate)
-                throw new ArgumentException("EndDate ne moze biti prije StartDate-a");
+            var normalizedStartDate = DateTimeUtils.ToUtcDate(request.StartDate);
+            var normalizedEndDate = DateTimeUtils.ToUtcDate(request.EndDate);
+            var normalizedPaymentDate = DateTimeUtils.ToUtcDate(request.PaymentDate);
 
-            var userExists = await _userRepository.AsQueryable().AnyAsync(x => x.Id == request.UserId);
+            if (normalizedStartDate < DateTimeUtils.UtcToday)
+            {
+                throw new ArgumentException("Nemoguce unijeti datum u proslosti");
+            }
+
+            if (normalizedEndDate < normalizedStartDate)
+            {
+                throw new ArgumentException("EndDate ne moze biti prije StartDate-a");
+            }
+
+            if (normalizedPaymentDate.Date < normalizedStartDate.Date || normalizedPaymentDate.Date > normalizedEndDate.Date)
+            {
+                throw new ArgumentException("PaymentDate mora biti unutar perioda clanarine.");
+            }
+
+            var userExists = await _userRepository.AsQueryable().AnyAsync(x => x.Id == request.UserId && !x.IsDeleted);
             if (!userExists)
+            {
                 throw new KeyNotFoundException("User ne postoji");
+            }
 
             var membershipExists = await _membershipRepository.AsQueryable()
-                .AnyAsync(x => x.UserId == request.UserId && x.EndDate > DateTime.UtcNow && !x.IsDeleted);
+                .AnyAsync(x => x.UserId == request.UserId && x.EndDate > DateTimeUtils.UtcNow && !x.IsDeleted);
             if (membershipExists)
+            {
                 throw new InvalidOperationException("User vec ima aktivnu clanarinu");
+            }
 
-            var packageExists = await _membershipPackageRepository.AsQueryable().AnyAsync(x => x.Id == request.MembershipPackageId);
+            var packageExists = await _membershipPackageRepository.AsQueryable()
+                .AnyAsync(x => x.Id == request.MembershipPackageId && !x.IsDeleted);
             if (!packageExists)
-                throw new KeyNotFoundException("Ta članarina ne postoji");
+            {
+                throw new KeyNotFoundException("Ta clanarina ne postoji");
+            }
 
-            var membership = new Membership()
+            var membership = new Membership
             {
                 UserId = request.UserId,
                 MembershipPackageId = request.MembershipPackageId,
-                EndDate = request.EndDate,
-                StartDate = request.StartDate,
+                StartDate = normalizedStartDate,
+                EndDate = normalizedEndDate
             };
             await _membershipRepository.AddAsync(membership);
 
-            var paymentHistory = new MembershipPaymentHistory()
+            var paymentHistory = new MembershipPaymentHistory
             {
                 UserId = request.UserId,
                 MembershipPackageId = request.MembershipPackageId,
                 AmountPaid = request.AmountPaid,
-                PaymentDate = request.PaymentDate,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
+                PaymentDate = normalizedPaymentDate,
+                StartDate = normalizedStartDate,
+                EndDate = normalizedEndDate
             };
             await _paymentHistoryRepo.AddAsync(paymentHistory);
 
-            return new MembershipResponse()
+            return new MembershipResponse
             {
                 Id = membership.Id,
                 UserId = membership.UserId,
                 MembershipPackageId = membership.MembershipPackageId,
                 StartDate = membership.StartDate,
-                EndDate = membership.EndDate,
+                EndDate = membership.EndDate
             };
         }
     }

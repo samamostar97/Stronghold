@@ -28,7 +28,7 @@ namespace Stronghold.Infrastructure.Services
         public async Task<PagedResult<AppointmentResponse>> GetAppointmentsByUserIdAsync(int userId, AppointmentQueryFilter filter)
         {
             var baseQuery = _appointmentRepository.AsQueryable()
-                .Where(x => x.UserId == userId && x.AppointmentDate > DateTime.UtcNow)
+                .Where(x => x.UserId == userId && x.AppointmentDate > DateTime.Now)
                 .Include(x => x.Trainer)
                 .Include(x => x.Nutritionist);
 
@@ -52,7 +52,7 @@ namespace Stronghold.Infrastructure.Services
             var appointments = await query
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize)
-                .Select(x => new AppointmentResponse()
+                .Select(x => new AppointmentResponse
                 {
                     Id = x.Id,
                     TrainerName = x.Trainer != null ? x.Trainer.FirstName + " " + x.Trainer.LastName : null,
@@ -70,13 +70,11 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<PagedResult<AdminAppointmentResponse>> GetAllAppointmentsAsync(AppointmentQueryFilter filter)
         {
-            var baseQuery = _appointmentRepository.AsQueryable()
+            IQueryable<Appointment> baseQuery = _appointmentRepository.AsQueryable()
                 .Include(x => x.User)
                 .Include(x => x.Trainer)
-                .Include(x => x.Nutritionist)
-                .AsQueryable();
+                .Include(x => x.Nutritionist);
 
-            // Search filter
             if (!string.IsNullOrEmpty(filter.Search))
             {
                 var search = filter.Search.ToLower();
@@ -86,7 +84,6 @@ namespace Stronghold.Infrastructure.Services
                     (x.Nutritionist != null && (x.Nutritionist.FirstName + " " + x.Nutritionist.LastName).ToLower().Contains(search)));
             }
 
-            // Sorting
             IQueryable<Appointment> query;
             if (!string.IsNullOrEmpty(filter.OrderBy))
             {
@@ -138,7 +135,7 @@ namespace Stronghold.Infrastructure.Services
             if (appointment == null)
                 throw new KeyNotFoundException("Termin ne postoji");
 
-            if (appointment.AppointmentDate < DateTime.UtcNow)
+            if (appointment.AppointmentDate < DateTime.Now)
                 throw new InvalidOperationException("Nemoguce otkazati zavrseni termin");
 
             await _appointmentRepository.DeleteAsync(appointment);
@@ -146,20 +143,19 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<int> AdminCreateAsync(AdminCreateAppointmentRequest request)
         {
-            // Delegate to existing booking services which handle all validation
-            // (working hours, staff availability, user daily limit)
+            ValidateSingleStaffSelection(request.TrainerId, request.NutritionistId);
+            var normalizedDate = NormalizeAndValidateAppointmentDate(request.AppointmentDate);
+
             if (request.TrainerId != null)
             {
                 var result = await _trainerService.BookAppointmentAsync(
-                    request.UserId, request.TrainerId.Value, request.AppointmentDate);
+                    request.UserId, request.TrainerId.Value, normalizedDate);
                 return result.Id;
             }
-            else
-            {
-                var result = await _nutritionistService.BookAppointmentAsync(
-                    request.UserId, request.NutritionistId!.Value, request.AppointmentDate);
-                return result.Id;
-            }
+
+            var nutritionistResult = await _nutritionistService.BookAppointmentAsync(
+                request.UserId, request.NutritionistId!.Value, normalizedDate);
+            return nutritionistResult.Id;
         }
 
         public async Task AdminUpdateAsync(int id, AdminUpdateAppointmentRequest request)
@@ -170,34 +166,26 @@ namespace Stronghold.Infrastructure.Services
             if (appointment == null)
                 throw new KeyNotFoundException("Termin ne postoji.");
 
-            var date = request.AppointmentDate;
+            ValidateSingleStaffSelection(request.TrainerId, request.NutritionistId);
+            var normalizedDate = NormalizeAndValidateAppointmentDate(request.AppointmentDate);
 
-            // Same validation rules as BookAppointmentAsync
-            if (date <= DateTime.UtcNow)
-                throw new ArgumentException("Datum termina mora biti u buducnosti.");
-
-            if (date.Hour < 9 || date.Hour >= 17)
-                throw new ArgumentException("Termini su mogući samo između 9:00 i 17:00.");
-
-            // User can only have 1 appointment per day (exclude current appointment)
             var userHasAppointment = await _appointmentRepository.AsQueryable()
                 .AnyAsync(x => x.UserId == appointment.UserId
-                    && x.AppointmentDate.Date == date.Date
+                    && x.AppointmentDate.Date == normalizedDate.Date
                     && x.Id != id);
             if (userHasAppointment)
                 throw new InvalidOperationException("Korisnik vec ima termin na ovaj datum.");
 
-            // Staff availability - 1h slot overlap (exclude current appointment)
-            var slotStart = date.AddHours(-1);
-            var slotEnd = date.AddHours(1);
+            var slotStart = normalizedDate;
+            var slotEnd = normalizedDate.AddHours(1);
 
             if (request.TrainerId != null)
             {
                 var isTrainerBusy = await _appointmentRepository.AsQueryable()
                     .AnyAsync(x => x.TrainerId == request.TrainerId
-                        && x.AppointmentDate >= slotStart
-                        && x.AppointmentDate <= slotEnd
-                        && x.Id != id);
+                        && x.Id != id
+                        && x.AppointmentDate < slotEnd
+                        && x.AppointmentDate.AddHours(1) > slotStart);
                 if (isTrainerBusy)
                     throw new InvalidOperationException("Odabrani trener je zauzet u ovom terminu.");
             }
@@ -206,16 +194,16 @@ namespace Stronghold.Infrastructure.Services
             {
                 var isNutritionistBusy = await _appointmentRepository.AsQueryable()
                     .AnyAsync(x => x.NutritionistId == request.NutritionistId
-                        && x.AppointmentDate >= slotStart
-                        && x.AppointmentDate <= slotEnd
-                        && x.Id != id);
+                        && x.Id != id
+                        && x.AppointmentDate < slotEnd
+                        && x.AppointmentDate.AddHours(1) > slotStart);
                 if (isNutritionistBusy)
                     throw new InvalidOperationException("Odabrani nutricionista je zauzet/a u ovom terminu.");
             }
 
             appointment.TrainerId = request.TrainerId;
             appointment.NutritionistId = request.NutritionistId;
-            appointment.AppointmentDate = request.AppointmentDate;
+            appointment.AppointmentDate = normalizedDate;
 
             await _appointmentRepository.UpdateAsync(appointment);
         }
@@ -229,6 +217,34 @@ namespace Stronghold.Infrastructure.Services
                 throw new KeyNotFoundException("Termin ne postoji.");
 
             await _appointmentRepository.DeleteAsync(appointment);
+        }
+
+        private static void ValidateSingleStaffSelection(int? trainerId, int? nutritionistId)
+        {
+            if (trainerId == null && nutritionistId == null)
+                throw new ArgumentException("Morate odabrati trenera ili nutricionistu.");
+
+            if (trainerId != null && nutritionistId != null)
+                throw new ArgumentException("Termin moze biti samo kod trenera ili nutricioniste, ne oba.");
+        }
+
+        private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
+        {
+            var localDate = date.Kind == DateTimeKind.Utc ? date.ToLocalTime() : date;
+
+            if (localDate < DateTime.Now)
+                throw new ArgumentException("Nemoguce unijeti datum u proslosti");
+
+            if (localDate.Date == DateTime.Today)
+                throw new ArgumentException("Nemoguce napraviti termin na isti dan");
+
+            if (localDate.Hour < 9 || localDate.Hour >= 17)
+                throw new ArgumentException("Termini su moguci samo izmedju 9:00 i 17:00.");
+
+            if (localDate.Minute != 0 || localDate.Second != 0 || localDate.Millisecond != 0)
+                throw new ArgumentException("Termin mora biti unesen na puni sat.");
+
+            return new DateTime(localDate.Year, localDate.Month, localDate.Day, localDate.Hour, 0, 0, localDate.Kind);
         }
     }
 }

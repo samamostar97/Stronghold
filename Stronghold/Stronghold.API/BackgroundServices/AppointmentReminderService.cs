@@ -1,11 +1,16 @@
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.IServices;
+using Stronghold.Core.Entities;
+using Stronghold.Infrastructure.Common;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.API.BackgroundServices;
 
 public class AppointmentReminderService : BackgroundService
 {
+    private const string ReminderType = "appointment";
+    private const string EntityType = "Appointment";
+
     private readonly ILogger<AppointmentReminderService> _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly TimeSpan _checkInterval = TimeSpan.FromHours(24);
@@ -20,7 +25,6 @@ public class AppointmentReminderService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        // Wait for app to fully start
         await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
 
         while (!stoppingToken.IsCancellationRequested)
@@ -46,61 +50,130 @@ public class AppointmentReminderService : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-        var today = DateTime.UtcNow.Date;
+        var today = DateTimeUtils.LocalToday;
         var in1Day = today.AddDays(1);
         var in3Days = today.AddDays(3);
 
-        // Get appointments in exactly 3 days
         var in3DaysList = await dbContext.Appointments
             .Include(a => a.User)
             .Include(a => a.Trainer)
             .Include(a => a.Nutritionist)
-            .Where(a => a.AppointmentDate.Date == in3Days)
+            .Where(a =>
+                !a.User.IsDeleted &&
+                (a.TrainerId == null || !a.Trainer!.IsDeleted) &&
+                (a.NutritionistId == null || !a.Nutritionist!.IsDeleted) &&
+                a.AppointmentDate.Date == in3Days)
             .ToListAsync();
 
-        // Get appointments in exactly 1 day
         var in1DayList = await dbContext.Appointments
             .Include(a => a.User)
             .Include(a => a.Trainer)
             .Include(a => a.Nutritionist)
-            .Where(a => a.AppointmentDate.Date == in1Day)
+            .Where(a =>
+                !a.User.IsDeleted &&
+                (a.TrainerId == null || !a.Trainer!.IsDeleted) &&
+                (a.NutritionistId == null || !a.Nutritionist!.IsDeleted) &&
+                a.AppointmentDate.Date == in1Day)
             .ToListAsync();
 
-        _logger.LogInformation("Found {Count3} appointments in 3 days, {Count1} in 1 day",
-            in3DaysList.Count, in1DayList.Count);
+        _logger.LogInformation(
+            "Found {Count3} appointments in 3 days, {Count1} in 1 day",
+            in3DaysList.Count,
+            in1DayList.Count);
 
         foreach (var appointment in in3DaysList)
         {
-            var professionalName = GetProfessionalName(appointment);
-            await SendReminderEmail(emailService, appointment.User.Email, appointment.User.FirstName,
-                professionalName, 3, appointment.AppointmentDate);
+            await SendReminderIfNeededAsync(dbContext, emailService, appointment, 3);
         }
 
         foreach (var appointment in in1DayList)
         {
-            var professionalName = GetProfessionalName(appointment);
-            await SendReminderEmail(emailService, appointment.User.Email, appointment.User.FirstName,
-                professionalName, 1, appointment.AppointmentDate);
+            await SendReminderIfNeededAsync(dbContext, emailService, appointment, 1);
         }
     }
 
-    private static string GetProfessionalName(Stronghold.Core.Entities.Appointment appointment)
+    private async Task SendReminderIfNeededAsync(
+        StrongholdDbContext dbContext,
+        IEmailService emailService,
+        Appointment appointment,
+        int daysUntil)
     {
-        if (appointment.Trainer != null)
-            return $"trener {appointment.Trainer.FirstName} {appointment.Trainer.LastName}";
+        var targetDate = appointment.AppointmentDate.Date;
 
-        if (appointment.Nutritionist != null)
-            return $"nutricionist {appointment.Nutritionist.FirstName} {appointment.Nutritionist.LastName}";
+        var alreadySent = await dbContext.ReminderDispatchLogs.AnyAsync(x =>
+            x.ReminderType == ReminderType &&
+            x.EntityType == EntityType &&
+            x.EntityId == appointment.Id &&
+            x.DaysBeforeEvent == daysUntil &&
+            x.TargetDate == targetDate);
 
-        return "stručnjak";
+        if (alreadySent)
+        {
+            return;
+        }
+
+        var professionalName = GetProfessionalName(appointment);
+        var sent = await SendReminderEmail(
+            emailService,
+            appointment.User.Email,
+            appointment.User.FirstName,
+            professionalName,
+            daysUntil,
+            appointment.AppointmentDate);
+
+        if (!sent)
+        {
+            return;
+        }
+
+        try
+        {
+            dbContext.ReminderDispatchLogs.Add(new ReminderDispatchLog
+            {
+                ReminderType = ReminderType,
+                EntityType = EntityType,
+                EntityId = appointment.Id,
+                DaysBeforeEvent = daysUntil,
+                TargetDate = targetDate
+            });
+
+            await dbContext.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            _logger.LogInformation(
+                "Appointment reminder log already exists (AppointmentId: {AppointmentId}, Days: {Days})",
+                appointment.Id,
+                daysUntil);
+        }
     }
 
-    private async Task SendReminderEmail(IEmailService emailService, string email, string firstName,
-        string professionalName, int daysUntil, DateTime appointmentDate)
+    private static string GetProfessionalName(Appointment appointment)
+    {
+        if (appointment.Trainer != null)
+        {
+            return $"trener {appointment.Trainer.FirstName} {appointment.Trainer.LastName}";
+        }
+
+        if (appointment.Nutritionist != null)
+        {
+            return $"nutricionist {appointment.Nutritionist.FirstName} {appointment.Nutritionist.LastName}";
+        }
+
+        return "strucnjak";
+    }
+
+    private async Task<bool> SendReminderEmail(
+        IEmailService emailService,
+        string email,
+        string firstName,
+        string professionalName,
+        int daysUntil,
+        DateTime appointmentDate)
     {
         var subject = daysUntil == 1
-            ? "Vaš termin je sutra!"
-            : $"Vaš termin je za {daysUntil} dana";
+            ? "Vas termin je sutra!"
+            : $"Vas termin je za {daysUntil} dana";
 
         var timeStr = appointmentDate.ToString("HH:mm");
         var dateStr = appointmentDate.ToString("dd.MM.yyyy");
@@ -109,11 +182,11 @@ public class AppointmentReminderService : BackgroundService
             <html>
             <body style='font-family: Arial, sans-serif; line-height: 1.6;'>
                 <h2>Pozdrav {firstName},</h2>
-                <p>Podsjećamo Vas da imate zakazan termin sa <strong>{professionalName}</strong>
+                <p>Podsjecamo Vas da imate zakazan termin sa <strong>{professionalName}</strong>
                    dana <strong>{dateStr}</strong> u <strong>{timeStr}</strong>.</p>
-                <p>Molimo Vas da dođete na vrijeme.</p>
+                <p>Molimo Vas da dodjete na vrijeme.</p>
                 <br/>
-                <p>Srdačan pozdrav,<br/>Stronghold Tim</p>
+                <p>Srdacan pozdrav,<br/>Stronghold Tim</p>
             </body>
             </html>";
 
@@ -121,10 +194,12 @@ public class AppointmentReminderService : BackgroundService
         {
             await emailService.SendEmailAsync(email, subject, body);
             _logger.LogInformation("Queued {Days}-day appointment reminder for {Email}", daysUntil, email);
+            return true;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to queue appointment reminder for {Email}", email);
+            return false;
         }
     }
 }
