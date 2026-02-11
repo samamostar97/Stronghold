@@ -74,6 +74,19 @@ class AuthResponse {
     );
   }
 
+  AuthResponse copyWithImage(String? imageUrl) {
+    return AuthResponse(
+      userId: userId,
+      firstName: firstName,
+      lastName: lastName,
+      username: username,
+      email: email,
+      profileImageUrl: imageUrl,
+      token: token,
+      hasActiveMembership: hasActiveMembership,
+    );
+  }
+
   String get displayName {
     if (firstName.isNotEmpty && lastName.isNotEmpty) {
       return '$firstName $lastName';

@@ -215,6 +215,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  /// Update profile image URL in auth state
+  void updateProfileImage(String? url) {
+    final current = state.user;
+    if (current == null) return;
+    state = state.copyWith(user: current.copyWithImage(url));
+  }
+
   /// Logout
   Future<void> logout() async {
     await TokenStorage.clear();

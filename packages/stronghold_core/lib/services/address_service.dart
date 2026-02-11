@@ -1,4 +1,5 @@
 import '../api/api_client.dart';
+import '../api/api_exception.dart';
 import '../models/requests/upsert_address_request.dart';
 import '../models/responses/address_response.dart';
 
@@ -17,8 +18,8 @@ class AddressService {
         parser: (json) =>
             AddressResponse.fromJson(json as Map<String, dynamic>),
       );
-    } catch (e) {
-      if (e.toString().contains('404')) return null;
+    } on ApiException catch (e) {
+      if (e.isNotFound) return null;
       rethrow;
     }
   }
@@ -31,8 +32,8 @@ class AddressService {
         parser: (json) =>
             AddressResponse.fromJson(json as Map<String, dynamic>),
       );
-    } catch (e) {
-      if (e.toString().contains('404')) return null;
+    } on ApiException catch (e) {
+      if (e.isNotFound) return null;
       rethrow;
     }
   }

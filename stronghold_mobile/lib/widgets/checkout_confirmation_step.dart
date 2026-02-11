@@ -90,8 +90,7 @@ class CheckoutConfirmationStep extends StatelessWidget {
             label: 'Moje narudzbe',
             icon: LucideIcons.package,
             onPressed: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
-              Navigator.push(
+              Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
                   builder: (_) => const OrderHistoryScreen(),

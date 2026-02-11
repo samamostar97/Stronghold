@@ -54,6 +54,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
           _localImageUrl = newUrl;
           _imageOverridden = true;
         });
+        ref.read(authProvider.notifier).updateProfileImage(newUrl);
       },
     );
   }

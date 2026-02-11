@@ -97,6 +97,7 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
           _localImageUrl = newUrl;
           _imageOverridden = true;
         });
+        ref.read(authProvider.notifier).updateProfileImage(newUrl);
       },
     );
   }
