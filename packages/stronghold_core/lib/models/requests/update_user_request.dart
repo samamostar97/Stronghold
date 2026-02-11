@@ -1,29 +1,24 @@
 /// Matches backend UpdateUserRequest exactly
 class UpdateUserRequest {
-  final String? firstName;
-  final String? lastName;
-  final String? username;
-  final String? email;
-  final String? phoneNumber;
-  final String? password;
+  final String firstName;
+  final String lastName;
+  final String username;
+  final String email;
+  final String phoneNumber;
 
   const UpdateUserRequest({
-    this.firstName,
-    this.lastName,
-    this.username,
-    this.email,
-    this.phoneNumber,
-    this.password,
+    required this.firstName,
+    required this.lastName,
+    required this.username,
+    required this.email,
+    required this.phoneNumber,
   });
 
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    if (firstName != null) map['firstName'] = firstName;
-    if (lastName != null) map['lastName'] = lastName;
-    if (username != null) map['username'] = username;
-    if (email != null) map['email'] = email;
-    if (phoneNumber != null) map['phoneNumber'] = phoneNumber;
-    if (password != null) map['password'] = password;
-    return map;
-  }
+  Map<String, dynamic> toJson() => {
+        'firstName': firstName,
+        'lastName': lastName,
+        'username': username,
+        'email': email,
+        'phoneNumber': phoneNumber,
+      };
 }

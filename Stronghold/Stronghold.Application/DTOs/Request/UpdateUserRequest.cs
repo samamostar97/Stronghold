@@ -22,8 +22,5 @@ namespace Stronghold.Application.DTOs.Request
             ErrorMessage = "Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.")]
         [StringLength(20, MinimumLength = 9, ErrorMessage = "Broj telefona mora imati između 9 i 20 karaktera.")]
         public string? PhoneNumber { get; set; }
-
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "Lozinka mora imati između 6 i 100 karaktera.")]
-        public string? Password { get; set; }
     }
 }

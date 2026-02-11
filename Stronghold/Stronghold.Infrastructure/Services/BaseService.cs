@@ -1,4 +1,4 @@
-﻿using MapsterMapper;
+using MapsterMapper;
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
@@ -117,3 +117,4 @@ namespace Stronghold.Infrastructure.Services
         protected virtual Task AfterGetAllAsync(IEnumerable<T> entities) => Task.CompletedTask;
     }
 }
+

@@ -68,11 +68,6 @@ namespace Stronghold.Infrastructure.Services
                 if (emailExists)
                     throw new ConflictException("Email je već zauzet.");
             }
-
-            if (!string.IsNullOrEmpty(dto.Password))
-            {
-                entity.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
-            }
         }
 
         protected override Task BeforeDeleteAsync(User entity)

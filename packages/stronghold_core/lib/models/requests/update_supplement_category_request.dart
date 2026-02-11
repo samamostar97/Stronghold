@@ -1,14 +1,12 @@
 /// Matches backend UpdateSupplementCategoryRequest exactly
 class UpdateSupplementCategoryRequest {
-  final String? name;
+  final String name;
 
   const UpdateSupplementCategoryRequest({
-    this.name,
+    required this.name,
   });
 
-  Map<String, dynamic> toJson() {
-    final map = <String, dynamic>{};
-    if (name != null) map['name'] = name;
-    return map;
-  }
+  Map<String, dynamic> toJson() => {
+        'name': name,
+      };
 }
