@@ -47,5 +47,40 @@ namespace Stronghold.API.Controllers
             var result = await _nutritionistService.GetAvailableHoursAsync(id, date);
             return Ok(result);
         }
+
+        [Authorize(Roles = "Admin,GymMember")]
+        [HttpGet("GetAll")]
+        public override Task<ActionResult<IEnumerable<NutritionistResponse>>> GetAllAsync([FromQuery] NutritionistQueryFilter filter)
+        {
+            return base.GetAllAsync(filter);
+        }
+
+        [Authorize(Roles = "Admin,GymMember")]
+        [HttpGet("{id}")]
+        public override Task<ActionResult<NutritionistResponse>> GetById(int id)
+        {
+            return base.GetById(id);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public override Task<ActionResult<NutritionistResponse>> Create([FromBody] CreateNutritionistRequest dto)
+        {
+            return base.Create(dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public override Task<ActionResult<NutritionistResponse>> Update(int id, [FromBody] UpdateNutritionistRequest dto)
+        {
+            return base.Update(id, dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public override Task<IActionResult> Delete(int id)
+        {
+            return base.Delete(id);
+        }
     }
 }

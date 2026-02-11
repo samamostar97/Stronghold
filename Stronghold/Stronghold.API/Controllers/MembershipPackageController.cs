@@ -37,5 +37,26 @@ namespace Stronghold.API.Controllers
         {
             return await base.GetById(id);
         }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public override async Task<ActionResult<MembershipPackageResponse>> Create([FromBody] CreateMembershipPackageRequest dto)
+        {
+            return await base.Create(dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public override async Task<ActionResult<MembershipPackageResponse>> Update(int id, [FromBody] UpdateMembershipPackageRequest dto)
+        {
+            return await base.Update(id, dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public override async Task<IActionResult> Delete(int id)
+        {
+            return await base.Delete(id);
+        }
     }
 }

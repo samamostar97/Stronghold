@@ -46,6 +46,27 @@ namespace Stronghold.API.Controllers
             return Ok(result);
         }
 
+        [HttpGet("GetAllPaged")]
+        [Authorize(Roles = "Admin,GymMember")]
+        public override Task<ActionResult<PagedResult<ReviewResponse>>> GetAllPagedAsync([FromQuery] ReviewQueryFilter filter)
+        {
+            return base.GetAllPagedAsync(filter);
+        }
+
+        [HttpGet("GetAll")]
+        [Authorize(Roles = "Admin,GymMember")]
+        public override Task<ActionResult<IEnumerable<ReviewResponse>>> GetAllAsync([FromQuery] ReviewQueryFilter filter)
+        {
+            return base.GetAllAsync(filter);
+        }
+
+        [HttpGet("{id}")]
+        [Authorize(Roles = "Admin,GymMember")]
+        public override Task<ActionResult<ReviewResponse>> GetById(int id)
+        {
+            return base.GetById(id);
+        }
+
         [HttpPost]
         [Authorize(Roles = "GymMember")]
         public override async Task<ActionResult<ReviewResponse>> Create([FromBody] CreateReviewRequest dto)

@@ -6,6 +6,7 @@ using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers
 {
+    [Authorize]
     [Route("[controller]")]
     public class BaseController<T, TDto, TCreateDto, TUpdateDto, TQueryFilter, TKey> : UserControllerBase
         where T : class

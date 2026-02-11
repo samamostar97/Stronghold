@@ -54,5 +54,33 @@ namespace Stronghold.API.Controllers
         {
             return base.GetById(id);
         }
+
+        [Authorize(Roles = "Admin,GymMember")]
+        [HttpGet("GetAll")]
+        public override Task<ActionResult<IEnumerable<TrainerResponse>>> GetAllAsync([FromQuery] TrainerQueryFilter filter)
+        {
+            return base.GetAllAsync(filter);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public override Task<ActionResult<TrainerResponse>> Create([FromBody] CreateTrainerRequest dto)
+        {
+            return base.Create(dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpPut("{id}")]
+        public override Task<ActionResult<TrainerResponse>> Update(int id, [FromBody] UpdateTrainerRequest dto)
+        {
+            return base.Update(id, dto);
+        }
+
+        [Authorize(Roles = "Admin")]
+        [HttpDelete("{id}")]
+        public override Task<IActionResult> Delete(int id)
+        {
+            return base.Delete(id);
+        }
     }
 }

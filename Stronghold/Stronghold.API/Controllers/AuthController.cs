@@ -18,6 +18,7 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<ActionResult<AuthResponse>> Login([FromBody] LoginRequest request)
     {
@@ -25,6 +26,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [AllowAnonymous]
     [HttpPost("login/admin")]
     public async Task<ActionResult<AuthResponse>> AdminLogin([FromBody] LoginRequest request)
     {
@@ -34,6 +36,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [AllowAnonymous]
     [HttpPost("login/member")]
     public async Task<ActionResult<AuthResponse>> MemberLogin([FromBody] LoginRequest request)
     {
@@ -43,6 +46,7 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    [AllowAnonymous]
     [HttpPost("register")]
     public async Task<ActionResult<AuthResponse>> Register([FromBody] RegisterRequest request)
     {
@@ -51,6 +55,7 @@ public class AuthController : ControllerBase
         return CreatedAtAction(nameof(Login), response);
     }
 
+    [AllowAnonymous]
     [HttpPost("forgot-password")]
     public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
     {
@@ -58,6 +63,7 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Ako nalog sa ovim emailom postoji, kod za reset je poslan." });
     }
 
+    [AllowAnonymous]
     [HttpPost("reset-password")]
     public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
     {
