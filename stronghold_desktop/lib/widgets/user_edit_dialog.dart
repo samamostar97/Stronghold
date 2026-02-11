@@ -29,6 +29,7 @@ class _UserEditDialogState extends ConsumerState<UserEditDialog> {
   late final _username = TextEditingController(text: widget.user.username);
   late final _email = TextEditingController(text: widget.user.email);
   late final _phone = TextEditingController(text: widget.user.phoneNumber);
+  final _password = TextEditingController();
   bool _saving = false;
   String? _selectedImagePath;
   bool _imageDeleted = false;
@@ -47,6 +48,7 @@ class _UserEditDialogState extends ConsumerState<UserEditDialog> {
     _username.dispose();
     _email.dispose();
     _phone.dispose();
+    _password.dispose();
     super.dispose();
   }
 
@@ -78,6 +80,8 @@ class _UserEditDialogState extends ConsumerState<UserEditDialog> {
         username: _username.text.trim(),
         email: _email.text.trim(),
         phoneNumber: _phone.text.trim(),
+        password:
+            _password.text.isNotEmpty ? _password.text : null,
       );
       await ref
           .read(userListProvider.notifier)
@@ -145,6 +149,12 @@ class _UserEditDialogState extends ConsumerState<UserEditDialog> {
                       hint: '061 123 456',
                       keyboardType: TextInputType.phone,
                       validator: (v) => Validators.phone(v, required: false)),
+                  const SizedBox(height: AppSpacing.lg),
+                  DialogTextField(controller: _password,
+                      label: 'Nova lozinka (ostavite prazno za zadrzavanje)',
+                      obscureText: true,
+                      validator: (v) =>
+                          Validators.password(v, required: false)),
                   const SizedBox(height: AppSpacing.xxl),
                   _actions(),
                 ],

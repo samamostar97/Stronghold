@@ -1,21 +1,23 @@
 /// Matches backend UpdateNutritionistRequest exactly
 class UpdateNutritionistRequest {
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String phoneNumber;
+  final String? firstName;
+  final String? lastName;
+  final String? email;
+  final String? phoneNumber;
 
   const UpdateNutritionistRequest({
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.phoneNumber,
+    this.firstName,
+    this.lastName,
+    this.email,
+    this.phoneNumber,
   });
 
-  Map<String, dynamic> toJson() => {
-        'firstName': firstName,
-        'lastName': lastName,
-        'email': email,
-        'phoneNumber': phoneNumber,
-      };
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{};
+    if (firstName != null) map['firstName'] = firstName;
+    if (lastName != null) map['lastName'] = lastName;
+    if (email != null) map['email'] = email;
+    if (phoneNumber != null) map['phoneNumber'] = phoneNumber;
+    return map;
+  }
 }
