@@ -49,6 +49,24 @@ namespace Stronghold.API.Controllers
             var idProp = result!.GetType().GetProperty("Id");
             var id = idProp?.GetValue(result);
 
+            if (User.IsInRole("Admin") && id is int entityId)
+            {
+                var adminUserId = GetCurrentUserId();
+                if (adminUserId.HasValue)
+                {
+                    var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
+                    var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
+                    if (activityService != null)
+                    {
+                        await activityService.LogAddAsync(
+                            adminUserId.Value,
+                            adminUsername,
+                            typeof(T).Name,
+                            entityId);
+                    }
+                }
+            }
+
             return CreatedAtAction(nameof(GetById), new { id }, result);
         }
 

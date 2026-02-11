@@ -63,7 +63,7 @@ class DashboardAdminActivityFeed extends StatelessWidget {
       );
     } else if (items.isEmpty) {
       content = Center(
-        child: Text('Nema delete aktivnosti', style: AppTextStyles.bodyMd),
+        child: Text('Nema aktivnosti', style: AppTextStyles.bodyMd),
       );
     } else {
       content = ListView.builder(
@@ -123,6 +123,9 @@ class _ActivityRow extends StatelessWidget {
     final canUndo = item.canUndo && !item.isUndone;
     final remaining =
         DateTimeUtils.toLocal(item.undoAvailableUntil).difference(DateTime.now());
+    final isAddAction = item.actionType.toLowerCase() == 'add';
+    final accentColor = isAddAction ? AppColors.success : AppColors.warning;
+    final actionIcon = isAddAction ? LucideIcons.plus : LucideIcons.trash2;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
@@ -133,13 +136,13 @@ class _ActivityRow extends StatelessWidget {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.12),
+              color: accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
-            child: const Icon(
-              LucideIcons.trash2,
+            child: Icon(
+              actionIcon,
               size: 16,
-              color: AppColors.warning,
+              color: accentColor,
             ),
           ),
           const SizedBox(width: AppSpacing.md),
@@ -163,7 +166,7 @@ class _ActivityRow extends StatelessWidget {
                   Text(
                     'Undo: jos ${remaining.inMinutes.clamp(0, 59)} min',
                     style: AppTextStyles.caption.copyWith(
-                      color: AppColors.warning,
+                      color: accentColor,
                     ),
                   ),
                 ],

@@ -55,6 +55,22 @@ namespace Stronghold.API.Controllers
         public async Task<ActionResult> AdminCreate([FromBody] AdminCreateAppointmentRequest request)
         {
             var id = await _service.AdminCreateAsync(request);
+
+            var adminUserId = GetCurrentUserId();
+            if (adminUserId.HasValue)
+            {
+                var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
+                var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
+                if (activityService != null)
+                {
+                    await activityService.LogAddAsync(
+                        adminUserId.Value,
+                        adminUsername,
+                        "Appointment",
+                        id);
+                }
+            }
+
             return CreatedAtAction(nameof(GetAllAppointments), new { id }, new { id });
         }
 

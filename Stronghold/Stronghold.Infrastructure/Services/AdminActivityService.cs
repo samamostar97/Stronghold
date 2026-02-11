@@ -10,6 +10,7 @@ namespace Stronghold.Infrastructure.Services;
 
 public class AdminActivityService : IAdminActivityService
 {
+    private const string AddActionType = "add";
     private const string DeleteActionType = "delete";
     private static readonly TimeSpan UndoWindow = TimeSpan.FromHours(1);
 
@@ -33,6 +34,33 @@ public class AdminActivityService : IAdminActivityService
     public AdminActivityService(StrongholdDbContext context)
     {
         _context = context;
+    }
+
+    public async Task LogAddAsync(int adminUserId, string adminUsername, string entityType, int entityId)
+    {
+        var now = DateTimeUtils.UtcNow;
+        var normalizedEntityType = entityType?.Trim();
+        if (string.IsNullOrWhiteSpace(normalizedEntityType))
+            return;
+
+        var label = EntityLabels.TryGetValue(normalizedEntityType, out var mappedLabel)
+            ? mappedLabel
+            : normalizedEntityType.ToLowerInvariant();
+
+        var activity = new AdminActivityLog
+        {
+            AdminUserId = adminUserId,
+            AdminUsername = string.IsNullOrWhiteSpace(adminUsername) ? $"admin-{adminUserId}" : adminUsername,
+            ActionType = AddActionType,
+            EntityType = normalizedEntityType,
+            EntityId = entityId,
+            Description = $"Dodan {label} (ID: {entityId})",
+            UndoAvailableUntil = now.Add(UndoWindow),
+            IsUndone = false
+        };
+
+        _context.AdminActivityLogs.Add(activity);
+        await _context.SaveChangesAsync();
     }
 
     public async Task LogDeleteAsync(int adminUserId, string adminUsername, string entityType, int entityId)
@@ -67,24 +95,32 @@ public class AdminActivityService : IAdminActivityService
         var safeCount = Math.Clamp(count, 1, 100);
         var now = DateTimeUtils.UtcNow;
 
-        return await _context.AdminActivityLogs
+        var activities = await _context.AdminActivityLogs
             .AsNoTracking()
             .OrderByDescending(x => x.CreatedAt)
             .Take(safeCount)
-            .Select(x => new AdminActivityResponse
-            {
-                Id = x.Id,
-                ActionType = x.ActionType,
-                EntityType = x.EntityType,
-                EntityId = x.EntityId,
-                Description = x.Description,
-                AdminUsername = x.AdminUsername,
-                CreatedAt = x.CreatedAt,
-                UndoAvailableUntil = x.UndoAvailableUntil,
-                IsUndone = x.IsUndone,
-                CanUndo = !x.IsUndone && x.UndoAvailableUntil >= now
-            })
             .ToListAsync();
+
+        var result = new List<AdminActivityResponse>(activities.Count);
+        foreach (var activity in activities)
+        {
+            var canUndo = await CanUndoActivityAsync(activity, now);
+            result.Add(new AdminActivityResponse
+            {
+                Id = activity.Id,
+                ActionType = activity.ActionType,
+                EntityType = activity.EntityType,
+                EntityId = activity.EntityId,
+                Description = activity.Description,
+                AdminUsername = activity.AdminUsername,
+                CreatedAt = activity.CreatedAt,
+                UndoAvailableUntil = activity.UndoAvailableUntil,
+                IsUndone = activity.IsUndone,
+                CanUndo = canUndo
+            });
+        }
+
+        return result;
     }
 
     public async Task<AdminActivityResponse> UndoAsync(int id, int adminUserId)
@@ -93,9 +129,6 @@ public class AdminActivityService : IAdminActivityService
         var activity = await _context.AdminActivityLogs.FirstOrDefaultAsync(x => x.Id == id);
         if (activity == null)
             throw new KeyNotFoundException("Aktivnost nije pronadjena.");
-
-        if (!string.Equals(activity.ActionType, DeleteActionType, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidOperationException("Samo delete aktivnosti podrzavaju undo.");
 
         if (activity.IsUndone)
             throw new InvalidOperationException("Aktivnost je vec ponistena.");
@@ -106,12 +139,26 @@ public class AdminActivityService : IAdminActivityService
         var entityType = ResolveEntityType(activity.EntityType);
         var entity = await FindEntityIgnoreFiltersAsync(entityType, activity.EntityId);
         if (entity == null)
-            throw new InvalidOperationException("Obrisani zapis vise ne postoji.");
+            throw new InvalidOperationException("Zapis vise ne postoji.");
 
-        if (!entity.IsDeleted)
-            throw new InvalidOperationException("Zapis je vec aktivan.");
+        if (string.Equals(activity.ActionType, DeleteActionType, StringComparison.OrdinalIgnoreCase))
+        {
+            if (!entity.IsDeleted)
+                throw new InvalidOperationException("Zapis je vec aktivan.");
 
-        entity.IsDeleted = false;
+            entity.IsDeleted = false;
+        }
+        else if (string.Equals(activity.ActionType, AddActionType, StringComparison.OrdinalIgnoreCase))
+        {
+            if (entity.IsDeleted)
+                throw new InvalidOperationException("Zapis je vec obrisan.");
+
+            entity.IsDeleted = true;
+        }
+        else
+        {
+            throw new InvalidOperationException("Za ovu aktivnost undo nije podrzan.");
+        }
 
         activity.IsUndone = true;
         activity.UndoneAt = now;
@@ -172,5 +219,32 @@ public class AdminActivityService : IAdminActivityService
         return await _context.Set<TEntity>()
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(x => x.Id == entityId);
+    }
+
+    private async Task<bool> CanUndoActivityAsync(AdminActivityLog activity, DateTime now)
+    {
+        if (activity.IsUndone || activity.UndoAvailableUntil < now)
+            return false;
+
+        var isDelete = string.Equals(activity.ActionType, DeleteActionType, StringComparison.OrdinalIgnoreCase);
+        var isAdd = string.Equals(activity.ActionType, AddActionType, StringComparison.OrdinalIgnoreCase);
+        if (!isDelete && !isAdd)
+            return false;
+
+        Type entityType;
+        try
+        {
+            entityType = ResolveEntityType(activity.EntityType);
+        }
+        catch
+        {
+            return false;
+        }
+
+        var entity = await FindEntityIgnoreFiltersAsync(entityType, activity.EntityId);
+        if (entity == null)
+            return false;
+
+        return isDelete ? entity.IsDeleted : !entity.IsDeleted;
     }
 }

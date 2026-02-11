@@ -83,6 +83,19 @@ class AdminActivityNotifier extends StateNotifier<AdminActivityState> {
         final done = Set<int>.from(state.undoInProgressIds)..remove(id);
         state = state.copyWith(undoInProgressIds: done, error: e.toString());
       }
+
+      // Keep feed in sync when backend rejects undo (e.g. activity no longer undoable).
+      if (mounted) {
+        try {
+          final refreshedItems = await _service.getRecent(
+            count: state.items.isEmpty ? 20 : state.items.length,
+          );
+          if (mounted) {
+            state = state.copyWith(items: refreshedItems, error: e.toString());
+          }
+        } catch (_) {}
+      }
+
       rethrow;
     }
   }
