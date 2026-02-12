@@ -217,20 +217,6 @@ class _ProfileDropdown extends StatelessWidget {
       },
       itemBuilder: (_) => [
         PopupMenuItem(
-          value: 'profile',
-          child: Row(
-            children: [
-              const Icon(LucideIcons.user,
-                  color: AppColors.textSecondary, size: 18),
-              const SizedBox(width: AppSpacing.md),
-              Text('Profil',
-                  style: AppTextStyles.bodyMd
-                      .copyWith(color: AppColors.textPrimary)),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem(
           value: 'logout',
           child: Row(
             children: [
