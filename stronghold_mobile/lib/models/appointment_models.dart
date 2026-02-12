@@ -19,7 +19,7 @@ class Appointment {
       trainerName: json['trainerName'] as String?,
       nutritionistName: json['nutritionistName'] as String?,
       appointmentDate:
-          AppointmentDateUtils.parse(json['appointmentDate'] as String),
+          DateTimeUtils.parseApiDateTime(json['appointmentDate'] as String),
     );
   }
 }

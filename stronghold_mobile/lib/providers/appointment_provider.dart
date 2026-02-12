@@ -180,7 +180,7 @@ final trainerAvailableHoursProvider =
   final client = ref.watch(apiClientProvider);
   return client.get<List<int>>(
     '/api/trainer/${params.trainerId}/available-hours',
-    queryParameters: {'date': AppointmentDateUtils.toApiDate(params.date)},
+    queryParameters: {'date': DateTimeUtils.toApiDate(params.date)},
     parser: (json) => (json as List<dynamic>).map((e) => e as int).toList(),
   );
 });
@@ -192,7 +192,7 @@ final nutritionistAvailableHoursProvider =
   return client.get<List<int>>(
     '/api/nutritionist/${params.nutritionistId}/available-hours',
     queryParameters: {
-      'date': AppointmentDateUtils.toApiDate(params.date)
+      'date': DateTimeUtils.toApiDate(params.date)
     },
     parser: (json) => (json as List<dynamic>).map((e) => e as int).toList(),
   );
@@ -225,7 +225,7 @@ class BookAppointmentNotifier extends StateNotifier<BookAppointmentState> {
     try {
       await _client.post<void>(
         '/api/trainer/$trainerId/appointments',
-        body: {'date': AppointmentDateUtils.toApiDateTime(date)},
+        body: {'date': DateTimeUtils.toApiDateTime(date)},
         parser: (_) {},
       );
       state = state.copyWith(isLoading: false);
@@ -247,7 +247,7 @@ class BookAppointmentNotifier extends StateNotifier<BookAppointmentState> {
     try {
       await _client.post<void>(
         '/api/nutritionist/$nutritionistId/appointments',
-        body: {'date': AppointmentDateUtils.toApiDateTime(date)},
+        body: {'date': DateTimeUtils.toApiDateTime(date)},
         parser: (_) {},
       );
       state = state.copyWith(isLoading: false);

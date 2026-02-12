@@ -1,4 +1,4 @@
-import '../common/appointment_date_utils.dart';
+import '../common/date_time_utils.dart';
 
 /// Matches backend AdminAppointmentResponse
 class AdminAppointmentResponse {
@@ -34,7 +34,7 @@ class AdminAppointmentResponse {
       trainerName: json['trainerName'] as String?,
       nutritionistName: json['nutritionistName'] as String?,
       appointmentDate:
-          AppointmentDateUtils.parse(json['appointmentDate'] as String),
+          DateTimeUtils.parseApiDateTime(json['appointmentDate'] as String),
       type: (json['type'] ?? '') as String,
     );
   }

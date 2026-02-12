@@ -1,4 +1,4 @@
-import '../common/appointment_date_utils.dart';
+import '../common/date_time_utils.dart';
 
 class AdminCreateAppointmentRequest {
   final int userId;
@@ -17,6 +17,6 @@ class AdminCreateAppointmentRequest {
         'userId': userId,
         if (trainerId != null) 'trainerId': trainerId,
         if (nutritionistId != null) 'nutritionistId': nutritionistId,
-        'appointmentDate': AppointmentDateUtils.toApiDateTime(appointmentDate),
+        'appointmentDate': DateTimeUtils.toApiDateTime(appointmentDate),
       };
 }

@@ -7,7 +7,7 @@ using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.Filters;
 using Stronghold.Application.IServices;
-using Stronghold.Infrastructure.Common;
+
 using Stronghold.Infrastructure.Data;
 
 
@@ -633,7 +633,7 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("A1").Style.Font.FontSize = 16;
             worksheet.Range("A1:C1").Merge();
 
-            worksheet.Cell("A2").Value = $"Datum generisanja: {DateTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
+            worksheet.Cell("A2").Value = $"Datum generisanja: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
             worksheet.Range("A2:C2").Merge();
 
             // Monthly revenue section
@@ -736,7 +736,7 @@ namespace Stronghold.Infrastructure.Services
                     {
                         col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
                         col.Item().Text("Biznis Izvještaj").FontSize(16).FontColor(Colors.Grey.Darken2);
-                        col.Item().PaddingTop(5).Text($"Datum: {DateTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().PaddingTop(5).Text($"Datum: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
                         col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     });
 
@@ -844,7 +844,7 @@ namespace Stronghold.Infrastructure.Services
                     page.Footer().AlignCenter().Text(text =>
                     {
                         text.Span("Stronghold Gym © ").FontColor(Colors.Grey.Medium);
-                        text.Span($"{DateTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
+                        text.Span($"{StrongholdTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
                     });
                 });
             });
@@ -864,7 +864,7 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("A1").Style.Font.FontSize = 16;
             worksheet.Range("A1:E1").Merge();
 
-            worksheet.Cell("A2").Value = $"Datum generisanja: {DateTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
+            worksheet.Cell("A2").Value = $"Datum generisanja: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
             worksheet.Range("A2:E2").Merge();
 
             worksheet.Cell("A3").Value = $"Period analize: posljednjih {report.DaysAnalyzed} dana";
@@ -927,7 +927,7 @@ namespace Stronghold.Infrastructure.Services
                     {
                         col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
                         col.Item().Text("Izvještaj o Sporoj Prodaji").FontSize(16).FontColor(Colors.Grey.Darken2);
-                        col.Item().PaddingTop(5).Text($"Datum: {DateTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().PaddingTop(5).Text($"Datum: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
                         col.Item().Text($"Period: posljednjih {report.DaysAnalyzed} dana").FontSize(10).FontColor(Colors.Grey.Medium);
                         col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     });
@@ -990,7 +990,7 @@ namespace Stronghold.Infrastructure.Services
                     page.Footer().AlignCenter().Text(text =>
                     {
                         text.Span("Stronghold Gym © ").FontColor(Colors.Grey.Medium);
-                        text.Span($"{DateTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
+                        text.Span($"{StrongholdTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
                     });
                 });
             });
@@ -1010,7 +1010,7 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("A1").Style.Font.FontSize = 16;
             worksheet.Range("A1:F1").Merge();
 
-            worksheet.Cell("A2").Value = $"Datum generisanja: {DateTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
+            worksheet.Cell("A2").Value = $"Datum generisanja: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
             worksheet.Cell("A2").Style.Font.Bold = true;
             worksheet.Range("A2:F2").Merge();
 
@@ -1073,7 +1073,7 @@ namespace Stronghold.Infrastructure.Services
                     {
                         col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
                         col.Item().Text("Popularnost Članarina").FontSize(16).FontColor(Colors.Grey.Darken2);
-                        col.Item().PaddingTop(5).Text($"Datum: {DateTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().PaddingTop(5).Text($"Datum: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
                         col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     });
 
@@ -1155,7 +1155,7 @@ namespace Stronghold.Infrastructure.Services
                     page.Footer().AlignCenter().Text(text =>
                     {
                         text.Span("Stronghold Gym © ").FontColor(Colors.Grey.Medium);
-                        text.Span($"{DateTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
+                        text.Span($"{StrongholdTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
                     });
                 });
             });

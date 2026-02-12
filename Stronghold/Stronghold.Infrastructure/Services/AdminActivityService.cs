@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using Stronghold.Infrastructure.Common;
+using Stronghold.Application.Common;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services;
@@ -38,7 +38,7 @@ public class AdminActivityService : IAdminActivityService
 
     public async Task LogAddAsync(int adminUserId, string adminUsername, string entityType, int entityId)
     {
-        var now = DateTimeUtils.UtcNow;
+        var now = StrongholdTimeUtils.UtcNow;
         var normalizedEntityType = entityType?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedEntityType))
             return;
@@ -65,7 +65,7 @@ public class AdminActivityService : IAdminActivityService
 
     public async Task LogDeleteAsync(int adminUserId, string adminUsername, string entityType, int entityId)
     {
-        var now = DateTimeUtils.UtcNow;
+        var now = StrongholdTimeUtils.UtcNow;
         var normalizedEntityType = entityType?.Trim();
         if (string.IsNullOrWhiteSpace(normalizedEntityType))
             return;
@@ -93,7 +93,7 @@ public class AdminActivityService : IAdminActivityService
     public async Task<List<AdminActivityResponse>> GetRecentAsync(int count = 20)
     {
         var safeCount = Math.Clamp(count, 1, 100);
-        var now = DateTimeUtils.UtcNow;
+        var now = StrongholdTimeUtils.UtcNow;
 
         var activities = await _context.AdminActivityLogs
             .AsNoTracking()
@@ -125,7 +125,7 @@ public class AdminActivityService : IAdminActivityService
 
     public async Task<AdminActivityResponse> UndoAsync(int id, int adminUserId)
     {
-        var now = DateTimeUtils.UtcNow;
+        var now = StrongholdTimeUtils.UtcNow;
         var activity = await _context.AdminActivityLogs.FirstOrDefaultAsync(x => x.Id == id);
         if (activity == null)
             throw new KeyNotFoundException("Aktivnost nije pronadjena.");

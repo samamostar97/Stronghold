@@ -7,7 +7,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using Stronghold.Infrastructure.Common;
+
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -30,7 +30,7 @@ namespace Stronghold.Infrastructure.Services
         public async Task<PagedResult<AppointmentResponse>> GetAppointmentsByUserIdAsync(int userId, AppointmentQueryFilter filter)
         {
             var baseQuery = _appointmentRepository.AsQueryable()
-                .Where(x => x.UserId == userId && x.AppointmentDate > DateTimeUtils.LocalNow)
+                .Where(x => x.UserId == userId && x.AppointmentDate > StrongholdTimeUtils.LocalNow)
                 .Include(x => x.Trainer)
                 .Include(x => x.Nutritionist);
 
@@ -137,7 +137,7 @@ namespace Stronghold.Infrastructure.Services
             if (appointment == null)
                 throw new KeyNotFoundException("Termin ne postoji");
 
-            if (appointment.AppointmentDate < DateTimeUtils.LocalNow)
+            if (appointment.AppointmentDate < StrongholdTimeUtils.LocalNow)
                 throw new InvalidOperationException("Nemoguce otkazati zavrseni termin");
 
             await _appointmentRepository.DeleteAsync(appointment);
@@ -239,12 +239,12 @@ namespace Stronghold.Infrastructure.Services
 
         private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
         {
-            var localDate = DateTimeUtils.ToLocal(date);
+            var localDate = StrongholdTimeUtils.ToLocal(date);
 
-            if (localDate < DateTimeUtils.LocalNow)
+            if (localDate < StrongholdTimeUtils.LocalNow)
                 throw new ArgumentException("Nemoguce unijeti datum u proslosti");
 
-            if (localDate.Date == DateTimeUtils.LocalToday)
+            if (localDate.Date == StrongholdTimeUtils.LocalToday)
                 throw new ArgumentException("Nemoguce napraviti termin na isti dan");
 
             if (localDate.Hour < 9 || localDate.Hour >= 17)

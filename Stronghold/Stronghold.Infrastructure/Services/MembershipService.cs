@@ -6,7 +6,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using Stronghold.Infrastructure.Common;
+
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services
@@ -35,7 +35,7 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<bool> RevokeMembership(int userId)
         {
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             var userExists = await _userRepository.AsQueryable().AnyAsync(x => x.Id == userId && !x.IsDeleted);
             if (!userExists)
@@ -81,7 +81,7 @@ namespace Stronghold.Infrastructure.Services
                 return false;
             }
 
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
             return await _membershipRepository.AsQueryable()
                 .AnyAsync(x => x.UserId == userId && x.EndDate > now && !x.IsDeleted);
         }
@@ -148,7 +148,7 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<PagedResult<ActiveMemberResponse>> GetActiveMembersAsync(ActiveMemberQueryFilter filter)
         {
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             var baseQuery = _membershipRepository.AsQueryable()
                 .AsNoTracking()
@@ -193,11 +193,11 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<MembershipResponse> AssignMembership(AssignMembershipRequest request)
         {
-            var normalizedStartDate = DateTimeUtils.ToUtcDate(request.StartDate);
-            var normalizedEndDate = DateTimeUtils.ToUtcDate(request.EndDate);
-            var normalizedPaymentDate = DateTimeUtils.ToUtcDate(request.PaymentDate);
+            var normalizedStartDate = StrongholdTimeUtils.ToUtcDate(request.StartDate);
+            var normalizedEndDate = StrongholdTimeUtils.ToUtcDate(request.EndDate);
+            var normalizedPaymentDate = StrongholdTimeUtils.ToUtcDate(request.PaymentDate);
 
-            if (normalizedStartDate.Date < DateTimeUtils.LocalToday.Date)
+            if (normalizedStartDate.Date < StrongholdTimeUtils.LocalToday.Date)
             {
                 throw new ArgumentException("Nemoguce unijeti datum u proslosti");
             }
@@ -219,7 +219,7 @@ namespace Stronghold.Infrastructure.Services
             }
 
             var membershipExists = await _membershipRepository.AsQueryable()
-                .AnyAsync(x => x.UserId == request.UserId && x.EndDate > DateTimeUtils.UtcNow && !x.IsDeleted);
+                .AnyAsync(x => x.UserId == request.UserId && x.EndDate > StrongholdTimeUtils.UtcNow && !x.IsDeleted);
             if (membershipExists)
             {
                 throw new InvalidOperationException("User vec ima aktivnu clanarinu");

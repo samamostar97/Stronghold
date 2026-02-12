@@ -11,7 +11,6 @@ export 'storage/token_storage.dart';
 
 // Common Models
 export 'models/common/paged_result.dart';
-export 'models/common/appointment_date_utils.dart';
 export 'models/common/date_time_utils.dart';
 export 'models/common/validation_utils.dart';
 

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using Stronghold.Infrastructure.Common;
+using Stronghold.Application.Common;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.API.BackgroundServices;
@@ -50,7 +50,7 @@ public class AppointmentReminderService : BackgroundService
         var dbContext = scope.ServiceProvider.GetRequiredService<StrongholdDbContext>();
         var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
 
-        var today = DateTimeUtils.LocalToday;
+        var today = StrongholdTimeUtils.LocalToday;
         var in1Day = today.AddDays(1);
         var in3Days = today.AddDays(3);
 

@@ -1,5 +1,5 @@
 import '../api/api_client.dart';
-import '../models/common/appointment_date_utils.dart';
+import '../models/common/date_time_utils.dart';
 import 'crud_service.dart';
 import '../models/responses/trainer_response.dart';
 import '../models/requests/create_trainer_request.dart';
@@ -34,7 +34,7 @@ class TrainerService extends CrudService<
   Future<List<int>> getAvailableHours(int trainerId, DateTime date) async {
     return _apiClient.get<List<int>>(
       '/api/trainer/$trainerId/available-hours',
-      queryParameters: {'date': AppointmentDateUtils.toApiDate(date)},
+      queryParameters: {'date': DateTimeUtils.toApiDate(date)},
       parser: (json) =>
           (json as List<dynamic>).map((e) => (e as num).toInt()).toList(),
     );
