@@ -89,9 +89,11 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
       addButtonText: '+ Dodaj suplement',
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'supplement', label: 'Naziv (A-Z)'),
+        SortOption(value: 'name', label: 'Naziv (A-Z)'),
         SortOption(value: 'category', label: 'Kategorija (A-Z)'),
         SortOption(value: 'supplier', label: 'Dobavljac (A-Z)'),
+        SortOption(value: 'price', label: 'Cijena rastuce'),
+        SortOption(value: 'pricedesc', label: 'Cijena opadajuce'),
       ],
       tableBuilder: (items) => SupplementsTable(
         supplements: items,

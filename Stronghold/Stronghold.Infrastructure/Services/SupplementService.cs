@@ -110,6 +110,8 @@ namespace Stronghold.Infrastructure.Services
                     "namedesc" => query.OrderByDescending(x => x.Name),
                     "price" => query.OrderBy(x => x.Price),
                     "pricedesc" => query.OrderByDescending(x => x.Price),
+                    "category" => query.OrderBy(x => x.SupplementCategory.Name),
+                    "supplier" => query.OrderBy(x => x.Supplier.Name),
                     _ => query.OrderByDescending(x => x.CreatedAt)
                 };
             }
