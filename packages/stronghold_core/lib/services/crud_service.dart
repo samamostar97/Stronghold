@@ -86,12 +86,12 @@ abstract class CrudServiceWithImage<TResponse, TCreate, TUpdate, TFilter extends
   });
 
   /// Upload image for entity
-  Future<String> uploadImage(int id, String filePath) async {
-    return _client.uploadFile<String>(
+  Future<void> uploadImage(int id, String filePath) async {
+    await _client.uploadFile<void>(
       '$_basePath/$id/image',
       filePath,
       'file',
-      parser: (json) => json as String,
+      parser: (_) {},
     );
   }
 
