@@ -550,7 +550,7 @@ namespace Stronghold.Infrastructure.Services
                     .ThenInclude(oi => oi.Supplement);
 
             if (filter == null)
-                return query.OrderByDescending(o => o.PurchaseDate);
+                return query.OrderBy(o => o.Status).ThenByDescending(o => o.PurchaseDate);
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
@@ -600,9 +600,7 @@ namespace Stronghold.Infrastructure.Services
             }
             else
             {
-                query = filter.Descending
-                    ? query.OrderByDescending(o => o.PurchaseDate)
-                    : query.OrderBy(o => o.PurchaseDate);
+                query = query.OrderBy(o => o.Status).ThenByDescending(o => o.PurchaseDate);
             }
 
             return query;

@@ -26,6 +26,12 @@ cd Stronghold
 docker-compose up --build
 ```
 
+Alternativno, moze se koristiti interaktivna skripta `docker-setup.bat` koja nudi opcije za pokretanje, rebuild, reset baze i dijagnostiku:
+```bash
+cd Stronghold
+docker-setup.bat
+```
+
 Ovo pokrece 4 servisa:
 - **SQL Server** - baza podataka (port 1401)
 - **RabbitMQ** - message broker (port 5672, management UI na 15672)
@@ -35,61 +41,6 @@ Ovo pokrece 4 servisa:
 API je dostupan na `http://localhost:5034`, Swagger UI na `http://localhost:5034/swagger`.
 
 Baza se automatski kreira, migrira i popunjava seed podacima pri prvom pokretanju.
-
-Za reset baze:
-```bash
-docker-compose down -v
-docker-compose up --build
-```
-
-## Docker - korisne komande
-
-```bash
-# Pokretanje svih servisa
-docker-compose up -d
-
-# Pokretanje sa rebuildom (nakon promjena u kodu)
-docker-compose up --build -d
-
-# Zaustavljanje svih servisa
-docker-compose down
-
-# Reset baze (brise volume sa podacima, seed se ponovo pokrece)
-docker-compose down -v
-docker-compose up --build -d
-
-# Pregled logova svih servisa
-docker-compose logs -f
-
-# Logovi samo API servisa
-docker-compose logs -f api
-
-# Logovi samo Worker servisa
-docker-compose logs -f worker
-
-# Status kontejnera
-docker-compose ps
-
-# Restart jednog servisa (npr. API nakon promjene koda)
-docker-compose up --build -d api
-
-# Pristup SQL Server bazi iz kontejnera
-docker exec -it stronghold-sqlserver-1 /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$SA_PASSWORD" -C
-
-# Provjera health statusa
-docker inspect --format='{{.State.Health.Status}}' stronghold-sqlserver-1
-
-# Ako se API ne pokrece - provjeri da li SQL Server i RabbitMQ rade
-docker-compose ps
-docker-compose logs api
-
-# Ako port 5034 vec zauzet
-netstat -ano | findstr :5034
-taskkill /F /PID <PID_BROJ>
-
-# Potpuno ciscenje (brise sve kontejnere, slike i volumene)
-docker-compose down -v --rmi all
-```
 
 ## Pokretanje Flutter aplikacija
 

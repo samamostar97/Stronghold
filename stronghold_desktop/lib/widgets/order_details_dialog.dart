@@ -37,7 +37,9 @@ class OrderDetailsDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                 Flexible(
                   child: Text('Narudzba #${order.id}',
                       style: AppTextStyles.headingMd,
