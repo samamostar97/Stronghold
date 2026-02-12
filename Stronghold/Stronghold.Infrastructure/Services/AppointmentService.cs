@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Request;
 using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Exceptions;
 using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
@@ -206,7 +207,14 @@ namespace Stronghold.Infrastructure.Services
             appointment.NutritionistId = request.NutritionistId;
             appointment.AppointmentDate = normalizedDate;
 
-            await _appointmentRepository.UpdateAsync(appointment);
+            try
+            {
+                await _appointmentRepository.UpdateAsync(appointment);
+            }
+            catch (DbUpdateException)
+            {
+                throw new ConflictException("Termin nije moguce izmijeniti jer je korisnik vec zauzeo taj dan ili je odabrani termin zauzet.");
+            }
         }
 
         public async Task AdminDeleteAsync(int id)

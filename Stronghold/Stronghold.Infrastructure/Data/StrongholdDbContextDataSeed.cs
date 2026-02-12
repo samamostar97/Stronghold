@@ -542,8 +542,8 @@ public static class StrongholdDbContextDataSeed
             // Nutritionist appointments
             new() { UserId = users[0].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 3, 13) },
             new() { UserId = users[2].Id, NutritionistId = nutritionists[1].Id, AppointmentDate = BuildAppointmentDate(baseDate, 5, 15) },
-            new() { UserId = users[5].Id, NutritionistId = nutritionists[2].Id, AppointmentDate = BuildAppointmentDate(baseDate, 7, 10) },
-            new() { UserId = users[7].Id, NutritionistId = nutritionists[3].Id, AppointmentDate = BuildAppointmentDate(baseDate, 9, 11) },
+            new() { UserId = users[5].Id, NutritionistId = nutritionists[2].Id, AppointmentDate = BuildAppointmentDate(baseDate, 15, 10) },
+            new() { UserId = users[7].Id, NutritionistId = nutritionists[3].Id, AppointmentDate = BuildAppointmentDate(baseDate, 16, 11) },
             new() { UserId = users[8].Id, NutritionistId = nutritionists[4].Id, AppointmentDate = BuildAppointmentDate(baseDate, 11, 14) },
             new() { UserId = users[1].Id, NutritionistId = nutritionists[5].Id, AppointmentDate = BuildAppointmentDate(baseDate, 12, 9) },
             new() { UserId = users[4].Id, NutritionistId = nutritionists[0].Id, AppointmentDate = BuildAppointmentDate(baseDate, 13, 16) },

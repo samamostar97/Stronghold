@@ -7,6 +7,7 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Infrastructure.Common;
+using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -16,17 +17,20 @@ namespace Stronghold.Infrastructure.Services
         private readonly IRepository<MembershipPackage, int> _membershipPackageRepository;
         private readonly IRepository<User, int> _userRepository;
         private readonly IRepository<MembershipPaymentHistory, int> _paymentHistoryRepo;
+        private readonly StrongholdDbContext _context;
 
         public MembershipService(
             IRepository<MembershipPaymentHistory, int> paymentHistoryRepo,
             IRepository<User, int> userRepository,
             IRepository<Membership, int> membershipRepository,
-            IRepository<MembershipPackage, int> membershipPackageRepository)
+            IRepository<MembershipPackage, int> membershipPackageRepository,
+            StrongholdDbContext context)
         {
             _membershipRepository = membershipRepository;
             _membershipPackageRepository = membershipPackageRepository;
             _userRepository = userRepository;
             _paymentHistoryRepo = paymentHistoryRepo;
+            _context = context;
         }
 
         public async Task<bool> RevokeMembership(int userId)
@@ -235,8 +239,6 @@ namespace Stronghold.Infrastructure.Services
                 StartDate = normalizedStartDate,
                 EndDate = normalizedEndDate
             };
-            await _membershipRepository.AddAsync(membership);
-
             var paymentHistory = new MembershipPaymentHistory
             {
                 UserId = request.UserId,
@@ -246,7 +248,19 @@ namespace Stronghold.Infrastructure.Services
                 StartDate = normalizedStartDate,
                 EndDate = normalizedEndDate
             };
-            await _paymentHistoryRepo.AddAsync(paymentHistory);
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                await _membershipRepository.AddAsync(membership);
+                await _paymentHistoryRepo.AddAsync(paymentHistory);
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
 
             return new MembershipResponse
             {

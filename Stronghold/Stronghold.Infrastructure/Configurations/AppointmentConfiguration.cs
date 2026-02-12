@@ -11,6 +11,9 @@ public class AppointmentConfiguration : BaseEntityConfiguration<Appointment>
         base.Configure(builder);
 
         builder.Property(a => a.AppointmentDate).IsRequired();
+        builder.Property<DateTime>("AppointmentDateDate")
+            .HasColumnType("date")
+            .HasComputedColumnSql("CONVERT(date, [AppointmentDate])", stored: true);
 
         builder.HasOne(a => a.User)
             .WithMany(u => u.Appointments)
@@ -36,5 +39,10 @@ public class AppointmentConfiguration : BaseEntityConfiguration<Appointment>
         builder.HasIndex(a => new { a.NutritionistId, a.AppointmentDate })
             .IsUnique()
             .HasFilter("[NutritionistId] IS NOT NULL AND [IsDeleted] = 0");
+
+        // Prevent one user from having multiple appointments on the same day
+        builder.HasIndex("UserId", "AppointmentDateDate")
+            .IsUnique()
+            .HasFilter("[IsDeleted] = 0");
     }
 }

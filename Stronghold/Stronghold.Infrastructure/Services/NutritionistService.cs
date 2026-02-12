@@ -108,7 +108,7 @@ namespace Stronghold.Infrastructure.Services
             }
             catch (DbUpdateException)
             {
-                throw new ConflictException("Odabrani nutricionist je zauzet u ovom terminu.");
+                throw new ConflictException("Termin nije moguce rezervisati. Korisnik vec ima termin tog dana ili je odabrani nutricionist zauzet.");
             }
 
             return new AppointmentResponse
