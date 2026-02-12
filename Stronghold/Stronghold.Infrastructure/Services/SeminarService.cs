@@ -8,7 +8,7 @@ using Stronghold.Application.Filters;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using Stronghold.Infrastructure.Common;
+
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -30,7 +30,7 @@ namespace Stronghold.Infrastructure.Services
 
         protected override async Task BeforeCreateAsync(Seminar entity, CreateSeminarRequest dto)
         {
-            var normalizedEventDate = DateTimeUtils.ToUtc(dto.EventDate);
+            var normalizedEventDate = StrongholdTimeUtils.ToUtc(dto.EventDate);
 
             var seminarExists = await _repository.AsQueryable()
                 .AnyAsync(x => x.Topic.ToLower() == dto.Topic.ToLower() && x.EventDate == normalizedEventDate);
@@ -39,7 +39,7 @@ namespace Stronghold.Infrastructure.Services
                 throw new ConflictException("Seminar sa ovom temom na odabrani datum vec postoji.");
             }
 
-            if (normalizedEventDate < DateTimeUtils.UtcNow)
+            if (normalizedEventDate < StrongholdTimeUtils.UtcNow)
             {
                 throw new ArgumentException("Nemoguce unijeti datum u proslosti.");
             }
@@ -54,10 +54,15 @@ namespace Stronghold.Infrastructure.Services
                 throw new InvalidOperationException("Nije moguce izmijeniti otkazan seminar.");
             }
 
-            var eventDate = dto.EventDate.HasValue ? DateTimeUtils.ToUtc(dto.EventDate.Value) : entity.EventDate;
+            if (entity.EventDate < StrongholdTimeUtils.UtcNow)
+            {
+                throw new InvalidOperationException("Nije moguce izmijeniti zavrsen seminar.");
+            }
+
+            var eventDate = dto.EventDate.HasValue ? StrongholdTimeUtils.ToUtc(dto.EventDate.Value) : entity.EventDate;
             var topic = !string.IsNullOrEmpty(dto.Topic) ? dto.Topic : entity.Topic;
 
-            if (dto.EventDate != null && eventDate < DateTimeUtils.UtcNow)
+            if (dto.EventDate != null && eventDate < StrongholdTimeUtils.UtcNow)
             {
                 throw new ArgumentException("Nemoguce unijeti datum u proslosti.");
             }
@@ -76,24 +81,34 @@ namespace Stronghold.Infrastructure.Services
             {
                 dto.EventDate = eventDate;
             }
+
+            if (dto.MaxCapacity.HasValue)
+            {
+                var currentAttendees = await _attendeeRepository.AsQueryable()
+                    .CountAsync(x => x.SeminarId == entity.Id);
+                if (dto.MaxCapacity.Value < currentAttendees)
+                {
+                    throw new ArgumentException(
+                        $"Kapacitet ne moze biti manji od broja prijavljenih ucesnika ({currentAttendees}).");
+                }
+            }
         }
 
         protected override async Task BeforeDeleteAsync(Seminar entity)
         {
-            var hasAttendees = await _repository.AsQueryable()
-                .Where(x => x.Id == entity.Id)
-                .SelectMany(x => x.SeminarAttendees)
-                .AnyAsync();
+            var attendees = await _attendeeRepository.AsQueryable()
+                .Where(x => x.SeminarId == entity.Id)
+                .ToListAsync();
 
-            if (hasAttendees)
+            foreach (var attendee in attendees)
             {
-                throw new EntityHasDependentsException("seminar", "ucesnike");
+                await _attendeeRepository.DeleteAsync(attendee);
             }
         }
 
         protected override IQueryable<Seminar> ApplyFilter(IQueryable<Seminar> query, SeminarQueryFilter filter)
         {
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             if (!string.IsNullOrEmpty(filter.Search))
             {
@@ -120,21 +135,21 @@ namespace Stronghold.Infrastructure.Services
             {
                 return filter.OrderBy.ToLower() switch
                 {
-                    "topic" => query.OrderBy(x => x.Topic),
-                    "speakername" => query.OrderBy(x => x.SpeakerName),
-                    "eventdate" => query.OrderBy(x => x.EventDate),
-                    "eventdatedesc" => query.OrderByDescending(x => x.EventDate),
-                    _ => query.OrderByDescending(x => x.EventDate)
+                    "topic" => query.OrderBy(x => x.IsCancelled).ThenBy(x => x.Topic),
+                    "speakername" => query.OrderBy(x => x.IsCancelled).ThenBy(x => x.SpeakerName),
+                    "eventdate" => query.OrderBy(x => x.IsCancelled).ThenBy(x => x.EventDate),
+                    "eventdatedesc" => query.OrderBy(x => x.IsCancelled).ThenByDescending(x => x.EventDate),
+                    _ => query.OrderBy(x => x.IsCancelled).ThenByDescending(x => x.EventDate)
                 };
             }
 
-            return query.OrderByDescending(x => x.EventDate);
+            return query.OrderBy(x => x.IsCancelled).ThenByDescending(x => x.EventDate);
         }
 
         public override async Task<PagedResult<SeminarResponse>> GetPagedAsync(SeminarQueryFilter filter)
         {
             var result = await base.GetPagedAsync(filter);
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             if (result.Items.Any())
             {
@@ -158,7 +173,7 @@ namespace Stronghold.Infrastructure.Services
         public override async Task<IEnumerable<SeminarResponse>> GetAllAsync(SeminarQueryFilter filter)
         {
             var result = (await base.GetAllAsync(filter)).ToList();
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             if (result.Any())
             {
@@ -182,7 +197,7 @@ namespace Stronghold.Infrastructure.Services
         public override async Task<SeminarResponse> GetByIdAsync(int id)
         {
             var result = await base.GetByIdAsync(id);
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
             result.CurrentAttendees = await _attendeeRepository.AsQueryable()
                 .CountAsync(a => a.SeminarId == id);
             result.Status = ResolveStatus(result.EventDate, result.IsCancelled, now);
@@ -191,7 +206,7 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task<IEnumerable<UserSeminarResponse>> GetUpcomingSeminarsAsync(int userId)
         {
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             var userAttendances = _attendeeRepository.AsQueryable()
                 .Where(a => a.UserId == userId)
@@ -218,7 +233,7 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task AttendSeminarAsync(int userId, int seminarId)
         {
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             var seminar = await _repository.AsQueryable()
                 .FirstOrDefaultAsync(x => x.EventDate > now && !x.IsCancelled && x.Id == seminarId);
@@ -260,7 +275,7 @@ namespace Stronghold.Infrastructure.Services
 
         public async Task CancelAttendanceAsync(int userId, int seminarId)
         {
-            var now = DateTimeUtils.UtcNow;
+            var now = StrongholdTimeUtils.UtcNow;
 
             var hasSeminarEnded = await _repository.AsQueryable()
                 .AnyAsync(x => x.Id == seminarId && x.EventDate < now);
@@ -288,7 +303,7 @@ namespace Stronghold.Infrastructure.Services
                 throw new InvalidOperationException("Seminar je vec otkazan.");
             }
 
-            if (seminar.EventDate <= DateTimeUtils.UtcNow)
+            if (seminar.EventDate <= StrongholdTimeUtils.UtcNow)
             {
                 throw new InvalidOperationException("Nije moguce otkazati seminar koji je vec poceo ili je zavrsen.");
             }

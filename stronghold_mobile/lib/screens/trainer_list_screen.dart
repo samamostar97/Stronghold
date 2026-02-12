@@ -74,7 +74,7 @@ class TrainerListScreen extends ConsumerWidget {
                         name: t.fullName,
                         phone: t.phoneNumber,
                         email: t.email,
-                        onBook: () => Navigator.push(
+                        onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => BookAppointmentScreen(

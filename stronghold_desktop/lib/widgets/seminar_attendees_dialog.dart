@@ -5,6 +5,7 @@ import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import 'small_button.dart';
 
 class SeminarAttendeesDialog extends StatefulWidget {
   const SeminarAttendeesDialog({
@@ -82,6 +83,22 @@ class _State extends State<SeminarAttendeesDialog> {
               _detailRow('Vrijeme', DateFormat('HH:mm').format(s.eventDate)),
               _detailRow('Kapacitet',
                   '${s.currentAttendees}/${s.maxCapacity}'),
+              if (s.status.toLowerCase() == 'active') ...[
+                const SizedBox(height: AppSpacing.lg),
+                Row(children: [
+                  SmallButton(
+                    text: 'Izmijeni',
+                    color: AppColors.secondary,
+                    onTap: () => Navigator.of(context).pop('edit'),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(
+                    text: 'Otkazi',
+                    color: AppColors.warning,
+                    onTap: () => Navigator.of(context).pop('cancel'),
+                  ),
+                ]),
+              ],
               const SizedBox(height: AppSpacing.lg),
               const Divider(color: AppColors.border, height: 1),
               const SizedBox(height: AppSpacing.lg),

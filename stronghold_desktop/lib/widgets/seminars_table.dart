@@ -12,15 +12,13 @@ class SeminarsTable extends StatelessWidget {
   const SeminarsTable({
     super.key,
     required this.seminars,
-    required this.onEdit,
-    required this.onCancel,
-    required this.onViewAttendees,
+    required this.onViewDetails,
+    required this.onDelete,
   });
 
   final List<SeminarResponse> seminars;
-  final ValueChanged<SeminarResponse> onEdit;
-  final ValueChanged<SeminarResponse> onCancel;
-  final ValueChanged<SeminarResponse> onViewAttendees;
+  final ValueChanged<SeminarResponse> onViewDetails;
+  final ValueChanged<SeminarResponse> onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -34,17 +32,13 @@ class SeminarsTable extends StatelessWidget {
             TableHeaderCell(text: 'Datum', flex: 2),
             TableHeaderCell(text: 'Satnica', flex: 1),
             TableHeaderCell(text: 'Status', flex: 2),
-            TableHeaderCell(text: 'Akcije', flex: 3, alignRight: true),
+            TableHeaderCell(text: 'Akcije', flex: 2, alignRight: true),
           ],
         ),
       ),
       itemCount: seminars.length,
       itemBuilder: (context, i) {
         final s = seminars[i];
-        final status = s.status.toLowerCase();
-        final canEdit = status == 'active';
-        final canCancel = status == 'active';
-
         return HoverableTableRow(
           index: i,
           isLast: i == seminars.length - 1,
@@ -71,7 +65,7 @@ class SeminarsTable extends StatelessWidget {
                 flex: 2,
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: switch (status) {
+                  child: switch (s.status.toLowerCase()) {
                     'cancelled' => const StatusPill(
                       label: 'Otkazan',
                       color: AppColors.error,
@@ -88,24 +82,18 @@ class SeminarsTable extends StatelessWidget {
                 ),
               ),
               TableActionCell(
-                flex: 3,
+                flex: 2,
                 children: [
                   SmallButton(
                     text: 'Detalji',
                     color: AppColors.primary,
-                    onTap: () => onViewAttendees(s),
+                    onTap: () => onViewDetails(s),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   SmallButton(
-                    text: 'Izmijeni',
-                    color: canEdit ? AppColors.secondary : AppColors.textMuted,
-                    onTap: canEdit ? () => onEdit(s) : () {},
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  SmallButton(
-                    text: 'Otkazi',
-                    color: canCancel ? AppColors.warning : AppColors.textMuted,
-                    onTap: canCancel ? () => onCancel(s) : () {},
+                    text: 'Obrisi',
+                    color: AppColors.error,
+                    onTap: () => onDelete(s),
                   ),
                 ],
               ),

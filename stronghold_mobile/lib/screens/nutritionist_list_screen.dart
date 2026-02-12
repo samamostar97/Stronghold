@@ -75,7 +75,7 @@ class NutritionistListScreen extends ConsumerWidget {
                         name: n.fullName,
                         phone: n.phoneNumber,
                         email: n.email,
-                        onBook: () => Navigator.push(
+                        onTap: () => Navigator.push(
                           context,
                           MaterialPageRoute(
                             builder: (_) => BookAppointmentScreen(

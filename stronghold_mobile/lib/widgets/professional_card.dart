@@ -4,14 +4,13 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'glass_card.dart';
-import 'gradient_button.dart';
 
 class ProfessionalCard extends StatelessWidget {
   final IconData icon;
   final String name;
   final String phone;
   final String email;
-  final VoidCallback onBook;
+  final VoidCallback onTap;
 
   const ProfessionalCard({
     super.key,
@@ -19,12 +18,13 @@ class ProfessionalCard extends StatelessWidget {
     required this.name,
     required this.phone,
     required this.email,
-    required this.onBook,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GlassCard(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -46,17 +46,12 @@ class ProfessionalCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
+            Icon(LucideIcons.chevronRight, color: AppColors.textMuted, size: 20),
           ]),
           const SizedBox(height: AppSpacing.lg),
           _infoRow(LucideIcons.phone, phone),
           const SizedBox(height: AppSpacing.sm),
           _infoRow(LucideIcons.mail, email),
-          const SizedBox(height: AppSpacing.lg),
-          GradientButton(
-            label: 'Napravi termin',
-            icon: LucideIcons.calendar,
-            onPressed: onBook,
-          ),
         ],
       ),
     );

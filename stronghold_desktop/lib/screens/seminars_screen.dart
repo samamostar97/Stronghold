@@ -69,14 +69,44 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     }
   }
 
-  void _viewAttendees(SeminarResponse seminar) {
-    showDialog(
+  Future<void> _viewDetails(SeminarResponse seminar) async {
+    final action = await showDialog<String>(
       context: context,
       builder: (_) => SeminarAttendeesDialog(
         seminar: seminar,
         service: ref.read(seminarServiceProvider),
       ),
     );
+    if (!mounted) return;
+    if (action == 'edit') {
+      _editSeminar(seminar);
+    } else if (action == 'cancel') {
+      _cancelSeminar(seminar);
+    }
+  }
+
+  Future<void> _deleteSeminar(SeminarResponse seminar) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => ConfirmDialog(
+        title: 'Potvrda brisanja',
+        message:
+            'Jeste li sigurni da zelite obrisati seminar "${seminar.topic}"?',
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(seminarListProvider.notifier).delete(seminar.id);
+      if (mounted) showSuccessAnimation(context);
+    } catch (e) {
+      if (mounted) {
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-seminar'),
+        );
+      }
+    }
   }
 
   Future<void> _cancelSeminar(SeminarResponse seminar) async {
@@ -162,9 +192,8 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
       ],
       tableBuilder: (items) => SeminarsTable(
         seminars: items,
-        onEdit: _editSeminar,
-        onCancel: _cancelSeminar,
-        onViewAttendees: _viewAttendees,
+        onViewDetails: _viewDetails,
+        onDelete: _deleteSeminar,
       ),
     );
   }
