@@ -91,24 +91,12 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logo = Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.primary, AppColors.secondary],
-        ),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.3),
-            blurRadius: 12,
-          ),
-        ],
+    final logo = ClipRect(
+      child: Image.asset(
+        'assets/images/logo.png',
+        width: 34,
+        height: 34,
       ),
-      alignment: Alignment.center,
-      child: Text('S',
-          style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
     );
 
     return Padding(
