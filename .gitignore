@@ -425,7 +425,5 @@ nul
 REFACTORING_PLAN.md
 CLAUDE.md
 .claude/
-Screenshots/
-*.docx
 packages/stronghold_core/.dart_tool/
 packages/stronghold_core/.flutter-plugins-dependencies
