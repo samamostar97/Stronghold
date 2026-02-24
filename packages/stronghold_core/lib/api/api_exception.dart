@@ -15,13 +15,15 @@ class ApiException implements Exception {
   factory ApiException.fromResponse(int statusCode, String body) {
     try {
       final json = jsonDecode(body) as Map<String, dynamic>;
+      final parsedErrors = _parseErrors(json);
+
       return ApiException(
         statusCode: statusCode,
         message: json['error'] as String? ??
                  json['message'] as String? ??
                  json['title'] as String? ??
                  'Error: $statusCode',
-        errors: json['errors'] as Map<String, dynamic>?,
+        errors: parsedErrors,
       );
     } catch (_) {
       return ApiException(
@@ -75,4 +77,31 @@ class ApiException implements Exception {
 
   @override
   String toString() => hasFieldErrors ? formattedErrors : message;
+
+  static Map<String, dynamic>? _parseErrors(Map<String, dynamic> json) {
+    final directErrors = json['errors'];
+    if (directErrors is Map<String, dynamic>) {
+      return directErrors;
+    }
+
+    final legacyErrors = json['validationErrors'];
+    if (legacyErrors is! List) {
+      return null;
+    }
+
+    final mapped = <String, List<String>>{};
+    for (final item in legacyErrors) {
+      if (item is! Map) continue;
+
+      final field = item['field']?.toString();
+      final message = item['message']?.toString();
+      if (field == null || field.isEmpty || message == null || message.isEmpty) {
+        continue;
+      }
+
+      mapped.putIfAbsent(field, () => <String>[]).add(message);
+    }
+
+    return mapped.isEmpty ? null : mapped;
+  }
 }

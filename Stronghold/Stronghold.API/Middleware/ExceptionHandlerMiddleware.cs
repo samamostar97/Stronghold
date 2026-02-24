@@ -49,13 +49,22 @@ namespace Stronghold.API.Middleware
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int)statusCode;
 
+            var errors = exception is ValidationException validationException
+                ? validationException.Errors
+                    .GroupBy(x => x.PropertyName)
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.Select(x => x.ErrorMessage).ToArray())
+                : null;
+
             var response = new
             {
                 error = statusCode == HttpStatusCode.InternalServerError
                     ? "Server error"
                     : exception.Message,
-                validationErrors = exception is ValidationException validationException
-                    ? validationException.Errors.Select(x => new
+                errors,
+                validationErrors = exception is ValidationException legacyValidationException
+                    ? legacyValidationException.Errors.Select(x => new
                     {
                         field = x.PropertyName,
                         message = x.ErrorMessage
