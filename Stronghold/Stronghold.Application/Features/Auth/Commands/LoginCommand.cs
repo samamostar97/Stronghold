@@ -42,7 +42,6 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
 
         RuleFor(x => x.Password)
             .NotEmpty()
-            .MinimumLength(6)
             .MaximumLength(100);
     }
 }
