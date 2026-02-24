@@ -1,4 +1,4 @@
-namespace Stronghold.Application.DTOs.Response;
+namespace Stronghold.Application.Features.AdminActivities.DTOs;
 
 public class AdminActivityResponse
 {

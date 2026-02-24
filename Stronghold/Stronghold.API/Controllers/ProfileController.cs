@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Profiles.Commands;
 using Stronghold.Application.Features.Profiles.Queries;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Profiles.DTOs;
+using Stronghold.Application.Features.Memberships.DTOs;
 
 namespace Stronghold.API.Controllers;
 

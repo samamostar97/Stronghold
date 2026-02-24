@@ -1,5 +1,5 @@
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Auth.DTOs;
+
 using Stronghold.Application.IServices;
 
 namespace Stronghold.Application.Tests.TestDoubles;

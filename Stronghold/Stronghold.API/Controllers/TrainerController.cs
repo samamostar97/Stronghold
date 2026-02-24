@@ -1,9 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Appointments.DTOs;
+
 using Stronghold.Application.Features.Trainers.Commands;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.Features.Trainers.Queries;

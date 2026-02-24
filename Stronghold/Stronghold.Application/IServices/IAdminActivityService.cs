@@ -1,4 +1,4 @@
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.AdminActivities.DTOs;
 
 namespace Stronghold.Application.IServices;
 

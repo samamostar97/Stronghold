@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.Features.Reports.Queries;
 using Stronghold.Application.Filters;
 

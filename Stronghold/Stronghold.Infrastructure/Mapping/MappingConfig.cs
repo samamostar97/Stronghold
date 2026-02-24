@@ -1,5 +1,5 @@
 using Mapster;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Orders.DTOs;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.Infrastructure.Mapping

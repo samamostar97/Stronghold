@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using Stronghold.Application.Common;
 
-namespace Stronghold.Application.DTOs.Request
+namespace Stronghold.Application.Features.Appointments.DTOs
 {
     public class BookAppointmentRequest : IValidatableObject
     {

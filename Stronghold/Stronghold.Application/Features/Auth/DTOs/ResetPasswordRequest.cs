@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Stronghold.Application.DTOs.Request
+namespace Stronghold.Application.Features.Auth.DTOs
 {
     public class ResetPasswordRequest
     {

@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Appointments.DTOs;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;

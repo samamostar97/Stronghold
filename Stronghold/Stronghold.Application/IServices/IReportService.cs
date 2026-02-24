@@ -1,5 +1,5 @@
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.Filters;
 
 namespace Stronghold.Application.IServices

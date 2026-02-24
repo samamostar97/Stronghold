@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.Filters;
 using Stronghold.Application.IServices;
 

@@ -1,4 +1,4 @@
-namespace Stronghold.Application.DTOs.Response
+namespace Stronghold.Application.Features.Recommendations.DTOs
 {
     public class RecommendationResponse
     {

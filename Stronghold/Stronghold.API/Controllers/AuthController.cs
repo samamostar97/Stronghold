@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Auth.DTOs;
+
 using Stronghold.Application.Features.Auth.Commands;
 
 namespace Stronghold.API.Controllers;

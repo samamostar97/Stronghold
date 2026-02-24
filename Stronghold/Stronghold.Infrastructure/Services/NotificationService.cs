@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Notifications.DTOs;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Infrastructure.Data;

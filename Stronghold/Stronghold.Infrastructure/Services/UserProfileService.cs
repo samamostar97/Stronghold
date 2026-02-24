@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Profiles.DTOs;
+using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;

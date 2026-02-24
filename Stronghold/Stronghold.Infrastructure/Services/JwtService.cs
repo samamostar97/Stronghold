@@ -4,8 +4,8 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Auth.DTOs;
+
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;

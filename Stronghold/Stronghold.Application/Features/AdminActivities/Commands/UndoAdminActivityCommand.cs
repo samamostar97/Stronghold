@@ -1,6 +1,6 @@
 using FluentValidation;
 using MediatR;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.AdminActivities.DTOs;
 using Stronghold.Application.IServices;
 
 namespace Stronghold.Application.Features.AdminActivities.Commands;

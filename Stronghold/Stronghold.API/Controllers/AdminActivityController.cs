@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.AdminActivities.Queries;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.AdminActivities.DTOs;
 
 namespace Stronghold.API.Controllers;
 

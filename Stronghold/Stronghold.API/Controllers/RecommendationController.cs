@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Features.Recommendations.Queries;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Recommendations.DTOs;
 
 namespace Stronghold.API.Controllers;
 

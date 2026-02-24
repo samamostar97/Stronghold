@@ -1,4 +1,4 @@
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Recommendations.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;

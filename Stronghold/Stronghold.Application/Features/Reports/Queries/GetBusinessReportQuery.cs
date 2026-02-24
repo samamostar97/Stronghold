@@ -1,5 +1,5 @@
 using MediatR;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
 
 namespace Stronghold.Application.Features.Reports.Queries;
