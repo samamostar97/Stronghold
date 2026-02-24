@@ -1,6 +1,6 @@
 using Stronghold.Application.Common;
 
-namespace Stronghold.Application.Filters
+namespace Stronghold.Application.Features.Reports.DTOs
 {
     public class SlowMovingProductQueryFilter : PaginationRequest
     {

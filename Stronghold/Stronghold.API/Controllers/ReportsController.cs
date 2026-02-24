@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.Features.Reports.Queries;
-using Stronghold.Application.Filters;
 
 namespace Stronghold.API.Controllers
 {

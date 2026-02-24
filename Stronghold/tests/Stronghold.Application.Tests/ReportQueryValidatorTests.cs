@@ -1,5 +1,5 @@
 using Stronghold.Application.Features.Reports.Queries;
-using Stronghold.Application.Filters;
+using Stronghold.Application.Features.Reports.DTOs;
 
 namespace Stronghold.Application.Tests;
 

@@ -5,7 +5,6 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Reports.DTOs;
-using Stronghold.Application.Filters;
 using Stronghold.Application.IServices;
 
 using Stronghold.Infrastructure.Data;
