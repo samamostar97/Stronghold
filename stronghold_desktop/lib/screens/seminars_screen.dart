@@ -187,8 +187,13 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
         SortOption(value: 'topic', label: 'Tema (A-Z)'),
+        SortOption(value: 'topicdesc', label: 'Tema (Z-A)'),
         SortOption(value: 'speakername', label: 'Voditelj (A-Z)'),
+        SortOption(value: 'speakernamedesc', label: 'Voditelj (Z-A)'),
+        SortOption(value: 'eventdate', label: 'Najstarije prvo'),
         SortOption(value: 'eventdatedesc', label: 'Najnovije prvo'),
+        SortOption(value: 'maxcapacity', label: 'Kapacitet (manji)'),
+        SortOption(value: 'maxcapacitydesc', label: 'Kapacitet (veci)'),
       ],
       tableBuilder: (items) => SeminarsTable(
         seminars: items,

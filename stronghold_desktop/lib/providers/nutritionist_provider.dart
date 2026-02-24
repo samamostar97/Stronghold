@@ -8,25 +8,28 @@ import 'list_state.dart';
 final nutritionistServiceProvider = Provider<NutritionistService>((ref) {
   return NutritionistService(ref.watch(apiClientProvider));
 });
+
 /// Nutritionist list state provider
-final nutritionistListProvider = StateNotifierProvider<
-    NutritionistListNotifier,
-    ListState<NutritionistResponse, NutritionistQueryFilter>>((ref) {
-  final service = ref.watch(nutritionistServiceProvider);
-  return NutritionistListNotifier(service);
-});
+final nutritionistListProvider =
+    StateNotifierProvider<
+      NutritionistListNotifier,
+      ListState<NutritionistResponse, NutritionistQueryFilter>
+    >((ref) {
+      final service = ref.watch(nutritionistServiceProvider);
+      return NutritionistListNotifier(service);
+    });
 
 /// Nutritionist list notifier implementation
-class NutritionistListNotifier extends ListNotifier<
-    NutritionistResponse,
-    CreateNutritionistRequest,
-    UpdateNutritionistRequest,
-    NutritionistQueryFilter> {
+class NutritionistListNotifier
+    extends
+        ListNotifier<
+          NutritionistResponse,
+          CreateNutritionistRequest,
+          UpdateNutritionistRequest,
+          NutritionistQueryFilter
+        > {
   NutritionistListNotifier(NutritionistService service)
-      : super(
-          service: service,
-          initialFilter: NutritionistQueryFilter(),
-        );
+    : super(service: service, initialFilter: NutritionistQueryFilter());
   @override
   NutritionistQueryFilter createFilterCopy({
     int? pageNumber,
@@ -34,12 +37,11 @@ class NutritionistListNotifier extends ListNotifier<
     String? search,
     String? orderBy,
   }) {
-    // null = keep old value, '' = clear search, 'value' = new search
-    final searchValue = search == null ? state.filter.search : (search.isEmpty ? null : search);
-    return NutritionistQueryFilter(
+    final normalizedSearch = search ?? state.filter.search;
+    return state.filter.copyWith(
       pageNumber: pageNumber ?? state.filter.pageNumber,
       pageSize: pageSize ?? state.filter.pageSize,
-      search: searchValue,
+      search: normalizedSearch,
       orderBy: orderBy ?? state.filter.orderBy,
     );
   }

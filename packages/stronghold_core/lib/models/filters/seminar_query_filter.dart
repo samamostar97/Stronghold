@@ -32,14 +32,16 @@ class SeminarQueryFilter extends BaseQueryFilter {
     int? pageSize,
     String? search,
     String? orderBy,
+    bool? isCancelled,
+    String? status,
   }) {
     return SeminarQueryFilter(
       pageNumber: pageNumber ?? this.pageNumber,
       pageSize: pageSize ?? this.pageSize,
       search: search ?? this.search,
       orderBy: orderBy ?? this.orderBy,
-      isCancelled: this.isCancelled,
-      status: this.status,
+      isCancelled: isCancelled ?? this.isCancelled,
+      status: status ?? this.status,
     );
   }
 }

@@ -1,0 +1,87 @@
+using FluentValidation;
+using MediatR;
+using Stronghold.Application.Exceptions;
+using Stronghold.Application.Features.Suppliers.DTOs;
+using Stronghold.Application.IRepositories;
+using Stronghold.Application.IServices;
+using Stronghold.Core.Entities;
+
+namespace Stronghold.Application.Features.Suppliers.Commands;
+
+public class CreateSupplierCommand : IRequest<SupplierResponse>
+{
+    public string Name { get; set; } = string.Empty;
+    public string? Website { get; set; }
+}
+
+public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierCommand, SupplierResponse>
+{
+    private readonly ISupplierRepository _supplierRepository;
+    private readonly ICurrentUserService _currentUserService;
+
+    public CreateSupplierCommandHandler(ISupplierRepository supplierRepository, ICurrentUserService currentUserService)
+    {
+        _supplierRepository = supplierRepository;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<SupplierResponse> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
+    {
+        EnsureAdminAccess();
+
+        var exists = await _supplierRepository.ExistsByNameAsync(request.Name, cancellationToken: cancellationToken);
+        if (exists)
+        {
+            throw new ConflictException("Dobavljac sa ovim nazivom vec postoji.");
+        }
+
+        var entity = new Supplier
+        {
+            Name = request.Name.Trim(),
+            Website = string.IsNullOrWhiteSpace(request.Website) ? null : request.Website.Trim()
+        };
+
+        await _supplierRepository.AddAsync(entity, cancellationToken);
+
+        return new SupplierResponse
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Website = entity.Website,
+            CreatedAt = entity.CreatedAt
+        };
+    }
+
+    private void EnsureAdminAccess()
+    {
+        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
+        {
+            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
+        }
+
+        if (!_currentUserService.IsInRole("Admin"))
+        {
+            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
+        }
+    }
+}
+
+public class CreateSupplierCommandValidator : AbstractValidator<CreateSupplierCommand>
+{
+    public CreateSupplierCommandValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty()
+            .MinimumLength(2)
+            .MaximumLength(50);
+
+        RuleFor(x => x.Website)
+            .MaximumLength(100)
+            .When(x => !string.IsNullOrWhiteSpace(x.Website));
+
+        RuleFor(x => x.Website)
+            .Matches(@"^(https?://)?(www\.)?([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}(/.*)?$")
+            .When(x => !string.IsNullOrWhiteSpace(x.Website))
+            .WithMessage("Unesite ispravnu web adresu.");
+    }
+}

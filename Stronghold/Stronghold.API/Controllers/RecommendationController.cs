@@ -1,33 +1,27 @@
-using System.ComponentModel.DataAnnotations;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stronghold.Application.Features.Recommendations.Queries;
 using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers;
 
 [ApiController]
 [Route("api/user/recommendations")]
 [Authorize]
-public class RecommendationController : UserControllerBase
+public class RecommendationController : ControllerBase
 {
-    private readonly IRecommendationService _recommendationService;
+    private readonly IMediator _mediator;
 
-    public RecommendationController(IRecommendationService recommendationService)
+    public RecommendationController(IMediator mediator)
     {
-        _recommendationService = recommendationService;
+        _mediator = mediator;
     }
 
     [HttpGet]
-    public async Task<ActionResult<List<RecommendationResponse>>> GetRecommendations([FromQuery][Range(1, 50)] int count = 6)
+    public async Task<ActionResult<IReadOnlyList<RecommendationResponse>>> GetRecommendations([FromQuery] int count = 6)
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-        {
-            return Unauthorized();
-        }
-
-        var recommendations = await _recommendationService.GetRecommendationsAsync(userId.Value, count);
+        var recommendations = await _mediator.Send(new GetRecommendationsQuery { Count = count });
         return Ok(recommendations);
     }
 }

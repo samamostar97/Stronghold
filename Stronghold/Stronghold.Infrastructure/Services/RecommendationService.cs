@@ -1,22 +1,20 @@
-using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.DTOs.Response;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
-using Stronghold.Core.Enums;
 
 namespace Stronghold.Infrastructure.Services;
 
 public class RecommendationService : IRecommendationService
 {
-    private readonly IRepository<Order, int> _orderRepository;
-    private readonly IRepository<Review, int> _reviewRepository;
-    private readonly IRepository<Supplement, int> _supplementRepository;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IReviewRepository _reviewRepository;
+    private readonly ISupplementRepository _supplementRepository;
 
     public RecommendationService(
-        IRepository<Order, int> orderRepository,
-        IRepository<Review, int> reviewRepository,
-        IRepository<Supplement, int> supplementRepository)
+        IOrderRepository orderRepository,
+        IReviewRepository reviewRepository,
+        ISupplementRepository supplementRepository)
     {
         _orderRepository = orderRepository;
         _reviewRepository = reviewRepository;
@@ -26,15 +24,7 @@ public class RecommendationService : IRecommendationService
     public async Task<List<RecommendationResponse>> GetRecommendationsAsync(int userId, int count = 6)
     {
         // 1. Get supplements from delivered orders
-        var deliveredOrders = await _orderRepository.AsQueryable()
-            .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Supplement)
-                    .ThenInclude(s => s.SupplementCategory)
-            .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Supplement)
-                    .ThenInclude(s => s.Supplier)
-            .Where(o => o.UserId == userId && o.Status == OrderStatus.Delivered)
-            .ToListAsync();
+        var deliveredOrders = await _orderRepository.GetDeliveredForRecommendationAsync(userId);
 
         var purchasedSupplementIds = new HashSet<int>();
         var purchasedCategoryIds = new HashSet<int>();
@@ -44,7 +34,7 @@ public class RecommendationService : IRecommendationService
         {
             foreach (var item in order.OrderItems)
             {
-                if (item.Supplement == null) continue;
+                if (item.IsDeleted || item.Supplement == null || item.Supplement.IsDeleted) continue;
                 purchasedSupplementIds.Add(item.SupplementId);
                 purchasedCategoryIds.Add(item.Supplement.SupplementCategoryId);
                 purchasedSupplierIds.Add(item.Supplement.SupplierId);
@@ -52,13 +42,7 @@ public class RecommendationService : IRecommendationService
         }
 
         // 2. Get highly-rated supplements (rating >= 4)
-        var highlyRatedReviews = await _reviewRepository.AsQueryable()
-            .Include(r => r.Supplement)
-                .ThenInclude(s => s.SupplementCategory)
-            .Include(r => r.Supplement)
-                .ThenInclude(s => s.Supplier)
-            .Where(r => r.UserId == userId && r.Rating >= 4)
-            .ToListAsync();
+        var highlyRatedReviews = await _reviewRepository.GetHighlyRatedByUserAsync(userId, minRating: 4);
 
         var highlyRatedSupplementIds = new HashSet<int>();
         var highlyRatedCategoryIds = new HashSet<int>();
@@ -73,12 +57,8 @@ public class RecommendationService : IRecommendationService
         }
 
         // 3. Get all supplements (excluding already purchased)
-        var allSupplements = await _supplementRepository.AsQueryable()
-            .Include(s => s.SupplementCategory)
-            .Include(s => s.Supplier)
-            .Include(s => s.Reviews)
-            .Where(s => !purchasedSupplementIds.Contains(s.Id))
-            .ToListAsync();
+        var allSupplements = await _supplementRepository.GetRecommendationCandidatesAsync(
+            purchasedSupplementIds.ToList());
 
         // 4. Score each candidate supplement
         var scoredSupplements = new List<(Supplement Supplement, int Score, string Reason)>();

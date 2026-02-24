@@ -92,7 +92,9 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
       addButtonText: '+ Dodaj kategoriju',
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'naziv', label: 'Naziv (A-Z)'),
+        SortOption(value: 'name', label: 'Naziv (A-Z)'),
+        SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => CategoriesTable(

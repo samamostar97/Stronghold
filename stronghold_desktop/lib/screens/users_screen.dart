@@ -105,6 +105,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
             SortOption(value: 'firstname', label: 'Ime (A-Z)'),
             SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
             SortOption(value: 'datedesc', label: 'Najnovije prvo'),
+            SortOption(value: 'date', label: 'Najstarije prvo'),
           ],
           tableBuilder: (items) => UsersTable(
             users: items,

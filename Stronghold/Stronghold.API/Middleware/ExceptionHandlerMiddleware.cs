@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
 using Stronghold.Application.Exceptions;
 
 namespace Stronghold.API.Middleware
@@ -31,6 +32,7 @@ namespace Stronghold.API.Middleware
         {
             var statusCode = exception switch
             {
+                ValidationException => HttpStatusCode.BadRequest,
                 KeyNotFoundException => HttpStatusCode.NotFound,
                 ConflictException => HttpStatusCode.Conflict,
                 InvalidOperationException => HttpStatusCode.BadRequest,
@@ -52,6 +54,13 @@ namespace Stronghold.API.Middleware
                 error = statusCode == HttpStatusCode.InternalServerError
                     ? "Server error"
                     : exception.Message,
+                validationErrors = exception is ValidationException validationException
+                    ? validationException.Errors.Select(x => new
+                    {
+                        field = x.PropertyName,
+                        message = x.ErrorMessage
+                    })
+                    : null,
                 statusCode = (int)statusCode
             };
 

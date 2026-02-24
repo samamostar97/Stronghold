@@ -68,7 +68,10 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     super.initState();
     _searchController.addListener(_onSearchChanged);
     _searchController.text = widget.state.filter.search ?? '';
-    _selectedOrderBy = widget.state.filter.orderBy;
+    final currentOrderBy = widget.state.filter.orderBy;
+    _selectedOrderBy = (currentOrderBy == null || currentOrderBy.isEmpty)
+        ? null
+        : currentOrderBy;
   }
 
   @override

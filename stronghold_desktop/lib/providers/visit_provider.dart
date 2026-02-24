@@ -1,81 +1,96 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'api_providers.dart';
+import 'list_state.dart';
 
 /// Visit service provider
 final visitServiceProvider = Provider<VisitService>((ref) {
   return VisitService(ref.watch(apiClientProvider));
 });
 
-/// Current visitors state
-class CurrentVisitorsState {
-  final List<CurrentVisitorResponse> visitors;
-  final bool isLoading;
-  final String? error;
-
-  const CurrentVisitorsState({
-    this.visitors = const [],
-    this.isLoading = false,
-    this.error,
-  });
-
-  CurrentVisitorsState copyWith({
-    List<CurrentVisitorResponse>? visitors,
-    bool? isLoading,
-    String? error,
-  }) {
-    return CurrentVisitorsState(
-      visitors: visitors ?? this.visitors,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-    );
-  }
-}
+/// Current visitors provider (server-side pagination/filter/sort)
+final currentVisitorsProvider =
+    StateNotifierProvider<
+      CurrentVisitorsNotifier,
+      ListState<CurrentVisitorResponse, VisitQueryFilter>
+    >((ref) {
+      final service = ref.watch(visitServiceProvider);
+      return CurrentVisitorsNotifier(service);
+    });
 
 /// Current visitors notifier
-class CurrentVisitorsNotifier extends StateNotifier<CurrentVisitorsState> {
+class CurrentVisitorsNotifier
+    extends StateNotifier<ListState<CurrentVisitorResponse, VisitQueryFilter>> {
   final VisitService _service;
 
-  CurrentVisitorsNotifier(this._service) : super(const CurrentVisitorsState());
+  CurrentVisitorsNotifier(this._service)
+    : super(
+        ListState(
+          filter: VisitQueryFilter(pageSize: 10, orderBy: 'checkindesc'),
+        ),
+      );
 
   /// Load current visitors
   Future<void> load() async {
-    state = state.copyWith(isLoading: true, error: null);
+    state = state.copyWithLoading();
     try {
-      final visitors = await _service.getCurrentVisitors();
-      state = state.copyWith(visitors: visitors, isLoading: false);
+      final result = await _service.getCurrentVisitorsPaged(state.filter);
+      state = state.copyWithData(result);
+    } on ApiException catch (e) {
+      state = state.copyWithError(e.message);
     } catch (e) {
-      state = state.copyWith(error: e.toString(), isLoading: false);
+      state = state.copyWithError('Greska pri ucitavanju: $e');
     }
+  }
+
+  /// Refresh current page
+  Future<void> refresh() => load();
+
+  /// Update search and reload from page 1
+  Future<void> setSearch(String? search) async {
+    final normalizedSearch = search ?? '';
+    final nextSearch = normalizedSearch;
+    final newFilter = state.filter.copyWith(pageNumber: 1, search: nextSearch);
+    state = state.copyWithFilter(newFilter);
+    await load();
+  }
+
+  /// Update sort and reload from page 1
+  Future<void> setOrderBy(String? orderBy) async {
+    final normalizedOrderBy = orderBy ?? '';
+    final newFilter = state.filter.copyWith(
+      pageNumber: 1,
+      orderBy: normalizedOrderBy,
+    );
+    state = state.copyWithFilter(newFilter);
+    await load();
+  }
+
+  /// Go to page
+  Future<void> goToPage(int page) async {
+    if (page < 1 || page > state.totalPages) return;
+    final newFilter = state.filter.copyWith(pageNumber: page);
+    state = state.copyWithFilter(newFilter);
+    await load();
   }
 
   /// Check in a user
   Future<void> checkIn(int userId) async {
     await _service.checkIn(CheckInRequest(userId: userId));
-    await load(); // Refresh the list
+    await load();
   }
 
   /// Check out a visitor
   Future<void> checkOut(int visitId) async {
     await _service.checkOut(visitId);
-    await load(); // Refresh the list
-  }
 
-  /// Filter visitors by search query (client-side)
-  List<CurrentVisitorResponse> filterVisitors(String query) {
-    if (query.isEmpty) return state.visitors;
-    final lowerQuery = query.toLowerCase().trim();
-    return state.visitors.where((visitor) {
-      return visitor.username.toLowerCase().contains(lowerQuery) ||
-             visitor.firstName.toLowerCase().contains(lowerQuery) ||
-             visitor.lastName.toLowerCase().contains(lowerQuery) ||
-             visitor.fullName.toLowerCase().contains(lowerQuery);
-    }).toList();
+    if (state.items.length == 1 && state.currentPage > 1) {
+      final previousPageFilter = state.filter.copyWith(
+        pageNumber: state.currentPage - 1,
+      );
+      state = state.copyWithFilter(previousPageFilter);
+    }
+
+    await load();
   }
 }
-
-/// Current visitors provider
-final currentVisitorsProvider = StateNotifierProvider<CurrentVisitorsNotifier, CurrentVisitorsState>((ref) {
-  final service = ref.watch(visitServiceProvider);
-  return CurrentVisitorsNotifier(service);
-});

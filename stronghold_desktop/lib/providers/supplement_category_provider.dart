@@ -34,12 +34,11 @@ class SupplementCategoryListNotifier extends ListNotifier<
     String? search,
     String? orderBy,
   }) {
-    // null = keep old value, '' = clear search, 'value' = new search
-    final searchValue = search == null ? state.filter.search : (search.isEmpty ? null : search);
-    return SupplementCategoryQueryFilter(
+    final normalizedSearch = search ?? state.filter.search;
+    return state.filter.copyWith(
       pageNumber: pageNumber ?? state.filter.pageNumber,
       pageSize: pageSize ?? state.filter.pageSize,
-      search: searchValue,
+      search: normalizedSearch,
       orderBy: orderBy ?? state.filter.orderBy,
     );
   }

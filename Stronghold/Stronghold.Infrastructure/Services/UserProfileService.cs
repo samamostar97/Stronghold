@@ -13,7 +13,7 @@ public class UserProfileService : IUserProfileService
 {
     private readonly StrongholdDbContext _context;
     private readonly IFileStorageService _fileStorageService;
-    private readonly IRepository<MembershipPaymentHistory, int> _paymentRepository;
+    private readonly IMembershipRepository _membershipRepository;
 
     // Progress constants
     private const int XP_PER_HOUR = 150;
@@ -27,11 +27,11 @@ public class UserProfileService : IUserProfileService
     public UserProfileService(
         StrongholdDbContext context,
         IFileStorageService fileStorageService,
-        IRepository<MembershipPaymentHistory, int> paymentRepository)
+        IMembershipRepository membershipRepository)
     {
         _context = context;
         _fileStorageService = fileStorageService;
-        _paymentRepository = paymentRepository;
+        _membershipRepository = membershipRepository;
     }
 
     public async Task<UserProfileResponse> GetProfileAsync(int userId)
@@ -106,11 +106,9 @@ public class UserProfileService : IUserProfileService
 
     public async Task<IEnumerable<MembershipPaymentResponse>> GetMembershipPaymentHistoryAsync(int userId)
     {
-        var paymentHistory = _paymentRepository.AsQueryable()
-            .Where(x => x.UserId == userId)
-            .Include(x => x.MembershipPackage);
+        var paymentHistory = await _membershipRepository.GetPaymentsByUserAsync(userId);
 
-        var resultDTO = await paymentHistory.Select(x => new MembershipPaymentResponse()
+        var resultDTO = paymentHistory.Select(x => new MembershipPaymentResponse()
         {
             Id = x.Id,
             PackageName = x.MembershipPackage.PackageName,
@@ -118,7 +116,7 @@ public class UserProfileService : IUserProfileService
             PaymentDate = x.PaymentDate,
             StartDate = x.StartDate,
             EndDate = x.EndDate
-        }).ToListAsync();
+        }).ToList();
 
         return resultDTO;
     }

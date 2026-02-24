@@ -8,25 +8,28 @@ import 'list_state.dart';
 final trainerServiceProvider = Provider<TrainerService>((ref) {
   return TrainerService(ref.watch(apiClientProvider));
 });
+
 /// Trainer list state provider
-final trainerListProvider = StateNotifierProvider<
-    TrainerListNotifier,
-    ListState<TrainerResponse, TrainerQueryFilter>>((ref) {
-  final service = ref.watch(trainerServiceProvider);
-  return TrainerListNotifier(service);
-});
+final trainerListProvider =
+    StateNotifierProvider<
+      TrainerListNotifier,
+      ListState<TrainerResponse, TrainerQueryFilter>
+    >((ref) {
+      final service = ref.watch(trainerServiceProvider);
+      return TrainerListNotifier(service);
+    });
 
 /// Trainer list notifier implementation
-class TrainerListNotifier extends ListNotifier<
-    TrainerResponse,
-    CreateTrainerRequest,
-    UpdateTrainerRequest,
-    TrainerQueryFilter> {
+class TrainerListNotifier
+    extends
+        ListNotifier<
+          TrainerResponse,
+          CreateTrainerRequest,
+          UpdateTrainerRequest,
+          TrainerQueryFilter
+        > {
   TrainerListNotifier(TrainerService service)
-      : super(
-          service: service,
-          initialFilter: TrainerQueryFilter(),
-        );
+    : super(service: service, initialFilter: TrainerQueryFilter());
   @override
   TrainerQueryFilter createFilterCopy({
     int? pageNumber,
@@ -34,12 +37,11 @@ class TrainerListNotifier extends ListNotifier<
     String? search,
     String? orderBy,
   }) {
-    // null = keep old value, '' = clear search, 'value' = new search
-    final searchValue = search == null ? state.filter.search : (search.isEmpty ? null : search);
-    return TrainerQueryFilter(
+    final normalizedSearch = search ?? state.filter.search;
+    return state.filter.copyWith(
       pageNumber: pageNumber ?? state.filter.pageNumber,
       pageSize: pageSize ?? state.filter.pageSize,
-      search: searchValue,
+      search: normalizedSearch,
       orderBy: orderBy ?? state.filter.orderBy,
     );
   }

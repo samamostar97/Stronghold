@@ -74,15 +74,14 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(nutritionistListProvider.notifier)
-          .delete(nutritionist.id);
+      await ref.read(nutritionistListProvider.notifier).delete(nutritionist.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message:
-                ErrorHandler.getContextualMessage(e, 'delete-nutritionist'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-nutritionist'),
+        );
       }
     }
   }
@@ -104,7 +103,10 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
         SortOption(value: 'firstname', label: 'Ime (A-Z)'),
+        SortOption(value: 'firstnamedesc', label: 'Ime (Z-A)'),
         SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
+        SortOption(value: 'lastnamedesc', label: 'Prezime (Z-A)'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => NutritionistsTable(

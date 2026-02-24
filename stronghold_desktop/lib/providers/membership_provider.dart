@@ -10,22 +10,21 @@ final membershipServiceProvider = Provider<MembershipService>((ref) {
 
 /// Provider for user payment history
 /// Takes userId as family parameter
-final userPaymentsProvider = FutureProvider.family<PagedResult<MembershipPaymentResponse>, UserPaymentsParams>(
-  (ref, params) async {
-    final service = ref.watch(membershipServiceProvider);
-    return service.getPayments(params.userId, params.filter);
-  },
-);
+final userPaymentsProvider =
+    FutureProvider.family<
+      PagedResult<MembershipPaymentResponse>,
+      UserPaymentsParams
+    >((ref, params) async {
+      final service = ref.watch(membershipServiceProvider);
+      return service.getPayments(params.userId, params.filter);
+    });
 
 /// Parameters for userPaymentsProvider
 class UserPaymentsParams {
   final int userId;
   final MembershipQueryFilter filter;
 
-  const UserPaymentsParams({
-    required this.userId,
-    required this.filter,
-  });
+  const UserPaymentsParams({required this.userId, required this.filter});
 
   @override
   bool operator ==(Object other) =>
@@ -34,14 +33,24 @@ class UserPaymentsParams {
           runtimeType == other.runtimeType &&
           userId == other.userId &&
           filter.pageNumber == other.filter.pageNumber &&
-          filter.pageSize == other.filter.pageSize;
+          filter.pageSize == other.filter.pageSize &&
+          filter.search == other.filter.search &&
+          filter.orderBy == other.filter.orderBy;
 
   @override
-  int get hashCode => userId.hashCode ^ filter.pageNumber.hashCode ^ filter.pageSize.hashCode;
+  int get hashCode =>
+      userId.hashCode ^
+      filter.pageNumber.hashCode ^
+      filter.pageSize.hashCode ^
+      filter.search.hashCode ^
+      filter.orderBy.hashCode;
 }
 
 /// Check if a user has active membership using backend membership status source.
-final userHasActiveMembershipProvider = FutureProvider.family<bool, int>((ref, userId) async {
+final userHasActiveMembershipProvider = FutureProvider.family<bool, int>((
+  ref,
+  userId,
+) async {
   final service = ref.watch(membershipServiceProvider);
   try {
     return await service.hasActiveMembership(userId);
@@ -54,7 +63,8 @@ final userHasActiveMembershipProvider = FutureProvider.family<bool, int>((ref, u
 class MembershipOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   final MembershipService _service;
 
-  MembershipOperationsNotifier(this._service) : super(const AsyncValue.data(null));
+  MembershipOperationsNotifier(this._service)
+    : super(const AsyncValue.data(null));
 
   /// Assign membership to a user
   Future<void> assignMembership(AssignMembershipRequest request) async {
@@ -82,18 +92,24 @@ class MembershipOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 }
 
 /// Membership operations provider
-final membershipOperationsProvider = StateNotifierProvider<MembershipOperationsNotifier, AsyncValue<void>>((ref) {
-  final service = ref.watch(membershipServiceProvider);
-  return MembershipOperationsNotifier(service);
-});
+final membershipOperationsProvider =
+    StateNotifierProvider<MembershipOperationsNotifier, AsyncValue<void>>((
+      ref,
+    ) {
+      final service = ref.watch(membershipServiceProvider);
+      return MembershipOperationsNotifier(service);
+    });
 
 /// Active members notifier — paged list of users with active memberships
 class ActiveMembersNotifier
-    extends StateNotifier<ListState<ActiveMemberResponse, ActiveMemberQueryFilter>> {
+    extends
+        StateNotifier<
+          ListState<ActiveMemberResponse, ActiveMemberQueryFilter>
+        > {
   final MembershipService _service;
 
   ActiveMembersNotifier(this._service)
-      : super(ListState(filter: ActiveMemberQueryFilter(pageSize: 8))) {
+    : super(ListState(filter: ActiveMemberQueryFilter(pageSize: 8))) {
     load();
   }
 
@@ -108,9 +124,10 @@ class ActiveMembersNotifier
   }
 
   Future<void> setSearch(String? search) async {
+    final normalizedSearch = search ?? '';
     final newFilter = state.filter.copyWith(
       pageNumber: 1,
-      search: (search == null || search.isEmpty) ? null : search,
+      search: normalizedSearch,
     );
     state = state.copyWithFilter(newFilter);
     await load();
@@ -125,9 +142,11 @@ class ActiveMembersNotifier
 }
 
 /// Active members provider
-final activeMembersProvider = StateNotifierProvider.autoDispose<
-    ActiveMembersNotifier,
-    ListState<ActiveMemberResponse, ActiveMemberQueryFilter>>((ref) {
-  final service = ref.watch(membershipServiceProvider);
-  return ActiveMembersNotifier(service);
-});
+final activeMembersProvider =
+    StateNotifierProvider.autoDispose<
+      ActiveMembersNotifier,
+      ListState<ActiveMemberResponse, ActiveMemberQueryFilter>
+    >((ref) {
+      final service = ref.watch(membershipServiceProvider);
+      return ActiveMembersNotifier(service);
+    });

@@ -31,9 +31,9 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
       context: context,
       builder: (_) => SupplierDialog(
         onSave: (name, website) async {
-          await ref.read(supplierListProvider.notifier).create(
-                CreateSupplierRequest(name: name, website: website),
-              );
+          await ref
+              .read(supplierListProvider.notifier)
+              .create(CreateSupplierRequest(name: name, website: website));
         },
       ),
     );
@@ -50,7 +50,9 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
       builder: (_) => SupplierDialog(
         initial: supplier,
         onSave: (name, website) async {
-          await ref.read(supplierListProvider.notifier).update(
+          await ref
+              .read(supplierListProvider.notifier)
+              .update(
                 supplier.id,
                 UpdateSupplierRequest(name: name, website: website),
               );
@@ -79,8 +81,10 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message: ErrorHandler.getContextualMessage(e, 'delete-supplier'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-supplier'),
+        );
       }
     }
   }
@@ -101,7 +105,9 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
       addButtonText: '+ Dodaj dobavljaca',
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'naziv', label: 'Naziv (A-Z)'),
+        SortOption(value: 'name', label: 'Naziv (A-Z)'),
+        SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => SuppliersTable(

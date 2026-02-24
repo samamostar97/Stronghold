@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'api_providers.dart';
 import 'list_state.dart';
@@ -9,12 +9,14 @@ final reviewServiceProvider = Provider<ReviewService>((ref) {
 });
 
 /// Review list state provider
-final reviewListProvider = StateNotifierProvider<
-    ReviewListNotifier,
-    ListState<ReviewResponse, ReviewQueryFilter>>((ref) {
-  final service = ref.watch(reviewServiceProvider);
-  return ReviewListNotifier(service);
-});
+final reviewListProvider =
+    StateNotifierProvider<
+      ReviewListNotifier,
+      ListState<ReviewResponse, ReviewQueryFilter>
+    >((ref) {
+      final service = ref.watch(reviewServiceProvider);
+      return ReviewListNotifier(service);
+    });
 
 /// Review list notifier - read-only with delete support
 class ReviewListNotifier
@@ -22,7 +24,7 @@ class ReviewListNotifier
   final ReviewService _service;
 
   ReviewListNotifier(this._service)
-      : super(ListState(filter: ReviewQueryFilter()));
+    : super(ListState(filter: ReviewQueryFilter()));
 
   /// Load data from server with current filter
   Future<void> load() async {
@@ -33,7 +35,7 @@ class ReviewListNotifier
     } on ApiException catch (e) {
       state = state.copyWithError(e.message);
     } catch (e) {
-      state = state.copyWithError('Greška pri učitavanju: $e');
+      state = state.copyWithError('Greska pri ucitavanju: $e');
     }
   }
 
@@ -42,14 +44,22 @@ class ReviewListNotifier
 
   /// Update search and reload from page 1
   Future<void> setSearch(String? search) async {
-    final newFilter = _createFilterCopy(pageNumber: 1, search: search);
+    final normalizedSearch = search ?? '';
+    final newFilter = _createFilterCopy(
+      pageNumber: 1,
+      search: normalizedSearch,
+    );
     state = state.copyWithFilter(newFilter);
     await load();
   }
 
   /// Update sort order and reload from page 1
   Future<void> setOrderBy(String? orderBy) async {
-    final newFilter = _createFilterCopy(pageNumber: 1, orderBy: orderBy);
+    final normalizedOrderBy = orderBy ?? '';
+    final newFilter = _createFilterCopy(
+      pageNumber: 1,
+      orderBy: normalizedOrderBy,
+    );
     state = state.copyWithFilter(newFilter);
     await load();
   }
@@ -101,7 +111,9 @@ class ReviewListNotifier
     String? orderBy,
   }) {
     // null = keep old value, '' = clear search, 'value' = new search
-    final searchValue = search == null ? state.filter.search : (search.isEmpty ? null : search);
+    final searchValue = search == null
+        ? state.filter.search
+        : (search.isEmpty ? null : search);
     return ReviewQueryFilter(
       pageNumber: pageNumber ?? state.filter.pageNumber,
       pageSize: pageSize ?? state.filter.pageSize,
@@ -110,3 +122,4 @@ class ReviewListNotifier
     );
   }
 }
+

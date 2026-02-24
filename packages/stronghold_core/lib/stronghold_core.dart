@@ -31,6 +31,7 @@ export 'models/filters/trainer_query_filter.dart';
 export 'models/filters/user_query_filter.dart';
 export 'models/filters/slow_moving_product_query_filter.dart';
 export 'models/filters/appointment_query_filter.dart';
+export 'models/filters/visit_query_filter.dart';
 
 // Requests
 export 'models/requests/assign_membership_request.dart';

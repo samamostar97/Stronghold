@@ -9,12 +9,14 @@ final orderServiceProvider = Provider<OrderService>((ref) {
 });
 
 /// Order list state provider
-final orderListProvider = StateNotifierProvider<
-    OrderListNotifier,
-    ListState<OrderResponse, OrderQueryFilter>>((ref) {
-  final service = ref.watch(orderServiceProvider);
-  return OrderListNotifier(service);
-});
+final orderListProvider =
+    StateNotifierProvider<
+      OrderListNotifier,
+      ListState<OrderResponse, OrderQueryFilter>
+    >((ref) {
+      final service = ref.watch(orderServiceProvider);
+      return OrderListNotifier(service);
+    });
 
 /// Order list notifier implementation.
 /// Custom implementation since orders are read-only (no create/update).
@@ -23,7 +25,7 @@ class OrderListNotifier
   final OrderService _service;
 
   OrderListNotifier(this._service)
-      : super(ListState(filter: OrderQueryFilter()));
+    : super(ListState(filter: OrderQueryFilter()));
 
   /// Load data from server with current filter
   Future<void> load() async {
@@ -46,7 +48,7 @@ class OrderListNotifier
     // null = keep old value, '' = clear search, 'value' = new search
     // copyWith uses ?? so we need to create a new filter when clearing
     OrderQueryFilter newFilter;
-    if (search?.isEmpty == true) {
+    if (search == null || search.isEmpty) {
       // Clear search - create new filter without search
       newFilter = OrderQueryFilter(
         pageNumber: 1,
@@ -59,20 +61,19 @@ class OrderListNotifier
         // search is null (cleared)
       );
     } else {
-      newFilter = state.filter.copyWith(
-        pageNumber: 1,
-        search: search,
-      );
+      newFilter = state.filter.copyWith(pageNumber: 1, search: search);
     }
     state = state.copyWithFilter(newFilter);
     await load();
   }
 
   /// Update sort order and reload from page 1
-  Future<void> setOrderBy(String? orderBy) async {
+  Future<void> setOrderBy(String? orderBy, {bool? descending}) async {
+    final normalizedOrderBy = orderBy ?? '';
     final newFilter = state.filter.copyWith(
       pageNumber: 1,
-      orderBy: orderBy,
+      orderBy: normalizedOrderBy,
+      descending: descending ?? state.filter.descending,
     );
     state = state.copyWithFilter(newFilter);
     await load();
@@ -80,10 +81,20 @@ class OrderListNotifier
 
   /// Update status filter and reload from page 1
   Future<void> setStatus(OrderStatus? status) async {
-    final newFilter = state.filter.copyWith(
-      pageNumber: 1,
-      status: status,
-    );
+    late final OrderQueryFilter newFilter;
+    if (status == null) {
+      newFilter = OrderQueryFilter(
+        pageNumber: 1,
+        pageSize: state.filter.pageSize,
+        search: state.filter.search,
+        orderBy: state.filter.orderBy,
+        dateFrom: state.filter.dateFrom,
+        dateTo: state.filter.dateTo,
+        descending: state.filter.descending,
+      );
+    } else {
+      newFilter = state.filter.copyWith(pageNumber: 1, status: status);
+    }
     state = state.copyWithFilter(newFilter);
     await load();
   }
@@ -112,10 +123,7 @@ class OrderListNotifier
 
   /// Update page size and reload from page 1
   Future<void> setPageSize(int pageSize) async {
-    final newFilter = state.filter.copyWith(
-      pageNumber: 1,
-      pageSize: pageSize,
-    );
+    final newFilter = state.filter.copyWith(pageNumber: 1, pageSize: pageSize);
     state = state.copyWithFilter(newFilter);
     await load();
   }

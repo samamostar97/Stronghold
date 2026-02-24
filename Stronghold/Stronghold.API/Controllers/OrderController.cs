@@ -1,94 +1,80 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.Filters;
-using Stronghold.Application.IServices;
+using Stronghold.Application.Features.Orders.Commands;
+using Stronghold.Application.Features.Orders.DTOs;
+using Stronghold.Application.Features.Orders.Queries;
 
 namespace Stronghold.API.Controllers
 {
     [ApiController]
     [Route("api/orders")]
-    public class OrderController : UserControllerBase
+    [Authorize]
+    public class OrderController : ControllerBase
     {
-        private readonly IOrderService _service;
+        private readonly IMediator _mediator;
 
-        public OrderController(IOrderService service)
+        public OrderController(IMediator mediator)
         {
-            _service = service;
+            _mediator = mediator;
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpGet("GetAllPaged")]
-        public async Task<ActionResult<PagedResult<OrderResponse>>> GetAllPagedAsync([FromQuery] OrderQueryFilter filter)
+        public async Task<ActionResult<PagedResult<OrderResponse>>> GetAllPagedAsync([FromQuery] OrderFilter filter)
         {
-            var result = await _service.GetPagedAsync(filter);
+            var result = await _mediator.Send(new GetPagedOrdersQuery { Filter = filter });
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpGet("GetAll")]
-        public async Task<ActionResult<IEnumerable<OrderResponse>>> GetAllAsync([FromQuery] OrderQueryFilter? filter)
+        public async Task<ActionResult<IEnumerable<OrderResponse>>> GetAllAsync([FromQuery] OrderFilter? filter)
         {
-            var result = await _service.GetAllAsync(filter);
+            var result = await _mediator.Send(new GetOrdersQuery { Filter = filter });
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpGet("{id:int}")]
         public async Task<ActionResult<OrderResponse>> GetById(int id)
         {
-            var result = await _service.GetByIdAsync(id);
+            var result = await _mediator.Send(new GetOrderByIdQuery { OrderId = id });
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
         [HttpPatch("{id}/deliver")]
         public async Task<ActionResult<OrderResponse>> MarkAsDelivered(int id)
         {
-            var result = await _service.MarkAsDeliveredAsync(id);
+            var result = await _mediator.Send(new MarkOrderAsDeliveredCommand { OrderId = id });
             return Ok(result);
         }
 
-        [Authorize(Roles = "Admin")]
-        [HttpPatch("{id}/cancel")]
-        public async Task<ActionResult<OrderResponse>> CancelOrder(int id, [FromBody] CancelOrderRequest? request)
+        [HttpPatch("{id:int}/cancel")]
+        public async Task<ActionResult<OrderResponse>> CancelOrder(int id, [FromBody] CancelOrderCommand? command)
         {
-            var result = await _service.CancelOrderAsync(id, request?.Reason);
+            command ??= new CancelOrderCommand();
+            command.OrderId = id;
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
 
-        [Authorize]
         [HttpGet("my")]
-        public async Task<ActionResult<PagedResult<UserOrderResponse>>> GetMyOrders([FromQuery] OrderQueryFilter filter)
+        public async Task<ActionResult<PagedResult<UserOrderResponse>>> GetMyOrders([FromQuery] OrderFilter filter)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            var result = await _service.GetOrdersByUserIdAsync(userId.Value, filter);
+            var result = await _mediator.Send(new GetMyOrdersQuery { Filter = filter });
             return Ok(result);
         }
 
-        [Authorize]
         [HttpPost("checkout")]
-        public async Task<ActionResult<CheckoutResponse>> CreatePaymentIntent([FromBody] CheckoutRequest request)
+        public async Task<ActionResult<CheckoutResponse>> CreatePaymentIntent([FromBody] CreateCheckoutPaymentIntentCommand command)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            var result = await _service.CreatePaymentIntentAsync(userId.Value, request);
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
 
-        [Authorize]
         [HttpPost("checkout/confirm")]
-        public async Task<ActionResult<UserOrderResponse>> ConfirmOrder([FromBody] ConfirmOrderRequest request)
+        public async Task<ActionResult<UserOrderResponse>> ConfirmOrder([FromBody] ConfirmOrderCommand command)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            var result = await _service.ConfirmOrderAsync(userId.Value, request);
+            var result = await _mediator.Send(command);
             return Ok(result);
         }
     }

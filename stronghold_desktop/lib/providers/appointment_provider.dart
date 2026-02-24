@@ -9,20 +9,25 @@ final appointmentServiceProvider = Provider<AppointmentService>((ref) {
 });
 
 /// Appointment list state provider
-final appointmentListProvider = StateNotifierProvider<
-    AppointmentListNotifier,
-    ListState<AdminAppointmentResponse, AppointmentQueryFilter>>((ref) {
-  final service = ref.watch(appointmentServiceProvider);
-  return AppointmentListNotifier(service);
-});
+final appointmentListProvider =
+    StateNotifierProvider<
+      AppointmentListNotifier,
+      ListState<AdminAppointmentResponse, AppointmentQueryFilter>
+    >((ref) {
+      final service = ref.watch(appointmentServiceProvider);
+      return AppointmentListNotifier(service);
+    });
 
 /// Custom list notifier for appointments (read-only, no CrudService)
-class AppointmentListNotifier extends StateNotifier<
-    ListState<AdminAppointmentResponse, AppointmentQueryFilter>> {
+class AppointmentListNotifier
+    extends
+        StateNotifier<
+          ListState<AdminAppointmentResponse, AppointmentQueryFilter>
+        > {
   final AppointmentService _service;
 
   AppointmentListNotifier(this._service)
-      : super(ListState(filter: AppointmentQueryFilter()));
+    : super(ListState(filter: AppointmentQueryFilter()));
 
   Future<void> load() async {
     state = state.copyWithLoading();
@@ -39,12 +44,11 @@ class AppointmentListNotifier extends StateNotifier<
   Future<void> refresh() => load();
 
   Future<void> setSearch(String? search) async {
-    final searchValue =
-        search == null ? state.filter.search : (search.isEmpty ? null : search);
-    final newFilter = AppointmentQueryFilter(
+    final normalizedSearch = search ?? '';
+    final newFilter = state.filter.copyWith(
       pageNumber: 1,
       pageSize: state.filter.pageSize,
-      search: searchValue,
+      search: normalizedSearch,
       orderBy: state.filter.orderBy,
     );
     state = state.copyWithFilter(newFilter);
@@ -52,11 +56,12 @@ class AppointmentListNotifier extends StateNotifier<
   }
 
   Future<void> setOrderBy(String? orderBy) async {
-    final newFilter = AppointmentQueryFilter(
+    final normalizedOrderBy = orderBy ?? '';
+    final newFilter = state.filter.copyWith(
       pageNumber: 1,
       pageSize: state.filter.pageSize,
       search: state.filter.search,
-      orderBy: orderBy ?? state.filter.orderBy,
+      orderBy: normalizedOrderBy,
     );
     state = state.copyWithFilter(newFilter);
     await load();
@@ -64,7 +69,7 @@ class AppointmentListNotifier extends StateNotifier<
 
   Future<void> goToPage(int page) async {
     if (page < 1 || page > state.totalPages) return;
-    final newFilter = AppointmentQueryFilter(
+    final newFilter = state.filter.copyWith(
       pageNumber: page,
       pageSize: state.filter.pageSize,
       search: state.filter.search,

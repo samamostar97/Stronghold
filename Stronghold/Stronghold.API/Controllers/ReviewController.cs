@@ -1,121 +1,95 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.Filters;
+using Stronghold.Application.Features.Reviews.Commands;
+using Stronghold.Application.Features.Reviews.DTOs;
+using Stronghold.Application.Features.Reviews.Queries;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
-namespace Stronghold.API.Controllers
+namespace Stronghold.API.Controllers;
+
+[ApiController]
+[Route("api/reviews")]
+[Authorize]
+public class ReviewController : ControllerBase
 {
-    [ApiController]
-    [Route("api/reviews")]
-    public class ReviewController : BaseController<Review, ReviewResponse, CreateReviewRequest, UpdateReviewRequest, ReviewQueryFilter, int>
+    private readonly IMediator _mediator;
+    private readonly IAdminActivityService _activityService;
+    private readonly ICurrentUserService _currentUserService;
+
+    public ReviewController(
+        IMediator mediator,
+        IAdminActivityService activityService,
+        ICurrentUserService currentUserService)
     {
-        private readonly IReviewService _reviewService;
+        _mediator = mediator;
+        _activityService = activityService;
+        _currentUserService = currentUserService;
+    }
 
-        public ReviewController(IReviewService service) : base(service)
+    [HttpGet("my")]
+    public async Task<ActionResult<PagedResult<UserReviewResponse>>> GetMyReviews([FromQuery] ReviewFilter filter)
+    {
+        var result = await _mediator.Send(new GetMyReviewsQuery { Filter = filter });
+        return Ok(result);
+    }
+
+    [HttpGet("available-supplements")]
+    public async Task<ActionResult<PagedResult<PurchasedSupplementResponse>>> GetAvailableSupplements([FromQuery] ReviewFilter filter)
+    {
+        var result = await _mediator.Send(new GetAvailableSupplementsForReviewQuery { Filter = filter });
+        return Ok(result);
+    }
+
+    [HttpGet("GetAllPaged")]
+    public async Task<ActionResult<PagedResult<ReviewResponse>>> GetAllPagedAsync([FromQuery] ReviewFilter filter)
+    {
+        var result = await _mediator.Send(new GetPagedReviewsQuery { Filter = filter });
+        return Ok(result);
+    }
+
+    [HttpGet("GetAll")]
+    public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetAllAsync([FromQuery] ReviewFilter filter)
+    {
+        var result = await _mediator.Send(new GetReviewsQuery { Filter = filter });
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<ReviewResponse>> GetById(int id)
+    {
+        var result = await _mediator.Send(new GetReviewByIdQuery { Id = id });
+        return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<ReviewResponse>> Create([FromBody] CreateReviewCommand command)
+    {
+        var result = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<ReviewResponse>> Update(int id, [FromBody] UpdateReviewCommand command)
+    {
+        command.Id = id;
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _mediator.Send(new DeleteReviewCommand { Id = id });
+
+        if (_currentUserService.UserId.HasValue && _currentUserService.IsInRole("Admin"))
         {
-            _reviewService = service;
+            var adminUsername = _currentUserService.Username ?? "admin";
+            await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(Review), id);
         }
 
-        [HttpGet("my")]
-        [Authorize(Roles = "GymMember")]
-        public async Task<ActionResult<PagedResult<UserReviewResponse>>> GetMyReviews([FromQuery] ReviewQueryFilter filter)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            var result = await _reviewService.GetReviewsByUserIdAsync(userId.Value, filter);
-            return Ok(result);
-        }
-
-        [HttpGet("available-supplements")]
-        [Authorize(Roles = "GymMember")]
-        public async Task<ActionResult<PagedResult<PurchasedSupplementResponse>>> GetAvailableSupplements([FromQuery] ReviewQueryFilter filter)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            var result = await _reviewService.GetPurchasedSupplementsForReviewAsync(userId.Value, filter);
-            return Ok(result);
-        }
-
-        [HttpGet("GetAllPaged")]
-        [Authorize(Roles = "Admin,GymMember")]
-        public override Task<ActionResult<PagedResult<ReviewResponse>>> GetAllPagedAsync([FromQuery] ReviewQueryFilter filter)
-        {
-            return base.GetAllPagedAsync(filter);
-        }
-
-        [HttpGet("GetAll")]
-        [Authorize(Roles = "Admin,GymMember")]
-        public override Task<ActionResult<IEnumerable<ReviewResponse>>> GetAllAsync([FromQuery] ReviewQueryFilter filter)
-        {
-            return base.GetAllAsync(filter);
-        }
-
-        [HttpGet("{id}")]
-        [Authorize(Roles = "Admin,GymMember")]
-        public override Task<ActionResult<ReviewResponse>> GetById(int id)
-        {
-            return base.GetById(id);
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "GymMember")]
-        public override async Task<ActionResult<ReviewResponse>> Create([FromBody] CreateReviewRequest dto)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            dto.UserId = userId.Value;
-            var result = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result!.GetType().GetProperty("Id")?.GetValue(result) }, result);
-        }
-
-        [HttpPut("{id}")]
-        [Authorize(Roles = "GymMember")]
-        public override Task<ActionResult<ReviewResponse>> Update(int id, [FromBody] UpdateReviewRequest dto)
-        {
-            return Task.FromResult<ActionResult<ReviewResponse>>(BadRequest("Recenzije se ne mogu mijenjati"));
-        }
-
-        [HttpDelete("{id}")]
-        [Authorize(Roles = "GymMember,Admin")]
-        public override async Task<IActionResult> Delete(int id)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null) return Unauthorized();
-
-            // Admin can delete any review
-            if (User.IsInRole("Admin"))
-            {
-                await _service.DeleteAsync(id);
-
-                var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
-                var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
-                if (activityService != null)
-                {
-                    await activityService.LogDeleteAsync(
-                        userId.Value,
-                        adminUsername,
-                        nameof(Review),
-                        id);
-                }
-
-                return NoContent();
-            }
-
-            // User can only delete their own review
-            if (!await _reviewService.IsOwnerAsync(id, userId.Value))
-                return Forbid();
-
-            await _service.DeleteAsync(id);
-            return NoContent();
-        }
+        return NoContent();
     }
 }

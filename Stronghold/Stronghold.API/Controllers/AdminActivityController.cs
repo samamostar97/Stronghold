@@ -1,36 +1,35 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stronghold.Application.Features.AdminActivities.Commands;
+using Stronghold.Application.Features.AdminActivities.Queries;
 using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers;
 
 [ApiController]
 [Route("api/admin-activities")]
-[Authorize(Roles = "Admin")]
-public class AdminActivityController : UserControllerBase
+[Authorize]
+public class AdminActivityController : ControllerBase
 {
-    private readonly IAdminActivityService _service;
+    private readonly IMediator _mediator;
 
-    public AdminActivityController(IAdminActivityService service)
+    public AdminActivityController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     [HttpGet("recent")]
-    public async Task<ActionResult<List<AdminActivityResponse>>> GetRecent([FromQuery] int count = 20)
+    public async Task<ActionResult<IReadOnlyList<AdminActivityResponse>>> GetRecent([FromQuery] int count = 20)
     {
-        return Ok(await _service.GetRecentAsync(count));
+        var result = await _mediator.Send(new GetRecentAdminActivitiesQuery { Count = count });
+        return Ok(result);
     }
 
     [HttpPost("{id:int}/undo")]
     public async Task<ActionResult<AdminActivityResponse>> Undo(int id)
     {
-        var adminUserId = GetCurrentUserId();
-        if (adminUserId == null)
-            return Unauthorized();
-
-        var result = await _service.UndoAsync(id, adminUserId.Value);
+        var result = await _mediator.Send(new UndoAdminActivityCommand { Id = id });
         return Ok(result);
     }
 }
