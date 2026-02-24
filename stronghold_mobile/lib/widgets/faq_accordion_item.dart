@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/faq_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class FaqAccordionItem extends StatelessWidget {
-  final Faq faq;
+  final FaqResponse faq;
 
   const FaqAccordionItem({super.key, required this.faq});
 

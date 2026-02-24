@@ -1,9 +1,10 @@
+/// Checkout response with Stripe payment intent details
 class CheckoutResponse {
   final String clientSecret;
   final String paymentIntentId;
   final double totalAmount;
 
-  CheckoutResponse({
+  const CheckoutResponse({
     required this.clientSecret,
     required this.paymentIntentId,
     required this.totalAmount,

@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/cart_provider.dart';
 import '../providers/supplement_provider.dart';
 import '../widgets/feedback_dialog.dart';
@@ -15,7 +15,7 @@ import '../widgets/section_header.dart';
 import '../widgets/supplement_detail_header.dart';
 
 class SupplementDetailScreen extends ConsumerWidget {
-  final Supplement supplement;
+  final SupplementResponse supplement;
 
   const SupplementDetailScreen({super.key, required this.supplement});
 
@@ -88,7 +88,7 @@ class SupplementDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _reviewsSection(AsyncValue<List<SupplementReview>> reviewsAsync) {
+  Widget _reviewsSection(AsyncValue<List<SupplementReviewResponse>> reviewsAsync) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

@@ -1,38 +1,23 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/progress_models.dart';
-import '../models/membership_models.dart';
 import 'api_providers.dart';
 
 /// User progress provider
-final userProgressProvider = FutureProvider<UserProgress>((ref) async {
+final userProgressProvider = FutureProvider<UserProgressResponse>((ref) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<UserProgress>(
-    '/api/profile/progress',
-    parser: (json) => UserProgress.fromJson(json as Map<String, dynamic>),
-  );
+  return ProfileService(client).getProgress();
 });
 
 /// Leaderboard provider
-final leaderboardProvider = FutureProvider<List<LeaderboardEntry>>((ref) async {
+final leaderboardProvider = FutureProvider<List<LeaderboardEntryResponse>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<LeaderboardEntry>>(
-    '/api/profile/leaderboard',
-    parser: (json) => (json as List<dynamic>)
-        .map((j) => LeaderboardEntry.fromJson(j as Map<String, dynamic>))
-        .toList(),
-  );
+  return ProfileService(client).getLeaderboard();
 });
 
 /// Membership history provider
-final membershipHistoryProvider = FutureProvider<List<MembershipPayment>>((ref) async {
+final membershipHistoryProvider = FutureProvider<List<MembershipPaymentResponse>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<MembershipPayment>>(
-    '/api/profile/membership-history',
-    parser: (json) => (json as List<dynamic>)
-        .map((j) => MembershipPayment.fromJson(j as Map<String, dynamic>))
-        .toList(),
-  );
+  return ProfileService(client).getMembershipHistory();
 });
 
 /// Profile picture upload state
@@ -52,22 +37,17 @@ class ProfilePictureState {
 
 /// Profile picture notifier
 class ProfilePictureNotifier extends StateNotifier<ProfilePictureState> {
-  final ApiClient _client;
+  final ProfileService _service;
 
-  ProfilePictureNotifier(this._client) : super(const ProfilePictureState());
+  ProfilePictureNotifier(this._service) : super(const ProfilePictureState());
 
   /// Upload profile picture
   Future<String> upload(String filePath) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final result = await _client.uploadFile<String>(
-        '/api/profile/picture',
-        filePath,
-        'file',
-        parser: (json) => (json as Map<String, dynamic>)['url'] as String,
-      );
+      final url = await _service.uploadPicture(filePath);
       state = state.copyWith(isLoading: false);
-      return result;
+      return url;
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
       rethrow;
@@ -84,7 +64,7 @@ class ProfilePictureNotifier extends StateNotifier<ProfilePictureState> {
   Future<void> delete() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.delete('/api/profile/picture');
+      await _service.deletePicture();
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -107,5 +87,5 @@ class ProfilePictureNotifier extends StateNotifier<ProfilePictureState> {
 final profilePictureProvider =
     StateNotifierProvider<ProfilePictureNotifier, ProfilePictureState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return ProfilePictureNotifier(client);
+  return ProfilePictureNotifier(ProfileService(client));
 });

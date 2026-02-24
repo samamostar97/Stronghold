@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../models/cart_models.dart';
-import '../models/checkout_models.dart';
 import 'api_providers.dart';
 
 /// Checkout state
@@ -33,25 +32,20 @@ class CheckoutState {
 
 /// Checkout notifier - handles Stripe payment flow
 class CheckoutNotifier extends StateNotifier<CheckoutState> {
-  final ApiClient _client;
+  final UserOrderService _service;
 
-  CheckoutNotifier(this._client) : super(const CheckoutState());
+  CheckoutNotifier(this._service) : super(const CheckoutState());
 
   /// Create payment intent for cart items
   Future<CheckoutResponse> createPaymentIntent(List<CartItem> items) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _client.post<CheckoutResponse>(
-        '/api/orders/checkout',
-        body: {
-          'items': items.map((item) => {
+      final cartItems = items.map((item) => {
             'supplementId': item.supplement.id,
             'quantity': item.quantity,
-          }).toList(),
-        },
-        parser: (json) => CheckoutResponse.fromJson(json as Map<String, dynamic>),
-      );
+          }).toList();
 
+      final response = await _service.checkout(cartItems);
       state = state.copyWith(response: response, isLoading: false);
       return response;
     } on ApiException catch (e) {
@@ -70,17 +64,12 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
   Future<void> confirmOrder(String paymentIntentId, List<CartItem> items) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.post<void>(
-        '/api/orders/checkout/confirm',
-        body: {
-          'paymentIntentId': paymentIntentId,
-          'items': items.map((item) => {
+      final cartItems = items.map((item) => {
             'supplementId': item.supplement.id,
             'quantity': item.quantity,
-          }).toList(),
-        },
-        parser: (_) {},
-      );
+          }).toList();
+
+      await _service.confirmOrder(paymentIntentId, cartItems);
       state = state.copyWith(isLoading: false, clearResponse: true);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -103,5 +92,5 @@ class CheckoutNotifier extends StateNotifier<CheckoutState> {
 /// Checkout provider
 final checkoutProvider = StateNotifierProvider<CheckoutNotifier, CheckoutState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return CheckoutNotifier(client);
+  return CheckoutNotifier(UserOrderService(client));
 });

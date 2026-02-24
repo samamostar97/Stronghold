@@ -1,11 +1,12 @@
-class OrderItem {
+/// User-facing order item response
+class UserOrderItemResponse {
   final int id;
   final String supplementName;
   final int quantity;
   final double unitPrice;
   final double totalPrice;
 
-  OrderItem({
+  const UserOrderItemResponse({
     required this.id,
     required this.supplementName,
     required this.quantity,
@@ -13,8 +14,8 @@ class OrderItem {
     required this.totalPrice,
   });
 
-  factory OrderItem.fromJson(Map<String, dynamic> json) {
-    return OrderItem(
+  factory UserOrderItemResponse.fromJson(Map<String, dynamic> json) {
+    return UserOrderItemResponse(
       id: json['id'] as int,
       supplementName: json['supplementName'] as String,
       quantity: json['quantity'] as int,
@@ -24,15 +25,16 @@ class OrderItem {
   }
 }
 
-class Order {
+/// User-facing order response (member's own orders)
+class UserOrderResponse {
   final int id;
   final double totalAmount;
   final DateTime purchaseDate;
   final int status;
   final String statusName;
-  final List<OrderItem> orderItems;
+  final List<UserOrderItemResponse> orderItems;
 
-  Order({
+  const UserOrderResponse({
     required this.id,
     required this.totalAmount,
     required this.purchaseDate,
@@ -41,16 +43,17 @@ class Order {
     required this.orderItems,
   });
 
-  factory Order.fromJson(Map<String, dynamic> json) {
-    final itemsList = json['orderItems'] as List<dynamic>? ?? [];
-    return Order(
+  factory UserOrderResponse.fromJson(Map<String, dynamic> json) {
+    final itemsList = json['orderItems'] as List<dynamic>? ?? <dynamic>[];
+    return UserOrderResponse(
       id: json['id'] as int,
       totalAmount: (json['totalAmount'] as num).toDouble(),
       purchaseDate: DateTime.parse(json['purchaseDate'] as String),
       status: json['status'] as int,
       statusName: json['statusName'] as String,
       orderItems: itemsList
-          .map((item) => OrderItem.fromJson(item as Map<String, dynamic>))
+          .map((item) =>
+              UserOrderItemResponse.fromJson(item as Map<String, dynamic>))
           .toList(),
     );
   }

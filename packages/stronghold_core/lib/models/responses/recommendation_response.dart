@@ -1,4 +1,5 @@
-class Recommendation {
+/// Supplement recommendation response
+class RecommendationResponse {
   final int id;
   final String name;
   final double price;
@@ -10,7 +11,7 @@ class Recommendation {
   final int reviewCount;
   final String recommendationReason;
 
-  Recommendation({
+  const RecommendationResponse({
     required this.id,
     required this.name,
     required this.price,
@@ -23,8 +24,8 @@ class Recommendation {
     required this.recommendationReason,
   });
 
-  factory Recommendation.fromJson(Map<String, dynamic> json) {
-    return Recommendation(
+  factory RecommendationResponse.fromJson(Map<String, dynamic> json) {
+    return RecommendationResponse(
       id: json['id'] as int,
       name: json['name'] as String,
       price: (json['price'] as num).toDouble(),

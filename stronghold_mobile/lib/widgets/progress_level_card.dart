@@ -4,11 +4,11 @@ import '../constants/app_colors.dart';
 import '../constants/app_gradients.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/progress_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'glass_card.dart';
 
 class ProgressLevelCard extends StatelessWidget {
-  final UserProgress progress;
+  final UserProgressResponse progress;
 
   const ProgressLevelCard({super.key, required this.progress});
 

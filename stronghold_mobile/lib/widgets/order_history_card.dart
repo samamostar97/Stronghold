@@ -3,13 +3,13 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/order_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
 import 'glass_card.dart';
 import 'status_pill.dart';
 
 class OrderHistoryCard extends StatelessWidget {
-  final Order order;
+  final UserOrderResponse order;
   final bool isExpanded;
   final VoidCallback onToggle;
 
@@ -115,7 +115,7 @@ class OrderHistoryCard extends StatelessWidget {
     );
   }
 
-  Widget _itemRow(OrderItem item) {
+  Widget _itemRow(UserOrderItemResponse item) {
     return Container(
       padding: AppSpacing.listItemPadding,
       decoration: const BoxDecoration(

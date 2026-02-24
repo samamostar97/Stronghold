@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/progress_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
 
 class LeaderboardPodium extends StatelessWidget {
-  final List<LeaderboardEntry> top3;
+  final List<LeaderboardEntryResponse> top3;
 
   const LeaderboardPodium({super.key, required this.top3});
 
@@ -31,7 +31,7 @@ class LeaderboardPodium extends StatelessWidget {
     );
   }
 
-  Widget _podiumItem(LeaderboardEntry entry, int position, double height) {
+  Widget _podiumItem(LeaderboardEntryResponse entry, int position, double height) {
     final posLabel =
         position == 1 ? '1st' : position == 2 ? '2nd' : '3rd';
 
@@ -121,7 +121,7 @@ class LeaderboardPodium extends StatelessWidget {
     ]);
   }
 
-  Widget _initialsAvatar(LeaderboardEntry entry) {
+  Widget _initialsAvatar(LeaderboardEntryResponse entry) {
     final parts = entry.fullName.split(' ');
     var initials = parts[0][0].toUpperCase();
     if (parts.length > 1) initials += parts[1][0].toUpperCase();

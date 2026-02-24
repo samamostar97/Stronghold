@@ -3,12 +3,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/review_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'glass_card.dart';
 import 'review_card.dart';
 
 class ReviewHistoryCard extends StatelessWidget {
-  final Review review;
+  final UserReviewResponse review;
   final bool isDeleting;
   final VoidCallback onDelete;
 

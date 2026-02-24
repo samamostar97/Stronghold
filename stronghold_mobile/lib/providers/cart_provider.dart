@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../models/cart_models.dart';
 
 /// Cart state
@@ -20,7 +20,7 @@ class CartNotifier extends StateNotifier<CartState> {
   CartNotifier() : super(const CartState());
 
   /// Add item to cart
-  void addItem(Supplement supplement) {
+  void addItem(SupplementResponse supplement) {
     final existingIndex = state.items.indexWhere(
       (item) => item.supplement.id == supplement.id,
     );

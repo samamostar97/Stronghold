@@ -1,6 +1,7 @@
-import 'package:stronghold_core/stronghold_core.dart';
+import '../common/date_time_utils.dart';
 
-class Seminar {
+/// User-facing seminar response (upcoming seminars for members)
+class UserSeminarResponse {
   final int id;
   final String topic;
   final String speakerName;
@@ -11,7 +12,7 @@ class Seminar {
   final int maxCapacity;
   final int currentAttendees;
 
-  Seminar({
+  const UserSeminarResponse({
     required this.id,
     required this.topic,
     required this.speakerName,
@@ -25,8 +26,8 @@ class Seminar {
 
   bool get isFull => currentAttendees >= maxCapacity;
 
-  factory Seminar.fromJson(Map<String, dynamic> json) {
-    return Seminar(
+  factory UserSeminarResponse.fromJson(Map<String, dynamic> json) {
+    return UserSeminarResponse(
       id: json['id'] as int,
       topic: json['topic'] as String,
       speakerName: json['speakerName'] as String,

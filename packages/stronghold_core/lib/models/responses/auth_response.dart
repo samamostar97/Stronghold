@@ -1,45 +1,4 @@
-class LoginRequest {
-  final String username;
-  final String password;
-
-  LoginRequest({
-    required this.username,
-    required this.password,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'username': username,
-        'password': password,
-      };
-}
-
-class RegisterRequest {
-  final String firstName;
-  final String lastName;
-  final String username;
-  final String email;
-  final String phoneNumber;
-  final String password;
-
-  RegisterRequest({
-    required this.firstName,
-    required this.lastName,
-    required this.username,
-    required this.email,
-    required this.phoneNumber,
-    required this.password,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'firstName': firstName,
-        'lastName': lastName,
-        'username': username,
-        'email': email,
-        'phoneNumber': phoneNumber,
-        'password': password,
-      };
-}
-
+/// Auth response for member login/register
 class AuthResponse {
   final int userId;
   final String firstName;
@@ -50,7 +9,7 @@ class AuthResponse {
   final String token;
   final bool hasActiveMembership;
 
-  AuthResponse({
+  const AuthResponse({
     required this.userId,
     required this.firstName,
     required this.lastName,
@@ -74,16 +33,27 @@ class AuthResponse {
     );
   }
 
-  AuthResponse copyWithImage(String? imageUrl) {
+  AuthResponse copyWith({
+    int? userId,
+    String? firstName,
+    String? lastName,
+    String? username,
+    String? email,
+    String? profileImageUrl,
+    String? token,
+    bool? hasActiveMembership,
+    bool clearProfileImage = false,
+  }) {
     return AuthResponse(
-      userId: userId,
-      firstName: firstName,
-      lastName: lastName,
-      username: username,
-      email: email,
-      profileImageUrl: imageUrl,
-      token: token,
-      hasActiveMembership: hasActiveMembership,
+      userId: userId ?? this.userId,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
+      username: username ?? this.username,
+      email: email ?? this.email,
+      profileImageUrl:
+          clearProfileImage ? null : (profileImageUrl ?? this.profileImageUrl),
+      token: token ?? this.token,
+      hasActiveMembership: hasActiveMembership ?? this.hasActiveMembership,
     );
   }
 

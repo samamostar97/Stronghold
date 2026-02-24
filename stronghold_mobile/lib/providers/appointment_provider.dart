@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/appointment_models.dart';
 import 'api_providers.dart';
 
 /// My appointments state
 class MyAppointmentsState {
-  final List<Appointment> items;
+  final List<UserAppointmentResponse> items;
   final int totalCount;
   final int pageNumber;
   final int pageSize;
@@ -13,7 +12,7 @@ class MyAppointmentsState {
   final String? error;
 
   const MyAppointmentsState({
-    this.items = const [],
+    this.items = const <UserAppointmentResponse>[],
     this.totalCount = 0,
     this.pageNumber = 1,
     this.pageSize = 10,
@@ -22,7 +21,7 @@ class MyAppointmentsState {
   });
 
   MyAppointmentsState copyWith({
-    List<Appointment>? items,
+    List<UserAppointmentResponse>? items,
     int? totalCount,
     int? pageNumber,
     int? pageSize,
@@ -46,34 +45,23 @@ class MyAppointmentsState {
 
 /// My appointments notifier
 class MyAppointmentsNotifier extends StateNotifier<MyAppointmentsState> {
-  final ApiClient _client;
+  final UserAppointmentService _service;
 
-  MyAppointmentsNotifier(this._client) : super(const MyAppointmentsState());
+  MyAppointmentsNotifier(this._service) : super(const MyAppointmentsState());
 
   /// Load user's appointments
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final queryParams = <String, String>{
-        'pageNumber': state.pageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/appointments/my',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getMyAppointments(
+        pageNumber: state.pageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final appointments = itemsList
-          .map((json) => Appointment.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: appointments,
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: result.items,
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -89,7 +77,7 @@ class MyAppointmentsNotifier extends StateNotifier<MyAppointmentsState> {
   /// Cancel appointment
   Future<void> cancel(int id) async {
     try {
-      await _client.delete('/api/appointments/$id');
+      await _service.cancel(id);
       await load(); // Refresh list
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message);
@@ -104,26 +92,15 @@ class MyAppointmentsNotifier extends StateNotifier<MyAppointmentsState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final nextPageNumber = state.pageNumber + 1;
-      final queryParams = <String, String>{
-        'pageNumber': nextPageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/appointments/my',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getMyAppointments(
+        pageNumber: nextPageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final newAppointments = itemsList
-          .map((json) => Appointment.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: [...state.items, ...newAppointments],
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: [...state.items, ...result.items],
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -147,55 +124,37 @@ class MyAppointmentsNotifier extends StateNotifier<MyAppointmentsState> {
 final myAppointmentsProvider =
     StateNotifierProvider<MyAppointmentsNotifier, MyAppointmentsState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return MyAppointmentsNotifier(client);
+  return MyAppointmentsNotifier(UserAppointmentService(client));
 });
 
 /// Trainers list provider
-final trainersProvider = FutureProvider<List<Trainer>>((ref) async {
+final trainersProvider = FutureProvider<List<TrainerResponse>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  final result = await client.get<Map<String, dynamic>>(
-    '/api/trainer/GetAllPaged',
-    queryParameters: {'pageSize': '100'},
-    parser: (json) => json as Map<String, dynamic>,
-  );
-  final items = result['items'] as List<dynamic>;
-  return items.map((j) => Trainer.fromJson(j as Map<String, dynamic>)).toList();
+  final filter = TrainerQueryFilter()..pageSize = 100;
+  final result = await TrainerService(client).getAll(filter);
+  return result.items;
 });
 
 /// Nutritionists list provider
-final nutritionistsProvider = FutureProvider<List<Nutritionist>>((ref) async {
+final nutritionistsProvider = FutureProvider<List<NutritionistResponse>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  final result = await client.get<Map<String, dynamic>>(
-    '/api/nutritionist/GetAllPaged',
-    queryParameters: {'pageSize': '100'},
-    parser: (json) => json as Map<String, dynamic>,
-  );
-  final items = result['items'] as List<dynamic>;
-  return items.map((j) => Nutritionist.fromJson(j as Map<String, dynamic>)).toList();
+  final filter = NutritionistQueryFilter()..pageSize = 100;
+  final result = await NutritionistService(client).getAll(filter);
+  return result.items;
 });
 
 /// Available hours for trainer
 final trainerAvailableHoursProvider =
     FutureProvider.family<List<int>, ({int trainerId, DateTime date})>((ref, params) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<int>>(
-    '/api/trainer/${params.trainerId}/available-hours',
-    queryParameters: {'date': DateTimeUtils.toApiDate(params.date)},
-    parser: (json) => (json as List<dynamic>).map((e) => e as int).toList(),
-  );
+  return TrainerService(client).getAvailableHours(params.trainerId, params.date);
 });
 
 /// Available hours for nutritionist
 final nutritionistAvailableHoursProvider =
     FutureProvider.family<List<int>, ({int nutritionistId, DateTime date})>((ref, params) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<int>>(
-    '/api/nutritionist/${params.nutritionistId}/available-hours',
-    queryParameters: {
-      'date': DateTimeUtils.toApiDate(params.date)
-    },
-    parser: (json) => (json as List<dynamic>).map((e) => e as int).toList(),
-  );
+  return NutritionistService(client).getAvailableHours(params.nutritionistId, params.date);
 });
 
 /// Book appointment state
@@ -215,19 +174,15 @@ class BookAppointmentState {
 
 /// Book appointment notifier
 class BookAppointmentNotifier extends StateNotifier<BookAppointmentState> {
-  final ApiClient _client;
+  final UserAppointmentService _service;
 
-  BookAppointmentNotifier(this._client) : super(const BookAppointmentState());
+  BookAppointmentNotifier(this._service) : super(const BookAppointmentState());
 
   /// Book trainer appointment
   Future<void> bookTrainer(int trainerId, DateTime date) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.post<void>(
-        '/api/trainer/$trainerId/appointments',
-        body: {'date': DateTimeUtils.toApiDateTime(date)},
-        parser: (_) {},
-      );
+      await _service.bookTrainer(trainerId, date);
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -245,11 +200,7 @@ class BookAppointmentNotifier extends StateNotifier<BookAppointmentState> {
   Future<void> bookNutritionist(int nutritionistId, DateTime date) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.post<void>(
-        '/api/nutritionist/$nutritionistId/appointments',
-        body: {'date': DateTimeUtils.toApiDateTime(date)},
-        parser: (_) {},
-      );
+      await _service.bookNutritionist(nutritionistId, date);
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -272,5 +223,5 @@ class BookAppointmentNotifier extends StateNotifier<BookAppointmentState> {
 final bookAppointmentProvider =
     StateNotifierProvider<BookAppointmentNotifier, BookAppointmentState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return BookAppointmentNotifier(client);
+  return BookAppointmentNotifier(UserAppointmentService(client));
 });
