@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stronghold.Application\Stronghold.Application.csproj" />
+    <ProjectReference Include="..\..\Stronghold.Application\Stronghold.Application.csproj" />
   </ItemGroup>
 
 </Project>

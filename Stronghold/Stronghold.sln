@@ -15,11 +15,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Messaging", "Str
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Worker", "Stronghold.Worker\Stronghold.Worker.csproj", "{B2C3D4E5-F6A7-8901-BCDE-F12345678901}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Application.Tests", "Stronghold.Application.Tests\Stronghold.Application.Tests.csproj", "{22B9C0BB-328D-4061-BD84-4A353A2D010B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Application.Tests", "tests\Stronghold.Application.Tests\Stronghold.Application.Tests.csproj", "{22B9C0BB-328D-4061-BD84-4A353A2D010B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Infrastructure.Tests", "Stronghold.Infrastructure.Tests\Stronghold.Infrastructure.Tests.csproj", "{A587CEF7-F600-402E-9D7B-A3A23FFC69D8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Infrastructure.Tests", "tests\Stronghold.Infrastructure.Tests\Stronghold.Infrastructure.Tests.csproj", "{A587CEF7-F600-402E-9D7B-A3A23FFC69D8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.API.Tests", "Stronghold.API.Tests\Stronghold.API.Tests.csproj", "{D1B2FC2E-3972-4A6F-BE65-0D5A46DC6880}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.API.Tests", "tests\Stronghold.API.Tests\Stronghold.API.Tests.csproj", "{D1B2FC2E-3972-4A6F-BE65-0D5A46DC6880}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

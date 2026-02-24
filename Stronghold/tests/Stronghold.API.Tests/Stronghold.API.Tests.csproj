@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stronghold.API\Stronghold.API.csproj" />
+    <ProjectReference Include="..\..\Stronghold.API\Stronghold.API.csproj" />
   </ItemGroup>
 
 </Project>

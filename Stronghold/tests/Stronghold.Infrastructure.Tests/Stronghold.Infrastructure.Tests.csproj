@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Stronghold.Infrastructure\Stronghold.Infrastructure.csproj" />
-    <ProjectReference Include="..\Stronghold.Application\Stronghold.Application.csproj" />
+    <ProjectReference Include="..\..\Stronghold.Infrastructure\Stronghold.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Stronghold.Application\Stronghold.Application.csproj" />
   </ItemGroup>
 
 </Project>
