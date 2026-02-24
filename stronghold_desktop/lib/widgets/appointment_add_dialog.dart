@@ -204,7 +204,7 @@ class _State extends ConsumerState<AppointmentAddDialog> {
 
   Widget _buildUserDropdown() {
     return DropdownButtonFormField<int>(
-      value: _selectedUserId,
+      initialValue: _selectedUserId,
       decoration: _dropdownDecoration('Korisnik'),
       dropdownColor: AppColors.surfaceSolid,
       style: AppTextStyles.bodyBold,
@@ -266,7 +266,7 @@ class _State extends ConsumerState<AppointmentAddDialog> {
 
     return DropdownButtonFormField<int>(
       key: ValueKey(_staffType),
-      value: _selectedStaffId,
+      initialValue: _selectedStaffId,
       decoration: _dropdownDecoration(label),
       dropdownColor: AppColors.surfaceSolid,
       style: AppTextStyles.bodyBold,
@@ -308,7 +308,7 @@ class _State extends ConsumerState<AppointmentAddDialog> {
     }
 
     return DropdownButtonFormField<int>(
-      value: _selectedHour,
+      initialValue: _selectedHour,
       decoration: _dropdownDecoration('Satnica'),
       dropdownColor: AppColors.surfaceSolid,
       style: AppTextStyles.bodyBold,

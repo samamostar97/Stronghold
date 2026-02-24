@@ -33,4 +33,6 @@ class MembershipPaymentResponse {
       endDate: DateTimeUtils.parseApiDateTime(json['endDate'] as String),
     );
   }
+
+  bool get isActive => DateTime.now().isBefore(endDate);
 }

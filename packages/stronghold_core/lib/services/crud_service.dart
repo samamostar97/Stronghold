@@ -7,7 +7,6 @@ import '../models/filters/base_query_filter.dart';
 abstract class CrudService<TResponse, TCreate, TUpdate, TFilter extends BaseQueryFilter> {
   final ApiClient _client;
   final String _basePath;
-  final String _getAllPath;
   final TResponse Function(Map<String, dynamic>) _responseParser;
 
   CrudService({
@@ -16,18 +15,28 @@ abstract class CrudService<TResponse, TCreate, TUpdate, TFilter extends BaseQuer
     required TResponse Function(Map<String, dynamic>) responseParser,
   })  : _client = client,
         _basePath = basePath,
-        _getAllPath = '$basePath/GetAllPaged',
         _responseParser = responseParser;
 
   /// Get paginated list with server-side filtering and sorting
   Future<PagedResult<TResponse>> getAll(TFilter filter) async {
     return _client.get<PagedResult<TResponse>>(
-      _getAllPath,
+      _basePath,
       queryParameters: filter.toQueryParameters(),
       parser: (json) => PagedResult.fromJson(
         json as Map<String, dynamic>,
         _responseParser,
       ),
+    );
+  }
+
+  /// Get unpaged list (uses `/all` endpoint)
+  Future<List<TResponse>> getAllUnpaged(TFilter filter) async {
+    return _client.get<List<TResponse>>(
+      '$_basePath/all',
+      queryParameters: filter.toQueryParameters(),
+      parser: (json) => (json as List<dynamic>)
+          .map((item) => _responseParser(item as Map<String, dynamic>))
+          .toList(),
     );
   }
 

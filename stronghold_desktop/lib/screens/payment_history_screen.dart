@@ -25,11 +25,10 @@ class PaymentHistoryScreen extends ConsumerStatefulWidget {
 class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
   final _dateFormat = DateFormat('dd.MM.yyyy.');
   MembershipQueryFilter _filter = MembershipQueryFilter(pageSize: 10);
+  String? _selectedOrderBy;
 
-  UserPaymentsParams get _params => UserPaymentsParams(
-        userId: widget.user.id,
-        filter: _filter,
-      );
+  UserPaymentsParams get _params =>
+      UserPaymentsParams(userId: widget.user.id, filter: _filter);
 
   @override
   void initState() {
@@ -46,6 +45,15 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
     ref.invalidate(userPaymentsProvider(_params));
   }
 
+  void _setOrderBy(String? orderBy) {
+    final normalizedOrderBy = orderBy ?? '';
+    setState(() {
+      _selectedOrderBy = orderBy;
+      _filter = _filter.copyWith(pageNumber: 1, orderBy: normalizedOrderBy);
+    });
+    ref.invalidate(userPaymentsProvider(_params));
+  }
+
   @override
   Widget build(BuildContext context) {
     final paymentsAsync = ref.watch(userPaymentsProvider(_params));
@@ -55,11 +63,17 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
       body: LayoutBuilder(
         builder: (context, constraints) {
           final w = constraints.maxWidth;
-          final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
+          final pad = w > 1200
+              ? 40.0
+              : w > 800
+              ? 24.0
+              : 16.0;
 
           return Padding(
             padding: EdgeInsets.symmetric(
-                horizontal: pad, vertical: AppSpacing.xl),
+              horizontal: pad,
+              vertical: AppSpacing.xl,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -70,30 +84,36 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                     padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
                     decoration: BoxDecoration(
                       color: AppColors.surfaceSolid,
-                      borderRadius:
-                          BorderRadius.circular(AppSpacing.radiusXl),
+                      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text('Historija uplata',
-                            style: AppTextStyles.headingMd),
+                        Text(
+                          'Historija uplata',
+                          style: AppTextStyles.headingMd,
+                        ),
                         const SizedBox(height: AppSpacing.lg),
                         _UserInfoCard(user: widget.user),
+                        const SizedBox(height: AppSpacing.lg),
+                        _sortDropdown(),
                         const SizedBox(height: AppSpacing.xxl),
                         Expanded(
                           child: paymentsAsync.when(
                             loading: () => const Center(
                               child: CircularProgressIndicator(
-                                  color: AppColors.primary),
+                                color: AppColors.primary,
+                              ),
                             ),
                             error: (e, _) => Center(
                               child: Column(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Text('Greska pri ucitavanju',
-                                      style: AppTextStyles.headingSm),
+                                  Text(
+                                    'Greska pri ucitavanju',
+                                    style: AppTextStyles.headingSm,
+                                  ),
                                   const SizedBox(height: AppSpacing.sm),
                                   Text(
                                     e.toString(),
@@ -104,15 +124,17 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                                   GradientButton(
                                     text: 'Pokusaj ponovo',
                                     onTap: () => ref.invalidate(
-                                        userPaymentsProvider(_params)),
+                                      userPaymentsProvider(_params),
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
                             data: (pagedResult) {
                               final payments = pagedResult.items;
-                              final totalPages =
-                                  pagedResult.totalPages(_filter.pageSize);
+                              final totalPages = pagedResult.totalPages(
+                                _filter.pageSize,
+                              );
                               final totalCount = pagedResult.totalCount;
 
                               return Column(
@@ -147,14 +169,60 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
     );
   }
 
+  Widget _sortDropdown() {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceSolid,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String?>(
+            value: _selectedOrderBy,
+            hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
+            dropdownColor: AppColors.surfaceSolid,
+            style: AppTextStyles.bodyBold,
+            icon: Icon(
+              LucideIcons.arrowUpDown,
+              color: AppColors.textMuted,
+              size: 16,
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Zadano')),
+              DropdownMenuItem(
+                value: 'datedesc',
+                child: Text('Datum uplate (najnovije)'),
+              ),
+              DropdownMenuItem(
+                value: 'date',
+                child: Text('Datum uplate (najstarije)'),
+              ),
+              DropdownMenuItem(
+                value: 'amountdesc',
+                child: Text('Iznos (opadajuce)'),
+              ),
+              DropdownMenuItem(value: 'amount', child: Text('Iznos (rastuce)')),
+            ],
+            onChanged: _setOrderBy,
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _backButton() {
     return Align(
       alignment: Alignment.centerLeft,
       child: TextButton.icon(
         onPressed: () => Navigator.of(context).maybePop(),
         icon: Icon(LucideIcons.arrowLeft, size: 16, color: AppColors.primary),
-        label: Text('Nazad na clanarine',
-            style: AppTextStyles.bodyMd.copyWith(color: AppColors.primary)),
+        label: Text(
+          'Nazad na clanarine',
+          style: AppTextStyles.bodyMd.copyWith(color: AppColors.primary),
+        ),
       ),
     );
   }
@@ -211,10 +279,7 @@ abstract class _TableFlex {
 }
 
 class _PaymentsTable extends StatelessWidget {
-  const _PaymentsTable({
-    required this.payments,
-    required this.dateFormat,
-  });
+  const _PaymentsTable({required this.payments, required this.dateFormat});
 
   final List<MembershipPaymentResponse> payments;
   final DateFormat dateFormat;
@@ -223,14 +288,19 @@ class _PaymentsTable extends StatelessWidget {
   Widget build(BuildContext context) {
     return DataTableContainer(
       header: const TableHeader(
-        child: Row(children: [
-          TableHeaderCell(text: 'Vrsta clanarine', flex: _TableFlex.packageName),
-          TableHeaderCell(text: 'Iznos', flex: _TableFlex.amount),
-          TableHeaderCell(text: 'Datum uplate', flex: _TableFlex.paymentDate),
-          TableHeaderCell(text: 'Pocetak', flex: _TableFlex.startDate),
-          TableHeaderCell(text: 'Kraj', flex: _TableFlex.endDate),
-          TableHeaderCell(text: 'Status', flex: _TableFlex.status),
-        ]),
+        child: Row(
+          children: [
+            TableHeaderCell(
+              text: 'Vrsta clanarine',
+              flex: _TableFlex.packageName,
+            ),
+            TableHeaderCell(text: 'Iznos', flex: _TableFlex.amount),
+            TableHeaderCell(text: 'Datum uplate', flex: _TableFlex.paymentDate),
+            TableHeaderCell(text: 'Pocetak', flex: _TableFlex.startDate),
+            TableHeaderCell(text: 'Kraj', flex: _TableFlex.endDate),
+            TableHeaderCell(text: 'Status', flex: _TableFlex.status),
+          ],
+        ),
       ),
       itemCount: payments.length,
       emptyMessage: 'Nema uplata za ovog korisnika.',
@@ -243,7 +313,9 @@ class _PaymentsTable extends StatelessWidget {
           child: Row(
             children: [
               TableDataCell(
-                  text: payment.packageName, flex: _TableFlex.packageName),
+                text: payment.packageName,
+                flex: _TableFlex.packageName,
+              ),
               TableDataCell(
                 text: '${payment.amountPaid.toStringAsFixed(2)} KM',
                 flex: _TableFlex.amount,
@@ -262,8 +334,7 @@ class _PaymentsTable extends StatelessWidget {
               ),
               Expanded(
                 flex: _TableFlex.status,
-                child:
-                    isActive ? const _ActiveBadge() : const _ExpiredBadge(),
+                child: isActive ? const _ActiveBadge() : const _ExpiredBadge(),
               ),
             ],
           ),
@@ -283,9 +354,7 @@ class _ActiveBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.successDim,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(
-          color: AppColors.success.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.5)),
       ),
       child: Text(
         'AKTIVNA',
@@ -309,9 +378,7 @@ class _ExpiredBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.textMuted.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        border: Border.all(
-          color: AppColors.textMuted.withValues(alpha: 0.5),
-        ),
+        border: Border.all(color: AppColors.textMuted.withValues(alpha: 0.5)),
       ),
       child: Text(
         'ISTEKLA',

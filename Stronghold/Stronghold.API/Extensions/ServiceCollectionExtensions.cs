@@ -1,8 +1,12 @@
 using Mapster;
+using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Stronghold.Application.Common.Behaviors;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Infrastructure.Data;
@@ -27,36 +31,46 @@ public static class ServiceCollectionExtensions
         services.AddMapster();
         MappingConfig.Configure();
 
+        // CQRS + Validation
+        services.AddMediatR(typeof(ValidationBehavior<,>).Assembly);
+        services.AddValidatorsFromAssembly(typeof(ValidationBehavior<,>).Assembly);
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
         // Stripe
         Stripe.StripeConfiguration.ApiKey = Environment.GetEnvironmentVariable("STRIPE_SECRET_KEY")
             ?? throw new InvalidOperationException("STRIPE_SECRET_KEY nije konfigurisan");
 
         // Repositories
-        services.AddScoped(typeof(IRepository<,>), typeof(BaseRepository<,>));
+        services.AddScoped<IFaqRepository, FaqRepository>();
+        services.AddScoped<IMembershipPackageRepository, MembershipPackageRepository>();
+        services.AddScoped<INutritionistRepository, NutritionistRepository>();
+        services.AddScoped<ISeminarRepository, SeminarRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<ISupplementCategoryRepository, SupplementCategoryRepository>();
+        services.AddScoped<ISupplementRepository, SupplementRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
+        services.AddScoped<ITrainerRepository, TrainerRepository>();
+        services.AddScoped<IAddressRepository, AddressRepository>();
+        services.AddScoped<IVisitRepository, VisitRepository>();
+        services.AddScoped<IMembershipRepository, MembershipRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         // Services
-        services.AddScoped<IAuthService, AuthService>();
-        services.AddScoped<IUserManagementService, UserManagementService>();
-        services.AddScoped<IVisitService, VisitService>();
-        services.AddScoped<IMembershipService, MembershipService>();
-        services.AddScoped<IMembershipPackageService, MembershipPackageService>();
-        services.AddScoped<ISupplementService, SupplementService>();
-        services.AddScoped<ISupplierService, SupplierService>();
-        services.AddScoped<ISupplementCategoryService, SupplementCategoryService>();
-        services.AddScoped<INutritionistService, NutritionistService>();
-        services.AddScoped<ITrainerService, TrainerService>();
-        services.AddScoped<ISeminarService, SeminarService>();
+        services.AddScoped<IJwtService, JwtService>();
         services.AddScoped<IReportService, ReportService>();
-        services.AddScoped<IOrderService, OrderService>();
-        services.AddScoped<IReviewService, ReviewService>();
-        services.AddScoped<IFaqService, FaqService>();
         services.AddScoped<IUserProfileService, UserProfileService>();
-        services.AddScoped<IAppointmentService, AppointmentService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IStripePaymentService, StripePaymentService>();
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<INotificationService, NotificationService>();
-        services.AddScoped<IAddressService, AddressService>();
         services.AddScoped<IAdminActivityService, AdminActivityService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+        // HTTP context
+        services.AddHttpContextAccessor();
 
         // File storage
         services.AddScoped<IFileStorageService>(sp =>

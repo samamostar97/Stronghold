@@ -66,9 +66,10 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message:
-                ErrorHandler.getContextualMessage(e, 'delete-supplement'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-supplement'),
+        );
       }
     }
   }
@@ -90,10 +91,15 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
         SortOption(value: 'name', label: 'Naziv (A-Z)'),
+        SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
         SortOption(value: 'category', label: 'Kategorija (A-Z)'),
+        SortOption(value: 'categorydesc', label: 'Kategorija (Z-A)'),
         SortOption(value: 'supplier', label: 'Dobavljac (A-Z)'),
+        SortOption(value: 'supplierdesc', label: 'Dobavljac (Z-A)'),
         SortOption(value: 'price', label: 'Cijena rastuce'),
         SortOption(value: 'pricedesc', label: 'Cijena opadajuce'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
+        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => SupplementsTable(
         supplements: items,

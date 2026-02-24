@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/review_models.dart';
 import 'api_providers.dart';
 
 /// My reviews state
 class MyReviewsState {
-  final List<Review> items;
+  final List<UserReviewResponse> items;
   final int totalCount;
   final int pageNumber;
   final int pageSize;
@@ -13,7 +12,7 @@ class MyReviewsState {
   final String? error;
 
   const MyReviewsState({
-    this.items = const [],
+    this.items = const <UserReviewResponse>[],
     this.totalCount = 0,
     this.pageNumber = 1,
     this.pageSize = 10,
@@ -22,7 +21,7 @@ class MyReviewsState {
   });
 
   MyReviewsState copyWith({
-    List<Review>? items,
+    List<UserReviewResponse>? items,
     int? totalCount,
     int? pageNumber,
     int? pageSize,
@@ -46,34 +45,23 @@ class MyReviewsState {
 
 /// My reviews notifier
 class MyReviewsNotifier extends StateNotifier<MyReviewsState> {
-  final ApiClient _client;
+  final UserReviewService _service;
 
-  MyReviewsNotifier(this._client) : super(const MyReviewsState());
+  MyReviewsNotifier(this._service) : super(const MyReviewsState());
 
   /// Load user's reviews
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final queryParams = <String, String>{
-        'pageNumber': state.pageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/reviews/my',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getMyReviews(
+        pageNumber: state.pageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final reviews = itemsList
-          .map((json) => Review.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: reviews,
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: result.items,
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -89,7 +77,7 @@ class MyReviewsNotifier extends StateNotifier<MyReviewsState> {
   /// Delete review
   Future<void> delete(int id) async {
     try {
-      await _client.delete('/api/reviews/$id');
+      await _service.delete(id);
       await load(); // Refresh list
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message);
@@ -104,26 +92,15 @@ class MyReviewsNotifier extends StateNotifier<MyReviewsState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final nextPageNumber = state.pageNumber + 1;
-      final queryParams = <String, String>{
-        'pageNumber': nextPageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/reviews/my',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getMyReviews(
+        pageNumber: nextPageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final newReviews = itemsList
-          .map((json) => Review.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: [...state.items, ...newReviews],
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: [...state.items, ...result.items],
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -147,12 +124,12 @@ class MyReviewsNotifier extends StateNotifier<MyReviewsState> {
 final myReviewsProvider =
     StateNotifierProvider<MyReviewsNotifier, MyReviewsState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return MyReviewsNotifier(client);
+  return MyReviewsNotifier(UserReviewService(client));
 });
 
 /// Available supplements for review state
 class AvailableSupplementsState {
-  final List<PurchasedSupplement> items;
+  final List<PurchasedSupplementResponse> items;
   final int totalCount;
   final int pageNumber;
   final int pageSize;
@@ -160,7 +137,7 @@ class AvailableSupplementsState {
   final String? error;
 
   const AvailableSupplementsState({
-    this.items = const [],
+    this.items = const <PurchasedSupplementResponse>[],
     this.totalCount = 0,
     this.pageNumber = 1,
     this.pageSize = 10,
@@ -169,7 +146,7 @@ class AvailableSupplementsState {
   });
 
   AvailableSupplementsState copyWith({
-    List<PurchasedSupplement>? items,
+    List<PurchasedSupplementResponse>? items,
     int? totalCount,
     int? pageNumber,
     int? pageSize,
@@ -190,34 +167,23 @@ class AvailableSupplementsState {
 
 /// Available supplements for review notifier
 class AvailableSupplementsNotifier extends StateNotifier<AvailableSupplementsState> {
-  final ApiClient _client;
+  final UserReviewService _service;
 
-  AvailableSupplementsNotifier(this._client) : super(const AvailableSupplementsState());
+  AvailableSupplementsNotifier(this._service) : super(const AvailableSupplementsState());
 
   /// Load supplements available for review
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final queryParams = <String, String>{
-        'pageNumber': state.pageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/reviews/available-supplements',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getAvailableSupplements(
+        pageNumber: state.pageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final supplements = itemsList
-          .map((json) => PurchasedSupplement.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: supplements,
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: result.items,
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -238,7 +204,7 @@ class AvailableSupplementsNotifier extends StateNotifier<AvailableSupplementsSta
 final availableSupplementsProvider =
     StateNotifierProvider<AvailableSupplementsNotifier, AvailableSupplementsState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return AvailableSupplementsNotifier(client);
+  return AvailableSupplementsNotifier(UserReviewService(client));
 });
 
 /// Create review state
@@ -258,9 +224,9 @@ class CreateReviewState {
 
 /// Create review notifier
 class CreateReviewNotifier extends StateNotifier<CreateReviewState> {
-  final ApiClient _client;
+  final UserReviewService _service;
 
-  CreateReviewNotifier(this._client) : super(const CreateReviewState());
+  CreateReviewNotifier(this._service) : super(const CreateReviewState());
 
   /// Create review
   Future<void> create({
@@ -270,14 +236,10 @@ class CreateReviewNotifier extends StateNotifier<CreateReviewState> {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.post<void>(
-        '/api/reviews',
-        body: {
-          'supplementId': supplementId,
-          'rating': rating,
-          if (comment != null && comment.isNotEmpty) 'comment': comment,
-        },
-        parser: (_) {},
+      await _service.create(
+        supplementId: supplementId,
+        rating: rating,
+        comment: comment,
       );
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
@@ -301,5 +263,5 @@ class CreateReviewNotifier extends StateNotifier<CreateReviewState> {
 final createReviewProvider =
     StateNotifierProvider<CreateReviewNotifier, CreateReviewState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return CreateReviewNotifier(client);
+  return CreateReviewNotifier(UserReviewService(client));
 });

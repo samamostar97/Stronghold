@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/order_models.dart';
 import 'api_providers.dart';
 
 /// Order list state
 class OrderListState {
-  final List<Order> items;
+  final List<UserOrderResponse> items;
   final int totalCount;
   final int pageNumber;
   final int pageSize;
@@ -13,7 +12,7 @@ class OrderListState {
   final String? error;
 
   const OrderListState({
-    this.items = const [],
+    this.items = const <UserOrderResponse>[],
     this.totalCount = 0,
     this.pageNumber = 1,
     this.pageSize = 10,
@@ -22,7 +21,7 @@ class OrderListState {
   });
 
   OrderListState copyWith({
-    List<Order>? items,
+    List<UserOrderResponse>? items,
     int? totalCount,
     int? pageNumber,
     int? pageSize,
@@ -47,34 +46,23 @@ class OrderListState {
 
 /// Order list notifier - manages user's order history
 class OrderListNotifier extends StateNotifier<OrderListState> {
-  final ApiClient _client;
+  final UserOrderService _service;
 
-  OrderListNotifier(this._client) : super(const OrderListState());
+  OrderListNotifier(this._service) : super(const OrderListState());
 
   /// Load user's orders
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final queryParams = <String, String>{
-        'pageNumber': state.pageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/orders/my',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getMyOrders(
+        pageNumber: state.pageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final orders = itemsList
-          .map((json) => Order.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: orders,
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: result.items,
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -94,26 +82,15 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final nextPageNumber = state.pageNumber + 1;
-      final queryParams = <String, String>{
-        'pageNumber': nextPageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
-
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/orders/my',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
+      final result = await _service.getMyOrders(
+        pageNumber: nextPageNumber,
+        pageSize: state.pageSize,
       );
 
-      final itemsList = result['items'] as List<dynamic>;
-      final newOrders = itemsList
-          .map((json) => Order.fromJson(json as Map<String, dynamic>))
-          .toList();
-
       state = state.copyWith(
-        items: [...state.items, ...newOrders],
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: [...state.items, ...result.items],
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -137,5 +114,5 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
 final orderListProvider =
     StateNotifierProvider<OrderListNotifier, OrderListState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return OrderListNotifier(client);
+  return OrderListNotifier(UserOrderService(client));
 });

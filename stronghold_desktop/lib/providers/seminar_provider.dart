@@ -40,29 +40,18 @@ class SeminarListNotifier
     String? search,
     String? orderBy,
   }) {
-    // null = keep old value, '' = clear search, 'value' = new search
-    final searchValue = search == null
-        ? state.filter.search
-        : (search.isEmpty ? null : search);
-    return SeminarQueryFilter(
+    final normalizedSearch = search ?? state.filter.search;
+    return state.filter.copyWith(
       pageNumber: pageNumber ?? state.filter.pageNumber,
       pageSize: pageSize ?? state.filter.pageSize,
-      search: searchValue,
+      search: normalizedSearch,
       orderBy: orderBy ?? state.filter.orderBy,
-      isCancelled: state.filter.isCancelled,
-      status: state.filter.status,
     );
   }
 
   Future<void> setStatus(String? status) async {
-    final normalized = (status == null || status.isEmpty) ? null : status;
-    final nextFilter = SeminarQueryFilter(
-      pageNumber: 1,
-      pageSize: state.filter.pageSize,
-      search: state.filter.search,
-      orderBy: state.filter.orderBy,
-      status: normalized,
-    );
+    final normalized = status ?? '';
+    final nextFilter = state.filter.copyWith(pageNumber: 1, status: normalized);
 
     state = state.copyWithFilter(nextFilter);
     await load();

@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/review_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/review_provider.dart';
 import 'gradient_button.dart';
 
@@ -24,7 +24,7 @@ class CreateReviewSheet extends ConsumerStatefulWidget {
 }
 
 class _CreateReviewSheetState extends ConsumerState<CreateReviewSheet> {
-  PurchasedSupplement? _selectedSupplement;
+  PurchasedSupplementResponse? _selectedSupplement;
   int _rating = 0;
   final _commentCtrl = TextEditingController();
   bool _isSubmitting = false;
@@ -171,7 +171,7 @@ class _CreateReviewSheetState extends ConsumerState<CreateReviewSheet> {
         border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
-        child: DropdownButton<PurchasedSupplement>(
+        child: DropdownButton<PurchasedSupplementResponse>(
           value: _selectedSupplement,
           hint: Text('Odaberite suplement',
               style: AppTextStyles.bodyMd),
@@ -180,7 +180,7 @@ class _CreateReviewSheetState extends ConsumerState<CreateReviewSheet> {
           icon: const Icon(LucideIcons.chevronDown,
               color: AppColors.textMuted, size: 18),
           items: state.items.map((s) {
-            return DropdownMenuItem<PurchasedSupplement>(
+            return DropdownMenuItem<PurchasedSupplementResponse>(
               value: s,
               child:
                   Text(s.name, style: AppTextStyles.bodyBold),

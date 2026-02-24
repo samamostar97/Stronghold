@@ -1,52 +1,46 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.IServices;
+using Stronghold.Application.Features.Addresses.Commands;
+using Stronghold.Application.Features.Addresses.DTOs;
+using Stronghold.Application.Features.Addresses.Queries;
 
 namespace Stronghold.API.Controllers;
 
 [ApiController]
 [Route("api/address")]
 [Authorize]
-public class AddressController : UserControllerBase
+public class AddressController : ControllerBase
 {
-    private readonly IAddressService _service;
+    private readonly IMediator _mediator;
 
-    public AddressController(IAddressService service)
+    public AddressController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     [HttpGet("my")]
     public async Task<ActionResult<AddressResponse>> GetMyAddress()
     {
-        var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
-
-        var result = await _service.GetByUserIdAsync(userId.Value);
+        var result = await _mediator.Send(new GetMyAddressQuery());
         if (result == null) return NotFound();
 
         return Ok(result);
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("{userId:int}")]
     public async Task<ActionResult<AddressResponse>> GetUserAddress(int userId)
     {
-        var result = await _service.GetByUserIdAsync(userId);
+        var result = await _mediator.Send(new GetUserAddressQuery { UserId = userId });
         if (result == null) return NotFound();
 
         return Ok(result);
     }
 
     [HttpPut("my")]
-    public async Task<ActionResult<AddressResponse>> UpsertMyAddress([FromBody] UpsertAddressRequest request)
+    public async Task<ActionResult<AddressResponse>> UpsertMyAddress([FromBody] UpsertMyAddressCommand command)
     {
-        var userId = GetCurrentUserId();
-        if (userId == null) return Unauthorized();
-
-        var result = await _service.UpsertAsync(userId.Value, request);
+        var result = await _mediator.Send(command);
         return Ok(result);
     }
 }

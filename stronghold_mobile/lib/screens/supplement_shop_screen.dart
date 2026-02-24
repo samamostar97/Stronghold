@@ -4,7 +4,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/cart_provider.dart';
 import '../providers/recommendation_provider.dart';
 import '../providers/supplement_provider.dart';
@@ -172,7 +172,7 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
     );
   }
 
-  Widget _categoryBar(AsyncValue<List<SupplementCategory>> catsAsync) {
+  Widget _categoryBar(AsyncValue<List<SupplementCategoryResponse>> catsAsync) {
     return catsAsync.when(
       loading: () => const SizedBox(height: 38),
       error: (_, _) => const SizedBox(height: 38),

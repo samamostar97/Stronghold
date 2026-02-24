@@ -1,0 +1,85 @@
+using FluentValidation;
+using MediatR;
+using Stronghold.Application.Common;
+using Stronghold.Application.IRepositories;
+using Stronghold.Application.IServices;
+
+namespace Stronghold.Application.Features.Memberships.Commands;
+
+public class RevokeMembershipCommand : IRequest<bool>
+{
+    public int UserId { get; set; }
+}
+
+public class RevokeMembershipCommandHandler : IRequestHandler<RevokeMembershipCommand, bool>
+{
+    private readonly IMembershipRepository _membershipRepository;
+    private readonly ICurrentUserService _currentUserService;
+
+    public RevokeMembershipCommandHandler(IMembershipRepository membershipRepository, ICurrentUserService currentUserService)
+    {
+        _membershipRepository = membershipRepository;
+        _currentUserService = currentUserService;
+    }
+
+    public async Task<bool> Handle(RevokeMembershipCommand request, CancellationToken cancellationToken)
+    {
+        EnsureAdminAccess();
+
+        var nowUtc = StrongholdTimeUtils.UtcNow;
+        var userExists = await _membershipRepository.UserExistsAsync(request.UserId, cancellationToken);
+        if (!userExists)
+        {
+            throw new KeyNotFoundException("Korisnik ne postoji.");
+        }
+
+        var activeMembership = await _membershipRepository.GetActiveMembershipAsync(request.UserId, nowUtc, cancellationToken);
+        var activePaymentHistories = await _membershipRepository.GetActivePaymentHistoriesAsync(request.UserId, nowUtc, cancellationToken);
+
+        if (activeMembership is null && activePaymentHistories.Count == 0)
+        {
+            throw new InvalidOperationException("Korisnik nema aktivnu clanarinu.");
+        }
+
+        if (activeMembership is not null)
+        {
+            activeMembership.IsDeleted = true;
+            activeMembership.EndDate = nowUtc;
+            await _membershipRepository.UpdateMembershipAsync(activeMembership, cancellationToken);
+        }
+
+        if (activePaymentHistories.Count > 0)
+        {
+            foreach (var paymentHistory in activePaymentHistories)
+            {
+                paymentHistory.EndDate = nowUtc;
+            }
+
+            await _membershipRepository.UpdatePaymentHistoryRangeAsync(activePaymentHistories, cancellationToken);
+        }
+
+        return true;
+    }
+
+    private void EnsureAdminAccess()
+    {
+        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
+        {
+            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
+        }
+
+        if (!_currentUserService.IsInRole("Admin"))
+        {
+            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
+        }
+    }
+}
+
+public class RevokeMembershipCommandValidator : AbstractValidator<RevokeMembershipCommand>
+{
+    public RevokeMembershipCommandValidator()
+    {
+        RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
+    }
+}
+

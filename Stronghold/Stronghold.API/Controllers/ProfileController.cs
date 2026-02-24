@@ -1,109 +1,92 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.IServices;
+using Stronghold.Application.Features.Profiles.Commands;
+using Stronghold.Application.Features.Profiles.Queries;
+using Stronghold.Application.Features.Profiles.DTOs;
+using Stronghold.Application.Features.Memberships.DTOs;
 
 namespace Stronghold.API.Controllers;
 
 [ApiController]
 [Route("api/profile")]
 [Authorize]
-public class ProfileController : UserControllerBase
+public class ProfileController : ControllerBase
 {
-    private readonly IUserProfileService _service;
+    private readonly IMediator _mediator;
 
-    public ProfileController(IUserProfileService service)
+    public ProfileController(IMediator mediator)
     {
-        _service = service;
+        _mediator = mediator;
     }
 
     [HttpGet]
     public async Task<ActionResult<UserProfileResponse>> GetProfile()
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized();
-
-        var profile = await _service.GetProfileAsync(userId.Value);
+        var profile = await _mediator.Send(new GetMyProfileQuery());
         return Ok(profile);
     }
 
     [HttpPost("picture")]
-    public async Task<ActionResult<string>> UploadPicture(IFormFile file)
+    public async Task<ActionResult<string>> UploadPicture([FromForm] IFormFile file)
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized();
-
         if (file == null || file.Length == 0)
             return BadRequest("Nije odabrana slika");
 
-        var fileRequest = new FileUploadRequest
+        var imageUrl = await _mediator.Send(new UploadMyProfilePictureCommand
         {
-            FileStream = file.OpenReadStream(),
-            FileName = file.FileName,
-            ContentType = file.ContentType,
-            FileSize = file.Length
-        };
+            FileRequest = new FileUploadRequest
+            {
+                FileStream = file.OpenReadStream(),
+                FileName = file.FileName,
+                ContentType = file.ContentType,
+                FileSize = file.Length
+            }
+        });
 
-        var imageUrl = await _service.UploadProfilePictureAsync(userId.Value, fileRequest);
         return Ok(new { url = imageUrl });
     }
 
     [HttpDelete("picture")]
     public async Task<IActionResult> DeletePicture()
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized();
-
-        await _service.DeleteProfilePictureAsync(userId.Value);
+        await _mediator.Send(new DeleteMyProfilePictureCommand());
         return NoContent();
     }
 
     [HttpGet("membership-history")]
-    public async Task<ActionResult<IEnumerable<MembershipPaymentResponse>>> GetMembershipHistory()
+    public async Task<ActionResult<IReadOnlyList<MembershipPaymentResponse>>> GetMembershipHistory()
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized();
-
-        var history = await _service.GetMembershipPaymentHistoryAsync(userId.Value);
+        var history = await _mediator.Send(new GetMyMembershipHistoryQuery());
         return Ok(history);
     }
 
     [HttpGet("progress")]
     public async Task<ActionResult<UserProgressResponse>> GetProgress()
     {
-        var userId = GetCurrentUserId();
-        if (userId == null)
-            return Unauthorized();
-
-        var progress = await _service.GetProgressAsync(userId.Value);
+        var progress = await _mediator.Send(new GetMyProgressQuery());
         return Ok(progress);
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("progress/{userId}")]
     public async Task<ActionResult<UserProgressResponse>> GetUserProgress(int userId)
     {
-        var progress = await _service.GetProgressAsync(userId);
+        var progress = await _mediator.Send(new GetUserProgressQuery { UserId = userId });
         return Ok(progress);
     }
 
     [HttpGet("leaderboard")]
-    public async Task<ActionResult<List<LeaderboardEntryResponse>>> GetLeaderboard()
+    public async Task<ActionResult<IReadOnlyList<LeaderboardEntryResponse>>> GetLeaderboard()
     {
-        var leaderboard = await _service.GetLeaderboardAsync(5);
+        var leaderboard = await _mediator.Send(new GetLeaderboardQuery { Top = 5 });
         return Ok(leaderboard);
     }
 
-    [Authorize(Roles = "Admin")]
     [HttpGet("leaderboard/full")]
-    public async Task<ActionResult<List<LeaderboardEntryResponse>>> GetFullLeaderboard()
+    public async Task<ActionResult<IReadOnlyList<LeaderboardEntryResponse>>> GetFullLeaderboard()
     {
-        var leaderboard = await _service.GetFullLeaderboardAsync();
+        var leaderboard = await _mediator.Send(new GetFullLeaderboardQuery());
         return Ok(leaderboard);
     }
 }

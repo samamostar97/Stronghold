@@ -77,14 +77,14 @@ class _MembershipPackagesScreenState
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(membershipPackageListProvider.notifier)
-          .delete(package.id);
+      await ref.read(membershipPackageListProvider.notifier).delete(package.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message: ErrorHandler.getContextualMessage(e, 'delete-package'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-package'),
+        );
       }
     }
   }
@@ -94,8 +94,10 @@ class _MembershipPackagesScreenState
     final state = ref.watch(membershipPackageListProvider);
     final notifier = ref.read(membershipPackageListProvider.notifier);
 
-    return CrudListScaffold<MembershipPackageResponse,
-        MembershipPackageQueryFilter>(
+    return CrudListScaffold<
+      MembershipPackageResponse,
+      MembershipPackageQueryFilter
+    >(
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,
@@ -107,8 +109,11 @@ class _MembershipPackagesScreenState
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
         SortOption(value: 'packagename', label: 'Naziv (A-Z)'),
+        SortOption(value: 'packagenamedesc', label: 'Naziv (Z-A)'),
         SortOption(value: 'priceasc', label: 'Cijena (rastuce)'),
         SortOption(value: 'pricedesc', label: 'Cijena (opadajuce)'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
+        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => MembershipPackagesTable(
         packages: items,

@@ -1,11 +1,10 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
-using System.Security.Claims;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.Filters;
+using Stronghold.Application.Features.Appointments.Commands;
+using Stronghold.Application.Features.Appointments.DTOs;
+using Stronghold.Application.Features.Appointments.Queries;
 using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers
@@ -13,94 +12,82 @@ namespace Stronghold.API.Controllers
     [ApiController]
     [Route("api/appointments")]
     [Authorize]
-    public class AppointmentController : UserControllerBase
+    public class AppointmentController : ControllerBase
     {
-        private readonly IAppointmentService _service;
+        private readonly IMediator _mediator;
+        private readonly IAdminActivityService _activityService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public AppointmentController(IAppointmentService service)
+        public AppointmentController(
+            IMediator mediator,
+            IAdminActivityService activityService,
+            ICurrentUserService currentUserService)
         {
-            _service = service;
+            _mediator = mediator;
+            _activityService = activityService;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet("my")]
-        public async Task<ActionResult<PagedResult<AppointmentResponse>>> GetMyAppointments([FromQuery] AppointmentQueryFilter filter)
+        public async Task<ActionResult<PagedResult<AppointmentResponse>>> GetMyAppointments([FromQuery] AppointmentFilter filter)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            return Ok(await _service.GetAppointmentsByUserIdAsync(userId.Value, filter));
+            var result = await _mediator.Send(new GetMyAppointmentsQuery { Filter = filter });
+            return Ok(result);
         }
 
         [HttpGet("admin")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<PagedResult<AdminAppointmentResponse>>> GetAllAppointments([FromQuery] AppointmentQueryFilter filter)
+        public async Task<ActionResult<PagedResult<AdminAppointmentResponse>>> GetAllAppointments([FromQuery] AppointmentFilter filter)
         {
-            return Ok(await _service.GetAllAppointmentsAsync(filter));
+            var result = await _mediator.Send(new GetAdminAppointmentsQuery { Filter = filter });
+            return Ok(result);
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult> Cancel(int id)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-
-            await _service.CancelAppointmentAsync(userId.Value, id);
+            await _mediator.Send(new CancelMyAppointmentCommand { AppointmentId = id });
             return NoContent();
         }
 
         [HttpPost("admin")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AdminCreate([FromBody] AdminCreateAppointmentRequest request)
+        public async Task<ActionResult> AdminCreate([FromBody] AdminCreateAppointmentCommand command)
         {
-            var id = await _service.AdminCreateAsync(request);
+            var id = await _mediator.Send(command);
 
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
+            if (_currentUserService.UserId.HasValue)
             {
-                var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
-                var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
-                if (activityService != null)
-                {
-                    await activityService.LogAddAsync(
-                        adminUserId.Value,
-                        adminUsername,
-                        "Appointment",
-                        id);
-                }
+                var adminUsername = _currentUserService.Username ?? "admin";
+                await _activityService.LogAddAsync(
+                    _currentUserService.UserId.Value,
+                    adminUsername,
+                    "Appointment",
+                    id);
             }
 
             return CreatedAtAction(nameof(GetAllAppointments), new { id }, new { id });
         }
 
         [HttpPut("admin/{id}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> AdminUpdate(int id, [FromBody] AdminUpdateAppointmentRequest request)
+        public async Task<ActionResult> AdminUpdate(int id, [FromBody] AdminUpdateAppointmentCommand command)
         {
-            await _service.AdminUpdateAsync(id, request);
+            command.Id = id;
+            await _mediator.Send(command);
             return NoContent();
         }
 
         [HttpDelete("admin/{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> AdminDelete(int id)
         {
-            await _service.AdminDeleteAsync(id);
+            await _mediator.Send(new AdminDeleteAppointmentCommand { Id = id });
 
-            var adminUserId = GetCurrentUserId();
-            if (adminUserId.HasValue)
+            if (_currentUserService.UserId.HasValue)
             {
-                var adminUsername = User.FindFirst(ClaimTypes.Name)?.Value ?? "admin";
-                var activityService = HttpContext.RequestServices.GetService<IAdminActivityService>();
-                if (activityService != null)
-                {
-                    await activityService.LogDeleteAsync(
-                        adminUserId.Value,
-                        adminUsername,
-                        "Appointment",
-                        id);
-                }
+                var adminUsername = _currentUserService.Username ?? "admin";
+                await _activityService.LogDeleteAsync(
+                    _currentUserService.UserId.Value,
+                    adminUsername,
+                    "Appointment",
+                    id);
             }
 
             return NoContent();

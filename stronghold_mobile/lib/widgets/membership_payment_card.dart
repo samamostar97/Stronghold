@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/membership_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
 import 'glass_card.dart';
 import 'status_pill.dart';
 
 class MembershipPaymentCard extends StatelessWidget {
-  final MembershipPayment payment;
+  final MembershipPaymentResponse payment;
 
   const MembershipPaymentCard({super.key, required this.payment});
 

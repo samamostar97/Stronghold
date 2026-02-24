@@ -3,13 +3,13 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/appointment_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
 import 'glass_card.dart';
 import 'outline_button.dart';
 
 class AppointmentCard extends StatelessWidget {
-  final Appointment appointment;
+  final UserAppointmentResponse appointment;
   final bool isCanceling;
   final VoidCallback onCancel;
 

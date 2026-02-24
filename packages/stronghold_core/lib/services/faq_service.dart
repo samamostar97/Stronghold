@@ -14,7 +14,7 @@ class FaqService extends CrudService<
   FaqService(ApiClient client)
       : super(
           client: client,
-          basePath: '/api/faq',
+          basePath: '/api/faqs',
           responseParser: FaqResponse.fromJson,
         );
 

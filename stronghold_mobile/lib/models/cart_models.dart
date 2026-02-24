@@ -1,7 +1,7 @@
-import 'supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class CartItem {
-  final Supplement supplement;
+  final SupplementResponse supplement;
   int quantity;
 
   CartItem({

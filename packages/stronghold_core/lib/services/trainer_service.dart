@@ -18,7 +18,7 @@ class TrainerService extends CrudService<
       : _apiClient = client,
         super(
           client: client,
-          basePath: '/api/trainer',
+          basePath: '/api/trainers',
           responseParser: TrainerResponse.fromJson,
         );
 
@@ -33,7 +33,7 @@ class TrainerService extends CrudService<
   /// Get available hours for a trainer on a specific date
   Future<List<int>> getAvailableHours(int trainerId, DateTime date) async {
     return _apiClient.get<List<int>>(
-      '/api/trainer/$trainerId/available-hours',
+      '/api/trainers/$trainerId/available-hours',
       queryParameters: {'date': DateTimeUtils.toApiDate(date)},
       parser: (json) =>
           (json as List<dynamic>).map((e) => (e as num).toInt()).toList(),

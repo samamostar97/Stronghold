@@ -1,22 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/seminar.dart';
 import 'api_providers.dart';
 
 /// Seminars state
 class SeminarsState {
-  final List<Seminar> items;
+  final List<UserSeminarResponse> items;
   final bool isLoading;
   final String? error;
 
   const SeminarsState({
-    this.items = const [],
+    this.items = const <UserSeminarResponse>[],
     this.isLoading = false,
     this.error,
   });
 
   SeminarsState copyWith({
-    List<Seminar>? items,
+    List<UserSeminarResponse>? items,
     bool? isLoading,
     String? error,
     bool clearError = false,
@@ -31,20 +30,15 @@ class SeminarsState {
 
 /// Seminars notifier
 class SeminarsNotifier extends StateNotifier<SeminarsState> {
-  final ApiClient _client;
+  final UserSeminarService _service;
 
-  SeminarsNotifier(this._client) : super(const SeminarsState());
+  SeminarsNotifier(this._service) : super(const SeminarsState());
 
   /// Load upcoming seminars
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final seminars = await _client.get<List<Seminar>>(
-        '/api/seminar/upcoming',
-        parser: (json) => (json as List<dynamic>)
-            .map((j) => Seminar.fromJson(j as Map<String, dynamic>))
-            .toList(),
-      );
+      final seminars = await _service.getUpcoming();
       state = state.copyWith(items: seminars, isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -59,10 +53,7 @@ class SeminarsNotifier extends StateNotifier<SeminarsState> {
   /// Attend seminar
   Future<void> attend(int id) async {
     try {
-      await _client.post<void>(
-        '/api/seminar/$id/attend',
-        parser: (_) {},
-      );
+      await _service.attend(id);
       await load(); // Refresh list
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message);
@@ -73,7 +64,7 @@ class SeminarsNotifier extends StateNotifier<SeminarsState> {
   /// Cancel attendance
   Future<void> cancelAttendance(int id) async {
     try {
-      await _client.delete('/api/seminar/$id/attend');
+      await _service.cancelAttendance(id);
       await load(); // Refresh list
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message);
@@ -89,5 +80,5 @@ class SeminarsNotifier extends StateNotifier<SeminarsState> {
 final seminarsProvider =
     StateNotifierProvider<SeminarsNotifier, SeminarsState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return SeminarsNotifier(client);
+  return SeminarsNotifier(UserSeminarService(client));
 });

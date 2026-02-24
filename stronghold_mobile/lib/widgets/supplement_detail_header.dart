@@ -3,13 +3,13 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
 import 'glass_card.dart';
 import 'status_pill.dart';
 
 class SupplementDetailHeader extends StatelessWidget {
-  final Supplement supplement;
+  final SupplementResponse supplement;
 
   const SupplementDetailHeader({super.key, required this.supplement});
 
@@ -29,7 +29,7 @@ class SupplementDetailHeader extends StatelessWidget {
         const SizedBox(height: AppSpacing.xxl),
         Text(supplement.name, style: AppTextStyles.headingLg),
         const SizedBox(height: AppSpacing.sm),
-        StatusPill(label: supplement.categoryName, color: AppColors.primary),
+        StatusPill(label: supplement.supplementCategoryName ?? '', color: AppColors.primary),
         const SizedBox(height: AppSpacing.lg),
         Text(
           '${supplement.price.toStringAsFixed(2)} KM',

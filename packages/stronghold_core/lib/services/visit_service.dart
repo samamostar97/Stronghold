@@ -1,4 +1,6 @@
 import '../api/api_client.dart';
+import '../models/common/paged_result.dart';
+import '../models/filters/visit_query_filter.dart';
 import '../models/responses/current_visitor_response.dart';
 import '../models/requests/check_in_request.dart';
 
@@ -9,41 +11,40 @@ class VisitService {
 
   VisitService(this._client);
 
-  /// Get all current visitors (not checked out yet)
-  Future<List<CurrentVisitorResponse>> getCurrentVisitors() async {
-    return _client.get<List<CurrentVisitorResponse>>(
-      '$_path/current-users-list',
-      parser: (json) {
-        // API returns either a direct list or a paged result with 'items'
-        final List<dynamic> list;
-        if (json is List) {
-          list = json;
-        } else if (json is Map<String, dynamic> && json.containsKey('items')) {
-          list = json['items'] as List<dynamic>;
-        } else {
-          list = [];
-        }
-        return list
-            .map((item) => CurrentVisitorResponse.fromJson(item as Map<String, dynamic>))
-            .toList();
-      },
+  /// Get paged current visitors (not checked out yet)
+  Future<PagedResult<CurrentVisitorResponse>> getCurrentVisitorsPaged(
+    VisitQueryFilter filter,
+  ) async {
+    return _client.get<PagedResult<CurrentVisitorResponse>>(
+      '$_path/current',
+      queryParameters: filter.toQueryParameters(),
+      parser: (json) => PagedResult.fromJson(
+        json as Map<String, dynamic>,
+        CurrentVisitorResponse.fromJson,
+      ),
     );
+  }
+
+  /// Get current visitors as a simple list (compatibility helper)
+  Future<List<CurrentVisitorResponse>> getCurrentVisitors() async {
+    final result = await getCurrentVisitorsPaged(
+      VisitQueryFilter(pageNumber: 1, pageSize: 100, orderBy: 'checkindesc'),
+    );
+    return result.items;
   }
 
   /// Check in a user
   Future<CurrentVisitorResponse> checkIn(CheckInRequest request) async {
     return _client.post<CurrentVisitorResponse>(
-      '$_path/check-in',
+      _path,
       body: request.toJson(),
-      parser: (json) => CurrentVisitorResponse.fromJson(json as Map<String, dynamic>),
+      parser: (json) =>
+          CurrentVisitorResponse.fromJson(json as Map<String, dynamic>),
     );
   }
 
   /// Check out a visitor
   Future<void> checkOut(int visitId) async {
-    await _client.post<void>(
-      '$_path/check-out/$visitId',
-      parser: (_) {},
-    );
+    await _client.patch<void>('$_path/$visitId/checkout', parser: (_) {});
   }
 }

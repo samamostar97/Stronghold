@@ -32,9 +32,7 @@ class OrderQueryFilter extends BaseQueryFilter {
     if (dateTo != null) {
       params['dateTo'] = dateTo!.toIso8601String();
     }
-    if (descending) {
-      params['descending'] = 'true';
-    }
+    params['descending'] = descending.toString();
 
     return params;
   }

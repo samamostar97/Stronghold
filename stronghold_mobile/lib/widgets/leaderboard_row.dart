@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/progress_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
 import 'glass_card.dart';
 import 'status_pill.dart';
 
 class LeaderboardRow extends StatelessWidget {
-  final LeaderboardEntry entry;
+  final LeaderboardEntryResponse entry;
 
   const LeaderboardRow({super.key, required this.entry});
 

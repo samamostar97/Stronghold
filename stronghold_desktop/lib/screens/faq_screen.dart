@@ -100,7 +100,10 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
       addButtonText: '+ Dodaj FAQ',
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
+        SortOption(value: 'question', label: 'Pitanje (A-Z)'),
+        SortOption(value: 'questiondesc', label: 'Pitanje (Z-A)'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
       ],
       tableBuilder: (items) => FaqTable(
         faqs: items,

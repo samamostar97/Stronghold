@@ -20,15 +20,18 @@ final supplierServiceProvider = Provider<SupplierService>((ref) {
 });
 
 /// Categories for dropdown (loads all with large page size)
-final categoriesDropdownProvider = FutureProvider<List<SupplementCategoryResponse>>((ref) async {
-  final service = ref.watch(categoryServiceProvider);
-  final filter = SupplementCategoryQueryFilter(pageSize: 100);
-  final result = await service.getAll(filter);
-  return result.items;
-});
+final categoriesDropdownProvider =
+    FutureProvider<List<SupplementCategoryResponse>>((ref) async {
+      final service = ref.watch(categoryServiceProvider);
+      final filter = SupplementCategoryQueryFilter(pageSize: 100);
+      final result = await service.getAll(filter);
+      return result.items;
+    });
 
 /// Suppliers for dropdown (loads all with large page size)
-final suppliersDropdownProvider = FutureProvider<List<SupplierResponse>>((ref) async {
+final suppliersDropdownProvider = FutureProvider<List<SupplierResponse>>((
+  ref,
+) async {
   final service = ref.watch(supplierServiceProvider);
   final filter = SupplierQueryFilter(pageSize: 100);
   final result = await service.getAll(filter);
@@ -36,27 +39,29 @@ final suppliersDropdownProvider = FutureProvider<List<SupplierResponse>>((ref) a
 });
 
 /// Supplement list state provider
-final supplementListProvider = StateNotifierProvider<
-    SupplementListNotifier,
-    ListState<SupplementResponse, SupplementQueryFilter>>((ref) {
-  final service = ref.watch(supplementServiceProvider);
-  return SupplementListNotifier(service);
-});
+final supplementListProvider =
+    StateNotifierProvider<
+      SupplementListNotifier,
+      ListState<SupplementResponse, SupplementQueryFilter>
+    >((ref) {
+      final service = ref.watch(supplementServiceProvider);
+      return SupplementListNotifier(service);
+    });
 
 /// Supplement list notifier implementation
-class SupplementListNotifier extends ListNotifier<
-    SupplementResponse,
-    CreateSupplementRequest,
-    UpdateSupplementRequest,
-    SupplementQueryFilter> {
+class SupplementListNotifier
+    extends
+        ListNotifier<
+          SupplementResponse,
+          CreateSupplementRequest,
+          UpdateSupplementRequest,
+          SupplementQueryFilter
+        > {
   final SupplementService _supplementService;
 
   SupplementListNotifier(SupplementService service)
-      : _supplementService = service,
-        super(
-          service: service,
-          initialFilter: SupplementQueryFilter(),
-        );
+    : _supplementService = service,
+      super(service: service, initialFilter: SupplementQueryFilter());
 
   @override
   SupplementQueryFilter createFilterCopy({
@@ -65,12 +70,11 @@ class SupplementListNotifier extends ListNotifier<
     String? search,
     String? orderBy,
   }) {
-    // null = keep old value, '' = clear search, 'value' = new search
-    final searchValue = search == null ? state.filter.search : (search.isEmpty ? null : search);
-    return SupplementQueryFilter(
+    final normalizedSearch = search ?? state.filter.search;
+    return state.filter.copyWith(
       pageNumber: pageNumber ?? state.filter.pageNumber,
       pageSize: pageSize ?? state.filter.pageSize,
-      search: searchValue,
+      search: normalizedSearch,
       orderBy: orderBy ?? state.filter.orderBy,
     );
   }

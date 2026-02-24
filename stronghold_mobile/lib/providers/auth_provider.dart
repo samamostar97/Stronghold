@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/auth_models.dart';
 import 'api_providers.dart';
 
 /// Auth state
@@ -42,18 +41,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> login(String username, String password) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _client.post<Map<String, dynamic>>(
-        '/api/Auth/login/member',
-        body: {
-          'username': username,
-          'password': password,
-        },
-        parser: (json) => json as Map<String, dynamic>,
-        requiresAuth: false,
+      final authResponse = await AuthService.loginMember(
+        username: username,
+        password: password,
+        client: _client,
       );
-
-      final authResponse = AuthResponse.fromJson(response);
-      await TokenStorage.saveLogin({'token': authResponse.token});
       state = state.copyWith(user: authResponse, isLoading: false);
     } on ApiException catch (e) {
       if (e.statusCode == 403) {
@@ -90,22 +82,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final response = await _client.post<Map<String, dynamic>>(
-        '/api/Auth/register',
-        body: {
-          'firstName': firstName,
-          'lastName': lastName,
-          'username': username,
-          'email': email,
-          'phoneNumber': phoneNumber,
-          'password': password,
-        },
-        parser: (json) => json as Map<String, dynamic>,
-        requiresAuth: false,
+      final authResponse = await AuthService.register(
+        firstName: firstName,
+        lastName: lastName,
+        username: username,
+        email: email,
+        phoneNumber: phoneNumber,
+        password: password,
+        client: _client,
       );
-
-      final authResponse = AuthResponse.fromJson(response);
-      await TokenStorage.saveLogin({'token': authResponse.token});
       state = state.copyWith(user: authResponse, isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -123,12 +108,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> forgotPassword(String email) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.post<void>(
-        '/api/Auth/forgot-password',
-        body: {'email': email},
-        parser: (_) {},
-        requiresAuth: false,
-      );
+      await AuthService.forgotPassword(email: email, client: _client);
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
       state = state.copyWith(error: e.message, isLoading: false);
@@ -150,15 +130,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.post<void>(
-        '/api/Auth/reset-password',
-        body: {
-          'email': email,
-          'code': code,
-          'newPassword': newPassword,
-        },
-        parser: (_) {},
-        requiresAuth: false,
+      await AuthService.resetPassword(
+        email: email,
+        code: code,
+        newPassword: newPassword,
+        client: _client,
       );
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
@@ -187,13 +163,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      await _client.put<void>(
-        '/api/Auth/change-password',
-        body: {
-          'currentPassword': currentPassword,
-          'newPassword': newPassword,
-        },
-        parser: (_) {},
+      await AuthService.changePassword(
+        currentPassword: currentPassword,
+        newPassword: newPassword,
+        client: _client,
       );
       state = state.copyWith(isLoading: false);
     } on ApiException catch (e) {
@@ -219,7 +192,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void updateProfileImage(String? url) {
     final current = state.user;
     if (current == null) return;
-    state = state.copyWith(user: current.copyWithImage(url));
+    state = state.copyWith(
+      user: current.copyWith(profileImageUrl: url, clearProfileImage: url == null),
+    );
   }
 
   /// Logout

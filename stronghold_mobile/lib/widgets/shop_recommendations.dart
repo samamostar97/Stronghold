@@ -3,15 +3,14 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/recommendation.dart';
-import '../models/supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../screens/supplement_detail_screen.dart';
 import '../utils/image_utils.dart';
 import 'glass_card.dart';
 import 'section_header.dart';
 
 class ShopRecommendations extends StatelessWidget {
-  final List<Recommendation> items;
+  final List<RecommendationResponse> items;
 
   const ShopRecommendations({super.key, required this.items});
 
@@ -54,20 +53,21 @@ class ShopRecommendations extends StatelessWidget {
     );
   }
 
-  Widget _card(BuildContext context, Recommendation rec) {
+  Widget _card(BuildContext context, RecommendationResponse rec) {
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         MaterialPageRoute(
           builder: (_) => SupplementDetailScreen(
-            supplement: Supplement(
+            supplement: SupplementResponse(
               id: rec.id,
               name: rec.name,
               price: rec.price,
               description: rec.description,
               imageUrl: rec.imageUrl,
-              categoryId: 0,
-              categoryName: rec.categoryName,
+              supplementCategoryId: 0,
+              supplementCategoryName: rec.categoryName,
+              supplierId: 0,
             ),
           ),
         ),

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/review_models.dart';
 import '../providers/review_provider.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error_state.dart';
@@ -50,7 +50,7 @@ class _ReviewHistoryScreenState
     }
   }
 
-  void _confirmDelete(Review review) {
+  void _confirmDelete(UserReviewResponse review) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -87,7 +87,7 @@ class _ReviewHistoryScreenState
     );
   }
 
-  Future<void> _deleteReview(Review review) async {
+  Future<void> _deleteReview(UserReviewResponse review) async {
     setState(() => _deletingReviewId = review.id);
     try {
       await ref.read(myReviewsProvider.notifier).delete(review.id);

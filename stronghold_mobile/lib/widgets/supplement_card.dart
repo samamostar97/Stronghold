@@ -3,12 +3,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/supplement_models.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
 import 'glass_card.dart';
 
 class SupplementCard extends StatelessWidget {
-  final Supplement supplement;
+  final SupplementResponse supplement;
   final VoidCallback? onTap;
   final VoidCallback? onAddToCart;
 
@@ -50,7 +50,7 @@ class SupplementCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  supplement.categoryName,
+                  supplement.supplementCategoryName ?? '',
                   style: AppTextStyles.caption,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

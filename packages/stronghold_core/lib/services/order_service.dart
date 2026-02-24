@@ -14,7 +14,7 @@ class OrderService {
   /// Get paginated list of orders with server-side filtering and sorting
   Future<PagedResult<OrderResponse>> getAll(OrderQueryFilter filter) async {
     return _client.get<PagedResult<OrderResponse>>(
-      '$_basePath/GetAllPaged',
+      _basePath,
       queryParameters: filter.toQueryParameters(),
       parser: (json) => PagedResult.fromJson(
         json as Map<String, dynamic>,

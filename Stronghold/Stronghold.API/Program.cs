@@ -13,7 +13,10 @@ builder.Services
 var app = builder.Build();
 
 // Seed database
-await app.SeedDatabaseAsync();
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    await app.SeedDatabaseAsync();
+}
 
 // Configure pipeline
 app.UseSwagger();
@@ -27,3 +30,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+public partial class Program
+{
+}

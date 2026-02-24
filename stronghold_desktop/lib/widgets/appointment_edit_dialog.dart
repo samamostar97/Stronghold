@@ -305,7 +305,7 @@ class _State extends ConsumerState<AppointmentEditDialog> {
 
     return DropdownButtonFormField<int>(
       key: ValueKey(_staffType),
-      value: _selectedStaffId,
+      initialValue: _selectedStaffId,
       decoration: _dropdownDecoration(label),
       dropdownColor: AppColors.surfaceSolid,
       style: AppTextStyles.bodyBold,
@@ -348,7 +348,7 @@ class _State extends ConsumerState<AppointmentEditDialog> {
 
     return DropdownButtonFormField<int>(
       key: ValueKey('$_staffType-$_selectedStaffId-$_selectedDate'),
-      value: _selectedHour,
+      initialValue: _selectedHour,
       decoration: _dropdownDecoration('Satnica'),
       dropdownColor: AppColors.surfaceSolid,
       style: AppTextStyles.bodyBold,

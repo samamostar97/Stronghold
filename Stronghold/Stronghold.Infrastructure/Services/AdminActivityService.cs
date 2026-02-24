@@ -1,6 +1,6 @@
 using System.Reflection;
 using Microsoft.EntityFrameworkCore;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.AdminActivities.DTOs;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common;

@@ -4,12 +4,10 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.Filters;
+using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
 
 using Stronghold.Infrastructure.Data;
-
 
 namespace Stronghold.Infrastructure.Services
 {
@@ -44,36 +42,36 @@ namespace Stronghold.Infrastructure.Services
             // Weekly visits
             var thisWeekVisits = await _context.GymVisits
                 .AsNoTracking()
-                .Where(v => v.CheckInTime >= startOfWeek && v.CheckInTime < startOfNextWeek)
+                .Where(v => !v.IsDeleted && v.CheckInTime >= startOfWeek && v.CheckInTime < startOfNextWeek)
                 .CountAsync();
 
             var lastWeekVisits = await _context.GymVisits
                 .AsNoTracking()
-                .Where(v => v.CheckInTime >= lastWeekStart && v.CheckInTime < startOfWeek)
+                .Where(v => !v.IsDeleted && v.CheckInTime >= lastWeekStart && v.CheckInTime < startOfWeek)
                 .CountAsync();
 
             // Monthly revenue
 
             var thisMonthRevenue = await _context.MembershipPaymentHistory
                 .AsNoTracking()
-                .Where(p => p.PaymentDate >= startOfMonth && p.PaymentDate < startOfNextMonth)
+                .Where(p => !p.IsDeleted && p.PaymentDate >= startOfMonth && p.PaymentDate < startOfNextMonth)
                 .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
 
             var lastMonthRevenue = await _context.MembershipPaymentHistory
                 .AsNoTracking()
-                .Where(p => p.PaymentDate >= startOfLastMonth && p.PaymentDate < startOfMonth)
+                .Where(p => !p.IsDeleted && p.PaymentDate >= startOfLastMonth && p.PaymentDate < startOfMonth)
                 .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
 
             // Active memberships
             var activeMemberships = await _context.Memberships
                 .AsNoTracking()
-                .Where(m => m.StartDate <= now && m.EndDate >= now)
+                .Where(m => !m.IsDeleted && m.StartDate <= now && m.EndDate >= now)
                 .CountAsync();
 
             // Visits by weekday (current week)
             var visitTimes = await _context.GymVisits
                 .AsNoTracking()
-                .Where(v => v.CheckInTime >= startOfWeek && v.CheckInTime < startOfNextWeek)
+                .Where(v => !v.IsDeleted && v.CheckInTime >= startOfWeek && v.CheckInTime < startOfNextWeek)
                 .Select(v => v.CheckInTime)
                 .ToListAsync();
 
@@ -93,7 +91,10 @@ namespace Stronghold.Infrastructure.Services
 
             var bestseller = await _context.OrderItems
                 .AsNoTracking()
-                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .Where(oi => !oi.IsDeleted &&
+                             !oi.Order.IsDeleted &&
+                             oi.Order.PurchaseDate >= since &&
+                             oi.Order.PurchaseDate <= now)
                 .GroupBy(oi => new { oi.SupplementId, oi.Supplement.Name })
                 .Select(g => new
                 {
@@ -107,7 +108,7 @@ namespace Stronghold.Infrastructure.Services
             // Daily sales breakdown (last 30 days)
             var dailyOrderData = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.PurchaseDate >= since && o.PurchaseDate <= now)
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= since && o.PurchaseDate <= now)
                 .GroupBy(o => o.PurchaseDate.Date)
                 .Select(g => new
                 {
@@ -135,38 +136,38 @@ namespace Stronghold.Infrastructure.Services
 
             var todayOrderRevenue = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
                 .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             var todayMembershipRevenue = await _context.MembershipPaymentHistory
                 .AsNoTracking()
-                .Where(p => p.PaymentDate >= todayStart && p.PaymentDate < todayEnd)
+                .Where(p => !p.IsDeleted && p.PaymentDate >= todayStart && p.PaymentDate < todayEnd)
                 .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
 
             var weekOrderRevenue = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.PurchaseDate >= startOfWeek && o.PurchaseDate < startOfNextWeek)
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= startOfWeek && o.PurchaseDate < startOfNextWeek)
                 .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             var weekMembershipRevenue = await _context.MembershipPaymentHistory
                 .AsNoTracking()
-                .Where(p => p.PaymentDate >= startOfWeek && p.PaymentDate < startOfNextWeek)
+                .Where(p => !p.IsDeleted && p.PaymentDate >= startOfWeek && p.PaymentDate < startOfNextWeek)
                 .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
 
             var monthOrderRevenue = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.PurchaseDate >= startOfMonth && o.PurchaseDate < startOfNextMonth)
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= startOfMonth && o.PurchaseDate < startOfNextMonth)
                 .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             var todayOrderCount = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
                 .CountAsync();
 
             // Average order value (this month)
             var monthOrderCount = await _context.Orders
                 .AsNoTracking()
-                .Where(o => o.PurchaseDate >= startOfMonth && o.PurchaseDate < startOfNextMonth)
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= startOfMonth && o.PurchaseDate < startOfNextMonth)
                 .CountAsync();
 
             var monthTotalOrderRevenue = monthOrderRevenue;
@@ -228,7 +229,10 @@ namespace Stronghold.Infrastructure.Services
 
             var salesData = await _context.OrderItems
                 .AsNoTracking()
-                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .Where(oi => !oi.IsDeleted &&
+                             !oi.Order.IsDeleted &&
+                             oi.Order.PurchaseDate >= since &&
+                             oi.Order.PurchaseDate <= now)
                 .GroupBy(oi => oi.SupplementId)
                 .Select(g => new
                 {
@@ -239,6 +243,7 @@ namespace Stronghold.Infrastructure.Services
 
             var lastSaleDates = await _context.OrderItems
                 .AsNoTracking()
+                .Where(oi => !oi.IsDeleted && !oi.Order.IsDeleted)
                 .GroupBy(oi => oi.SupplementId)
                 .Select(g => new
                 {
@@ -293,7 +298,10 @@ namespace Stronghold.Infrastructure.Services
 
             var salesData = await _context.OrderItems
                 .AsNoTracking()
-                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .Where(oi => !oi.IsDeleted &&
+                             !oi.Order.IsDeleted &&
+                             oi.Order.PurchaseDate >= since &&
+                             oi.Order.PurchaseDate <= now)
                 .GroupBy(oi => oi.SupplementId)
                 .Select(g => new
                 {
@@ -342,7 +350,10 @@ namespace Stronghold.Infrastructure.Services
 
             var salesData = await _context.OrderItems
                 .AsNoTracking()
-                .Where(oi => oi.Order.PurchaseDate >= since && oi.Order.PurchaseDate <= now)
+                .Where(oi => !oi.IsDeleted &&
+                             !oi.Order.IsDeleted &&
+                             oi.Order.PurchaseDate >= since &&
+                             oi.Order.PurchaseDate <= now)
                 .GroupBy(oi => oi.SupplementId)
                 .Select(g => new
                 {
@@ -353,6 +364,7 @@ namespace Stronghold.Infrastructure.Services
 
             var lastSaleDates = await _context.OrderItems
                 .AsNoTracking()
+                .Where(oi => !oi.IsDeleted && !oi.Order.IsDeleted)
                 .GroupBy(oi => oi.SupplementId)
                 .Select(g => new
                 {
@@ -385,21 +397,26 @@ namespace Stronghold.Infrastructure.Services
                 .AsQueryable();
 
             // Apply search filter
-            if (!string.IsNullOrEmpty(filter.Search))
+            if (!string.IsNullOrWhiteSpace(filter.Search))
             {
-                var searchLower = filter.Search.ToLower();
+                var searchLower = filter.Search.Trim().ToLower();
                 slowMovingProducts = slowMovingProducts.Where(p =>
                     p.Name.ToLower().Contains(searchLower) ||
                     p.CategoryName.ToLower().Contains(searchLower));
             }
 
             // Apply ordering
-            slowMovingProducts = filter.OrderBy?.ToLower() switch
+            var orderBy = filter.OrderBy?.Trim().ToLower();
+            slowMovingProducts = orderBy switch
             {
                 "name" => slowMovingProducts.OrderBy(p => p.Name),
                 "namedesc" => slowMovingProducts.OrderByDescending(p => p.Name),
+                "category" => slowMovingProducts.OrderBy(p => p.CategoryName).ThenBy(p => p.Name),
+                "categorydesc" => slowMovingProducts.OrderByDescending(p => p.CategoryName).ThenBy(p => p.Name),
                 "price" => slowMovingProducts.OrderBy(p => p.Price),
                 "pricedesc" => slowMovingProducts.OrderByDescending(p => p.Price),
+                "quantitysold" => slowMovingProducts.OrderBy(p => p.QuantitySold).ThenByDescending(p => p.DaysSinceLastSale),
+                "quantitysolddesc" => slowMovingProducts.OrderByDescending(p => p.QuantitySold).ThenByDescending(p => p.DaysSinceLastSale),
                 "dayssincelastsale" => slowMovingProducts.OrderBy(p => p.DaysSinceLastSale),
                 "dayssincelastsaledesc" => slowMovingProducts.OrderByDescending(p => p.DaysSinceLastSale),
                 _ => slowMovingProducts.OrderBy(p => p.QuantitySold).ThenByDescending(p => p.DaysSinceLastSale)
@@ -514,6 +531,7 @@ namespace Stronghold.Infrastructure.Services
             var recentOrders = await _context.Orders
                 .AsNoTracking()
                 .Include(o => o.User)
+                .Where(o => !o.IsDeleted && !o.User.IsDeleted)
                 .OrderByDescending(o => o.PurchaseDate)
                 .Take(count)
                 .Select(o => new ActivityFeedItemResponse
@@ -530,6 +548,7 @@ namespace Stronghold.Infrastructure.Services
             // Recent user registrations
             var recentRegistrations = await _context.Users
                 .AsNoTracking()
+                .Where(u => !u.IsDeleted)
                 .OrderByDescending(u => u.CreatedAt)
                 .Take(count)
                 .Select(u => new ActivityFeedItemResponse
@@ -548,6 +567,7 @@ namespace Stronghold.Infrastructure.Services
                 .AsNoTracking()
                 .Include(m => m.User)
                 .Include(m => m.MembershipPackage)
+                .Where(m => !m.IsDeleted && !m.User.IsDeleted && !m.MembershipPackage.IsDeleted)
                 .OrderByDescending(m => m.CreatedAt)
                 .Take(count)
                 .Select(m => new ActivityFeedItemResponse

@@ -3,15 +3,20 @@ import 'package:stronghold_core/stronghold_core.dart';
 import 'list_state.dart';
 
 /// Generic list notifier for CRUD entities with server-side pagination/filtering/sorting
-abstract class ListNotifier<T, TCreate, TUpdate, TFilter extends BaseQueryFilter>
+abstract class ListNotifier<
+  T,
+  TCreate,
+  TUpdate,
+  TFilter extends BaseQueryFilter
+>
     extends StateNotifier<ListState<T, TFilter>> {
   final CrudService<T, TCreate, TUpdate, TFilter> _service;
 
   ListNotifier({
     required CrudService<T, TCreate, TUpdate, TFilter> service,
     required TFilter initialFilter,
-  })  : _service = service,
-        super(ListState(filter: initialFilter));
+  }) : _service = service,
+       super(ListState(filter: initialFilter));
 
   /// Load data from server with current filter
   Future<void> load() async {
@@ -22,7 +27,7 @@ abstract class ListNotifier<T, TCreate, TUpdate, TFilter extends BaseQueryFilter
     } on ApiException catch (e) {
       state = state.copyWithError(e.message);
     } catch (e) {
-      state = state.copyWithError('Greška pri učitavanju: $e');
+      state = state.copyWithError('Greska pri ucitavanju: $e');
     }
   }
 
@@ -31,19 +36,18 @@ abstract class ListNotifier<T, TCreate, TUpdate, TFilter extends BaseQueryFilter
 
   /// Update search and reload from page 1
   Future<void> setSearch(String? search) async {
-    final newFilter = createFilterCopy(
-      pageNumber: 1,
-      search: search,
-    );
+    final normalizedSearch = search ?? '';
+    final newFilter = createFilterCopy(pageNumber: 1, search: normalizedSearch);
     state = state.copyWithFilter(newFilter);
     await load();
   }
 
   /// Update sort order and reload from page 1
   Future<void> setOrderBy(String? orderBy) async {
+    final normalizedOrderBy = orderBy ?? '';
     final newFilter = createFilterCopy(
       pageNumber: 1,
-      orderBy: orderBy,
+      orderBy: normalizedOrderBy,
     );
     state = state.copyWithFilter(newFilter);
     await load();
@@ -73,10 +77,7 @@ abstract class ListNotifier<T, TCreate, TUpdate, TFilter extends BaseQueryFilter
 
   /// Update page size and reload from page 1
   Future<void> setPageSize(int pageSize) async {
-    final newFilter = createFilterCopy(
-      pageNumber: 1,
-      pageSize: pageSize,
-    );
+    final newFilter = createFilterCopy(pageNumber: 1, pageSize: pageSize);
     state = state.copyWithFilter(newFilter);
     await load();
   }

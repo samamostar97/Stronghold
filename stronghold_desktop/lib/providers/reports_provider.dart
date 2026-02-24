@@ -15,32 +15,41 @@ final businessReportProvider = FutureProvider<BusinessReportDTO>((ref) async {
 });
 
 /// Inventory report provider with configurable days parameter (legacy - loads all)
-final inventoryReportProvider = FutureProvider.family<InventoryReportDTO, int>((ref, daysToAnalyze) async {
+final inventoryReportProvider = FutureProvider.family<InventoryReportDTO, int>((
+  ref,
+  daysToAnalyze,
+) async {
   final service = ref.watch(reportsServiceProvider);
   return service.getInventoryReport(daysToAnalyze: daysToAnalyze);
 });
 
 /// Inventory summary provider (totals only, for header cards)
-final inventorySummaryProvider = FutureProvider.family<InventorySummaryDTO, int>((ref, daysToAnalyze) async {
-  final service = ref.watch(reportsServiceProvider);
-  return service.getInventorySummary(daysToAnalyze: daysToAnalyze);
-});
+final inventorySummaryProvider =
+    FutureProvider.family<InventorySummaryDTO, int>((ref, daysToAnalyze) async {
+      final service = ref.watch(reportsServiceProvider);
+      return service.getInventorySummary(daysToAnalyze: daysToAnalyze);
+    });
 
 /// Paginated slow-moving products state provider
-final slowMovingProductsProvider = StateNotifierProvider<
-    SlowMovingProductsNotifier,
-    ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter>>((ref) {
-  final service = ref.watch(reportsServiceProvider);
-  return SlowMovingProductsNotifier(service);
-});
+final slowMovingProductsProvider =
+    StateNotifierProvider<
+      SlowMovingProductsNotifier,
+      ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter>
+    >((ref) {
+      final service = ref.watch(reportsServiceProvider);
+      return SlowMovingProductsNotifier(service);
+    });
 
 /// Slow-moving products list notifier with pagination
-class SlowMovingProductsNotifier extends StateNotifier<
-    ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter>> {
+class SlowMovingProductsNotifier
+    extends
+        StateNotifier<
+          ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter>
+        > {
   final ReportsService _service;
 
   SlowMovingProductsNotifier(this._service)
-      : super(ListState(filter: SlowMovingProductQueryFilter(pageSize: 10)));
+    : super(ListState(filter: SlowMovingProductQueryFilter(pageSize: 10)));
 
   /// Load data from server with current filter
   Future<void> load() async {
@@ -51,7 +60,7 @@ class SlowMovingProductsNotifier extends StateNotifier<
     } on ApiException catch (e) {
       state = state.copyWithError(e.message);
     } catch (e) {
-      state = state.copyWithError('Greška pri učitavanju: $e');
+      state = state.copyWithError('Greska pri ucitavanju: $e');
     }
   }
 
@@ -60,17 +69,22 @@ class SlowMovingProductsNotifier extends StateNotifier<
 
   /// Update search and reload from page 1
   Future<void> setSearch(String? search) async {
-    final searchValue = search == null
-        ? state.filter.search
-        : (search.isEmpty ? null : search);
-    final newFilter = state.filter.copyWith(pageNumber: 1, search: searchValue);
+    final normalizedSearch = search ?? '';
+    final newFilter = state.filter.copyWith(
+      pageNumber: 1,
+      search: normalizedSearch,
+    );
     state = state.copyWithFilter(newFilter);
     await load();
   }
 
   /// Update sort order and reload from page 1
   Future<void> setOrderBy(String? orderBy) async {
-    final newFilter = state.filter.copyWith(pageNumber: 1, orderBy: orderBy);
+    final normalizedOrderBy = orderBy ?? '';
+    final newFilter = state.filter.copyWith(
+      pageNumber: 1,
+      orderBy: normalizedOrderBy,
+    );
     state = state.copyWithFilter(newFilter);
     await load();
   }
@@ -106,6 +120,13 @@ class SlowMovingProductsNotifier extends StateNotifier<
 
   /// Update days to analyze and reload from page 1
   Future<void> setDaysToAnalyze(int days) async {
+    if (state.filter.daysToAnalyze == days) {
+      if (state.data == null && !state.isLoading) {
+        await load();
+      }
+      return;
+    }
+
     final newFilter = state.filter.copyWith(pageNumber: 1, daysToAnalyze: days);
     state = state.copyWithFilter(newFilter);
     await load();
@@ -113,10 +134,11 @@ class SlowMovingProductsNotifier extends StateNotifier<
 }
 
 /// Membership popularity report provider
-final membershipPopularityReportProvider = FutureProvider<MembershipPopularityReportDTO>((ref) async {
-  final service = ref.watch(reportsServiceProvider);
-  return service.getMembershipPopularityReport();
-});
+final membershipPopularityReportProvider =
+    FutureProvider<MembershipPopularityReportDTO>((ref) async {
+      final service = ref.watch(reportsServiceProvider);
+      return service.getMembershipPopularityReport();
+    });
 
 /// Export operations notifier for handling export state
 class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
@@ -148,10 +170,16 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> exportInventoryToExcel(String savePath, {int daysToAnalyze = 30}) async {
+  Future<void> exportInventoryToExcel(
+    String savePath, {
+    int daysToAnalyze = 30,
+  }) async {
     state = const AsyncValue.loading();
     try {
-      await _service.exportInventoryToExcel(savePath, daysToAnalyze: daysToAnalyze);
+      await _service.exportInventoryToExcel(
+        savePath,
+        daysToAnalyze: daysToAnalyze,
+      );
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -159,10 +187,16 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> exportInventoryToPdf(String savePath, {int daysToAnalyze = 30}) async {
+  Future<void> exportInventoryToPdf(
+    String savePath, {
+    int daysToAnalyze = 30,
+  }) async {
     state = const AsyncValue.loading();
     try {
-      await _service.exportInventoryToPdf(savePath, daysToAnalyze: daysToAnalyze);
+      await _service.exportInventoryToPdf(
+        savePath,
+        daysToAnalyze: daysToAnalyze,
+      );
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -194,7 +228,8 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 }
 
 /// Export operations provider
-final exportOperationsProvider = StateNotifierProvider<ExportOperationsNotifier, AsyncValue<void>>((ref) {
-  final service = ref.watch(reportsServiceProvider);
-  return ExportOperationsNotifier(service);
-});
+final exportOperationsProvider =
+    StateNotifierProvider<ExportOperationsNotifier, AsyncValue<void>>((ref) {
+      final service = ref.watch(reportsServiceProvider);
+      return ExportOperationsNotifier(service);
+    });

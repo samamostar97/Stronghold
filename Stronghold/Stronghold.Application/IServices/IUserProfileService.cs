@@ -1,5 +1,6 @@
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Response;
+using Stronghold.Application.Features.Profiles.DTOs;
+using Stronghold.Application.Features.Memberships.DTOs;
 
 namespace Stronghold.Application.IServices;
 

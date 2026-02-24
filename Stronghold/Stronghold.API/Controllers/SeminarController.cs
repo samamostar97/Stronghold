@@ -1,113 +1,133 @@
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
-using Stronghold.Application.DTOs.Request;
-using Stronghold.Application.DTOs.Response;
-using Stronghold.Application.Filters;
+using Stronghold.Application.Features.Seminars.Commands;
+using Stronghold.Application.Features.Seminars.DTOs;
+using Stronghold.Application.Features.Seminars.Queries;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
-namespace Stronghold.API.Controllers
+namespace Stronghold.API.Controllers;
+
+[ApiController]
+[Route("api/seminars")]
+[Authorize]
+public class SeminarController : ControllerBase
 {
-    [ApiController]
-    [Route("api/seminar")]
-    public class SeminarController : BaseController<Seminar, SeminarResponse, CreateSeminarRequest, UpdateSeminarRequest, SeminarQueryFilter, int>
+    private readonly IMediator _mediator;
+    private readonly IAdminActivityService _activityService;
+    private readonly ICurrentUserService _currentUserService;
+
+    public SeminarController(
+        IMediator mediator,
+        IAdminActivityService activityService,
+        ICurrentUserService currentUserService)
     {
-        private readonly ISeminarService _seminarService;
+        _mediator = mediator;
+        _activityService = activityService;
+        _currentUserService = currentUserService;
+    }
 
-        public SeminarController(ISeminarService service) : base(service)
+    [HttpGet("upcoming")]
+    public async Task<ActionResult<IReadOnlyList<UserSeminarResponse>>> GetUpcomingSeminarsAsync()
+    {
+        var result = await _mediator.Send(new GetUpcomingSeminarsQuery());
+        return Ok(result);
+    }
+
+    [HttpPost("{id}/attend")]
+    public async Task<ActionResult> AttendSeminarAsync(int id)
+    {
+        await _mediator.Send(new AttendSeminarCommand { SeminarId = id });
+        return NoContent();
+    }
+
+    [HttpDelete("{id}/attend")]
+    public async Task<ActionResult> CancelAttendanceAsync(int id)
+    {
+        await _mediator.Send(new CancelSeminarAttendanceCommand { SeminarId = id });
+        return NoContent();
+    }
+
+    [HttpPatch("{id}/cancel")]
+    public async Task<ActionResult> CancelSeminarAsync(int id)
+    {
+        await _mediator.Send(new CancelSeminarCommand { Id = id });
+        return NoContent();
+    }
+
+    [HttpGet("all")]
+    public async Task<ActionResult<IReadOnlyList<SeminarResponse>>> GetAllAsync([FromQuery] SeminarFilter filter)
+    {
+        var result = await _mediator.Send(new GetSeminarsQuery { Filter = filter });
+        return Ok(result);
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<SeminarResponse>>> GetAllPagedAsync([FromQuery] SeminarFilter filter)
+    {
+        var result = await _mediator.Send(new GetPagedSeminarsQuery { Filter = filter });
+        return Ok(result);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult<SeminarResponse>> Create([FromBody] CreateSeminarCommand command)
+    {
+        var result = await _mediator.Send(command);
+        await LogAddActivityAsync(result.Id);
+        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<ActionResult<SeminarResponse>> Update(int id, [FromBody] UpdateSeminarCommand command)
+    {
+        command.Id = id;
+        var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<SeminarResponse>> GetById(int id)
+    {
+        var result = await _mediator.Send(new GetSeminarByIdQuery { Id = id });
+        return Ok(result);
+    }
+
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _mediator.Send(new DeleteSeminarCommand { Id = id });
+        await LogDeleteActivityAsync(id);
+        return NoContent();
+    }
+
+    [HttpGet("{id}/attendees")]
+    public async Task<ActionResult<IReadOnlyList<SeminarAttendeeResponse>>> GetSeminarAttendees(int id)
+    {
+        var result = await _mediator.Send(new GetSeminarAttendeesQuery { SeminarId = id });
+        return Ok(result);
+    }
+
+    private async Task LogAddActivityAsync(int id)
+    {
+        if (!_currentUserService.UserId.HasValue)
         {
-            _seminarService = service;
+            return;
         }
 
-        // User endpoint
-        [HttpGet("upcoming")]
-        [Authorize(Roles = "GymMember")]
-        public async Task<ActionResult<IEnumerable<UserSeminarResponse>>> GetUpcomingSeminarsAsync()
+        var adminUsername = _currentUserService.Username ?? "admin";
+        await _activityService.LogAddAsync(_currentUserService.UserId.Value, adminUsername, nameof(Seminar), id);
+    }
+
+    private async Task LogDeleteActivityAsync(int id)
+    {
+        if (!_currentUserService.UserId.HasValue)
         {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-            var result = await _seminarService.GetUpcomingSeminarsAsync(userId.Value);
-            return Ok(result);
+            return;
         }
 
-        // User endpoint
-        [HttpPost("{id}/attend")]
-        [Authorize(Roles = "GymMember")]
-        public async Task<ActionResult> AttendSeminarAsync(int id)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-            await _seminarService.AttendSeminarAsync(userId.Value, id);
-            return NoContent();
-        }
-
-        // User endpoint
-        [HttpDelete("{id}/attend")]
-        [Authorize(Roles = "GymMember")]
-        public async Task<ActionResult> CancelAttendanceAsync(int id)
-        {
-            var userId = GetCurrentUserId();
-            if (userId == null)
-                return Unauthorized();
-            await _seminarService.CancelAttendanceAsync(userId.Value, id);
-            return NoContent();
-        }
-
-        [HttpPatch("{id}/cancel")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult> CancelSeminarAsync(int id)
-        {
-            await _seminarService.CancelSeminarAsync(id);
-            return NoContent();
-        }
-
-        [Authorize(Roles = "Admin,GymMember")]
-        [HttpGet("GetAll")]
-
-        public override Task<ActionResult<IEnumerable<SeminarResponse>>> GetAllAsync([FromQuery] SeminarQueryFilter filter)
-        {
-            return base.GetAllAsync(filter);
-        }
-        [Authorize(Roles = "Admin,GymMember")]
-        [HttpGet("GetAllPaged")]
-        public override Task<ActionResult<PagedResult<SeminarResponse>>> GetAllPagedAsync([FromQuery] SeminarQueryFilter filter)
-        {
-            return base.GetAllPagedAsync(filter);
-        }
-        [Authorize(Roles = "Admin")]
-        [HttpPost]
-        public override Task<ActionResult<SeminarResponse>> Create([FromBody] CreateSeminarRequest dto)
-        {
-            return base.Create(dto);
-        }
-        [Authorize(Roles = "Admin")]
-        [HttpPut("{id}")]
-        public override Task<ActionResult<SeminarResponse>> Update(int id, [FromBody] UpdateSeminarRequest dto)
-        {
-            return base.Update(id, dto);
-        }
-        [Authorize(Roles = "Admin,GymMember")]
-        [HttpGet("{id}")]
-        public override Task<ActionResult<SeminarResponse>> GetById(int id)
-        {
-            return base.GetById(id);
-        }
-        [Authorize(Roles = "Admin")]
-        [HttpDelete("{id}")]
-        public override Task<IActionResult> Delete(int id)
-        {
-            return base.Delete(id);
-        }
-
-        [HttpGet("{id}/attendees")]
-        [Authorize(Roles = "Admin")]
-        public async Task<ActionResult<IEnumerable<SeminarAttendeeResponse>>> GetSeminarAttendees(int id)
-        {
-            var result = await _seminarService.GetSeminarAttendeesAsync(id);
-            return Ok(result);
-        }
+        var adminUsername = _currentUserService.Username ?? "admin";
+        await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(Seminar), id);
     }
 }

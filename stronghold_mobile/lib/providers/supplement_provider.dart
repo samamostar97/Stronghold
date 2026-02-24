@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/supplement_models.dart';
 import 'api_providers.dart';
 
 /// Supplement list state
 class SupplementListState {
-  final List<Supplement> items;
+  final List<SupplementResponse> items;
   final int totalCount;
   final int pageNumber;
   final int pageSize;
@@ -15,7 +14,7 @@ class SupplementListState {
   final String? error;
 
   const SupplementListState({
-    this.items = const [],
+    this.items = const <SupplementResponse>[],
     this.totalCount = 0,
     this.pageNumber = 1,
     this.pageSize = 10,
@@ -26,7 +25,7 @@ class SupplementListState {
   });
 
   SupplementListState copyWith({
-    List<Supplement>? items,
+    List<SupplementResponse>? items,
     int? totalCount,
     int? pageNumber,
     int? pageSize,
@@ -55,42 +54,32 @@ class SupplementListState {
   bool get hasPreviousPage => pageNumber > 1;
 }
 
-/// Supplement list notifier - uses /api/supplements endpoints
+/// Supplement list notifier
 class SupplementListNotifier extends StateNotifier<SupplementListState> {
-  final ApiClient _client;
+  final SupplementService _service;
 
-  SupplementListNotifier(this._client) : super(const SupplementListState());
+  SupplementListNotifier(this._service) : super(const SupplementListState());
 
   /// Load supplements
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final queryParams = <String, String>{
-        'pageNumber': state.pageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
+      final filter = SupplementQueryFilter()
+        ..pageNumber = state.pageNumber
+        ..pageSize = state.pageSize;
       if (state.search != null && state.search!.isNotEmpty) {
-        queryParams['search'] = state.search!;
+        filter.search = state.search;
       }
       if (state.categoryId != null) {
-        queryParams['SupplementCategoryId'] = state.categoryId.toString();
+        filter.supplementCategoryId = state.categoryId;
       }
 
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/supplements/GetAllPaged',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
-      );
-
-      final itemsList = result['items'] as List<dynamic>;
-      final supplements = itemsList
-          .map((json) => Supplement.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final result = await _service.getAll(filter);
 
       state = state.copyWith(
-        items: supplements,
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: result.items,
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -147,39 +136,28 @@ class SupplementListNotifier extends StateNotifier<SupplementListState> {
 final supplementListProvider =
     StateNotifierProvider<SupplementListNotifier, SupplementListState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return SupplementListNotifier(client);
+  return SupplementListNotifier(SupplementService(client));
 });
 
 /// Single supplement detail provider
 final supplementDetailProvider =
-    FutureProvider.family<Supplement, int>((ref, id) async {
+    FutureProvider.family<SupplementResponse, int>((ref, id) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<Supplement>(
-    '/api/supplements/$id',
-    parser: (json) => Supplement.fromJson(json as Map<String, dynamic>),
-  );
+  return SupplementService(client).getById(id);
 });
 
 /// Supplement categories provider
 final supplementCategoriesProvider =
-    FutureProvider<List<SupplementCategory>>((ref) async {
+    FutureProvider<List<SupplementCategoryResponse>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<SupplementCategory>>(
-    '/api/supplement-categories/GetAll',
-    parser: (json) => (json as List<dynamic>)
-        .map((j) => SupplementCategory.fromJson(j as Map<String, dynamic>))
-        .toList(),
-  );
+  final filter = SupplementCategoryQueryFilter()..pageSize = 100;
+  final result = await SupplementCategoryService(client).getAll(filter);
+  return result.items;
 });
 
 /// Supplement reviews provider
 final supplementReviewsProvider =
-    FutureProvider.family<List<SupplementReview>, int>((ref, supplementId) async {
+    FutureProvider.family<List<SupplementReviewResponse>, int>((ref, supplementId) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<SupplementReview>>(
-    '/api/supplements/$supplementId/reviews',
-    parser: (json) => (json as List<dynamic>)
-        .map((j) => SupplementReview.fromJson(j as Map<String, dynamic>))
-        .toList(),
-  );
+  return SupplementService(client).getReviews(supplementId);
 });

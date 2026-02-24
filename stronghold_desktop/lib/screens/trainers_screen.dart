@@ -77,8 +77,10 @@ class _TrainersScreenState extends ConsumerState<TrainersScreen> {
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message: ErrorHandler.getContextualMessage(e, 'delete-trainer'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-trainer'),
+        );
       }
     }
   }
@@ -100,7 +102,10 @@ class _TrainersScreenState extends ConsumerState<TrainersScreen> {
       sortOptions: const [
         SortOption(value: null, label: 'Zadano'),
         SortOption(value: 'firstname', label: 'Ime (A-Z)'),
+        SortOption(value: 'firstnamedesc', label: 'Ime (Z-A)'),
         SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
+        SortOption(value: 'lastnamedesc', label: 'Prezime (Z-A)'),
+        SortOption(value: 'createdat', label: 'Najstarije prvo'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
       tableBuilder: (items) => TrainersTable(

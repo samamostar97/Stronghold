@@ -31,6 +31,7 @@ export 'models/filters/trainer_query_filter.dart';
 export 'models/filters/user_query_filter.dart';
 export 'models/filters/slow_moving_product_query_filter.dart';
 export 'models/filters/appointment_query_filter.dart';
+export 'models/filters/visit_query_filter.dart';
 
 // Requests
 export 'models/requests/assign_membership_request.dart';
@@ -56,6 +57,8 @@ export 'models/requests/update_user_request.dart';
 export 'models/requests/upsert_address_request.dart';
 export 'models/requests/admin_create_appointment_request.dart';
 export 'models/requests/admin_update_appointment_request.dart';
+export 'models/requests/login_request.dart';
+export 'models/requests/register_request.dart';
 
 // Responses
 export 'models/responses/active_member_response.dart';
@@ -79,6 +82,16 @@ export 'models/responses/supplement_response.dart';
 export 'models/responses/supplier_response.dart';
 export 'models/responses/trainer_response.dart';
 export 'models/responses/user_response.dart';
+export 'models/responses/auth_response.dart';
+export 'models/responses/user_appointment_response.dart';
+export 'models/responses/user_order_response.dart';
+export 'models/responses/user_seminar_response.dart';
+export 'models/responses/user_review_response.dart';
+export 'models/responses/user_progress_response.dart';
+export 'models/responses/checkout_response.dart';
+export 'models/responses/recommendation_response.dart';
+export 'models/responses/purchased_supplement_response.dart';
+export 'models/responses/supplement_review_response.dart';
 
 // Services
 export 'services/crud_service.dart';
@@ -102,3 +115,9 @@ export 'services/trainer_service.dart';
 export 'services/user_service.dart';
 export 'services/address_service.dart';
 export 'services/visit_service.dart';
+export 'services/user_appointment_service.dart';
+export 'services/user_order_service.dart';
+export 'services/user_seminar_service.dart';
+export 'services/user_review_service.dart';
+export 'services/profile_service.dart';
+export 'services/recommendation_service.dart';

@@ -3,7 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../models/seminar.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
 import 'glass_card.dart';
 import 'gradient_button.dart';
@@ -11,7 +11,7 @@ import 'outline_button.dart';
 import 'status_pill.dart';
 
 class SeminarCard extends StatelessWidget {
-  final Seminar seminar;
+  final UserSeminarResponse seminar;
   final bool isAttendLoading;
   final bool isCancelLoading;
   final VoidCallback onAttend;
