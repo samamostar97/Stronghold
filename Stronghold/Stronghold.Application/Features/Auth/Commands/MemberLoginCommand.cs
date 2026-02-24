@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Auth.DTOs;
+
 using Stronghold.Application.IServices;
 
 namespace Stronghold.Application.Features.Auth.Commands;
@@ -29,7 +30,9 @@ public class MemberLoginCommandHandler : IRequestHandler<MemberLoginCommand, Aut
         });
 
         if (string.Equals(response.Role, "Admin", StringComparison.OrdinalIgnoreCase))
+        {
             throw new UnauthorizedAccessException("Administratori koriste desktop aplikaciju.");
+        }
 
         return response;
     }
@@ -48,3 +51,4 @@ public class MemberLoginCommandValidator : AbstractValidator<MemberLoginCommand>
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
 }
+
