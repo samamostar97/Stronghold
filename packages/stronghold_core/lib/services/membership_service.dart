@@ -20,7 +20,7 @@ class MembershipService {
 
   /// Revoke a user's membership
   Future<void> revokeMembership(int userId) async {
-    await _client.patch<void>('$_path?id=$userId', parser: (_) {});
+    await _client.delete('$_path/$userId');
   }
 
   /// Check whether a user currently has an active membership

@@ -29,14 +29,14 @@ public class SupplierController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<SupplierResponse>>> GetAllPagedAsync([FromQuery] SupplierFilter filter)
     {
         var result = await _mediator.Send(new GetPagedSuppliersQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<SupplierResponse>>> GetAllAsync([FromQuery] SupplierFilter filter)
     {
         var result = await _mediator.Send(new GetSuppliersQuery { Filter = filter });

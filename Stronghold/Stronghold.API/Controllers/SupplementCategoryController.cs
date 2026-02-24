@@ -29,14 +29,14 @@ public class SupplementCategoryController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<SupplementCategoryResponse>>> GetAllPagedAsync([FromQuery] SupplementCategoryFilter filter)
     {
         var result = await _mediator.Send(new GetPagedSupplementCategoriesQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<SupplementCategoryResponse>>> GetAllAsync([FromQuery] SupplementCategoryFilter filter)
     {
         var result = await _mediator.Send(new GetSupplementCategoriesQuery { Filter = filter });

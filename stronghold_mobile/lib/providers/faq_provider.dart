@@ -1,11 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../models/faq_models.dart';
 import 'api_providers.dart';
 
 /// FAQ list state
 class FaqListState {
-  final List<Faq> items;
+  final List<FaqResponse> items;
   final int totalCount;
   final int pageNumber;
   final int pageSize;
@@ -14,7 +13,7 @@ class FaqListState {
   final String? error;
 
   const FaqListState({
-    this.items = const [],
+    this.items = const <FaqResponse>[],
     this.totalCount = 0,
     this.pageNumber = 1,
     this.pageSize = 20,
@@ -24,7 +23,7 @@ class FaqListState {
   });
 
   FaqListState copyWith({
-    List<Faq>? items,
+    List<FaqResponse>? items,
     int? totalCount,
     int? pageNumber,
     int? pageSize,
@@ -51,37 +50,27 @@ class FaqListState {
 
 /// FAQ list notifier
 class FaqListNotifier extends StateNotifier<FaqListState> {
-  final ApiClient _client;
+  final FaqService _service;
 
-  FaqListNotifier(this._client) : super(const FaqListState());
+  FaqListNotifier(this._service) : super(const FaqListState());
 
   /// Load FAQs
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final queryParams = <String, String>{
-        'pageNumber': state.pageNumber.toString(),
-        'pageSize': state.pageSize.toString(),
-      };
+      final filter = FaqQueryFilter()
+        ..pageNumber = state.pageNumber
+        ..pageSize = state.pageSize;
       if (state.search != null && state.search!.isNotEmpty) {
-        queryParams['search'] = state.search!;
+        filter.search = state.search;
       }
 
-      final result = await _client.get<Map<String, dynamic>>(
-        '/api/faq/GetAllPaged',
-        queryParameters: queryParams,
-        parser: (json) => json as Map<String, dynamic>,
-      );
-
-      final itemsList = result['items'] as List<dynamic>;
-      final faqs = itemsList
-          .map((json) => Faq.fromJson(json as Map<String, dynamic>))
-          .toList();
+      final result = await _service.getAll(filter);
 
       state = state.copyWith(
-        items: faqs,
-        totalCount: result['totalCount'] as int,
-        pageNumber: result['pageNumber'] as int,
+        items: result.items,
+        totalCount: result.totalCount,
+        pageNumber: result.pageNumber,
         isLoading: false,
       );
     } on ApiException catch (e) {
@@ -112,16 +101,14 @@ class FaqListNotifier extends StateNotifier<FaqListState> {
 final faqListProvider =
     StateNotifierProvider<FaqListNotifier, FaqListState>((ref) {
   final client = ref.watch(apiClientProvider);
-  return FaqListNotifier(client);
+  return FaqListNotifier(FaqService(client));
 });
 
 /// All FAQs provider (no pagination)
-final allFaqsProvider = FutureProvider<List<Faq>>((ref) async {
+final allFaqsProvider = FutureProvider<List<FaqResponse>>((ref) async {
   final client = ref.watch(apiClientProvider);
-  return client.get<List<Faq>>(
-    '/api/faq/GetAll',
-    parser: (json) => (json as List<dynamic>)
-        .map((j) => Faq.fromJson(j as Map<String, dynamic>))
-        .toList(),
-  );
+  final filter = FaqQueryFilter()
+    ..pageNumber = 1
+    ..pageSize = 200;
+  return FaqService(client).getAllUnpaged(filter);
 });

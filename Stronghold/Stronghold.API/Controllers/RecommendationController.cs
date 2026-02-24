@@ -7,7 +7,7 @@ using Stronghold.Application.Features.Recommendations.DTOs;
 namespace Stronghold.API.Controllers;
 
 [ApiController]
-[Route("api/user/recommendations")]
+[Route("api/recommendations")]
 [Authorize]
 public class RecommendationController : ControllerBase
 {
@@ -18,7 +18,7 @@ public class RecommendationController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpGet]
+    [HttpGet("my")]
     public async Task<ActionResult<IReadOnlyList<RecommendationResponse>>> GetRecommendations([FromQuery] int count = 6)
     {
         var recommendations = await _mediator.Send(new GetRecommendationsQuery { Count = count });

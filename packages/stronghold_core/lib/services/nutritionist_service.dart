@@ -18,7 +18,7 @@ class NutritionistService extends CrudService<
       : _apiClient = client,
         super(
           client: client,
-          basePath: '/api/nutritionist',
+          basePath: '/api/nutritionists',
           responseParser: NutritionistResponse.fromJson,
         );
 
@@ -34,7 +34,7 @@ class NutritionistService extends CrudService<
   Future<List<int>> getAvailableHours(
       int nutritionistId, DateTime date) async {
     return _apiClient.get<List<int>>(
-      '/api/nutritionist/$nutritionistId/available-hours',
+      '/api/nutritionists/$nutritionistId/available-hours',
       queryParameters: {'date': DateTimeUtils.toApiDate(date)},
       parser: (json) =>
           (json as List<dynamic>).map((e) => (e as num).toInt()).toList(),

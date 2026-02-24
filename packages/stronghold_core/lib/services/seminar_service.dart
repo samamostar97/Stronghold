@@ -21,7 +21,7 @@ class SeminarService
     : _apiClient = client,
       super(
         client: client,
-        basePath: '/api/seminar',
+        basePath: '/api/seminars',
         responseParser: SeminarResponse.fromJson,
       );
 
@@ -36,7 +36,7 @@ class SeminarService
   /// Get attendees for a specific seminar (admin only)
   Future<List<SeminarAttendeeResponse>> getAttendees(int seminarId) async {
     return _apiClient.get<List<SeminarAttendeeResponse>>(
-      '/api/seminar/$seminarId/attendees',
+      '/api/seminars/$seminarId/attendees',
       parser: (json) => (json as List<dynamic>)
           .map(
             (e) => SeminarAttendeeResponse.fromJson(e as Map<String, dynamic>),
@@ -48,7 +48,7 @@ class SeminarService
   /// Cancel a seminar (admin only)
   Future<void> cancelSeminar(int seminarId) async {
     await _apiClient.patch<void>(
-      '/api/seminar/$seminarId/cancel',
+      '/api/seminars/$seminarId/cancel',
       parser: (_) {},
     );
   }

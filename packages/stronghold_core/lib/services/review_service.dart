@@ -14,7 +14,7 @@ class ReviewService {
   /// Get paginated list with server-side filtering and sorting
   Future<PagedResult<ReviewResponse>> getAll(ReviewQueryFilter filter) async {
     return _client.get<PagedResult<ReviewResponse>>(
-      '$_basePath/GetAllPaged',
+      _basePath,
       queryParameters: filter.toQueryParameters(),
       parser: (json) => PagedResult.fromJson(
         json as Map<String, dynamic>,

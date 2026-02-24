@@ -13,7 +13,7 @@ using Stronghold.Core.Entities;
 namespace Stronghold.API.Controllers;
 
 [ApiController]
-[Route("api/nutritionist")]
+[Route("api/nutritionists")]
 [Authorize]
 public class NutritionistController : ControllerBase
 {
@@ -31,14 +31,14 @@ public class NutritionistController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<NutritionistResponse>>> GetAllPagedAsync([FromQuery] NutritionistFilter filter)
     {
         var result = await _mediator.Send(new GetPagedNutritionistsQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<NutritionistResponse>>> GetAllAsync([FromQuery] NutritionistFilter filter)
     {
         var result = await _mediator.Send(new GetNutritionistsQuery { Filter = filter });

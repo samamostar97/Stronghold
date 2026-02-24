@@ -25,11 +25,11 @@ namespace Stronghold.API.Controllers
             var result = await _mediator.Send(command);
             return Ok(result);
         }
-        [HttpPatch]
-        public async Task<ActionResult> RevokeMembershipAsync([FromQuery] int id)
+        [HttpDelete("{userId:int}")]
+        public async Task<IActionResult> RevokeMembershipAsync(int userId)
         {
-            var result = await _mediator.Send(new RevokeMembershipCommand { UserId = id });
-            return Ok(result);
+            await _mediator.Send(new RevokeMembershipCommand { UserId = userId });
+            return NoContent();
         }
         [HttpGet("{userId:int}/is-active")]
         public async Task<ActionResult<bool>> HasActiveMembership(int userId)

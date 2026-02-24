@@ -11,7 +11,7 @@ using Stronghold.Core.Entities;
 namespace Stronghold.API.Controllers;
 
 [ApiController]
-[Route("api/seminar")]
+[Route("api/seminars")]
 [Authorize]
 public class SeminarController : ControllerBase
 {
@@ -57,14 +57,14 @@ public class SeminarController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IReadOnlyList<SeminarResponse>>> GetAllAsync([FromQuery] SeminarFilter filter)
     {
         var result = await _mediator.Send(new GetSeminarsQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<SeminarResponse>>> GetAllPagedAsync([FromQuery] SeminarFilter filter)
     {
         var result = await _mediator.Send(new GetPagedSeminarsQuery { Filter = filter });

@@ -43,14 +43,14 @@ public class ReviewController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<ReviewResponse>>> GetAllPagedAsync([FromQuery] ReviewFilter filter)
     {
         var result = await _mediator.Send(new GetPagedReviewsQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<ReviewResponse>>> GetAllAsync([FromQuery] ReviewFilter filter)
     {
         var result = await _mediator.Send(new GetReviewsQuery { Filter = filter });

@@ -20,14 +20,14 @@ namespace Stronghold.API.Controllers
             _mediator = mediator;
         }
 
-        [HttpGet("GetAllPaged")]
+        [HttpGet]
         public async Task<ActionResult<PagedResult<OrderResponse>>> GetAllPagedAsync([FromQuery] OrderFilter filter)
         {
             var result = await _mediator.Send(new GetPagedOrdersQuery { Filter = filter });
             return Ok(result);
         }
 
-        [HttpGet("GetAll")]
+        [HttpGet("all")]
         public async Task<ActionResult<IEnumerable<OrderResponse>>> GetAllAsync([FromQuery] OrderFilter? filter)
         {
             var result = await _mediator.Send(new GetOrdersQuery { Filter = filter });

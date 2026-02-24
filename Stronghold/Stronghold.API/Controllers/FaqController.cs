@@ -11,7 +11,7 @@ using Stronghold.Core.Entities;
 namespace Stronghold.API.Controllers;
 
 [ApiController]
-[Route("api/faq")]
+[Route("api/faqs")]
 [Authorize]
 public class FaqController : ControllerBase
 {
@@ -29,14 +29,14 @@ public class FaqController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<FaqResponse>>> GetAllPagedAsync([FromQuery] FaqFilter filter)
     {
         var result = await _mediator.Send(new GetPagedFaqsQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<FaqResponse>>> GetAllAsync([FromQuery] FaqFilter filter)
     {
         var result = await _mediator.Send(new GetFaqsQuery { Filter = filter });

@@ -16,7 +16,7 @@ class VisitService {
     VisitQueryFilter filter,
   ) async {
     return _client.get<PagedResult<CurrentVisitorResponse>>(
-      '$_path/current-users-list',
+      '$_path/current',
       queryParameters: filter.toQueryParameters(),
       parser: (json) => PagedResult.fromJson(
         json as Map<String, dynamic>,
@@ -36,7 +36,7 @@ class VisitService {
   /// Check in a user
   Future<CurrentVisitorResponse> checkIn(CheckInRequest request) async {
     return _client.post<CurrentVisitorResponse>(
-      '$_path/check-in',
+      _path,
       body: request.toJson(),
       parser: (json) =>
           CurrentVisitorResponse.fromJson(json as Map<String, dynamic>),
@@ -45,6 +45,6 @@ class VisitService {
 
   /// Check out a visitor
   Future<void> checkOut(int visitId) async {
-    await _client.post<void>('$_path/check-out/$visitId', parser: (_) {});
+    await _client.patch<void>('$_path/$visitId/checkout', parser: (_) {});
   }
 }

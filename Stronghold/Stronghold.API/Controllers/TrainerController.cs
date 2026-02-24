@@ -13,7 +13,7 @@ using Stronghold.Core.Entities;
 namespace Stronghold.API.Controllers;
 
 [ApiController]
-[Route("api/trainer")]
+[Route("api/trainers")]
 [Authorize]
 public class TrainerController : ControllerBase
 {
@@ -31,14 +31,14 @@ public class TrainerController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<TrainerResponse>>> GetAllPagedAsync([FromQuery] TrainerFilter filter)
     {
         var result = await _mediator.Send(new GetPagedTrainersQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<TrainerResponse>>> GetAllAsync([FromQuery] TrainerFilter filter)
     {
         var result = await _mediator.Send(new GetTrainersQuery { Filter = filter });

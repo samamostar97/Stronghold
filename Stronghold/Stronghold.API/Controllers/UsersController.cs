@@ -29,14 +29,14 @@ public class UsersController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<UserResponse>>> GetAllPagedAsync([FromQuery] UserFilter filter)
     {
         var result = await _mediator.Send(new GetPagedUsersQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IReadOnlyList<UserResponse>>> GetAllAsync([FromQuery] UserFilter filter)
     {
         var result = await _mediator.Send(new GetUsersQuery { Filter = filter });

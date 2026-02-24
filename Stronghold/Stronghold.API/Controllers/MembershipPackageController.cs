@@ -29,14 +29,14 @@ public class MembershipPackageController : ControllerBase
         _currentUserService = currentUserService;
     }
 
-    [HttpGet("GetAllPaged")]
+    [HttpGet]
     public async Task<ActionResult<PagedResult<MembershipPackageResponse>>> GetAllPagedAsync([FromQuery] MembershipPackageFilter filter)
     {
         var result = await _mediator.Send(new GetPagedMembershipPackagesQuery { Filter = filter });
         return Ok(result);
     }
 
-    [HttpGet("GetAll")]
+    [HttpGet("all")]
     public async Task<ActionResult<IEnumerable<MembershipPackageResponse>>> GetAllAsync([FromQuery] MembershipPackageFilter filter)
     {
         var result = await _mediator.Send(new GetMembershipPackagesQuery { Filter = filter });

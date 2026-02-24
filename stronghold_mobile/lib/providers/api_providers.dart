@@ -4,7 +4,9 @@ import 'package:stronghold_core/stronghold_core.dart';
 /// API client provider using shared core package
 /// Used by all mobile services for HTTP requests
 final apiClientProvider = Provider<ApiClient>((ref) {
-  return ApiClient();
+  final client = ApiClient();
+  ref.onDispose(client.dispose);
+  return client;
 });
 
 // Note: TokenStorage uses static methods, so no provider needed
