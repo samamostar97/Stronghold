@@ -69,6 +69,7 @@ public class GetSupplementCategoryByIdQueryValidator : AbstractValidator<GetSupp
 {
     public GetSupplementCategoryByIdQueryValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

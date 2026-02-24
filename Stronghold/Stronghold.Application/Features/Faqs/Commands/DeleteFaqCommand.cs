@@ -53,6 +53,7 @@ public class DeleteFaqCommandValidator : AbstractValidator<DeleteFaqCommand>
 {
     public DeleteFaqCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

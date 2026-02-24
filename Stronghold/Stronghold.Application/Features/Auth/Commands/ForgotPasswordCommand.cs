@@ -35,9 +35,10 @@ public class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCo
     public ForgotPasswordCommandValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
-            .MinimumLength(5)
-            .MaximumLength(255);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .EmailAddress().WithMessage("Unesite ispravnu email adresu.")
+            .MinimumLength(5).WithMessage("{PropertyName} mora imati najmanje 5 karaktera.")
+            .MaximumLength(255).WithMessage("{PropertyName} ne smije imati vise od 255 karaktera.");
     }
 }
+

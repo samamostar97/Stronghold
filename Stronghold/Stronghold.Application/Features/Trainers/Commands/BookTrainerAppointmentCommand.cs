@@ -117,9 +117,10 @@ public class BookTrainerAppointmentCommandValidator : AbstractValidator<BookTrai
     public BookTrainerAppointmentCommandValidator()
     {
         RuleFor(x => x.TrainerId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Date)
-            .NotEmpty();
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.");
     }
 }
+

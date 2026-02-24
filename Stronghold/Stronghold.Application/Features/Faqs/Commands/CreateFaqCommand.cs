@@ -64,13 +64,14 @@ public class CreateFaqCommandValidator : AbstractValidator<CreateFaqCommand>
     public CreateFaqCommandValidator()
     {
         RuleFor(x => x.Question)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(500);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(500).WithMessage("{PropertyName} ne smije imati vise od 500 karaktera.");
 
         RuleFor(x => x.Answer)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(2000);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(2000).WithMessage("{PropertyName} ne smije imati vise od 2000 karaktera.");
     }
 }
+

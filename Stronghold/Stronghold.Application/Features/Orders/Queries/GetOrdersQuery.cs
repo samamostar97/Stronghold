@@ -78,11 +78,11 @@ public class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
         When(x => x.Filter is not null, () =>
         {
             RuleFor(x => x.Filter!.Search)
-                .MaximumLength(200)
+                .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
                 .When(x => !string.IsNullOrWhiteSpace(x.Filter!.Search));
 
             RuleFor(x => x.Filter!.OrderBy)
-                .MaximumLength(30)
+                .MaximumLength(30).WithMessage("{PropertyName} ne smije imati vise od 30 karaktera.")
                 .When(x => !string.IsNullOrWhiteSpace(x.Filter!.OrderBy));
 
             RuleFor(x => x.Filter!.OrderBy)
@@ -91,11 +91,11 @@ public class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
                 .WithMessage("Neispravna vrijednost za sortiranje.");
 
             RuleFor(x => x.Filter!.PageNumber)
-                .GreaterThanOrEqualTo(1);
+                .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.");
 
             RuleFor(x => x.Filter!.PageSize)
-                .GreaterThanOrEqualTo(1)
-                .LessThanOrEqualTo(100);
+                .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.")
+                .LessThanOrEqualTo(100).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
 
             RuleFor(x => x.Filter!.Status)
                 .Must(BeValidStatus)
@@ -126,3 +126,4 @@ public class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
                filter.DateFrom.Value <= filter.DateTo.Value;
     }
 }
+

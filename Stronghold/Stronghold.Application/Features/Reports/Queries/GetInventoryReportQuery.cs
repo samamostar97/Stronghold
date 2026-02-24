@@ -48,6 +48,7 @@ public class GetInventoryReportQueryValidator : AbstractValidator<GetInventoryRe
     public GetInventoryReportQueryValidator()
     {
         RuleFor(x => x.DaysToAnalyze)
-            .InclusiveBetween(1, 365);
+            .InclusiveBetween(1, 365).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

@@ -48,6 +48,7 @@ public class GetUserProgressQueryValidator : AbstractValidator<GetUserProgressQu
     public GetUserProgressQueryValidator()
     {
         RuleFor(x => x.UserId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

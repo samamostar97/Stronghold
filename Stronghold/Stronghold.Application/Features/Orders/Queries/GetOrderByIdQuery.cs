@@ -79,6 +79,7 @@ public class GetOrderByIdQueryValidator : AbstractValidator<GetOrderByIdQuery>
 {
     public GetOrderByIdQueryValidator()
     {
-        RuleFor(x => x.OrderId).GreaterThan(0);
+        RuleFor(x => x.OrderId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

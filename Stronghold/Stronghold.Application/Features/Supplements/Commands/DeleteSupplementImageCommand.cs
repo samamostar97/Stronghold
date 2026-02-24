@@ -65,6 +65,7 @@ public class DeleteSupplementImageCommandValidator : AbstractValidator<DeleteSup
     public DeleteSupplementImageCommandValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

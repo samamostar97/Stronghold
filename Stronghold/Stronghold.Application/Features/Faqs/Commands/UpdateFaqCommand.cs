@@ -73,18 +73,19 @@ public class UpdateFaqCommandValidator : AbstractValidator<UpdateFaqCommand>
 {
     public UpdateFaqCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Question)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(500)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(500).WithMessage("{PropertyName} ne smije imati vise od 500 karaktera.")
             .When(x => x.Question is not null);
 
         RuleFor(x => x.Answer)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(2000)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(2000).WithMessage("{PropertyName} ne smije imati vise od 2000 karaktera.")
             .When(x => x.Answer is not null);
     }
 }
+

@@ -48,23 +48,23 @@ public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovi
 {
     public GetSlowMovingProductsQueryValidator()
     {
-        RuleFor(x => x.Filter).NotNull();
+        RuleFor(x => x.Filter).NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.Filter.DaysToAnalyze)
-            .InclusiveBetween(1, 365);
+            .InclusiveBetween(1, 365).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
 
         RuleFor(x => x.Filter.PageNumber)
-            .GreaterThanOrEqualTo(1);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.PageSize)
-            .InclusiveBetween(1, 100);
+            .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
 
         RuleFor(x => x.Filter.Search)
-            .MaximumLength(200)
+            .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.Search));
 
         RuleFor(x => x.Filter.OrderBy)
-            .MaximumLength(30)
+            .MaximumLength(30).WithMessage("{PropertyName} ne smije imati vise od 30 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.OrderBy));
 
         RuleFor(x => x.Filter.OrderBy)
@@ -89,3 +89,4 @@ public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovi
             "dayssincelastsaledesc";
     }
 }
+

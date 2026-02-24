@@ -72,21 +72,21 @@ public class GetPagedUsersQueryValidator : AbstractValidator<GetPagedUsersQuery>
 {
     public GetPagedUsersQueryValidator()
     {
-        RuleFor(x => x.Filter).NotNull();
+        RuleFor(x => x.Filter).NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.Filter.PageNumber)
-            .GreaterThanOrEqualTo(1);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.PageSize)
-            .GreaterThanOrEqualTo(1)
-            .LessThanOrEqualTo(100);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.")
+            .LessThanOrEqualTo(100).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.Name)
-            .MaximumLength(200)
+            .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.Name));
 
         RuleFor(x => x.Filter.OrderBy)
-            .MaximumLength(30)
+            .MaximumLength(30).WithMessage("{PropertyName} ne smije imati vise od 30 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.OrderBy));
 
         RuleFor(x => x.Filter.OrderBy)
@@ -101,3 +101,4 @@ public class GetPagedUsersQueryValidator : AbstractValidator<GetPagedUsersQuery>
         return normalized is "firstname" or "lastname" or "date" or "datedesc";
     }
 }
+

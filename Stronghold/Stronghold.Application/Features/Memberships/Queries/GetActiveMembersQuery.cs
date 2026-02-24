@@ -66,17 +66,18 @@ public class GetActiveMembersQueryValidator : AbstractValidator<GetActiveMembers
 {
     public GetActiveMembersQueryValidator()
     {
-        RuleFor(x => x.Filter).NotNull();
+        RuleFor(x => x.Filter).NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.Filter.PageNumber)
-            .GreaterThanOrEqualTo(1);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.PageSize)
-            .GreaterThanOrEqualTo(1)
-            .LessThanOrEqualTo(100);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.")
+            .LessThanOrEqualTo(100).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.Name)
-            .MaximumLength(200)
+            .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.Name));
     }
 }
+

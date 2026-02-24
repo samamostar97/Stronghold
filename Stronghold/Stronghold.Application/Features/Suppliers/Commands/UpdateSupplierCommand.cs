@@ -80,16 +80,16 @@ public class UpdateSupplierCommandValidator : AbstractValidator<UpdateSupplierCo
 {
     public UpdateSupplierCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(50)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(50).WithMessage("{PropertyName} ne smije imati vise od 50 karaktera.")
             .When(x => x.Name is not null);
 
         RuleFor(x => x.Website)
-            .MaximumLength(100)
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.Website is not null && x.Website.Length > 0);
 
         RuleFor(x => x.Website)
@@ -98,3 +98,5 @@ public class UpdateSupplierCommandValidator : AbstractValidator<UpdateSupplierCo
             .WithMessage("Unesite ispravnu web adresu.");
     }
 }
+
+

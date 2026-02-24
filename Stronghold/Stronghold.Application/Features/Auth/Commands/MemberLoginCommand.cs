@@ -43,13 +43,14 @@ public class MemberLoginCommandValidator : AbstractValidator<MemberLoginCommand>
     public MemberLoginCommandValidator()
     {
         RuleFor(x => x.Username)
-            .NotEmpty()
-            .MinimumLength(3)
-            .MaximumLength(50);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(3).WithMessage("{PropertyName} mora imati najmanje 3 karaktera.")
+            .MaximumLength(50).WithMessage("{PropertyName} ne smije imati vise od 50 karaktera.");
 
         RuleFor(x => x.Password)
-            .NotEmpty()
-            .MinimumLength(6)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
 }
+

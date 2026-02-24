@@ -106,14 +106,15 @@ public class CreateReviewCommandValidator : AbstractValidator<CreateReviewComman
     public CreateReviewCommandValidator()
     {
         RuleFor(x => x.SupplementId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Rating)
-            .InclusiveBetween(1, 5);
+            .InclusiveBetween(1, 5).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
 
         RuleFor(x => x.Comment)
-            .MinimumLength(2)
-            .MaximumLength(1000)
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(1000).WithMessage("{PropertyName} ne smije imati vise od 1000 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Comment));
     }
 }
+

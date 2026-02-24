@@ -44,6 +44,7 @@ public class GetLeaderboardQueryValidator : AbstractValidator<GetLeaderboardQuer
     public GetLeaderboardQueryValidator()
     {
         RuleFor(x => x.Top)
-            .InclusiveBetween(1, 100);
+            .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

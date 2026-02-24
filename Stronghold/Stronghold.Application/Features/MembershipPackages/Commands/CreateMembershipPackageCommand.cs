@@ -81,16 +81,17 @@ public class CreateMembershipPackageCommandValidator : AbstractValidator<CreateM
     public CreateMembershipPackageCommandValidator()
     {
         RuleFor(x => x.PackageName)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(50);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(50).WithMessage("{PropertyName} ne smije imati vise od 50 karaktera.");
 
         RuleFor(x => x.PackagePrice)
-            .GreaterThan(0)
-            .LessThanOrEqualTo(10000);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
+            .LessThanOrEqualTo(10000).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Description)
-            .MaximumLength(500)
+            .MaximumLength(500).WithMessage("{PropertyName} ne smije imati vise od 500 karaktera.")
             .When(x => x.Description is not null);
     }
 }
+

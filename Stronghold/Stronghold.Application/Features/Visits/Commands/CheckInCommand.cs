@@ -84,6 +84,7 @@ public class CheckInCommandValidator : AbstractValidator<CheckInCommand>
 {
     public CheckInCommandValidator()
     {
-        RuleFor(x => x.UserId).GreaterThan(0);
+        RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

@@ -48,6 +48,7 @@ public class GetRecommendationsQueryValidator : AbstractValidator<GetRecommendat
     public GetRecommendationsQueryValidator()
     {
         RuleFor(x => x.Count)
-            .InclusiveBetween(1, 50);
+            .InclusiveBetween(1, 50).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

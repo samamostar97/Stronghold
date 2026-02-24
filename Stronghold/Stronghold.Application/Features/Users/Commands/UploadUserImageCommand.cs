@@ -89,18 +89,19 @@ public class UploadUserImageCommandValidator : AbstractValidator<UploadUserImage
 {
     public UploadUserImageCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.FileRequest)
-            .NotNull();
+            .NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.FileRequest.FileName)
-            .NotEmpty();
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.FileRequest.ContentType)
-            .NotEmpty();
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.FileRequest.FileSize)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

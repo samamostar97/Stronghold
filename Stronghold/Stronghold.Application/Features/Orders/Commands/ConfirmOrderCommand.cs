@@ -246,11 +246,11 @@ public class ConfirmOrderCommandValidator : AbstractValidator<ConfirmOrderComman
     public ConfirmOrderCommandValidator()
     {
         RuleFor(x => x.PaymentIntentId)
-            .NotEmpty()
-            .MaximumLength(255);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(255).WithMessage("{PropertyName} ne smije imati vise od 255 karaktera.");
 
         RuleFor(x => x.Items)
-            .NotNull()
+            .NotNull().WithMessage("{PropertyName} je obavezno.")
             .Must(x => x.Count > 0)
             .WithMessage("Stavke narudzbe su obavezne.");
 
@@ -259,6 +259,9 @@ public class ConfirmOrderCommandValidator : AbstractValidator<ConfirmOrderComman
             .WithMessage("Duplicirane stavke nisu dozvoljene.")
             .When(x => x.Items is not null && x.Items.Count > 0);
 
-        RuleForEach(x => x.Items).SetValidator(new CheckoutItemValidator());
+        RuleForEach(x => x.Items)
+            .SetValidator(new CheckoutItemValidator())
+            .WithMessage("Stavke narudzbe sadrze neispravne podatke.");
     }
 }
+

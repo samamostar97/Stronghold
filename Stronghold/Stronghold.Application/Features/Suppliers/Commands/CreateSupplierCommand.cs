@@ -71,12 +71,12 @@ public class CreateSupplierCommandValidator : AbstractValidator<CreateSupplierCo
     public CreateSupplierCommandValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(50);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(50).WithMessage("{PropertyName} ne smije imati vise od 50 karaktera.");
 
         RuleFor(x => x.Website)
-            .MaximumLength(100)
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Website));
 
         RuleFor(x => x.Website)
@@ -85,3 +85,5 @@ public class CreateSupplierCommandValidator : AbstractValidator<CreateSupplierCo
             .WithMessage("Unesite ispravnu web adresu.");
     }
 }
+
+

@@ -154,6 +154,7 @@ public class MarkOrderAsDeliveredCommandValidator : AbstractValidator<MarkOrderA
 {
     public MarkOrderAsDeliveredCommandValidator()
     {
-        RuleFor(x => x.OrderId).GreaterThan(0);
+        RuleFor(x => x.OrderId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

@@ -95,20 +95,21 @@ public class CreateSeminarCommandValidator : AbstractValidator<CreateSeminarComm
     public CreateSeminarCommandValidator()
     {
         RuleFor(x => x.Topic)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x.SpeakerName)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x.EventDate)
             .Must(x => x != default)
             .WithMessage("Datum seminara je obavezan.");
 
         RuleFor(x => x.MaxCapacity)
-            .InclusiveBetween(1, 10000);
+            .InclusiveBetween(1, 10000).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

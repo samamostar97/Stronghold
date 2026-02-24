@@ -51,16 +51,17 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
     public ChangePasswordCommandValidator()
     {
         RuleFor(x => x.CurrentPassword)
-            .NotEmpty()
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x.NewPassword)
-            .NotEmpty()
-            .MinimumLength(6)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x)
             .Must(x => !string.Equals(x.CurrentPassword, x.NewPassword, StringComparison.Ordinal))
             .WithMessage("Nova lozinka mora biti razlicita od trenutne.");
     }
 }
+

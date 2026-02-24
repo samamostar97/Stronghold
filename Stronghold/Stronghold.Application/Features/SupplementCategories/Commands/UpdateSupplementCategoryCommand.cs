@@ -75,12 +75,13 @@ public class UpdateSupplementCategoryCommandValidator : AbstractValidator<Update
 {
     public UpdateSupplementCategoryCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.Name is not null);
     }
 }
+

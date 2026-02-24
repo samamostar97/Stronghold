@@ -63,6 +63,7 @@ public class GetSupplementReviewsQueryValidator : AbstractValidator<GetSupplemen
     public GetSupplementReviewsQueryValidator()
     {
         RuleFor(x => x.SupplementId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

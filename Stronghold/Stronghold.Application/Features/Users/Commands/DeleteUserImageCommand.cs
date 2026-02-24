@@ -66,6 +66,7 @@ public class DeleteUserImageCommandValidator : AbstractValidator<DeleteUserImage
 {
     public DeleteUserImageCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

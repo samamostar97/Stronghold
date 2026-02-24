@@ -129,30 +129,31 @@ public class UpdateSupplementCommandValidator : AbstractValidator<UpdateSuppleme
     public UpdateSupplementCommandValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.Name is not null);
 
         RuleFor(x => x.Price)
-            .GreaterThan(0)
-            .LessThanOrEqualTo(10000)
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
+            .LessThanOrEqualTo(10000).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.")
             .When(x => x.Price.HasValue);
 
         RuleFor(x => x.Description)
-            .MinimumLength(2)
-            .MaximumLength(1000)
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(1000).WithMessage("{PropertyName} ne smije imati vise od 1000 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Description));
 
         RuleFor(x => x.SupplementCategoryId)
-            .GreaterThan(0)
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
             .When(x => x.SupplementCategoryId.HasValue);
 
         RuleFor(x => x.SupplierId)
-            .GreaterThan(0)
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
             .When(x => x.SupplierId.HasValue);
     }
 }
+

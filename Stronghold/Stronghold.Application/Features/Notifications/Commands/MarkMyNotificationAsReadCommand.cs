@@ -53,6 +53,7 @@ public class MarkMyNotificationAsReadCommandValidator : AbstractValidator<MarkMy
     public MarkMyNotificationAsReadCommandValidator()
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

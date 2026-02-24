@@ -87,14 +87,14 @@ public class GetSeminarsQueryValidator : AbstractValidator<GetSeminarsQuery>
 {
     public GetSeminarsQueryValidator()
     {
-        RuleFor(x => x.Filter).NotNull();
+        RuleFor(x => x.Filter).NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.Filter.Search)
-            .MaximumLength(200)
+            .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.Search));
 
         RuleFor(x => x.Filter.OrderBy)
-            .MaximumLength(30)
+            .MaximumLength(30).WithMessage("{PropertyName} ne smije imati vise od 30 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.OrderBy));
 
         RuleFor(x => x.Filter.OrderBy)
@@ -133,3 +133,4 @@ public class GetSeminarsQueryValidator : AbstractValidator<GetSeminarsQuery>
             "maxcapacitydesc";
     }
 }
+

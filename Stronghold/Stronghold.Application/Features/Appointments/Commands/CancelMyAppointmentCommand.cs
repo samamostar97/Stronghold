@@ -58,6 +58,7 @@ public class CancelMyAppointmentCommandValidator : AbstractValidator<CancelMyApp
 {
     public CancelMyAppointmentCommandValidator()
     {
-        RuleFor(x => x.AppointmentId).GreaterThan(0);
+        RuleFor(x => x.AppointmentId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

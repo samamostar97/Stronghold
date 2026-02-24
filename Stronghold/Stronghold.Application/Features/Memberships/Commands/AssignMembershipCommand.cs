@@ -119,19 +119,19 @@ public class AssignMembershipCommandValidator : AbstractValidator<AssignMembersh
 {
     public AssignMembershipCommandValidator()
     {
-        RuleFor(x => x.UserId).GreaterThan(0);
+        RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
-        RuleFor(x => x.MembershipPackageId).GreaterThan(0);
+        RuleFor(x => x.MembershipPackageId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.AmountPaid)
-            .GreaterThan(0)
-            .LessThanOrEqualTo(10000);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
+            .LessThanOrEqualTo(10000).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
 
-        RuleFor(x => x.StartDate).NotEmpty();
+        RuleFor(x => x.StartDate).NotEmpty().WithMessage("{PropertyName} je obavezno.");
 
-        RuleFor(x => x.EndDate).NotEmpty();
+        RuleFor(x => x.EndDate).NotEmpty().WithMessage("{PropertyName} je obavezno.");
 
-        RuleFor(x => x.PaymentDate).NotEmpty();
+        RuleFor(x => x.PaymentDate).NotEmpty().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.EndDate)
             .GreaterThanOrEqualTo(x => x.StartDate)
@@ -142,3 +142,4 @@ public class AssignMembershipCommandValidator : AbstractValidator<AssignMembersh
             .WithMessage("Datum uplate mora biti unutar perioda clanarine.");
     }
 }
+

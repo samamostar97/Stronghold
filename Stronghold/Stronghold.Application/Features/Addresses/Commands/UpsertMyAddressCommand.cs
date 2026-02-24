@@ -63,19 +63,20 @@ public class UpsertMyAddressCommandValidator : AbstractValidator<UpsertMyAddress
     public UpsertMyAddressCommandValidator()
     {
         RuleFor(x => x.Street)
-            .NotEmpty()
-            .MaximumLength(200);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.");
 
         RuleFor(x => x.City)
-            .NotEmpty()
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x.PostalCode)
-            .NotEmpty()
-            .MaximumLength(20);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(20).WithMessage("{PropertyName} ne smije imati vise od 20 karaktera.");
 
         RuleFor(x => x.Country)
-            .NotEmpty()
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
 }
+

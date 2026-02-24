@@ -47,6 +47,7 @@ public class ExportInventoryReportPdfQueryValidator : AbstractValidator<ExportIn
     public ExportInventoryReportPdfQueryValidator()
     {
         RuleFor(x => x.DaysToAnalyze)
-            .InclusiveBetween(1, 365);
+            .InclusiveBetween(1, 365).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

@@ -70,14 +70,14 @@ public class GetSupplementsQueryValidator : AbstractValidator<GetSupplementsQuer
 {
     public GetSupplementsQueryValidator()
     {
-        RuleFor(x => x.Filter).NotNull();
+        RuleFor(x => x.Filter).NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.Filter.Search)
-            .MaximumLength(200)
+            .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.Search));
 
         RuleFor(x => x.Filter.OrderBy)
-            .MaximumLength(30)
+            .MaximumLength(30).WithMessage("{PropertyName} ne smije imati vise od 30 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.OrderBy));
 
         RuleFor(x => x.Filter.OrderBy)
@@ -86,7 +86,7 @@ public class GetSupplementsQueryValidator : AbstractValidator<GetSupplementsQuer
             .WithMessage("Neispravna vrijednost za sortiranje.");
 
         RuleFor(x => x.Filter.SupplementCategoryId)
-            .GreaterThan(0)
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
             .When(x => x.Filter.SupplementCategoryId.HasValue);
     }
 
@@ -106,3 +106,4 @@ public class GetSupplementsQueryValidator : AbstractValidator<GetSupplementsQuer
             "createdatdesc";
     }
 }
+

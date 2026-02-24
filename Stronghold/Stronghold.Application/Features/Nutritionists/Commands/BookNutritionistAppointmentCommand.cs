@@ -127,9 +127,10 @@ public class BookNutritionistAppointmentCommandValidator : AbstractValidator<Boo
     public BookNutritionistAppointmentCommandValidator()
     {
         RuleFor(x => x.NutritionistId)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Date)
-            .NotEmpty();
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.");
     }
 }
+

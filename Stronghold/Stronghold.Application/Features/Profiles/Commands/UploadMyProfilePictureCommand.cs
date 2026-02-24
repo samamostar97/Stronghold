@@ -45,13 +45,14 @@ public class UploadMyProfilePictureCommandValidator : AbstractValidator<UploadMy
     public UploadMyProfilePictureCommandValidator()
     {
         RuleFor(x => x.FileRequest)
-            .NotNull();
+            .NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.FileRequest.FileName)
-            .NotEmpty()
-            .MaximumLength(260);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MaximumLength(260).WithMessage("{PropertyName} ne smije imati vise od 260 karaktera.");
 
         RuleFor(x => x.FileRequest.FileSize)
-            .GreaterThan(0);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

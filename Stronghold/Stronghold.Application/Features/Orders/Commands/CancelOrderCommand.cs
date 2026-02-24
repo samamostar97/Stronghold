@@ -174,10 +174,11 @@ public class CancelOrderCommandValidator : AbstractValidator<CancelOrderCommand>
 {
     public CancelOrderCommandValidator()
     {
-        RuleFor(x => x.OrderId).GreaterThan(0);
+        RuleFor(x => x.OrderId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Reason)
-            .MaximumLength(500)
+            .MaximumLength(500).WithMessage("{PropertyName} ne smije imati vise od 500 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Reason));
     }
 }
+

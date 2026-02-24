@@ -77,6 +77,7 @@ public class CheckOutCommandValidator : AbstractValidator<CheckOutCommand>
 {
     public CheckOutCommandValidator()
     {
-        RuleFor(x => x.VisitId).GreaterThan(0);
+        RuleFor(x => x.VisitId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

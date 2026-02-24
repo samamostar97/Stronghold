@@ -65,6 +65,7 @@ public class GetMyNotificationsQueryValidator : AbstractValidator<GetMyNotificat
     public GetMyNotificationsQueryValidator()
     {
         RuleFor(x => x.Count)
-            .InclusiveBetween(1, 100);
+            .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

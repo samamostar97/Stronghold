@@ -70,8 +70,9 @@ public class CreateSupplementCategoryCommandValidator : AbstractValidator<Create
     public CreateSupplementCategoryCommandValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
 }
+

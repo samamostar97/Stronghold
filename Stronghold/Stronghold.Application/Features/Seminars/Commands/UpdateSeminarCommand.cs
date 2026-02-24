@@ -157,22 +157,23 @@ public class UpdateSeminarCommandValidator : AbstractValidator<UpdateSeminarComm
 {
     public UpdateSeminarCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Topic)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.Topic is not null);
 
         RuleFor(x => x.SpeakerName)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100)
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.SpeakerName is not null);
 
         RuleFor(x => x.MaxCapacity)
-            .InclusiveBetween(1, 10000)
+            .InclusiveBetween(1, 10000).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.")
             .When(x => x.MaxCapacity.HasValue);
     }
 }
+

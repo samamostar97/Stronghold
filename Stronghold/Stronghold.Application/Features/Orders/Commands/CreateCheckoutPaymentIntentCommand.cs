@@ -102,7 +102,7 @@ public class CreateCheckoutPaymentIntentCommandValidator : AbstractValidator<Cre
     public CreateCheckoutPaymentIntentCommandValidator()
     {
         RuleFor(x => x.Items)
-            .NotNull()
+            .NotNull().WithMessage("{PropertyName} je obavezno.")
             .Must(x => x.Count > 0)
             .WithMessage("Korpa je prazna.");
 
@@ -111,7 +111,9 @@ public class CreateCheckoutPaymentIntentCommandValidator : AbstractValidator<Cre
             .WithMessage("Duplicirane stavke nisu dozvoljene.")
             .When(x => x.Items is not null && x.Items.Count > 0);
 
-        RuleForEach(x => x.Items).SetValidator(new CheckoutItemValidator());
+        RuleForEach(x => x.Items)
+            .SetValidator(new CheckoutItemValidator())
+            .WithMessage("Stavke narudzbe sadrze neispravne podatke.");
     }
 }
 
@@ -119,10 +121,11 @@ public class CheckoutItemValidator : AbstractValidator<CheckoutItem>
 {
     public CheckoutItemValidator()
     {
-        RuleFor(x => x.SupplementId).GreaterThan(0);
+        RuleFor(x => x.SupplementId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
         RuleFor(x => x.Quantity)
-            .GreaterThan(0)
-            .LessThanOrEqualTo(99);
+            .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
+            .LessThanOrEqualTo(99).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
     }
 }
+

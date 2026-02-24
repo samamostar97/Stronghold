@@ -65,6 +65,7 @@ public class GetSupplierByIdQueryValidator : AbstractValidator<GetSupplierByIdQu
 {
     public GetSupplierByIdQueryValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

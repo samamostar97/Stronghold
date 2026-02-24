@@ -39,18 +39,19 @@ public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordComm
     public ResetPasswordCommandValidator()
     {
         RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
-            .MinimumLength(5)
-            .MaximumLength(255);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .EmailAddress().WithMessage("Unesite ispravnu email adresu.")
+            .MinimumLength(5).WithMessage("{PropertyName} mora imati najmanje 5 karaktera.")
+            .MaximumLength(255).WithMessage("{PropertyName} ne smije imati vise od 255 karaktera.");
 
         RuleFor(x => x.Code)
-            .NotEmpty()
-            .Matches(@"^\d{6}$");
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .Matches(@"^\d{6}$").WithMessage("{PropertyName} nije u ispravnom formatu.");
 
         RuleFor(x => x.NewPassword)
-            .NotEmpty()
-            .MinimumLength(6)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
 }
+

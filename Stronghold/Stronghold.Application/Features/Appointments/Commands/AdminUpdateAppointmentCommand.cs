@@ -171,9 +171,9 @@ public class AdminUpdateAppointmentCommandValidator : AbstractValidator<AdminUpd
 {
     public AdminUpdateAppointmentCommandValidator()
     {
-        RuleFor(x => x.Id).GreaterThan(0);
+        RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
-        RuleFor(x => x.AppointmentDate).NotEmpty();
+        RuleFor(x => x.AppointmentDate).NotEmpty().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x)
             .Must(x => x.TrainerId.HasValue || x.NutritionistId.HasValue)
@@ -184,3 +184,4 @@ public class AdminUpdateAppointmentCommandValidator : AbstractValidator<AdminUpd
             .WithMessage("Termin moze biti samo kod trenera ili nutricioniste, ne oba.");
     }
 }
+

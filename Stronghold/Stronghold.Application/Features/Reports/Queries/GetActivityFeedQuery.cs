@@ -49,6 +49,7 @@ public class GetActivityFeedQueryValidator : AbstractValidator<GetActivityFeedQu
     public GetActivityFeedQueryValidator()
     {
         RuleFor(x => x.Count)
-            .InclusiveBetween(1, 100);
+            .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
 }
+

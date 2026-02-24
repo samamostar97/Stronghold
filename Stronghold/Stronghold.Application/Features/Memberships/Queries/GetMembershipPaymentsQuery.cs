@@ -77,19 +77,19 @@ public class GetMembershipPaymentsQueryValidator : AbstractValidator<GetMembersh
 {
     public GetMembershipPaymentsQueryValidator()
     {
-        RuleFor(x => x.UserId).GreaterThan(0);
+        RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
 
-        RuleFor(x => x.Filter).NotNull();
+        RuleFor(x => x.Filter).NotNull().WithMessage("{PropertyName} je obavezno.");
 
         RuleFor(x => x.Filter.PageNumber)
-            .GreaterThanOrEqualTo(1);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.PageSize)
-            .GreaterThanOrEqualTo(1)
-            .LessThanOrEqualTo(100);
+            .GreaterThanOrEqualTo(1).WithMessage("{PropertyName} mora biti vece ili jednako dozvoljenoj vrijednosti.")
+            .LessThanOrEqualTo(100).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
 
         RuleFor(x => x.Filter.OrderBy)
-            .MaximumLength(30)
+            .MaximumLength(30).WithMessage("{PropertyName} ne smije imati vise od 30 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.OrderBy));
 
         RuleFor(x => x.Filter.OrderBy)
@@ -104,3 +104,4 @@ public class GetMembershipPaymentsQueryValidator : AbstractValidator<GetMembersh
         return normalized is "date" or "datedesc" or "amount" or "amountdesc";
     }
 }
+

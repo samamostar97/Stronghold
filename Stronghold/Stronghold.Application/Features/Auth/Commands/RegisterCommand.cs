@@ -46,35 +46,38 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
     public RegisterCommandValidator()
     {
         RuleFor(x => x.FirstName)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x.LastName)
-            .NotEmpty()
-            .MinimumLength(2)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
 
         RuleFor(x => x.Username)
-            .NotEmpty()
-            .MinimumLength(3)
-            .MaximumLength(50);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(3).WithMessage("{PropertyName} mora imati najmanje 3 karaktera.")
+            .MaximumLength(50).WithMessage("{PropertyName} ne smije imati vise od 50 karaktera.");
 
         RuleFor(x => x.Email)
-            .NotEmpty()
-            .EmailAddress()
-            .MinimumLength(5)
-            .MaximumLength(255);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .EmailAddress().WithMessage("Unesite ispravnu email adresu.")
+            .MinimumLength(5).WithMessage("{PropertyName} mora imati najmanje 5 karaktera.")
+            .MaximumLength(255).WithMessage("{PropertyName} ne smije imati vise od 255 karaktera.");
 
         RuleFor(x => x.PhoneNumber)
-            .NotEmpty()
-            .MinimumLength(9)
-            .MaximumLength(20)
-            .Matches(@"^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$");
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(9).WithMessage("{PropertyName} mora imati najmanje 9 karaktera.")
+            .MaximumLength(20).WithMessage("{PropertyName} ne smije imati vise od 20 karaktera.")
+            .Matches(@"^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$")
+            .WithMessage("Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.");
 
         RuleFor(x => x.Password)
-            .NotEmpty()
-            .MinimumLength(6)
-            .MaximumLength(100);
+            .NotEmpty().WithMessage("{PropertyName} je obavezno.")
+            .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
+            .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
 }
+
+

@@ -63,6 +63,7 @@ public class GetSeminarAttendeesQueryValidator : AbstractValidator<GetSeminarAtt
 {
     public GetSeminarAttendeesQueryValidator()
     {
-        RuleFor(x => x.SeminarId).GreaterThan(0);
+        RuleFor(x => x.SeminarId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+

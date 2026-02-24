@@ -78,6 +78,7 @@ public class AttendSeminarCommandValidator : AbstractValidator<AttendSeminarComm
 {
     public AttendSeminarCommandValidator()
     {
-        RuleFor(x => x.SeminarId).GreaterThan(0);
+        RuleFor(x => x.SeminarId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
 }
+
