@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/cart_provider.dart';
+import 'navigation_shell.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/cart_item_card.dart';
 import '../widgets/order_summary_card.dart';
@@ -57,10 +58,15 @@ class CartScreen extends ConsumerWidget {
           ),
           Expanded(
             child: items.isEmpty
-                ? const AppEmptyState(
+                ? AppEmptyState(
                     icon: LucideIcons.shoppingCart,
                     title: 'Korpa je prazna',
                     subtitle: 'Dodajte suplemente iz prodavnice',
+                    actionLabel: 'Idi u prodavnicu',
+                    onAction: () {
+                      ref.read(bottomNavIndexProvider.notifier).state = 1;
+                      Navigator.pop(context);
+                    },
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(

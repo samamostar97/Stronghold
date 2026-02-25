@@ -43,6 +43,18 @@ public class UserRepository : IUserRepository
                 "lastname" => query.OrderBy(x => x.LastName).ThenBy(x => x.Id),
                 "datedesc" => query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id),
                 "date" => query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id),
+                "membershipstatus" => query.OrderByDescending(x =>
+                    _context.Memberships.Any(m => m.UserId == x.Id && m.EndDate >= DateTime.UtcNow))
+                    .ThenBy(x => x.FirstName).ThenBy(x => x.Id),
+                "membershipstatusdesc" => query.OrderBy(x =>
+                    _context.Memberships.Any(m => m.UserId == x.Id && m.EndDate >= DateTime.UtcNow))
+                    .ThenBy(x => x.FirstName).ThenBy(x => x.Id),
+                "expirydate" => query.OrderBy(x =>
+                    _context.Memberships.Where(m => m.UserId == x.Id).Max(m => (DateTime?)m.EndDate) ?? DateTime.MinValue)
+                    .ThenBy(x => x.Id),
+                "expirydatedesc" => query.OrderByDescending(x =>
+                    _context.Memberships.Where(m => m.UserId == x.Id).Max(m => (DateTime?)m.EndDate) ?? DateTime.MinValue)
+                    .ThenBy(x => x.Id),
                 _ => query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id)
             };
         }

@@ -21,6 +21,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.Infrastructure.T
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.API.Tests", "tests\Stronghold.API.Tests\Stronghold.API.Tests.csproj", "{D1B2FC2E-3972-4A6F-BE65-0D5A46DC6880}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stronghold.TestServer", "Stronghold.TestServer\Stronghold.TestServer.csproj", "{7259357F-FCB4-44A5-8119-64564103E88D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,6 +65,10 @@ Global
 		{D1B2FC2E-3972-4A6F-BE65-0D5A46DC6880}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1B2FC2E-3972-4A6F-BE65-0D5A46DC6880}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1B2FC2E-3972-4A6F-BE65-0D5A46DC6880}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7259357F-FCB4-44A5-8119-64564103E88D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7259357F-FCB4-44A5-8119-64564103E88D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7259357F-FCB4-44A5-8119-64564103E88D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7259357F-FCB4-44A5-8119-64564103E88D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

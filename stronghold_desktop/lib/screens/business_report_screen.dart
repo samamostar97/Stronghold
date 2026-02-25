@@ -144,18 +144,17 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Row(children: [
-          Expanded(
-              child: Text('Biznis izvjestaji', style: AppTextStyles.headingMd)),
-          if (isExporting)
+          Expanded(child: _tabBar()),
+          if (isExporting) ...[
+            const SizedBox(width: AppSpacing.md),
             const SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(
                   strokeWidth: 2, color: AppColors.primary),
             ),
+          ],
         ]),
-        const SizedBox(height: AppSpacing.xl),
-        _tabBar(),
         const SizedBox(height: AppSpacing.xl),
         Expanded(
           child: TabBarView(

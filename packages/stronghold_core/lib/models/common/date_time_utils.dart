@@ -4,10 +4,10 @@ class DateTimeUtils {
   static DateTime parseApiDateTime(String value) {
     final parsed = DateTime.parse(value);
 
-    // API datetime without explicit timezone is treated as UTC by contract.
+    // API datetime without explicit timezone is already local (Sarajevo time).
     final hasExplicitZone = _hasZoneSuffix.hasMatch(value);
     if (!hasExplicitZone && value.contains('T')) {
-      return DateTime.utc(
+      return DateTime(
         parsed.year,
         parsed.month,
         parsed.day,
@@ -16,7 +16,7 @@ class DateTimeUtils {
         parsed.second,
         parsed.millisecond,
         parsed.microsecond,
-      ).toLocal();
+      );
     }
 
     return parsed.isUtc ? parsed.toLocal() : parsed;

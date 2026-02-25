@@ -490,86 +490,82 @@ class _TodaySalesCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
         border: Border.all(color: AppColors.border),
       ),
-      child: FittedBox(
-        fit: BoxFit.scaleDown,
-        alignment: Alignment.topLeft,
-        child: SizedBox(
-          width: 295,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    ),
-                    child: Icon(
-                      LucideIcons.banknote,
-                      color: AppColors.success,
-                      size: 18,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Text(
-                      'Prodaja danas',
-                      style: AppTextStyles.headingSm,
-                    ),
-                  ),
-                ],
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.success.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+                child: Icon(
+                  LucideIcons.banknote,
+                  color: AppColors.success,
+                  size: 18,
+                ),
               ),
-              const SizedBox(height: AppSpacing.lg),
-              Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '${revenue.toStringAsFixed(2)} KM',
-                          style: AppTextStyles.stat.copyWith(
-                            color: AppColors.success,
-                          ),
-                        ),
-                        Text('$orders narudzbi', style: AppTextStyles.caption),
-                      ],
-                    ),
-                  ),
-                  Flexible(
-                    child: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.xs,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusSm,
-                          ),
-                        ),
-                        child: Text(
-                          'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
-                          style: AppTextStyles.caption.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Text(
+                  'Prodaja danas',
+                  style: AppTextStyles.headingSm,
+                ),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: AppSpacing.lg),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        '${revenue.toStringAsFixed(2)} KM',
+                        style: AppTextStyles.stat.copyWith(
+                          color: AppColors.success,
+                        ),
+                      ),
+                    ),
+                    Text('$orders narudzbi', style: AppTextStyles.caption),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(
+                      AppSpacing.radiusSm,
+                    ),
+                  ),
+                  child: Text(
+                    'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

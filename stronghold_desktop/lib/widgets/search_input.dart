@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
@@ -24,6 +25,7 @@ class SearchInput extends StatefulWidget {
 class _SearchInputState extends State<SearchInput> {
   bool _focused = false;
   bool _hasText = false;
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -34,6 +36,7 @@ class _SearchInputState extends State<SearchInput> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     widget.controller.removeListener(_onTextChanged);
     super.dispose();
   }
@@ -41,6 +44,10 @@ class _SearchInputState extends State<SearchInput> {
   void _onTextChanged() {
     final hasText = widget.controller.text.isNotEmpty;
     if (hasText != _hasText) setState(() => _hasText = hasText);
+    _debounce?.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      widget.onSubmitted(widget.controller.text);
+    });
   }
 
   @override

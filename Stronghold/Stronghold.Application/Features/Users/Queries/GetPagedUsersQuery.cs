@@ -98,7 +98,8 @@ public class GetPagedUsersQueryValidator : AbstractValidator<GetPagedUsersQuery>
     private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
-        return normalized is "firstname" or "lastname" or "date" or "datedesc";
+        return normalized is "firstname" or "lastname" or "date" or "datedesc"
+            or "membershipstatus" or "membershipstatusdesc" or "expirydate" or "expirydatedesc";
     }
 }
 

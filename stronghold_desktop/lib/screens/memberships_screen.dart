@@ -115,15 +115,24 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text('Upravljanje clanarinama',
-                  style: AppTextStyles.headingMd),
-              const SizedBox(height: AppSpacing.xxl),
-              SearchInput(
-                controller: _searchController,
-                onSubmitted: (q) =>
-                    ref.read(userListProvider.notifier).setSearch(q),
-                hintText:
-                    'Pretrazi po imenu, prezimenu ili korisnickom imenu...',
+              Row(
+                children: [
+                  Expanded(
+                    child: SearchInput(
+                      controller: _searchController,
+                      onSubmitted: (q) =>
+                          ref.read(userListProvider.notifier).setSearch(q),
+                      hintText:
+                          'Pretrazi po imenu, prezimenu ili korisnickom imenu...',
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  _SortDropdown(
+                    value: state.filter.orderBy,
+                    onChanged: (v) =>
+                        ref.read(userListProvider.notifier).setOrderBy(v),
+                  ),
+                ],
               ),
               const SizedBox(height: AppSpacing.xxl),
               Expanded(child: _buildContent(state)),
@@ -175,5 +184,51 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
             ref.read(userListProvider.notifier).goToPage(p),
       ),
     ]);
+  }
+}
+
+class _SortDropdown extends StatelessWidget {
+  const _SortDropdown({required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  static const _options = [
+    (value: null, label: 'Sortiraj'),
+    (value: 'firstname', label: 'Ime (A-Z)'),
+    (value: 'membershipstatus', label: 'Status (aktivne prvo)'),
+    (value: 'membershipstatusdesc', label: 'Status (istekle prvo)'),
+    (value: 'expirydatedesc', label: 'Istek (najskorije)'),
+    (value: 'expirydate', label: 'Istek (najkasnije)'),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: _options.any((o) => o.value == value) ? value : null,
+          icon: const Icon(Icons.sort, color: AppColors.textMuted, size: 18),
+          dropdownColor: AppColors.surfaceSolid,
+          style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
+          items: _options
+              .map((o) => DropdownMenuItem<String?>(
+                    value: o.value,
+                    child: Text(o.label, style: AppTextStyles.bodyMd),
+                  ))
+              .toList(),
+          onChanged: onChanged,
+        ),
+      ),
+    );
   }
 }

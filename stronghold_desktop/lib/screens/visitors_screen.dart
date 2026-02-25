@@ -132,9 +132,7 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _header(state, notifier),
-                const SizedBox(height: AppSpacing.xxl),
-                _actionBar(constraints, notifier),
+                _actionBar(constraints, state, notifier),
                 const SizedBox(height: AppSpacing.xxl),
                 Expanded(child: _body(state, notifier)),
               ],
@@ -145,43 +143,27 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
     );
   }
 
-  Widget _header(
+  Widget _countBadge(
     ListState<CurrentVisitorResponse, VisitQueryFilter> state,
-    CurrentVisitorsNotifier notifier,
-  ) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          'Korisnici trenutno u teretani',
-          style: AppTextStyles.headingMd,
-        ),
-      ),
-      Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.primaryDim,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
-          border: Border.all(color: AppColors.primaryBorder),
-        ),
-        child: Text(
-          '${state.totalCount} korisnika',
-          style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary),
-        ),
-      ),
-      const SizedBox(width: AppSpacing.md),
-      HoverIconButton(
-        icon: LucideIcons.refreshCw,
-        onTap: notifier.refresh,
-        tooltip: 'Osvjezi',
-      ),
-    ],
+  ) => Container(
+    padding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.lg,
+      vertical: AppSpacing.sm,
+    ),
+    decoration: BoxDecoration(
+      color: AppColors.primaryDim,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
+      border: Border.all(color: AppColors.primaryBorder),
+    ),
+    child: Text(
+      '${state.totalCount} korisnika',
+      style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary),
+    ),
   );
 
   Widget _actionBar(
     BoxConstraints constraints,
+    ListState<CurrentVisitorResponse, VisitQueryFilter> state,
     CurrentVisitorsNotifier notifier,
   ) {
     final sort = _sortDropdown(notifier);
@@ -196,26 +178,60 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             hintText: 'Pretrazi trenutne korisnike...',
           ),
           const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              _countBadge(state),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
           sort,
           const SizedBox(height: AppSpacing.md),
-          GradientButton(text: '+ Check-in korisnika', onTap: _openCheckIn),
+          Row(
+            children: [
+              Expanded(
+                child: GradientButton(text: '+ Check-in korisnika', onTap: _openCheckIn),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              HoverIconButton(
+                icon: LucideIcons.refreshCw,
+                onTap: notifier.refresh,
+                tooltip: 'Osvjezi',
+              ),
+            ],
+          ),
         ],
       );
     }
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: SearchInput(
-            controller: _searchController,
-            onSubmitted: (_) {},
-            hintText: 'Pretrazi trenutne korisnike...',
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: SearchInput(
+                controller: _searchController,
+                onSubmitted: (_) {},
+                hintText: 'Pretrazi trenutne korisnike...',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            sort,
+            const SizedBox(width: AppSpacing.lg),
+            GradientButton(text: '+ Check-in korisnika', onTap: _openCheckIn),
+            const SizedBox(width: AppSpacing.md),
+            HoverIconButton(
+              icon: LucideIcons.refreshCw,
+              onTap: notifier.refresh,
+              tooltip: 'Osvjezi',
+            ),
+          ],
         ),
-        const SizedBox(width: AppSpacing.lg),
-        sort,
-        const SizedBox(width: AppSpacing.lg),
-        GradientButton(text: '+ Check-in korisnika', onTap: _openCheckIn),
+        const SizedBox(height: AppSpacing.md),
+        Row(
+          children: [
+            _countBadge(state),
+          ],
+        ),
       ],
     );
   }

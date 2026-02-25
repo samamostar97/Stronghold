@@ -123,6 +123,7 @@ class _Body extends StatelessWidget {
           child: StatCard(
             title: 'PROSJECNA NARUDZBA',
             value: '${rb?.averageOrderValue.toStringAsFixed(2) ?? '0.00'} KM',
+            trendValue: 'Prosjek zadnjih 30 dana',
             accentColor: AppColors.warning,
           ),
         ),
@@ -145,19 +146,21 @@ class _Body extends StatelessWidget {
     const gap = 20.0;
     final cardW = (maxWidth - gap) / 2;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: cardW,
-          child: DashboardRevenueSummary(breakdown: report.revenueBreakdown),
-        ),
-        const SizedBox(width: gap),
-        SizedBox(
-          width: cardW,
-          child: _BestSellerCard(bestseller: report.bestsellerLast30Days),
-        ),
-      ],
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          SizedBox(
+            width: cardW,
+            child: DashboardRevenueSummary(breakdown: report.revenueBreakdown),
+          ),
+          const SizedBox(width: gap),
+          SizedBox(
+            width: cardW,
+            child: _BestSellerCard(bestseller: report.bestsellerLast30Days),
+          ),
+        ],
+      ),
     );
   }
 }

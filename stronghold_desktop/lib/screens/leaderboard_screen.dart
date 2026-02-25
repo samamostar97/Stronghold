@@ -33,19 +33,17 @@ class LeaderboardScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(children: [
-                Icon(LucideIcons.trophy, color: AppColors.error, size: 28),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                    child:
-                        Text('Rang lista', style: AppTextStyles.headingMd)),
-                HoverIconButton(
-                  icon: LucideIcons.refreshCw,
-                  onTap: () => ref.invalidate(leaderboardProvider),
-                  tooltip: 'Osvjezi',
-                ),
-              ]),
-              const SizedBox(height: AppSpacing.xxl),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  HoverIconButton(
+                    icon: LucideIcons.refreshCw,
+                    onTap: () => ref.invalidate(leaderboardProvider),
+                    tooltip: 'Osvjezi',
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
               Expanded(
                 child: leaderboardAsync.when(
                   loading: () => const ShimmerTable(

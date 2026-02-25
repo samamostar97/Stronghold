@@ -130,8 +130,6 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Text('Upravljanje narudzbama', style: AppTextStyles.headingMd),
-                const SizedBox(height: AppSpacing.xxl),
                 _searchBar(constraints),
                 const SizedBox(height: AppSpacing.xxl),
                 Expanded(child: _content(state, notifier)),
