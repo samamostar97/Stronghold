@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../screens/admin_dashboard_screen.dart';
 
 /// A single entry in the command palette.
 class CommandEntry {
   final String label;
   final String sublabel;
   final IconData icon;
-  final AdminScreen? screen;
+  final String? path;
   final VoidCallback? action;
   final List<String> keywords;
 
@@ -16,7 +15,7 @@ class CommandEntry {
     required this.label,
     required this.sublabel,
     required this.icon,
-    this.screen,
+    this.path,
     this.action,
     this.keywords = const [],
   });
@@ -28,112 +27,112 @@ const List<CommandEntry> _allCommands = [
     label: 'Kontrolna ploca',
     sublabel: 'Navigacija',
     icon: LucideIcons.layoutDashboard,
-    screen: AdminScreen.dashboardHome,
+    path: '/dashboard',
     keywords: ['dashboard', 'pocetna', 'home'],
   ),
   CommandEntry(
     label: 'Trenutno u teretani',
     sublabel: 'Upravljanje',
     icon: LucideIcons.activity,
-    screen: AdminScreen.currentVisitors,
+    path: '/visitors',
     keywords: ['visitors', 'check-in', 'prijava', 'posjetioci'],
   ),
   CommandEntry(
     label: 'Clanarine',
     sublabel: 'Upravljanje',
     icon: LucideIcons.creditCard,
-    screen: AdminScreen.memberships,
+    path: '/memberships',
     keywords: ['membership', 'pretplata', 'clanarina'],
   ),
   CommandEntry(
     label: 'Paketi clanarina',
     sublabel: 'Upravljanje',
     icon: LucideIcons.package2,
-    screen: AdminScreen.membershipPackages,
+    path: '/membership-packages',
     keywords: ['package', 'paket', 'plan'],
   ),
   CommandEntry(
     label: 'Korisnici',
     sublabel: 'Upravljanje',
     icon: LucideIcons.users,
-    screen: AdminScreen.users,
+    path: '/users',
     keywords: ['users', 'clanovi', 'members', 'korisnik'],
   ),
   CommandEntry(
     label: 'Treneri',
     sublabel: 'Osoblje',
     icon: LucideIcons.dumbbell,
-    screen: AdminScreen.trainers,
+    path: '/trainers',
     keywords: ['trainer', 'trener', 'coach'],
   ),
   CommandEntry(
     label: 'Nutricionisti',
     sublabel: 'Osoblje',
     icon: LucideIcons.apple,
-    screen: AdminScreen.nutritionists,
+    path: '/nutritionists',
     keywords: ['nutritionist', 'nutricionista', 'ishrana'],
   ),
   CommandEntry(
     label: 'Suplementi',
     sublabel: 'Prodavnica',
     icon: LucideIcons.pill,
-    screen: AdminScreen.supplements,
+    path: '/supplements',
     keywords: ['supplement', 'proizvod', 'product'],
   ),
   CommandEntry(
     label: 'Kategorije',
     sublabel: 'Prodavnica',
     icon: LucideIcons.tag,
-    screen: AdminScreen.categories,
+    path: '/categories',
     keywords: ['category', 'kategorija'],
   ),
   CommandEntry(
     label: 'Dobavljaci',
     sublabel: 'Prodavnica',
     icon: LucideIcons.truck,
-    screen: AdminScreen.suppliers,
+    path: '/suppliers',
     keywords: ['supplier', 'dobavljac'],
   ),
   CommandEntry(
     label: 'Kupovine',
     sublabel: 'Prodavnica',
     icon: LucideIcons.shoppingBag,
-    screen: AdminScreen.orders,
+    path: '/orders',
     keywords: ['order', 'kupovina', 'narudzba'],
   ),
   CommandEntry(
     label: 'FAQ',
     sublabel: 'Sadrzaj',
     icon: LucideIcons.helpCircle,
-    screen: AdminScreen.faq,
+    path: '/faq',
     keywords: ['faq', 'pitanja', 'pomoc'],
   ),
   CommandEntry(
     label: 'Recenzije',
     sublabel: 'Sadrzaj',
     icon: LucideIcons.star,
-    screen: AdminScreen.reviews,
+    path: '/reviews',
     keywords: ['review', 'recenzija', 'ocjena'],
   ),
   CommandEntry(
     label: 'Seminari',
     sublabel: 'Sadrzaj',
     icon: LucideIcons.graduationCap,
-    screen: AdminScreen.seminars,
+    path: '/seminars',
     keywords: ['seminar', 'edukacija', 'workshop'],
   ),
   CommandEntry(
     label: 'Biznis izvjestaji',
     sublabel: 'Analitika',
     icon: LucideIcons.trendingUp,
-    screen: AdminScreen.businessReport,
+    path: '/reports',
     keywords: ['report', 'izvjestaj', 'statistika', 'analiza'],
   ),
   CommandEntry(
     label: 'Rang lista',
     sublabel: 'Analitika',
     icon: LucideIcons.trophy,
-    screen: AdminScreen.leaderboard,
+    path: '/leaderboard',
     keywords: ['leaderboard', 'rang', 'top'],
   ),
 ];

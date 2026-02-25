@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'package:stronghold_desktop/constants/app_theme.dart';
-import 'package:stronghold_desktop/screens/login_screen.dart';
+import 'package:stronghold_desktop/routing/app_router.dart';
 
 void main() {
   const baseUrl = String.fromEnvironment(
@@ -14,16 +14,17 @@ void main() {
   runApp(const ProviderScope(child: App()));
 }
 
-class App extends StatelessWidget {
+class App extends ConsumerWidget {
   const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       title: 'Stronghold Desktop',
       theme: AppTheme.darkTheme(),
-      home: LoginScreen(),
+      routerConfig: router,
     );
   }
 }

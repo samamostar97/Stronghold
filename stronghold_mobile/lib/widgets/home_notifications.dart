@@ -8,7 +8,7 @@ import '../constants/app_text_styles.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
-import 'glass_card.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Unified notification item for display
 class _NotifItem {

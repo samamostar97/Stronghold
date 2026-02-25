@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
@@ -9,8 +10,6 @@ import '../providers/address_provider.dart';
 import '../utils/error_handler.dart';
 import '../utils/validators.dart';
 import '../widgets/feedback_dialog.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
 
 class AddressScreen extends ConsumerStatefulWidget {
   const AddressScreen({super.key});
@@ -56,7 +55,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
       ref.invalidate(addressProvider);
       if (mounted) {
         await showSuccessFeedback(context, 'Adresa uspjesno sacuvana');
-        if (mounted) Navigator.pop(context);
+        if (mounted) context.pop();
       }
     } catch (e) {
       if (mounted) {
@@ -81,7 +80,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () => context.pop(),
         ),
         title: Text('Adresa za dostavu', style: AppTextStyles.headingSm),
         centerTitle: false,

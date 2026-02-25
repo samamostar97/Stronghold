@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
@@ -154,7 +155,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                   ? null
                   : () {
                       if (_currentStep == 0) {
-                        Navigator.pop(context);
+                        context.pop();
                       } else {
                         _goToStep(_currentStep - 1);
                       }
@@ -190,7 +191,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         return CheckoutReviewStep(
           items: cartState.items,
           total: cartState.totalAmount,
-          onBack: () => Navigator.pop(context),
+          onBack: () => context.pop(),
           onNext: () => _goToStep(1),
         );
       case 1:

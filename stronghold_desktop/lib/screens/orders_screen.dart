@@ -9,14 +9,13 @@ import '../providers/order_provider.dart';
 import '../providers/list_state.dart';
 import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/order_details_dialog.dart';
-import '../widgets/orders_table.dart';
-import '../widgets/pagination_controls.dart';
-import '../widgets/search_input.dart';
-import '../widgets/shimmer_loading.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/orders/order_details_dialog.dart';
+import '../widgets/orders/orders_table.dart';
+import '../widgets/shared/pagination_controls.dart';
+import '../widgets/shared/search_input.dart';
+import '../widgets/shared/shimmer_loading.dart';
+import '../widgets/shared/success_animation.dart';
 
 class OrdersScreen extends ConsumerStatefulWidget {
   const OrdersScreen({super.key});
@@ -326,7 +325,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton(text: 'Pokusaj ponovo', onTap: notifier.refresh),
+            GradientButton.text(text: 'Pokusaj ponovo', onPressed: notifier.refresh),
           ],
         ),
       );

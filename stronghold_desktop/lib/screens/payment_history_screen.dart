@@ -7,9 +7,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/membership_provider.dart';
-import '../widgets/data_table_widgets.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/pagination_controls.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/pagination_controls.dart';
 
 /// Payment History Screen - shows all payments for a specific user
 class PaymentHistoryScreen extends ConsumerStatefulWidget {
@@ -121,9 +120,9 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: AppSpacing.lg),
-                                  GradientButton(
+                                  GradientButton.text(
                                     text: 'Pokusaj ponovo',
-                                    onTap: () => ref.invalidate(
+                                    onPressed: () => ref.invalidate(
                                       userPaymentsProvider(_params),
                                     ),
                                   ),

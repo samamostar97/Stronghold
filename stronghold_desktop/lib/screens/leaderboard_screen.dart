@@ -5,14 +5,13 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/leaderboard_provider.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/hover_icon_button.dart';
-import '../widgets/leaderboard_table.dart';
-import '../widgets/shimmer_loading.dart';
+import 'package:stronghold_core/stronghold_core.dart';
+import '../widgets/shared/hover_icon_button.dart';
+import '../widgets/leaderboard/leaderboard_table.dart';
+import '../widgets/shared/shimmer_loading.dart';
 
 class LeaderboardScreen extends ConsumerWidget {
-  const LeaderboardScreen({super.key, this.embedded = false});
-  final bool embedded;
+  const LeaderboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -59,9 +58,9 @@ class LeaderboardScreen extends ConsumerWidget {
                               style: AppTextStyles.bodyMd,
                               textAlign: TextAlign.center),
                           const SizedBox(height: AppSpacing.lg),
-                          GradientButton(
+                          GradientButton.text(
                             text: 'Pokusaj ponovo',
-                            onTap: () =>
+                            onPressed: () =>
                                 ref.invalidate(leaderboardProvider),
                           ),
                         ]),

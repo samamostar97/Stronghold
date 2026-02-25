@@ -5,7 +5,6 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
-import 'glass_card.dart';
 import 'outline_button.dart';
 
 class AppointmentCard extends StatelessWidget {

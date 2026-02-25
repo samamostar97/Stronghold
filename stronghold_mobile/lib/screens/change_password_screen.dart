@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -7,8 +8,7 @@ import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -59,7 +59,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
         _success = true;
       });
       await Future.delayed(const Duration(seconds: 2));
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
       final authState = ref.read(authProvider);
       setState(() {
@@ -97,7 +97,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     icon: const Icon(
                       LucideIcons.arrowLeft,
                       color: AppColors.textPrimary,

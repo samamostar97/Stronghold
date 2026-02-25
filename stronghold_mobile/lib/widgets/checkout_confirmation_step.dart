@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../screens/order_history_screen.dart';
-import 'glass_card.dart';
-import 'gradient_button.dart';
 
 class CheckoutConfirmationStep extends StatelessWidget {
   final AddressResponse? address;
@@ -90,18 +88,13 @@ class CheckoutConfirmationStep extends StatelessWidget {
             label: 'Moje narudzbe',
             icon: LucideIcons.package,
             onPressed: () {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const OrderHistoryScreen(),
-                ),
-              );
+              context.go('/orders');
             },
           ),
           const SizedBox(height: AppSpacing.md),
           GestureDetector(
             onTap: () {
-              Navigator.popUntil(context, (route) => route.isFirst);
+              context.go('/shop');
             },
             child: Container(
               width: double.infinity,

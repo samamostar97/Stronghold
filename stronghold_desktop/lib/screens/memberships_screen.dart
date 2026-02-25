@@ -7,20 +7,18 @@ import '../constants/app_text_styles.dart';
 import '../providers/user_provider.dart';
 import '../providers/membership_provider.dart';
 import '../utils/error_handler.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/membership_payment_dialog.dart';
-import '../widgets/memberships_table.dart';
-import '../widgets/pagination_controls.dart';
-import '../widgets/search_input.dart';
-import '../widgets/shimmer_loading.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/memberships/membership_payment_dialog.dart';
+import '../widgets/memberships/memberships_table.dart';
+import '../widgets/shared/pagination_controls.dart';
+import '../widgets/shared/search_input.dart';
+import '../widgets/shared/shimmer_loading.dart';
+import '../widgets/shared/success_animation.dart';
 import 'payment_history_screen.dart';
 
 class MembershipsScreen extends ConsumerStatefulWidget {
-  const MembershipsScreen({super.key, this.embedded = false});
-  final bool embedded;
+  const MembershipsScreen({super.key});
 
   @override
   ConsumerState<MembershipsScreen> createState() => _MembershipsScreenState();
@@ -155,9 +153,9 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
           Text(userState.error!,
               style: AppTextStyles.bodyMd, textAlign: TextAlign.center),
           const SizedBox(height: AppSpacing.lg),
-          GradientButton(
+          GradientButton.text(
             text: 'Pokusaj ponovo',
-            onTap: () => ref.read(userListProvider.notifier).load(),
+            onPressed: () => ref.read(userListProvider.notifier).load(),
           ),
         ]),
       );

@@ -9,14 +9,13 @@ import '../providers/list_state.dart';
 import '../providers/review_provider.dart';
 import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/pagination_controls.dart';
-import '../widgets/reviews_table.dart';
-import '../widgets/search_input.dart';
-import '../widgets/shimmer_loading.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/pagination_controls.dart';
+import '../widgets/reviews/reviews_table.dart';
+import '../widgets/shared/search_input.dart';
+import '../widgets/shared/shimmer_loading.dart';
+import '../widgets/shared/success_animation.dart';
 
 class ReviewsScreen extends ConsumerStatefulWidget {
   const ReviewsScreen({super.key});
@@ -212,7 +211,7 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton(text: 'Pokusaj ponovo', onTap: notifier.refresh),
+            GradientButton.text(text: 'Pokusaj ponovo', onPressed: notifier.refresh),
           ],
         ),
       );

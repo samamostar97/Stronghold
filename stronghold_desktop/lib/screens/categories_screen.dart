@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/supplement_category_provider.dart';
-import '../widgets/crud_list_scaffold.dart';
-import '../widgets/success_animation.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/categories_table.dart';
-import '../widgets/category_dialog.dart';
+import '../widgets/shared/crud_list_scaffold.dart';
+import '../widgets/shared/success_animation.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/categories/categories_table.dart';
+import '../widgets/categories/category_dialog.dart';
 import '../utils/error_handler.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {

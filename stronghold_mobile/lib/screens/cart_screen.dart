@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/cart_provider.dart';
-import 'navigation_shell.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/cart_item_card.dart';
 import '../widgets/order_summary_card.dart';
-import 'checkout_screen.dart';
 
 class CartScreen extends ConsumerWidget {
   const CartScreen({super.key});
@@ -28,7 +27,7 @@ class CartScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(children: [
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () { if (context.canPop()) { context.pop(); } else { context.go('/home'); } },
                 child: Container(
                   width: AppSpacing.touchTarget,
                   height: AppSpacing.touchTarget,
@@ -64,8 +63,7 @@ class CartScreen extends ConsumerWidget {
                     subtitle: 'Dodajte suplemente iz prodavnice',
                     actionLabel: 'Idi u prodavnicu',
                     onAction: () {
-                      ref.read(bottomNavIndexProvider.notifier).state = 1;
-                      Navigator.pop(context);
+                      context.go('/shop');
                     },
                   )
                 : ListView.builder(
@@ -92,10 +90,7 @@ class CartScreen extends ConsumerWidget {
           if (items.isNotEmpty)
             OrderSummaryCard(
               totalAmount: cartState.totalAmount,
-              onCheckout: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const CheckoutScreen()),
-              ),
+              onCheckout: () => context.push('/checkout'),
             ),
         ]),
       ),

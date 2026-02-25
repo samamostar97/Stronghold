@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -16,9 +17,6 @@ import '../widgets/feedback_dialog.dart';
 import '../widgets/search_bar_widget.dart';
 import '../widgets/shop_recommendations.dart';
 import '../widgets/supplement_card.dart';
-import 'cart_screen.dart';
-import 'navigation_shell.dart';
-import 'supplement_detail_screen.dart';
 
 class SupplementShopScreen extends ConsumerStatefulWidget {
   const SupplementShopScreen({super.key});
@@ -108,12 +106,11 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
       child: Row(children: [
-        _iconBtn(LucideIcons.arrowLeft, () => ref.read(bottomNavIndexProvider.notifier).state = 0),
+        _iconBtn(LucideIcons.arrowLeft, () => context.go('/home')),
         const SizedBox(width: AppSpacing.lg),
         Expanded(child: Text('Prodavnica', style: AppTextStyles.headingMd)),
         GestureDetector(
-          onTap: () => Navigator.push(
-              context, MaterialPageRoute(builder: (_) => const CartScreen())),
+          onTap: () => context.push('/cart'),
           child: Container(
             width: AppSpacing.touchTarget,
             height: AppSpacing.touchTarget,
@@ -247,12 +244,7 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
                 final s = state.items[i];
                 return SupplementCard(
                   supplement: s,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => SupplementDetailScreen(supplement: s),
-                    ),
-                  ),
+                  onTap: () => context.push('/shop/detail', extra: s),
                   onAddToCart: () {
                     ref.read(cartProvider.notifier).addItem(s);
                     showSuccessFeedback(context, '${s.name} dodano u korpu');

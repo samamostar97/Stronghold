@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -7,12 +8,8 @@ import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../providers/cart_provider.dart';
 import '../utils/image_utils.dart';
-import '../widgets/avatar_widget.dart';
-import '../widgets/glass_card.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../widgets/profile_image_picker.dart';
-import 'address_screen.dart';
-import 'change_password_screen.dart';
-import 'login_screen.dart';
 
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -33,11 +30,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       ref.read(cartProvider.notifier).clear();
       await ref.read(authProvider.notifier).logout();
       if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginScreen()),
-          (route) => false,
-        );
+        context.go('/login');
       }
     } catch (_) {
       if (mounted) setState(() => _isLoggingOut = false);
@@ -87,11 +80,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 color: AppColors.secondary,
                 title: 'Adresa za dostavu',
                 subtitle: 'Dodaj ili promijeni adresu',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const AddressScreen()),
-                ),
+                onTap: () => context.push('/address'),
               ),
               const SizedBox(height: AppSpacing.sm),
               _navOption(
@@ -99,11 +88,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 color: AppColors.accent,
                 title: 'Promijeni lozinku',
                 subtitle: 'Azuriraj svoju lozinku',
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => const ChangePasswordScreen()),
-                ),
+                onTap: () => context.push('/change-password'),
               ),
               const SizedBox(height: AppSpacing.xxl),
               // Logout

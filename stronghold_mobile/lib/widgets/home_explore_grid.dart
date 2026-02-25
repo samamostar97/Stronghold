@@ -1,19 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import '../screens/appointment_screen.dart';
-import '../screens/cart_screen.dart';
-import '../screens/faq_screen.dart';
-import '../screens/leaderboard_screen.dart';
-import '../screens/nutritionist_list_screen.dart';
-import '../screens/order_history_screen.dart';
-import '../screens/review_history_screen.dart';
-import '../screens/seminar_screen.dart';
-import '../screens/trainer_list_screen.dart';
-import '../screens/user_progress_screen.dart';
-import 'glass_card.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class HomeExploreGrid extends StatelessWidget {
   const HomeExploreGrid({super.key});
@@ -41,10 +32,7 @@ class HomeExploreGrid extends StatelessWidget {
                     color: item.color,
                     title: item.title,
                     hint: item.hint,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => item.screen),
-                    ),
+                    onTap: () => context.push(item.path),
                   ),
                 );
               }).toList(),
@@ -112,14 +100,14 @@ class _ExploreItem {
   final Color color;
   final String title;
   final String hint;
-  final Widget screen;
+  final String path;
 
   const _ExploreItem({
     required this.icon,
     required this.color,
     required this.title,
     required this.hint,
-    required this.screen,
+    required this.path,
   });
 }
 
@@ -129,69 +117,69 @@ const _items = <_ExploreItem>[
     color: AppColors.primary,
     title: 'Moj Napredak',
     hint: 'Level, XP, statistika',
-    screen: UserProgressScreen(),
+    path: '/progress',
   ),
   _ExploreItem(
     icon: LucideIcons.calendar,
     color: AppColors.secondary,
     title: 'Termini',
     hint: 'Raspored i rezervacije',
-    screen: AppointmentScreen(),
+    path: '/appointments',
   ),
   _ExploreItem(
     icon: LucideIcons.trophy,
     color: AppColors.warning,
     title: 'Hall of Fame',
     hint: 'Rang lista clanova',
-    screen: LeaderboardScreen(),
+    path: '/leaderboard',
   ),
   _ExploreItem(
     icon: LucideIcons.dumbbell,
     color: AppColors.success,
     title: 'Treneri',
     hint: 'Pregled trenera',
-    screen: TrainerListScreen(),
+    path: '/trainers',
   ),
   _ExploreItem(
     icon: LucideIcons.apple,
     color: AppColors.accent,
     title: 'Nutricionisti',
     hint: 'Savjeti za ishranu',
-    screen: NutritionistListScreen(),
+    path: '/nutritionists',
   ),
   _ExploreItem(
     icon: LucideIcons.graduationCap,
     color: AppColors.orange,
     title: 'Seminari',
     hint: 'Edukacije i radionice',
-    screen: SeminarScreen(),
+    path: '/seminars',
   ),
   _ExploreItem(
     icon: LucideIcons.package,
     color: AppColors.primary,
     title: 'Narudzbe',
     hint: 'Historija narudzbi',
-    screen: OrderHistoryScreen(),
+    path: '/orders',
   ),
   _ExploreItem(
     icon: LucideIcons.shoppingCart,
     color: AppColors.error,
     title: 'Korpa',
     hint: 'Trenutna korpa',
-    screen: CartScreen(),
+    path: '/cart',
   ),
   _ExploreItem(
     icon: LucideIcons.star,
     color: AppColors.warning,
     title: 'Recenzije',
     hint: 'Moje recenzije',
-    screen: ReviewHistoryScreen(),
+    path: '/reviews',
   ),
   _ExploreItem(
     icon: LucideIcons.helpCircle,
     color: AppColors.textMuted,
     title: 'FAQ',
     hint: 'Cesta pitanja',
-    screen: FaqScreen(),
+    path: '/faq',
   ),
 ];

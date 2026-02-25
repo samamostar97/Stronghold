@@ -7,7 +7,7 @@ import 'package:stronghold_core/stronghold_core.dart';
 import 'config/stripe_config.dart';
 import 'constants/app_colors.dart';
 import 'constants/app_theme.dart';
-import 'screens/login_screen.dart';
+import 'routing/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -47,16 +47,17 @@ void main() async {
   runApp(const ProviderScope(child: StrongholdApp()));
 }
 
-class StrongholdApp extends StatelessWidget {
+class StrongholdApp extends ConsumerWidget {
   const StrongholdApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(routerProvider);
+    return MaterialApp.router(
       title: 'Stronghold',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme(),
-      home: const LoginScreen(),
+      routerConfig: router,
     );
   }
 }

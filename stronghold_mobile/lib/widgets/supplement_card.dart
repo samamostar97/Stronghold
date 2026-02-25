@@ -5,7 +5,6 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
-import 'glass_card.dart';
 
 class SupplementCard extends StatelessWidget {
   final SupplementResponse supplement;

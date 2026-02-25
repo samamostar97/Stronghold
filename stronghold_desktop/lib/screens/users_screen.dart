@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/user_provider.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/crud_list_scaffold.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/success_animation.dart';
-import '../widgets/user_add_dialog.dart';
-import '../widgets/user_edit_dialog.dart';
-import '../widgets/users_table.dart';
-import '../widgets/user_detail_drawer.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/shared/crud_list_scaffold.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/success_animation.dart';
+import '../widgets/users/user_add_dialog.dart';
+import '../widgets/users/user_edit_dialog.dart';
+import '../widgets/users/users_table.dart';
+import '../widgets/users/user_detail_drawer.dart';
 import '../utils/error_handler.dart';
 
 /// Users management screen using CrudListScaffold.

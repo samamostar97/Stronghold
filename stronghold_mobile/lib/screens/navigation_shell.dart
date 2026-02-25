@@ -1,43 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../constants/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
-import 'home_screen.dart';
-import 'supplement_shop_screen.dart';
-import 'profile_settings_screen.dart';
 
-/// Provider to allow child widgets to switch bottom nav tab
+/// Provider to allow child widgets to detect tab switches
 final bottomNavIndexProvider = StateProvider<int>((ref) => 0);
 
-class NavigationShell extends ConsumerWidget {
-  const NavigationShell({super.key});
-
-  static const _screens = <Widget>[
-    HomeScreen(),
-    SupplementShopScreen(),
-    ProfileSettingsScreen(),
-  ];
+class NavigationShellWrapper extends ConsumerWidget {
+  final StatefulNavigationShell navigationShell;
+  const NavigationShellWrapper({super.key, required this.navigationShell});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final currentIndex = ref.watch(bottomNavIndexProvider);
+    // Sync the current tab index to the provider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final current = ref.read(bottomNavIndexProvider);
+      if (current != navigationShell.currentIndex) {
+        ref.read(bottomNavIndexProvider.notifier).state =
+            navigationShell.currentIndex;
+      }
+    });
 
     return PopScope(
-      canPop: false,
+      canPop: navigationShell.currentIndex == 0,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && currentIndex != 0) {
-          ref.read(bottomNavIndexProvider.notifier).state = 0;
+        if (!didPop && navigationShell.currentIndex != 0) {
+          navigationShell.goBranch(0);
         }
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: IndexedStack(
-          index: currentIndex,
-          children: _screens,
-        ),
+        body: navigationShell,
         bottomNavigationBar: AppBottomNav(
-          currentIndex: currentIndex,
-          onTap: (index) => ref.read(bottomNavIndexProvider.notifier).state = index,
+          currentIndex: navigationShell.currentIndex,
+          onTap: (index) => navigationShell.goBranch(index),
         ),
       ),
     );

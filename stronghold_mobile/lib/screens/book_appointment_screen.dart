@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -8,12 +9,22 @@ import '../providers/appointment_provider.dart';
 import '../utils/date_format_utils.dart';
 import '../utils/error_handler.dart';
 import '../widgets/feedback_dialog.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../widgets/section_header.dart';
 import '../widgets/time_slot_grid.dart';
 
 enum StaffType { trainer, nutritionist }
+
+class BookAppointmentArgs {
+  final int staffId;
+  final String staffName;
+  final StaffType staffType;
+  const BookAppointmentArgs({
+    required this.staffId,
+    required this.staffName,
+    required this.staffType,
+  });
+}
 
 class BookAppointmentScreen extends ConsumerStatefulWidget {
   final int staffId;
@@ -88,7 +99,7 @@ class _BookAppointmentScreenState
       }
       if (mounted) {
         await showSuccessFeedback(context, 'Uspjesno ste zakazali termin');
-        if (mounted) Navigator.of(context).popUntil((r) => r.isFirst);
+        if (mounted) context.go('/home');
       }
     } catch (e) {
       if (mounted) {
@@ -117,7 +128,7 @@ class _BookAppointmentScreenState
             padding: const EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(children: [
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () { if (context.canPop()) { context.pop(); } else { context.go('/home'); } },
                 child: Container(
                   width: AppSpacing.touchTarget,
                   height: AppSpacing.touchTarget,

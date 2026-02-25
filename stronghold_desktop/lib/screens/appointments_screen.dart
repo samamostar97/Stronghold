@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/appointment_provider.dart';
 import '../utils/error_handler.dart';
-import '../widgets/appointment_add_dialog.dart';
-import '../widgets/appointment_edit_dialog.dart';
-import '../widgets/appointments_table.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/crud_list_scaffold.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/appointments/appointment_add_dialog.dart';
+import '../widgets/appointments/appointment_edit_dialog.dart';
+import '../widgets/appointments/appointments_table.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/shared/crud_list_scaffold.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/success_animation.dart';
 
 class AppointmentsScreen extends ConsumerStatefulWidget {
   const AppointmentsScreen({super.key});

@@ -6,18 +6,14 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/reports_provider.dart';
-import '../widgets/back_button.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/report_business_tab.dart';
-import '../widgets/report_inventory_tab.dart';
-import '../widgets/report_membership_tab.dart';
-import '../widgets/shared_admin_header.dart';
-import '../widgets/success_animation.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/reports/report_business_tab.dart';
+import '../widgets/reports/report_inventory_tab.dart';
+import '../widgets/reports/report_membership_tab.dart';
+import '../widgets/shared/success_animation.dart';
 
 class BusinessReportScreen extends ConsumerStatefulWidget {
-  const BusinessReportScreen({super.key, this.onBack, this.embedded = false});
-  final VoidCallback? onBack;
-  final bool embedded;
+  const BusinessReportScreen({super.key});
 
   @override
   ConsumerState<BusinessReportScreen> createState() =>
@@ -95,46 +91,14 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.embedded) {
-      return LayoutBuilder(builder: (context, c) {
-        final pad = c.maxWidth > 1200 ? 40.0 : c.maxWidth > 800 ? 24.0 : 16.0;
-        return Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: pad, vertical: AppSpacing.xl),
-          child: _mainContent(),
-        );
-      });
-    }
-
-    return Scaffold(
-      backgroundColor: Colors.transparent,
-      body: Container(
-        color: AppColors.background,
-        child: SafeArea(
-          child: LayoutBuilder(builder: (context, c) {
-            final pad =
-                c.maxWidth > 1200 ? 40.0 : c.maxWidth > 800 ? 24.0 : 16.0;
-            return Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: pad, vertical: AppSpacing.xl),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SharedAdminHeader(),
-                  const SizedBox(height: AppSpacing.xl),
-                  AppBackButton(
-                    onTap: widget.onBack ??
-                        () => Navigator.of(context).maybePop(),
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Expanded(child: _mainContent()),
-                ],
-              ),
-            );
-          }),
-        ),
-      ),
-    );
+    return LayoutBuilder(builder: (context, c) {
+      final pad = c.maxWidth > 1200 ? 40.0 : c.maxWidth > 800 ? 24.0 : 16.0;
+      return Padding(
+        padding: EdgeInsets.symmetric(
+            horizontal: pad, vertical: AppSpacing.xl),
+        child: _mainContent(),
+      );
+    });
   }
 
   Widget _mainContent() {

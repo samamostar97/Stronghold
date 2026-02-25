@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -8,8 +9,6 @@ import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/cart_provider.dart';
 import '../providers/supplement_provider.dart';
 import '../widgets/feedback_dialog.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
 import '../widgets/review_card.dart';
 import '../widgets/section_header.dart';
 import '../widgets/supplement_detail_header.dart';
@@ -31,7 +30,7 @@ class SupplementDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.screenPadding),
             child: Row(children: [
               GestureDetector(
-                onTap: () => Navigator.pop(context),
+                onTap: () { if (context.canPop()) { context.pop(); } else { context.go('/home'); } },
                 child: Container(
                   width: AppSpacing.touchTarget,
                   height: AppSpacing.touchTarget,

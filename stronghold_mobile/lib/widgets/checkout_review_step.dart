@@ -6,8 +6,7 @@ import '../constants/app_text_styles.dart';
 import '../models/cart_models.dart';
 import 'checkout_item_card.dart';
 import 'checkout_summary_row.dart';
-import 'glass_card.dart';
-import 'gradient_button.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'section_header.dart';
 
 class CheckoutReviewStep extends StatelessWidget {

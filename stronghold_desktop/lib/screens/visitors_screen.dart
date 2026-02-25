@@ -9,19 +9,17 @@ import '../providers/list_state.dart';
 import '../providers/visit_provider.dart';
 import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
-import '../widgets/checkin_dialog.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/hover_icon_button.dart';
-import '../widgets/pagination_controls.dart';
-import '../widgets/search_input.dart';
-import '../widgets/success_animation.dart';
-import '../widgets/visitors_table.dart';
+import '../widgets/visitors/checkin_dialog.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/hover_icon_button.dart';
+import '../widgets/shared/pagination_controls.dart';
+import '../widgets/shared/search_input.dart';
+import '../widgets/shared/success_animation.dart';
+import '../widgets/visitors/visitors_table.dart';
 
 class VisitorsScreen extends ConsumerStatefulWidget {
-  const VisitorsScreen({super.key, this.embedded = false});
-  final bool embedded;
+  const VisitorsScreen({super.key});
 
   @override
   ConsumerState<VisitorsScreen> createState() => _VisitorsScreenState();
@@ -189,7 +187,7 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
           Row(
             children: [
               Expanded(
-                child: GradientButton(text: '+ Check-in korisnika', onTap: _openCheckIn),
+                child: GradientButton.text(text: '+ Check-in korisnika', onPressed: _openCheckIn),
               ),
               const SizedBox(width: AppSpacing.md),
               HoverIconButton(
@@ -217,7 +215,7 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             const SizedBox(width: AppSpacing.lg),
             sort,
             const SizedBox(width: AppSpacing.lg),
-            GradientButton(text: '+ Check-in korisnika', onTap: _openCheckIn),
+            GradientButton.text(text: '+ Check-in korisnika', onPressed: _openCheckIn),
             const SizedBox(width: AppSpacing.md),
             HoverIconButton(
               icon: LucideIcons.refreshCw,
@@ -299,7 +297,7 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton(text: 'Pokusaj ponovo', onTap: notifier.refresh),
+            GradientButton.text(text: 'Pokusaj ponovo', onPressed: notifier.refresh),
           ],
         ),
       );

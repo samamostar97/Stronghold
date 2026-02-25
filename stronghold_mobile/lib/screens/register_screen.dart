@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -7,10 +8,7 @@ import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/particle_background.dart';
-import 'login_success_screen.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -78,10 +76,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       if (!mounted) return;
       final user = ref.read(authProvider).user;
       if (user != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginSuccessScreen()),
-        );
+        context.go('/login-success');
       }
     } catch (e) {
       final error = ref.read(authProvider).error;
@@ -125,7 +120,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () => context.pop(),
                         icon: const Icon(
                           LucideIcons.arrowLeft,
                           color: AppColors.textPrimary,
@@ -374,7 +369,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               ),
                             ),
                             GestureDetector(
-                              onTap: () => Navigator.pop(context),
+                              onTap: () => context.pop(),
                               child: Text(
                                 'Prijavite se',
                                 style: AppTextStyles.bodyBold.copyWith(

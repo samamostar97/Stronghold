@@ -6,14 +6,14 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/seminar_provider.dart';
-import '../widgets/crud_list_scaffold.dart';
-import '../widgets/success_animation.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/seminars_table.dart';
-import '../widgets/seminar_add_dialog.dart';
-import '../widgets/seminar_edit_dialog.dart';
-import '../widgets/seminar_attendees_dialog.dart';
+import '../widgets/shared/crud_list_scaffold.dart';
+import '../widgets/shared/success_animation.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/seminars/seminars_table.dart';
+import '../widgets/seminars/seminar_add_dialog.dart';
+import '../widgets/seminars/seminar_edit_dialog.dart';
+import '../widgets/seminars/seminar_attendees_dialog.dart';
 import '../utils/error_handler.dart';
 
 class SeminarsScreen extends ConsumerStatefulWidget {

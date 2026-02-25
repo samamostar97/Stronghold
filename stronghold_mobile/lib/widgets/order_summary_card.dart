@@ -3,7 +3,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
-import 'gradient_button.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class OrderSummaryCard extends StatelessWidget {
   final double totalAmount;

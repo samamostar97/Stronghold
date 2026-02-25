@@ -10,7 +10,7 @@ import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../screens/navigation_shell.dart';
 import '../utils/image_utils.dart';
-import 'glass_card.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import 'profile_image_picker.dart';
 
 class WarriorBanner extends ConsumerStatefulWidget {

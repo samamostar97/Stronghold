@@ -5,7 +5,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../models/cart_models.dart';
 import '../utils/image_utils.dart';
-import 'glass_card.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class CartItemCard extends StatelessWidget {
   final CartItem item;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -8,18 +9,14 @@ import '../providers/admin_activity_provider.dart';
 import '../providers/dashboard_provider.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/error_handler.dart';
-import '../widgets/dashboard_admin_activity_feed.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/dashboard_sales_chart.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/shimmer_loading.dart';
-import '../widgets/success_animation.dart';
-import 'admin_dashboard_screen.dart';
+import '../widgets/dashboard/dashboard_admin_activity_feed.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/dashboard/dashboard_sales_chart.dart';
+import '../widgets/shared/shimmer_loading.dart';
+import '../widgets/shared/success_animation.dart';
 
 class DashboardHomeScreen extends ConsumerStatefulWidget {
-  const DashboardHomeScreen({super.key, this.onNavigate});
-
-  final ValueChanged<AdminScreen>? onNavigate;
+  const DashboardHomeScreen({super.key});
 
   @override
   ConsumerState<DashboardHomeScreen> createState() =>
@@ -58,9 +55,9 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton(
+            GradientButton.text(
               text: 'Pokusaj ponovo',
-              onTap: () => ref.read(dashboardProvider.notifier).refresh(),
+              onPressed: () => ref.read(dashboardProvider.notifier).refresh(),
             ),
           ],
         ),
@@ -89,7 +86,6 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
             children: [
               // Quick actions + gym occupancy
               _QuickActionsBar(
-                onNavigate: widget.onNavigate,
                 visitorCount: state.currentVisitors.length,
               ),
               const SizedBox(height: AppSpacing.xl),
@@ -227,11 +223,9 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
 
 class _QuickActionsBar extends StatelessWidget {
   const _QuickActionsBar({
-    required this.onNavigate,
     required this.visitorCount,
   });
 
-  final ValueChanged<AdminScreen>? onNavigate;
   final int visitorCount;
 
   @override
@@ -244,24 +238,24 @@ class _QuickActionsBar extends StatelessWidget {
             icon: LucideIcons.logIn,
             label: 'Check-in',
             color: AppColors.primary,
-            onTap: () => onNavigate?.call(AdminScreen.currentVisitors),
+            onTap: () => context.go('/visitors'),
           ),
           _ActionCard(
             icon: LucideIcons.userPlus,
             label: 'Novi korisnik',
             color: AppColors.secondary,
-            onTap: () => onNavigate?.call(AdminScreen.users),
+            onTap: () => context.go('/users'),
           ),
           _ActionCard(
             icon: LucideIcons.shoppingCart,
             label: 'Kupovine',
             color: AppColors.success,
-            onTap: () => onNavigate?.call(AdminScreen.orders),
+            onTap: () => context.go('/orders'),
           ),
         ];
         final gym = _GymOccupancyCard(
           count: visitorCount,
-          onTap: () => onNavigate?.call(AdminScreen.currentVisitors),
+          onTap: () => context.go('/visitors'),
         );
 
         if (wide) {

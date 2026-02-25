@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -7,12 +8,7 @@ import '../constants/app_text_styles.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
-import '../widgets/particle_background.dart';
-import 'register_screen.dart';
-import 'login_success_screen.dart';
-import 'forgot_password_screen.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -43,10 +39,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (!mounted) return;
       final user = ref.read(authProvider).user;
       if (user != null) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const LoginSuccessScreen()),
-        );
+        context.go('/login-success');
       }
     } catch (_) {}
   }
@@ -161,13 +154,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Align(
                               alignment: Alignment.centerRight,
                               child: GestureDetector(
-                                onTap: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const ForgotPasswordScreen(),
-                                  ),
-                                ),
+                                onTap: () => context.push('/forgot-password'),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
                                     vertical: AppSpacing.xs,
@@ -233,12 +220,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RegisterScreen(),
-                            ),
-                          ),
+                          onTap: () => context.push('/register'),
                           child: Text(
                             'Registrujte se',
                             style: AppTextStyles.bodyBold.copyWith(

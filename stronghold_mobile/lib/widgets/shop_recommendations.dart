@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../screens/supplement_detail_screen.dart';
 import '../utils/image_utils.dart';
-import 'glass_card.dart';
 import 'section_header.dart';
 
 class ShopRecommendations extends StatelessWidget {
@@ -55,23 +54,16 @@ class ShopRecommendations extends StatelessWidget {
 
   Widget _card(BuildContext context, RecommendationResponse rec) {
     return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => SupplementDetailScreen(
-            supplement: SupplementResponse(
-              id: rec.id,
-              name: rec.name,
-              price: rec.price,
-              description: rec.description,
-              imageUrl: rec.imageUrl,
-              supplementCategoryId: 0,
-              supplementCategoryName: rec.categoryName,
-              supplierId: 0,
-            ),
-          ),
-        ),
-      ),
+      onTap: () => context.push('/shop/detail', extra: SupplementResponse(
+        id: rec.id,
+        name: rec.name,
+        price: rec.price,
+        description: rec.description,
+        imageUrl: rec.imageUrl,
+        supplementCategoryId: 0,
+        supplementCategoryName: rec.categoryName,
+        supplierId: 0,
+      )),
       child: SizedBox(
         width: 150,
         child: GlassCard(

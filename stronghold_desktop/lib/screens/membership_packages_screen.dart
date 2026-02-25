@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/membership_package_provider.dart';
-import '../widgets/crud_list_scaffold.dart';
-import '../widgets/success_animation.dart';
-import '../widgets/error_animation.dart';
-import '../widgets/confirm_dialog.dart';
-import '../widgets/membership_packages_table.dart';
-import '../widgets/membership_package_add_dialog.dart';
-import '../widgets/membership_package_edit_dialog.dart';
+import '../widgets/shared/crud_list_scaffold.dart';
+import '../widgets/shared/success_animation.dart';
+import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/confirm_dialog.dart';
+import '../widgets/membership_packages/membership_packages_table.dart';
+import '../widgets/membership_packages/membership_package_add_dialog.dart';
+import '../widgets/membership_packages/membership_package_edit_dialog.dart';
 import '../utils/error_handler.dart';
 
 class MembershipPackagesScreen extends ConsumerStatefulWidget {

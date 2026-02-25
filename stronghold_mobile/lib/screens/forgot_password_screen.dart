@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -8,8 +9,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
-import '../widgets/glass_card.dart';
-import '../widgets/gradient_button.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -114,7 +114,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
         isSuccess: true,
         message: 'Lozinka uspjesno resetovana',
       );
-      if (mounted) Navigator.pop(context);
+      if (mounted) context.pop();
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -150,7 +150,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () => context.pop(),
                     icon: const Icon(
                       LucideIcons.arrowLeft,
                       color: AppColors.textPrimary,

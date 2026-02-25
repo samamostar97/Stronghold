@@ -6,8 +6,6 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../models/cart_models.dart';
 import 'checkout_summary_row.dart';
-import 'glass_card.dart';
-import 'gradient_button.dart';
 import 'section_header.dart';
 
 class CheckoutPaymentStep extends StatelessWidget {

@@ -4,7 +4,6 @@ import '../constants/app_gradients.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import 'glass_card.dart';
 
 class XpProgressCard extends StatelessWidget {
   final UserProgressResponse progress;
