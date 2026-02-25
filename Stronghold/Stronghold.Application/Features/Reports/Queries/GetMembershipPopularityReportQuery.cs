@@ -1,10 +1,11 @@
 using MediatR;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class GetMembershipPopularityReportQuery : IRequest<MembershipPopularityReportResponse>
+public class GetMembershipPopularityReportQuery : IRequest<MembershipPopularityReportResponse>, IAuthorizeAdminRequest
 {
 }
 
@@ -21,24 +22,10 @@ public class GetMembershipPopularityReportQueryHandler : IRequestHandler<GetMemb
         _currentUserService = currentUserService;
     }
 
-    public async Task<MembershipPopularityReportResponse> Handle(
+public async Task<MembershipPopularityReportResponse> Handle(
         GetMembershipPopularityReportQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.GetMembershipPopularityReportAsync();
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}

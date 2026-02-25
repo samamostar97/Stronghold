@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Supplements.Queries;
 
-public class GetPagedSupplementsQuery : IRequest<PagedResult<SupplementResponse>>
+public class GetPagedSupplementsQuery : IRequest<PagedResult<SupplementResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public SupplementFilter Filter { get; set; } = new();
 }
@@ -24,10 +25,8 @@ public class GetPagedSupplementsQueryHandler : IRequestHandler<GetPagedSupplemen
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<SupplementResponse>> Handle(GetPagedSupplementsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<SupplementResponse>> Handle(GetPagedSupplementsQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new SupplementFilter();
         var page = await _supplementRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -39,20 +38,7 @@ public class GetPagedSupplementsQueryHandler : IRequestHandler<GetPagedSupplemen
         };
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplementResponse MapToResponse(Supplement supplement)
+private static SupplementResponse MapToResponse(Supplement supplement)
     {
         return new SupplementResponse
         {
@@ -68,7 +54,7 @@ public class GetPagedSupplementsQueryHandler : IRequestHandler<GetPagedSupplemen
             CreatedAt = supplement.CreatedAt
         };
     }
-}
+    }
 
 public class GetPagedSupplementsQueryValidator : AbstractValidator<GetPagedSupplementsQuery>
 {
@@ -101,7 +87,7 @@ public class GetPagedSupplementsQueryValidator : AbstractValidator<GetPagedSuppl
             .When(x => x.Filter.SupplementCategoryId.HasValue);
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is
@@ -116,5 +102,4 @@ public class GetPagedSupplementsQueryValidator : AbstractValidator<GetPagedSuppl
             "createdat" or
             "createdatdesc";
     }
-}
-
+    }

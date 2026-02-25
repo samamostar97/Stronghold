@@ -3,14 +3,17 @@ using MediatR;
 using Stronghold.Application.Features.Faqs.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Faqs.Commands;
 
-public class UpdateFaqCommand : IRequest<FaqResponse>
+public class UpdateFaqCommand : IRequest<FaqResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? Question { get; set; }
-    public string? Answer { get; set; }
+
+public string? Question { get; set; }
+
+public string? Answer { get; set; }
 }
 
 public class UpdateFaqCommandHandler : IRequestHandler<UpdateFaqCommand, FaqResponse>
@@ -24,10 +27,8 @@ public class UpdateFaqCommandHandler : IRequestHandler<UpdateFaqCommand, FaqResp
         _currentUserService = currentUserService;
     }
 
-    public async Task<FaqResponse> Handle(UpdateFaqCommand request, CancellationToken cancellationToken)
+public async Task<FaqResponse> Handle(UpdateFaqCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var faq = await _faqRepository.GetByIdAsync(request.Id, cancellationToken);
         if (faq is null)
         {
@@ -54,20 +55,7 @@ public class UpdateFaqCommandHandler : IRequestHandler<UpdateFaqCommand, FaqResp
             CreatedAt = faq.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class UpdateFaqCommandValidator : AbstractValidator<UpdateFaqCommand>
 {
@@ -87,5 +75,4 @@ public class UpdateFaqCommandValidator : AbstractValidator<UpdateFaqCommand>
             .MaximumLength(2000).WithMessage("{PropertyName} ne smije imati vise od 2000 karaktera.")
             .When(x => x.Answer is not null);
     }
-}
-
+    }

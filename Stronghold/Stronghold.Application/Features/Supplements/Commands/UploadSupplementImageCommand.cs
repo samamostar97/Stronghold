@@ -5,13 +5,15 @@ using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Supplements.Commands;
 
-public class UploadSupplementImageCommand : IRequest<SupplementResponse>
+public class UploadSupplementImageCommand : IRequest<SupplementResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public FileUploadRequest FileRequest { get; set; } = null!;
+
+public FileUploadRequest FileRequest { get; set; } = null!;
 }
 
 public class UploadSupplementImageCommandHandler : IRequestHandler<UploadSupplementImageCommand, SupplementResponse>
@@ -30,10 +32,8 @@ public class UploadSupplementImageCommandHandler : IRequestHandler<UploadSupplem
         _fileStorageService = fileStorageService;
     }
 
-    public async Task<SupplementResponse> Handle(UploadSupplementImageCommand request, CancellationToken cancellationToken)
+public async Task<SupplementResponse> Handle(UploadSupplementImageCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var supplement = await _supplementRepository.GetByIdAsync(request.Id, cancellationToken);
         if (supplement is null)
         {
@@ -58,20 +58,7 @@ public class UploadSupplementImageCommandHandler : IRequestHandler<UploadSupplem
         return MapToResponse(updated);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplementResponse MapToResponse(Supplement supplement)
+private static SupplementResponse MapToResponse(Supplement supplement)
     {
         return new SupplementResponse
         {
@@ -87,7 +74,7 @@ public class UploadSupplementImageCommandHandler : IRequestHandler<UploadSupplem
             CreatedAt = supplement.CreatedAt
         };
     }
-}
+    }
 
 public class UploadSupplementImageCommandValidator : AbstractValidator<UploadSupplementImageCommand>
 {
@@ -108,5 +95,4 @@ public class UploadSupplementImageCommandValidator : AbstractValidator<UploadSup
         RuleFor(x => x.FileRequest.FileSize)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

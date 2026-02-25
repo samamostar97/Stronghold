@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Features.Addresses.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Addresses.Queries;
 
-public class GetMyAddressQuery : IRequest<AddressResponse?>
+public class GetMyAddressQuery : IRequest<AddressResponse?>, IAuthorizeAuthenticatedRequest
 {
 }
 
@@ -21,10 +22,9 @@ public class GetMyAddressQueryHandler : IRequestHandler<GetMyAddressQuery, Addre
         _currentUserService = currentUserService;
     }
 
-    public async Task<AddressResponse?> Handle(GetMyAddressQuery request, CancellationToken cancellationToken)
+public async Task<AddressResponse?> Handle(GetMyAddressQuery request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         var address = await _addressRepository.GetByUserIdAsync(userId, cancellationToken);
         if (address is null)
         {
@@ -40,17 +40,7 @@ public class GetMyAddressQueryHandler : IRequestHandler<GetMyAddressQuery, Addre
             Country = address.Country
         };
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || !_currentUserService.UserId.HasValue)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class GetMyAddressQueryValidator : AbstractValidator<GetMyAddressQuery>
 {

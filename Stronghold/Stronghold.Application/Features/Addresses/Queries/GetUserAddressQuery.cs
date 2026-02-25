@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Features.Addresses.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Addresses.Queries;
 
-public class GetUserAddressQuery : IRequest<AddressResponse?>
+public class GetUserAddressQuery : IRequest<AddressResponse?>, IAuthorizeAdminRequest
 {
     public int UserId { get; set; }
 }
@@ -22,10 +23,8 @@ public class GetUserAddressQueryHandler : IRequestHandler<GetUserAddressQuery, A
         _currentUserService = currentUserService;
     }
 
-    public async Task<AddressResponse?> Handle(GetUserAddressQuery request, CancellationToken cancellationToken)
+public async Task<AddressResponse?> Handle(GetUserAddressQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var address = await _addressRepository.GetByUserIdAsync(request.UserId, cancellationToken);
         if (address is null)
         {
@@ -41,20 +40,7 @@ public class GetUserAddressQueryHandler : IRequestHandler<GetUserAddressQuery, A
             Country = address.Country
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || !_currentUserService.UserId.HasValue)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetUserAddressQueryValidator : AbstractValidator<GetUserAddressQuery>
 {
@@ -62,5 +48,4 @@ public class GetUserAddressQueryValidator : AbstractValidator<GetUserAddressQuer
     {
         RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

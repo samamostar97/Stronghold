@@ -4,13 +4,15 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.SupplementCategories.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.SupplementCategories.Commands;
 
-public class UpdateSupplementCategoryCommand : IRequest<SupplementCategoryResponse>
+public class UpdateSupplementCategoryCommand : IRequest<SupplementCategoryResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? Name { get; set; }
+
+public string? Name { get; set; }
 }
 
 public class UpdateSupplementCategoryCommandHandler : IRequestHandler<UpdateSupplementCategoryCommand, SupplementCategoryResponse>
@@ -26,10 +28,8 @@ public class UpdateSupplementCategoryCommandHandler : IRequestHandler<UpdateSupp
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplementCategoryResponse> Handle(UpdateSupplementCategoryCommand request, CancellationToken cancellationToken)
+public async Task<SupplementCategoryResponse> Handle(UpdateSupplementCategoryCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var entity = await _repository.GetByIdAsync(request.Id, cancellationToken);
         if (entity is null)
         {
@@ -56,20 +56,7 @@ public class UpdateSupplementCategoryCommandHandler : IRequestHandler<UpdateSupp
             CreatedAt = entity.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class UpdateSupplementCategoryCommandValidator : AbstractValidator<UpdateSupplementCategoryCommand>
 {
@@ -83,5 +70,4 @@ public class UpdateSupplementCategoryCommandValidator : AbstractValidator<Update
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.Name is not null);
     }
-}
-
+    }

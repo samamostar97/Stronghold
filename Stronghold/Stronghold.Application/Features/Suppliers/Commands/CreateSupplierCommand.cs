@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Suppliers.Commands;
 
-public class CreateSupplierCommand : IRequest<SupplierResponse>
+public class CreateSupplierCommand : IRequest<SupplierResponse>, IAuthorizeAdminRequest
 {
     public string Name { get; set; } = string.Empty;
     public string? Website { get; set; }
@@ -25,10 +26,8 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplierResponse> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
+public async Task<SupplierResponse> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var exists = await _supplierRepository.ExistsByNameAsync(request.Name, cancellationToken: cancellationToken);
         if (exists)
         {
@@ -51,20 +50,7 @@ public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierComman
             CreatedAt = entity.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CreateSupplierCommandValidator : AbstractValidator<CreateSupplierCommand>
 {
@@ -84,6 +70,4 @@ public class CreateSupplierCommandValidator : AbstractValidator<CreateSupplierCo
             .When(x => !string.IsNullOrWhiteSpace(x.Website))
             .WithMessage("Unesite ispravnu web adresu.");
     }
-}
-
-
+    }

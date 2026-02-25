@@ -21,7 +21,7 @@ public class AdminLoginCommandHandler : IRequestHandler<AdminLoginCommand, AuthR
         _jwtService = jwtService;
     }
 
-    public async Task<AuthResponse> Handle(AdminLoginCommand request, CancellationToken cancellationToken)
+public async Task<AuthResponse> Handle(AdminLoginCommand request, CancellationToken cancellationToken)
     {
         var response = await _jwtService.LoginAsync(new LoginRequest
         {
@@ -36,7 +36,7 @@ public class AdminLoginCommandHandler : IRequestHandler<AdminLoginCommand, AuthR
 
         return response;
     }
-}
+    }
 
 public class AdminLoginCommandValidator : AbstractValidator<AdminLoginCommand>
 {
@@ -51,5 +51,4 @@ public class AdminLoginCommandValidator : AbstractValidator<AdminLoginCommand>
             .NotEmpty().WithMessage("{PropertyName} je obavezno.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
+    }

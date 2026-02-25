@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Commands;
 
-public class CancelSeminarCommand : IRequest<Unit>
+public class CancelSeminarCommand : IRequest<Unit>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
 }
@@ -22,10 +23,8 @@ public class CancelSeminarCommandHandler : IRequestHandler<CancelSeminarCommand,
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(CancelSeminarCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(CancelSeminarCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var seminar = await _seminarRepository.GetByIdAsync(request.Id, cancellationToken);
         if (seminar is null)
         {
@@ -47,20 +46,7 @@ public class CancelSeminarCommandHandler : IRequestHandler<CancelSeminarCommand,
 
         return Unit.Value;
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CancelSeminarCommandValidator : AbstractValidator<CancelSeminarCommand>
 {
@@ -68,5 +54,4 @@ public class CancelSeminarCommandValidator : AbstractValidator<CancelSeminarComm
     {
         RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

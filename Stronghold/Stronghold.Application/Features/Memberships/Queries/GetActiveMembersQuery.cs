@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Queries;
 
-public class GetActiveMembersQuery : IRequest<PagedResult<ActiveMemberResponse>>
+public class GetActiveMembersQuery : IRequest<PagedResult<ActiveMemberResponse>>, IAuthorizeAdminRequest
 {
     public ActiveMemberFilter Filter { get; set; } = new();
 }
@@ -23,10 +24,8 @@ public class GetActiveMembersQueryHandler : IRequestHandler<GetActiveMembersQuer
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<ActiveMemberResponse>> Handle(GetActiveMembersQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<ActiveMemberResponse>> Handle(GetActiveMembersQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var filter = request.Filter ?? new ActiveMemberFilter();
         var nowUtc = StrongholdTimeUtils.UtcNow;
         var page = await _membershipRepository.GetActiveMembersPagedAsync(filter, nowUtc, cancellationToken);
@@ -47,20 +46,7 @@ public class GetActiveMembersQueryHandler : IRequestHandler<GetActiveMembersQuer
             PageNumber = page.PageNumber
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetActiveMembersQueryValidator : AbstractValidator<GetActiveMembersQuery>
 {
@@ -79,5 +65,4 @@ public class GetActiveMembersQueryValidator : AbstractValidator<GetActiveMembers
             .MaximumLength(200).WithMessage("{PropertyName} ne smije imati vise od 200 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Filter.Name));
     }
-}
-
+    }

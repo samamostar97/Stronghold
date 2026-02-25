@@ -5,10 +5,11 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Commands;
 
-public class MarkOrderAsDeliveredCommand : IRequest<OrderResponse>
+public class MarkOrderAsDeliveredCommand : IRequest<OrderResponse>, IAuthorizeAdminRequest
 {
     public int OrderId { get; set; }
 }
@@ -32,10 +33,8 @@ public class MarkOrderAsDeliveredCommandHandler : IRequestHandler<MarkOrderAsDel
         _notificationService = notificationService;
     }
 
-    public async Task<OrderResponse> Handle(MarkOrderAsDeliveredCommand request, CancellationToken cancellationToken)
+public async Task<OrderResponse> Handle(MarkOrderAsDeliveredCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var order = await _orderRepository.GetByIdWithDetailsAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
@@ -74,20 +73,7 @@ public class MarkOrderAsDeliveredCommandHandler : IRequestHandler<MarkOrderAsDel
         return MapToOrderResponse(order);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private async Task SendDeliveryEmailAsync(Order order)
+private async Task SendDeliveryEmailAsync(Order order)
     {
         var itemsList = string.Join(
             "",
@@ -124,7 +110,7 @@ public class MarkOrderAsDeliveredCommandHandler : IRequestHandler<MarkOrderAsDel
             emailBody);
     }
 
-    private static OrderResponse MapToOrderResponse(Order order)
+private static OrderResponse MapToOrderResponse(Order order)
     {
         return new OrderResponse
         {
@@ -148,7 +134,7 @@ public class MarkOrderAsDeliveredCommandHandler : IRequestHandler<MarkOrderAsDel
             }).ToList()
         };
     }
-}
+    }
 
 public class MarkOrderAsDeliveredCommandValidator : AbstractValidator<MarkOrderAsDeliveredCommand>
 {
@@ -156,5 +142,4 @@ public class MarkOrderAsDeliveredCommandValidator : AbstractValidator<MarkOrderA
     {
         RuleFor(x => x.OrderId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

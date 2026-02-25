@@ -4,18 +4,25 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Users.Commands;
 
-public class UpdateUserCommand : IRequest<UserResponse>
+public class UpdateUserCommand : IRequest<UserResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Username { get; set; }
-    public string? Email { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string? Password { get; set; }
+
+public string? FirstName { get; set; }
+
+public string? LastName { get; set; }
+
+public string? Username { get; set; }
+
+public string? Email { get; set; }
+
+public string? PhoneNumber { get; set; }
+
+public string? Password { get; set; }
 }
 
 public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserResponse>
@@ -29,10 +36,8 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         _currentUserService = currentUserService;
     }
 
-    public async Task<UserResponse> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
+public async Task<UserResponse> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
         if (user is null)
         {
@@ -91,20 +96,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
         return MapToResponse(user);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static UserResponse MapToResponse(Core.Entities.User user)
+private static UserResponse MapToResponse(Core.Entities.User user)
     {
         return new UserResponse
         {
@@ -118,7 +110,7 @@ public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserR
             ProfileImageUrl = user.ProfileImageUrl
         };
     }
-}
+    }
 
 public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
 {
@@ -165,6 +157,4 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.")
             .When(x => x.Password is not null);
     }
-}
-
-
+    }

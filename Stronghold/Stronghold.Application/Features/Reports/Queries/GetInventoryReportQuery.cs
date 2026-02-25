@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class GetInventoryReportQuery : IRequest<InventoryReportResponse>
+public class GetInventoryReportQuery : IRequest<InventoryReportResponse>, IAuthorizeAdminRequest
 {
     public int DaysToAnalyze { get; set; } = 30;
 }
@@ -23,25 +24,11 @@ public class GetInventoryReportQueryHandler : IRequestHandler<GetInventoryReport
         _currentUserService = currentUserService;
     }
 
-    public async Task<InventoryReportResponse> Handle(GetInventoryReportQuery request, CancellationToken cancellationToken)
+public async Task<InventoryReportResponse> Handle(GetInventoryReportQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.GetInventoryReportAsync(request.DaysToAnalyze);
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetInventoryReportQueryValidator : AbstractValidator<GetInventoryReportQuery>
 {
@@ -50,5 +37,4 @@ public class GetInventoryReportQueryValidator : AbstractValidator<GetInventoryRe
         RuleFor(x => x.DaysToAnalyze)
             .InclusiveBetween(1, 365).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

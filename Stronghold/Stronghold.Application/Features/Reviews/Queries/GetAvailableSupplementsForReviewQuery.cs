@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Reviews.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reviews.Queries;
 
-public class GetAvailableSupplementsForReviewQuery : IRequest<PagedResult<PurchasedSupplementResponse>>
+public class GetAvailableSupplementsForReviewQuery : IRequest<PagedResult<PurchasedSupplementResponse>>, IAuthorizeGymMemberRequest
 {
     public ReviewFilter Filter { get; set; } = new();
 }
@@ -26,31 +27,15 @@ public class GetAvailableSupplementsForReviewQueryHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<PurchasedSupplementResponse>> Handle(
+public async Task<PagedResult<PurchasedSupplementResponse>> Handle(
         GetAvailableSupplementsForReviewQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = EnsureGymMemberAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         var filter = request.Filter ?? new ReviewFilter();
         return await _reviewRepository.GetPurchasedSupplementsForReviewAsync(userId, filter, cancellationToken);
     }
-
-    private int EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class GetAvailableSupplementsForReviewQueryValidator : AbstractValidator<GetAvailableSupplementsForReviewQuery>
 {
@@ -79,10 +64,9 @@ public class GetAvailableSupplementsForReviewQueryValidator : AbstractValidator<
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "name" or "namedesc";
     }
-}
-
+    }

@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Users.Commands;
 
-public class DeleteUserCommand : IRequest<Unit>
+public class DeleteUserCommand : IRequest<Unit>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
 }
@@ -22,10 +23,8 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Unit>
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
         if (user is null)
         {
@@ -40,20 +39,7 @@ public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Unit>
         await _userRepository.DeleteAsync(user, cancellationToken);
         return Unit.Value;
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class DeleteUserCommandValidator : AbstractValidator<DeleteUserCommand>
 {
@@ -61,5 +47,4 @@ public class DeleteUserCommandValidator : AbstractValidator<DeleteUserCommand>
     {
         RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

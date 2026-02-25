@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Suppliers.Queries;
 
-public class GetSupplierByIdQuery : IRequest<SupplierResponse>
+public class GetSupplierByIdQuery : IRequest<SupplierResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
 }
@@ -23,10 +24,8 @@ public class GetSupplierByIdQueryHandler : IRequestHandler<GetSupplierByIdQuery,
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplierResponse> Handle(GetSupplierByIdQuery request, CancellationToken cancellationToken)
+public async Task<SupplierResponse> Handle(GetSupplierByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var supplier = await _supplierRepository.GetByIdAsync(request.Id, cancellationToken);
         if (supplier is null)
         {
@@ -36,20 +35,7 @@ public class GetSupplierByIdQueryHandler : IRequestHandler<GetSupplierByIdQuery,
         return MapToResponse(supplier);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplierResponse MapToResponse(Supplier supplier)
+private static SupplierResponse MapToResponse(Supplier supplier)
     {
         return new SupplierResponse
         {
@@ -59,7 +45,7 @@ public class GetSupplierByIdQueryHandler : IRequestHandler<GetSupplierByIdQuery,
             CreatedAt = supplier.CreatedAt
         };
     }
-}
+    }
 
 public class GetSupplierByIdQueryValidator : AbstractValidator<GetSupplierByIdQuery>
 {
@@ -67,5 +53,4 @@ public class GetSupplierByIdQueryValidator : AbstractValidator<GetSupplierByIdQu
     {
         RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

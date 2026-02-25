@@ -34,6 +34,7 @@ public static class ServiceCollectionExtensions
         // CQRS + Validation
         services.AddMediatR(typeof(ValidationBehavior<,>).Assembly);
         services.AddValidatorsFromAssembly(typeof(ValidationBehavior<,>).Assembly);
+        services.AddTransient(typeof(IPipelineBehavior<,>), typeof(AuthorizationBehavior<,>));
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
         // Stripe

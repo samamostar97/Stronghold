@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Appointments.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Queries;
 
-public class GetAdminAppointmentsQuery : IRequest<PagedResult<AdminAppointmentResponse>>
+public class GetAdminAppointmentsQuery : IRequest<PagedResult<AdminAppointmentResponse>>, IAuthorizeAdminRequest
 {
     public AppointmentFilter Filter { get; set; } = new();
 }
@@ -25,10 +26,8 @@ public class GetAdminAppointmentsQueryHandler : IRequestHandler<GetAdminAppointm
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<AdminAppointmentResponse>> Handle(GetAdminAppointmentsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<AdminAppointmentResponse>> Handle(GetAdminAppointmentsQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var filter = request.Filter ?? new AppointmentFilter();
         var page = await _appointmentRepository.GetAdminPagedAsync(filter, cancellationToken);
 
@@ -50,20 +49,7 @@ public class GetAdminAppointmentsQueryHandler : IRequestHandler<GetAdminAppointm
             PageNumber = page.PageNumber
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetAdminAppointmentsQueryValidator : AbstractValidator<GetAdminAppointmentsQuery>
 {
@@ -92,10 +78,9 @@ public class GetAdminAppointmentsQueryValidator : AbstractValidator<GetAdminAppo
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLower();
         return normalized is "date" or "datedesc" or "user" or "userdesc";
     }
-}
-
+    }

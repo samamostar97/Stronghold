@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Commands;
 
-public class CancelMyAppointmentCommand : IRequest<Unit>
+public class CancelMyAppointmentCommand : IRequest<Unit>, IAuthorizeAuthenticatedRequest
 {
     public int AppointmentId { get; set; }
 }
@@ -24,10 +25,9 @@ public class CancelMyAppointmentCommandHandler : IRequestHandler<CancelMyAppoint
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(CancelMyAppointmentCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(CancelMyAppointmentCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         var appointment = await _appointmentRepository.GetByUserAndIdAsync(userId, request.AppointmentId, cancellationToken);
         if (appointment is null)
         {
@@ -42,17 +42,7 @@ public class CancelMyAppointmentCommandHandler : IRequestHandler<CancelMyAppoint
         await _appointmentRepository.DeleteAsync(appointment, cancellationToken);
         return Unit.Value;
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class CancelMyAppointmentCommandValidator : AbstractValidator<CancelMyAppointmentCommand>
 {
@@ -60,5 +50,4 @@ public class CancelMyAppointmentCommandValidator : AbstractValidator<CancelMyApp
     {
         RuleFor(x => x.AppointmentId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

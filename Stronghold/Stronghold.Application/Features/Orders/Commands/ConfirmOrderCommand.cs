@@ -5,10 +5,11 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Commands;
 
-public class ConfirmOrderCommand : IRequest<UserOrderResponse>
+public class ConfirmOrderCommand : IRequest<UserOrderResponse>, IAuthorizeAuthenticatedRequest
 {
     public string PaymentIntentId { get; set; } = string.Empty;
     public List<CheckoutItem> Items { get; set; } = new();
@@ -36,10 +37,9 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
         _notificationService = notificationService;
     }
 
-    public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
+public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         if (request.Items.Count == 0)
         {
             throw new InvalidOperationException("Stavke narudzbe su obavezne.");
@@ -57,8 +57,7 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
             {
                 throw new InvalidOperationException("Kolicina mora biti izmedju 1 i 99.");
             }
-        }
-
+            }
         var paymentIntent = await _stripePaymentService.GetPaymentIntentAsync(request.PaymentIntentId);
         if (!string.Equals(paymentIntent.Status, "succeeded", StringComparison.OrdinalIgnoreCase))
         {
@@ -173,27 +172,17 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
         };
     }
 
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
-    }
-
-    private static long ToMinorUnits(decimal amount)
+private static long ToMinorUnits(decimal amount)
     {
         return (long)Math.Round(amount * 100m, MidpointRounding.AwayFromZero);
     }
 
-    private static decimal ToMajorUnits(long amountMinorUnits)
+private static decimal ToMajorUnits(long amountMinorUnits)
     {
         return amountMinorUnits / 100m;
     }
 
-    private async Task SendPaymentConfirmationEmailAsync(
+private async Task SendPaymentConfirmationEmailAsync(
         User user,
         Order order,
         IReadOnlyList<OrderItem> orderItems,
@@ -239,7 +228,7 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
             $"Potvrda narudzbe #{order.Id} - uplata primljena",
             emailBody);
     }
-}
+    }
 
 public class ConfirmOrderCommandValidator : AbstractValidator<ConfirmOrderCommand>
 {
@@ -263,5 +252,4 @@ public class ConfirmOrderCommandValidator : AbstractValidator<ConfirmOrderComman
             .SetValidator(new CheckoutItemValidator())
             .WithMessage("Stavke narudzbe sadrze neispravne podatke.");
     }
-}
-
+    }

@@ -21,7 +21,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         _jwtService = jwtService;
     }
 
-    public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
     {
         await _jwtService.ResetPasswordAsync(new ResetPasswordRequest
         {
@@ -32,7 +32,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
 
         return Unit.Value;
     }
-}
+    }
 
 public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordCommand>
 {
@@ -53,5 +53,4 @@ public class ResetPasswordCommandValidator : AbstractValidator<ResetPasswordComm
             .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
+    }

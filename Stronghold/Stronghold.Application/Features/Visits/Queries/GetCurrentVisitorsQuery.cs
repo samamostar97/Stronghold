@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Visits.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Visits.Queries;
 
-public class GetCurrentVisitorsQuery : IRequest<PagedResult<VisitResponse>>
+public class GetCurrentVisitorsQuery : IRequest<PagedResult<VisitResponse>>, IAuthorizeAdminRequest
 {
     public VisitFilter Filter { get; set; } = new();
 }
@@ -23,10 +24,8 @@ public class GetCurrentVisitorsQueryHandler : IRequestHandler<GetCurrentVisitors
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<VisitResponse>> Handle(GetCurrentVisitorsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<VisitResponse>> Handle(GetCurrentVisitorsQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var filter = request.Filter ?? new VisitFilter();
         var page = await _visitRepository.GetCurrentPagedAsync(filter, cancellationToken);
 
@@ -46,20 +45,7 @@ public class GetCurrentVisitorsQueryHandler : IRequestHandler<GetCurrentVisitors
             PageNumber = page.PageNumber
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetCurrentVisitorsQueryValidator : AbstractValidator<GetCurrentVisitorsQuery>
 {
@@ -88,10 +74,9 @@ public class GetCurrentVisitorsQueryValidator : AbstractValidator<GetCurrentVisi
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "firstname" or "lastname" or "username" or "checkin" or "checkindesc";
     }
-}
-
+    }

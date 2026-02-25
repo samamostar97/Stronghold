@@ -4,14 +4,17 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Suppliers.Commands;
 
-public class UpdateSupplierCommand : IRequest<SupplierResponse>
+public class UpdateSupplierCommand : IRequest<SupplierResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? Name { get; set; }
-    public string? Website { get; set; }
+
+public string? Name { get; set; }
+
+public string? Website { get; set; }
 }
 
 public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierCommand, SupplierResponse>
@@ -25,10 +28,8 @@ public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierComman
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplierResponse> Handle(UpdateSupplierCommand request, CancellationToken cancellationToken)
+public async Task<SupplierResponse> Handle(UpdateSupplierCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var supplier = await _supplierRepository.GetByIdAsync(request.Id, cancellationToken);
         if (supplier is null)
         {
@@ -61,20 +62,7 @@ public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierComman
             CreatedAt = supplier.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class UpdateSupplierCommandValidator : AbstractValidator<UpdateSupplierCommand>
 {
@@ -97,6 +85,4 @@ public class UpdateSupplierCommandValidator : AbstractValidator<UpdateSupplierCo
             .When(x => !string.IsNullOrWhiteSpace(x.Website))
             .WithMessage("Unesite ispravnu web adresu.");
     }
-}
-
-
+    }

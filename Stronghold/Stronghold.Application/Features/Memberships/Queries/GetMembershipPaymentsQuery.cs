@@ -4,13 +4,15 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Queries;
 
-public class GetMembershipPaymentsQuery : IRequest<PagedResult<MembershipPaymentResponse>>
+public class GetMembershipPaymentsQuery : IRequest<PagedResult<MembershipPaymentResponse>>, IAuthorizeAdminRequest
 {
     public int UserId { get; set; }
-    public MembershipPaymentFilter Filter { get; set; } = new();
+
+public MembershipPaymentFilter Filter { get; set; } = new();
 }
 
 public class GetMembershipPaymentsQueryHandler : IRequestHandler<GetMembershipPaymentsQuery, PagedResult<MembershipPaymentResponse>>
@@ -24,10 +26,8 @@ public class GetMembershipPaymentsQueryHandler : IRequestHandler<GetMembershipPa
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<MembershipPaymentResponse>> Handle(GetMembershipPaymentsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<MembershipPaymentResponse>> Handle(GetMembershipPaymentsQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var filter = request.Filter ?? new MembershipPaymentFilter();
         var userExists = await _membershipRepository.UserExistsAsync(request.UserId, cancellationToken);
         if (!userExists)
@@ -58,20 +58,7 @@ public class GetMembershipPaymentsQueryHandler : IRequestHandler<GetMembershipPa
             PageNumber = page.PageNumber
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetMembershipPaymentsQueryValidator : AbstractValidator<GetMembershipPaymentsQuery>
 {
@@ -98,10 +85,9 @@ public class GetMembershipPaymentsQueryValidator : AbstractValidator<GetMembersh
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "date" or "datedesc" or "amount" or "amountdesc";
     }
-}
-
+    }

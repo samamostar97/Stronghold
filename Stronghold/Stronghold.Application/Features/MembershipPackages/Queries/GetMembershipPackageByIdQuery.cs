@@ -4,10 +4,11 @@ using Stronghold.Application.Features.MembershipPackages.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.MembershipPackages.Queries;
 
-public class GetMembershipPackageByIdQuery : IRequest<MembershipPackageResponse>
+public class GetMembershipPackageByIdQuery : IRequest<MembershipPackageResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -26,10 +27,8 @@ public class GetMembershipPackageByIdQueryHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<MembershipPackageResponse> Handle(GetMembershipPackageByIdQuery request, CancellationToken cancellationToken)
+public async Task<MembershipPackageResponse> Handle(GetMembershipPackageByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var membershipPackage = await _membershipPackageRepository.GetByIdAsync(request.Id, cancellationToken);
         if (membershipPackage is null)
         {
@@ -39,20 +38,7 @@ public class GetMembershipPackageByIdQueryHandler
         return MapToResponse(membershipPackage);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static MembershipPackageResponse MapToResponse(MembershipPackage membershipPackage)
+private static MembershipPackageResponse MapToResponse(MembershipPackage membershipPackage)
     {
         return new MembershipPackageResponse
         {
@@ -63,7 +49,7 @@ public class GetMembershipPackageByIdQueryHandler
             CreatedAt = membershipPackage.CreatedAt
         };
     }
-}
+    }
 
 public class GetMembershipPackageByIdQueryValidator : AbstractValidator<GetMembershipPackageByIdQuery>
 {
@@ -72,5 +58,4 @@ public class GetMembershipPackageByIdQueryValidator : AbstractValidator<GetMembe
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

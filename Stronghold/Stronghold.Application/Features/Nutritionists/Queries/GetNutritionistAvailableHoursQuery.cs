@@ -3,13 +3,15 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Queries;
 
-public class GetNutritionistAvailableHoursQuery : IRequest<IReadOnlyList<int>>
+public class GetNutritionistAvailableHoursQuery : IRequest<IReadOnlyList<int>>, IAuthorizeGymMemberRequest
 {
     public int NutritionistId { get; set; }
-    public DateTime Date { get; set; }
+
+public DateTime Date { get; set; }
 }
 
 public class GetNutritionistAvailableHoursQueryHandler
@@ -26,12 +28,10 @@ public class GetNutritionistAvailableHoursQueryHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<int>> Handle(
+public async Task<IReadOnlyList<int>> Handle(
         GetNutritionistAvailableHoursQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureGymMemberAccess();
-
         const int workStartHour = 9;
         const int workEndHour = 17;
 
@@ -57,24 +57,10 @@ public class GetNutritionistAvailableHoursQueryHandler
             {
                 availableHours.Add(hour);
             }
-        }
-
+            }
         return availableHours;
     }
-
-    private void EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetNutritionistAvailableHoursQueryValidator : AbstractValidator<GetNutritionistAvailableHoursQuery>
 {
@@ -86,5 +72,4 @@ public class GetNutritionistAvailableHoursQueryValidator : AbstractValidator<Get
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("{PropertyName} je obavezno.");
     }
-}
-
+    }

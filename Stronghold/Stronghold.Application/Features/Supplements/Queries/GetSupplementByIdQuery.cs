@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Supplements.Queries;
 
-public class GetSupplementByIdQuery : IRequest<SupplementResponse>
+public class GetSupplementByIdQuery : IRequest<SupplementResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -23,10 +24,8 @@ public class GetSupplementByIdQueryHandler : IRequestHandler<GetSupplementByIdQu
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplementResponse> Handle(GetSupplementByIdQuery request, CancellationToken cancellationToken)
+public async Task<SupplementResponse> Handle(GetSupplementByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var supplement = await _supplementRepository.GetByIdAsync(request.Id, cancellationToken);
         if (supplement is null)
         {
@@ -36,20 +35,7 @@ public class GetSupplementByIdQueryHandler : IRequestHandler<GetSupplementByIdQu
         return MapToResponse(supplement);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplementResponse MapToResponse(Supplement supplement)
+private static SupplementResponse MapToResponse(Supplement supplement)
     {
         return new SupplementResponse
         {
@@ -65,7 +51,7 @@ public class GetSupplementByIdQueryHandler : IRequestHandler<GetSupplementByIdQu
             CreatedAt = supplement.CreatedAt
         };
     }
-}
+    }
 
 public class GetSupplementByIdQueryValidator : AbstractValidator<GetSupplementByIdQuery>
 {
@@ -74,5 +60,4 @@ public class GetSupplementByIdQueryValidator : AbstractValidator<GetSupplementBy
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class GetSlowMovingProductsQuery : IRequest<PagedResult<SlowMovingProductResponse>>
+public class GetSlowMovingProductsQuery : IRequest<PagedResult<SlowMovingProductResponse>>, IAuthorizeAdminRequest
 {
     public SlowMovingProductQueryFilter Filter { get; set; } = new();
 }
@@ -24,25 +25,11 @@ public class GetSlowMovingProductsQueryHandler : IRequestHandler<GetSlowMovingPr
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<SlowMovingProductResponse>> Handle(GetSlowMovingProductsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<SlowMovingProductResponse>> Handle(GetSlowMovingProductsQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.GetSlowMovingProductsPagedAsync(request.Filter);
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovingProductsQuery>
 {
@@ -73,7 +60,7 @@ public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovi
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLower();
         return normalized is
@@ -88,5 +75,4 @@ public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovi
             "dayssincelastsale" or
             "dayssincelastsaledesc";
     }
-}
-
+    }

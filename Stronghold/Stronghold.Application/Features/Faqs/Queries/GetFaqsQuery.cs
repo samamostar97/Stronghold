@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Faqs.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Faqs.Queries;
 
-public class GetFaqsQuery : IRequest<IReadOnlyList<FaqResponse>>
+public class GetFaqsQuery : IRequest<IReadOnlyList<FaqResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public FaqFilter Filter { get; set; } = new();
 }
@@ -23,10 +24,8 @@ public class GetFaqsQueryHandler : IRequestHandler<GetFaqsQuery, IReadOnlyList<F
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<FaqResponse>> Handle(GetFaqsQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<FaqResponse>> Handle(GetFaqsQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new FaqFilter();
         filter.PageNumber = 1;
         filter.PageSize = int.MaxValue;
@@ -34,20 +33,7 @@ public class GetFaqsQueryHandler : IRequestHandler<GetFaqsQuery, IReadOnlyList<F
         return page.Items.Select(MapToResponse).ToList();
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static FaqResponse MapToResponse(FAQ faq)
+private static FaqResponse MapToResponse(FAQ faq)
     {
         return new FaqResponse
         {
@@ -57,7 +43,7 @@ public class GetFaqsQueryHandler : IRequestHandler<GetFaqsQuery, IReadOnlyList<F
             CreatedAt = faq.CreatedAt
         };
     }
-}
+    }
 
 public class GetFaqsQueryValidator : AbstractValidator<GetFaqsQuery>
 {
@@ -79,10 +65,9 @@ public class GetFaqsQueryValidator : AbstractValidator<GetFaqsQuery>
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "question" or "questiondesc" or "createdat" or "createdatdesc";
     }
-}
-
+    }

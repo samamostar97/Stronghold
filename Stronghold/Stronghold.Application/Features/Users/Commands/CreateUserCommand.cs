@@ -6,10 +6,11 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Users.Commands;
 
-public class CreateUserCommand : IRequest<UserResponse>
+public class CreateUserCommand : IRequest<UserResponse>, IAuthorizeAdminRequest
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
@@ -17,7 +18,8 @@ public class CreateUserCommand : IRequest<UserResponse>
     public string Email { get; set; } = string.Empty;
     public string PhoneNumber { get; set; } = string.Empty;
     public Gender Gender { get; set; }
-    public string Password { get; set; } = string.Empty;
+
+public string Password { get; set; } = string.Empty;
 }
 
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserResponse>
@@ -31,10 +33,8 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserR
         _currentUserService = currentUserService;
     }
 
-    public async Task<UserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+public async Task<UserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var username = request.Username.Trim();
         var email = request.Email.Trim();
         var phoneNumber = request.PhoneNumber.Trim();
@@ -70,20 +70,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserR
         return MapToResponse(entity);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static UserResponse MapToResponse(User user)
+private static UserResponse MapToResponse(User user)
     {
         return new UserResponse
         {
@@ -97,7 +84,7 @@ public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserR
             ProfileImageUrl = user.ProfileImageUrl
         };
     }
-}
+    }
 
 public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
 {
@@ -139,6 +126,4 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
             .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
-
+    }

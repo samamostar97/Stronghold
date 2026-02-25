@@ -1,10 +1,11 @@
 using MediatR;
 using Stronghold.Application.Features.Profiles.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Profiles.Queries;
 
-public class GetFullLeaderboardQuery : IRequest<IReadOnlyList<LeaderboardEntryResponse>>
+public class GetFullLeaderboardQuery : IRequest<IReadOnlyList<LeaderboardEntryResponse>>, IAuthorizeAdminRequest
 {
 }
 
@@ -21,23 +22,9 @@ public class GetFullLeaderboardQueryHandler : IRequestHandler<GetFullLeaderboard
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<LeaderboardEntryResponse>> Handle(GetFullLeaderboardQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<LeaderboardEntryResponse>> Handle(GetFullLeaderboardQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         var leaderboard = await _userProfileService.GetFullLeaderboardAsync();
         return leaderboard;
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}

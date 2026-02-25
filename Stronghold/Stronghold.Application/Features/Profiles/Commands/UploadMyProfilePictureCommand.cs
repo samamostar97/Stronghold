@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Profiles.Commands;
 
-public class UploadMyProfilePictureCommand : IRequest<string>
+public class UploadMyProfilePictureCommand : IRequest<string>, IAuthorizeAuthenticatedRequest
 {
     public FileUploadRequest FileRequest { get; set; } = null!;
 }
@@ -23,22 +24,12 @@ public class UploadMyProfilePictureCommandHandler : IRequestHandler<UploadMyProf
         _currentUserService = currentUserService;
     }
 
-    public async Task<string> Handle(UploadMyProfilePictureCommand request, CancellationToken cancellationToken)
+public async Task<string> Handle(UploadMyProfilePictureCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
+        var userId = _currentUserService.UserId!.Value;
         return await _userProfileService.UploadProfilePictureAsync(userId, request.FileRequest);
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class UploadMyProfilePictureCommandValidator : AbstractValidator<UploadMyProfilePictureCommand>
 {
@@ -54,5 +45,4 @@ public class UploadMyProfilePictureCommandValidator : AbstractValidator<UploadMy
         RuleFor(x => x.FileRequest.FileSize)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

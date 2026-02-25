@@ -6,10 +6,11 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Queries;
 
-public class GetMyOrdersQuery : IRequest<PagedResult<UserOrderResponse>>
+public class GetMyOrdersQuery : IRequest<PagedResult<UserOrderResponse>>, IAuthorizeAuthenticatedRequest
 {
     public OrderFilter Filter { get; set; } = new();
 }
@@ -25,10 +26,9 @@ public class GetMyOrdersQueryHandler : IRequestHandler<GetMyOrdersQuery, PagedRe
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<UserOrderResponse>> Handle(GetMyOrdersQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<UserOrderResponse>> Handle(GetMyOrdersQuery request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         var filter = request.Filter ?? new OrderFilter();
         var page = await _orderRepository.GetUserOrdersPagedAsync(userId, filter, cancellationToken);
 
@@ -40,17 +40,7 @@ public class GetMyOrdersQueryHandler : IRequestHandler<GetMyOrdersQuery, PagedRe
         };
     }
 
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
-    }
-
-    private static UserOrderResponse MapToUserOrderResponse(Order order)
+private static UserOrderResponse MapToUserOrderResponse(Order order)
     {
         return new UserOrderResponse
         {
@@ -69,7 +59,7 @@ public class GetMyOrdersQueryHandler : IRequestHandler<GetMyOrdersQuery, PagedRe
             }).ToList()
         };
     }
-}
+    }
 
 public class GetMyOrdersQueryValidator : AbstractValidator<GetMyOrdersQuery>
 {
@@ -107,22 +97,21 @@ public class GetMyOrdersQueryValidator : AbstractValidator<GetMyOrdersQuery>
             .WithMessage("DateFrom mora biti manji ili jednak DateTo.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "date" or "amount" or "status";
     }
 
-    private static bool BeValidStatus(OrderStatus? status)
+private static bool BeValidStatus(OrderStatus? status)
     {
         return !status.HasValue || Enum.IsDefined(typeof(OrderStatus), status.Value);
     }
 
-    private static bool HaveValidDateRange(OrderFilter filter)
+private static bool HaveValidDateRange(OrderFilter filter)
     {
         return !filter.DateFrom.HasValue ||
                !filter.DateTo.HasValue ||
                filter.DateFrom.Value <= filter.DateTo.Value;
     }
-}
-
+    }

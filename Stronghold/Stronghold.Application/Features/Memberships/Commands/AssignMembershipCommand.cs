@@ -5,17 +5,23 @@ using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Commands;
 
-public class AssignMembershipCommand : IRequest<MembershipResponse>
+public class AssignMembershipCommand : IRequest<MembershipResponse>, IAuthorizeAdminRequest
 {
     public int UserId { get; set; }
-    public int MembershipPackageId { get; set; }
-    public decimal AmountPaid { get; set; }
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
-    public DateTime PaymentDate { get; set; }
+
+public int MembershipPackageId { get; set; }
+
+public decimal AmountPaid { get; set; }
+
+public DateTime StartDate { get; set; }
+
+public DateTime EndDate { get; set; }
+
+public DateTime PaymentDate { get; set; }
 }
 
 public class AssignMembershipCommandHandler : IRequestHandler<AssignMembershipCommand, MembershipResponse>
@@ -29,10 +35,8 @@ public class AssignMembershipCommandHandler : IRequestHandler<AssignMembershipCo
         _currentUserService = currentUserService;
     }
 
-    public async Task<MembershipResponse> Handle(AssignMembershipCommand request, CancellationToken cancellationToken)
+public async Task<MembershipResponse> Handle(AssignMembershipCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var normalizedStartDate = StrongholdTimeUtils.ToUtcDate(request.StartDate);
         var normalizedEndDate = StrongholdTimeUtils.ToUtcDate(request.EndDate);
         var normalizedPaymentDate = StrongholdTimeUtils.ToUtcDate(request.PaymentDate);
@@ -100,20 +104,7 @@ public class AssignMembershipCommandHandler : IRequestHandler<AssignMembershipCo
             EndDate = membership.EndDate
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class AssignMembershipCommandValidator : AbstractValidator<AssignMembershipCommand>
 {
@@ -141,5 +132,4 @@ public class AssignMembershipCommandValidator : AbstractValidator<AssignMembersh
             .Must((model, paymentDate) => paymentDate.Date >= model.StartDate.Date && paymentDate.Date <= model.EndDate.Date)
             .WithMessage("Datum uplate mora biti unutar perioda clanarine.");
     }
-}
-
+    }

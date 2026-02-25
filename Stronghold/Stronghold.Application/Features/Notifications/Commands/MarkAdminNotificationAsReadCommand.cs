@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Notifications.Commands;
 
-public class MarkAdminNotificationAsReadCommand : IRequest<Unit>
+public class MarkAdminNotificationAsReadCommand : IRequest<Unit>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
 }
@@ -23,10 +24,8 @@ public class MarkAdminNotificationAsReadCommandHandler : IRequestHandler<MarkAdm
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(MarkAdminNotificationAsReadCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(MarkAdminNotificationAsReadCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var notification = await _notificationRepository.GetAdminByIdAsync(request.Id, cancellationToken);
         if (notification is null || notification.IsRead)
         {
@@ -36,20 +35,7 @@ public class MarkAdminNotificationAsReadCommandHandler : IRequestHandler<MarkAdm
         await _notificationRepository.MarkAsReadAsync(notification, cancellationToken);
         return Unit.Value;
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class MarkAdminNotificationAsReadCommandValidator : AbstractValidator<MarkAdminNotificationAsReadCommand>
 {
@@ -58,5 +44,4 @@ public class MarkAdminNotificationAsReadCommandValidator : AbstractValidator<Mar
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

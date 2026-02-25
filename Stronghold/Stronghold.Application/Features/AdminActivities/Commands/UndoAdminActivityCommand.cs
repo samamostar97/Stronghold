@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.AdminActivities.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.AdminActivities.Commands;
 
-public class UndoAdminActivityCommand : IRequest<AdminActivityResponse>
+public class UndoAdminActivityCommand : IRequest<AdminActivityResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
 }
@@ -23,27 +24,12 @@ public class UndoAdminActivityCommandHandler : IRequestHandler<UndoAdminActivity
         _currentUserService = currentUserService;
     }
 
-    public async Task<AdminActivityResponse> Handle(UndoAdminActivityCommand request, CancellationToken cancellationToken)
+public async Task<AdminActivityResponse> Handle(UndoAdminActivityCommand request, CancellationToken cancellationToken)
     {
-        var adminUserId = EnsureAdminAccess();
+        var adminUserId = _currentUserService.UserId!.Value;
         return await _adminActivityService.UndoAsync(request.Id, adminUserId);
     }
-
-    private int EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class UndoAdminActivityCommandValidator : AbstractValidator<UndoAdminActivityCommand>
 {
@@ -52,5 +38,4 @@ public class UndoAdminActivityCommandValidator : AbstractValidator<UndoAdminActi
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

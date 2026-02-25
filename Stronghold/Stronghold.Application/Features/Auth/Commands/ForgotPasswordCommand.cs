@@ -19,7 +19,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
         _jwtService = jwtService;
     }
 
-    public async Task<Unit> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
     {
         await _jwtService.ForgotPasswordAsync(new ForgotPasswordRequest
         {
@@ -28,7 +28,7 @@ public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordComman
 
         return Unit.Value;
     }
-}
+    }
 
 public class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCommand>
 {
@@ -40,5 +40,4 @@ public class ForgotPasswordCommandValidator : AbstractValidator<ForgotPasswordCo
             .MinimumLength(5).WithMessage("{PropertyName} mora imati najmanje 5 karaktera.")
             .MaximumLength(255).WithMessage("{PropertyName} ne smije imati vise od 255 karaktera.");
     }
-}
-
+    }

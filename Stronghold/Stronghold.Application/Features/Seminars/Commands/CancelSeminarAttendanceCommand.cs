@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Commands;
 
-public class CancelSeminarAttendanceCommand : IRequest<Unit>
+public class CancelSeminarAttendanceCommand : IRequest<Unit>, IAuthorizeGymMemberRequest
 {
     public int SeminarId { get; set; }
 }
@@ -22,9 +23,9 @@ public class CancelSeminarAttendanceCommandHandler : IRequestHandler<CancelSemin
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(CancelSeminarAttendanceCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(CancelSeminarAttendanceCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureGymMemberAccess();
+        var userId = _currentUserService.UserId!.Value;
         var now = StrongholdTimeUtils.UtcNow;
 
         var seminar = await _seminarRepository.GetByIdAsync(request.SeminarId, cancellationToken);
@@ -42,22 +43,7 @@ public class CancelSeminarAttendanceCommandHandler : IRequestHandler<CancelSemin
         await _seminarRepository.DeleteAttendeeAsync(attendance, cancellationToken);
         return Unit.Value;
     }
-
-    private int EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || !_currentUserService.UserId.HasValue)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class CancelSeminarAttendanceCommandValidator : AbstractValidator<CancelSeminarAttendanceCommand>
 {
@@ -65,5 +51,4 @@ public class CancelSeminarAttendanceCommandValidator : AbstractValidator<CancelS
     {
         RuleFor(x => x.SeminarId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

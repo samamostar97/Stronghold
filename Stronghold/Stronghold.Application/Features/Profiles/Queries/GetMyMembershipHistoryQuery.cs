@@ -1,10 +1,11 @@
 using MediatR;
 using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Profiles.Queries;
 
-public class GetMyMembershipHistoryQuery : IRequest<IReadOnlyList<MembershipPaymentResponse>>
+public class GetMyMembershipHistoryQuery : IRequest<IReadOnlyList<MembershipPaymentResponse>>, IAuthorizeAuthenticatedRequest
 {
 }
 
@@ -21,22 +22,12 @@ public class GetMyMembershipHistoryQueryHandler : IRequestHandler<GetMyMembershi
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<MembershipPaymentResponse>> Handle(
+public async Task<IReadOnlyList<MembershipPaymentResponse>> Handle(
         GetMyMembershipHistoryQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
+        var userId = _currentUserService.UserId!.Value;
         var history = await _userProfileService.GetMembershipPaymentHistoryAsync(userId);
         return history.ToList();
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}

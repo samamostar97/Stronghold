@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Users.Queries;
 
-public class GetPagedUsersQuery : IRequest<PagedResult<UserResponse>>
+public class GetPagedUsersQuery : IRequest<PagedResult<UserResponse>>, IAuthorizeAdminRequest
 {
     public UserFilter Filter { get; set; } = new();
 }
@@ -24,10 +25,8 @@ public class GetPagedUsersQueryHandler : IRequestHandler<GetPagedUsersQuery, Pag
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<UserResponse>> Handle(GetPagedUsersQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<UserResponse>> Handle(GetPagedUsersQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var filter = request.Filter ?? new UserFilter();
         var page = await _userRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -39,20 +38,7 @@ public class GetPagedUsersQueryHandler : IRequestHandler<GetPagedUsersQuery, Pag
         };
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static UserResponse MapToResponse(User user)
+private static UserResponse MapToResponse(User user)
     {
         return new UserResponse
         {
@@ -66,7 +52,7 @@ public class GetPagedUsersQueryHandler : IRequestHandler<GetPagedUsersQuery, Pag
             ProfileImageUrl = user.ProfileImageUrl
         };
     }
-}
+    }
 
 public class GetPagedUsersQueryValidator : AbstractValidator<GetPagedUsersQuery>
 {
@@ -95,11 +81,10 @@ public class GetPagedUsersQueryValidator : AbstractValidator<GetPagedUsersQuery>
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "firstname" or "lastname" or "date" or "datedesc"
             or "membershipstatus" or "membershipstatusdesc" or "expirydate" or "expirydatedesc";
     }
-}
-
+    }

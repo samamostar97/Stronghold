@@ -4,4 +4,4 @@ namespace Stronghold.Application.Features.Appointments.DTOs
     {
         public DateTime Date { get; set; }
     }
-}
+    }

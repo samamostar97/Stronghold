@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Supplements.Queries;
 
-public class GetSupplementReviewsQuery : IRequest<IReadOnlyList<SupplementReviewResponse>>
+public class GetSupplementReviewsQuery : IRequest<IReadOnlyList<SupplementReviewResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public int SupplementId { get; set; }
 }
@@ -22,12 +23,10 @@ public class GetSupplementReviewsQueryHandler : IRequestHandler<GetSupplementRev
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<SupplementReviewResponse>> Handle(
+public async Task<IReadOnlyList<SupplementReviewResponse>> Handle(
         GetSupplementReviewsQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var reviews = await _supplementRepository.GetReviewsAsync(request.SupplementId, cancellationToken);
 
         return reviews.Select(review => new SupplementReviewResponse
@@ -43,20 +42,7 @@ public class GetSupplementReviewsQueryHandler : IRequestHandler<GetSupplementRev
             CreatedAt = review.CreatedAt
         }).ToList();
     }
-
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetSupplementReviewsQueryValidator : AbstractValidator<GetSupplementReviewsQuery>
 {
@@ -65,5 +51,4 @@ public class GetSupplementReviewsQueryValidator : AbstractValidator<GetSupplemen
         RuleFor(x => x.SupplementId)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

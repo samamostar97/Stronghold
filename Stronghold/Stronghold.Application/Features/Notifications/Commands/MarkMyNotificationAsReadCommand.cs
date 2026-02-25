@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Notifications.Commands;
 
-public class MarkMyNotificationAsReadCommand : IRequest<Unit>
+public class MarkMyNotificationAsReadCommand : IRequest<Unit>, IAuthorizeAuthenticatedRequest
 {
     public int Id { get; set; }
 }
@@ -23,10 +24,9 @@ public class MarkMyNotificationAsReadCommandHandler : IRequestHandler<MarkMyNoti
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(MarkMyNotificationAsReadCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(MarkMyNotificationAsReadCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         var notification = await _notificationRepository.GetUserByIdAsync(userId, request.Id, cancellationToken);
         if (notification is null || notification.IsRead)
         {
@@ -36,17 +36,7 @@ public class MarkMyNotificationAsReadCommandHandler : IRequestHandler<MarkMyNoti
         await _notificationRepository.MarkAsReadAsync(notification, cancellationToken);
         return Unit.Value;
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class MarkMyNotificationAsReadCommandValidator : AbstractValidator<MarkMyNotificationAsReadCommand>
 {
@@ -55,5 +45,4 @@ public class MarkMyNotificationAsReadCommandValidator : AbstractValidator<MarkMy
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

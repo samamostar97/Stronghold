@@ -5,16 +5,21 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Commands;
 
-public class UpdateSeminarCommand : IRequest<SeminarResponse>
+public class UpdateSeminarCommand : IRequest<SeminarResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? Topic { get; set; }
-    public string? SpeakerName { get; set; }
-    public DateTime? EventDate { get; set; }
-    public int? MaxCapacity { get; set; }
+
+public string? Topic { get; set; }
+
+public string? SpeakerName { get; set; }
+
+public DateTime? EventDate { get; set; }
+
+public int? MaxCapacity { get; set; }
 }
 
 public class UpdateSeminarCommandHandler : IRequestHandler<UpdateSeminarCommand, SeminarResponse>
@@ -32,10 +37,8 @@ public class UpdateSeminarCommandHandler : IRequestHandler<UpdateSeminarCommand,
         _currentUserService = currentUserService;
     }
 
-    public async Task<SeminarResponse> Handle(UpdateSeminarCommand request, CancellationToken cancellationToken)
+public async Task<SeminarResponse> Handle(UpdateSeminarCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var seminar = await _seminarRepository.GetByIdAsync(request.Id, cancellationToken);
         if (seminar is null)
         {
@@ -79,8 +82,7 @@ public class UpdateSeminarCommandHandler : IRequestHandler<UpdateSeminarCommand,
             {
                 throw new ConflictException("Seminar sa ovom temom vec postoji na odabranom datumu.");
             }
-        }
-
+            }
         if (request.Topic is not null)
         {
             seminar.Topic = request.Topic.Trim();
@@ -114,20 +116,7 @@ public class UpdateSeminarCommandHandler : IRequestHandler<UpdateSeminarCommand,
         return MapToResponse(seminar, attendeeCount, now);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SeminarResponse MapToResponse(Core.Entities.Seminar seminar, int attendeeCount, DateTime nowUtc)
+private static SeminarResponse MapToResponse(Core.Entities.Seminar seminar, int attendeeCount, DateTime nowUtc)
     {
         return new SeminarResponse
         {
@@ -142,7 +131,7 @@ public class UpdateSeminarCommandHandler : IRequestHandler<UpdateSeminarCommand,
         };
     }
 
-    private static string ResolveStatus(DateTime eventDate, bool isCancelled, DateTime nowUtc)
+private static string ResolveStatus(DateTime eventDate, bool isCancelled, DateTime nowUtc)
     {
         if (isCancelled)
         {
@@ -151,7 +140,7 @@ public class UpdateSeminarCommandHandler : IRequestHandler<UpdateSeminarCommand,
 
         return eventDate <= nowUtc ? StatusFinished : StatusActive;
     }
-}
+    }
 
 public class UpdateSeminarCommandValidator : AbstractValidator<UpdateSeminarCommand>
 {
@@ -175,5 +164,4 @@ public class UpdateSeminarCommandValidator : AbstractValidator<UpdateSeminarComm
             .InclusiveBetween(1, 10000).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.")
             .When(x => x.MaxCapacity.HasValue);
     }
-}
-
+    }

@@ -4,10 +4,11 @@ using Stronghold.Application.Features.SupplementCategories.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.SupplementCategories.Queries;
 
-public class GetSupplementCategoryByIdQuery : IRequest<SupplementCategoryResponse>
+public class GetSupplementCategoryByIdQuery : IRequest<SupplementCategoryResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -26,12 +27,10 @@ public class GetSupplementCategoryByIdQueryHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplementCategoryResponse> Handle(
+public async Task<SupplementCategoryResponse> Handle(
         GetSupplementCategoryByIdQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var entity = await _repository.GetByIdAsync(request.Id, cancellationToken);
         if (entity is null)
         {
@@ -41,20 +40,7 @@ public class GetSupplementCategoryByIdQueryHandler
         return MapToResponse(entity);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplementCategoryResponse MapToResponse(SupplementCategory entity)
+private static SupplementCategoryResponse MapToResponse(SupplementCategory entity)
     {
         return new SupplementCategoryResponse
         {
@@ -63,7 +49,7 @@ public class GetSupplementCategoryByIdQueryHandler
             CreatedAt = entity.CreatedAt
         };
     }
-}
+    }
 
 public class GetSupplementCategoryByIdQueryValidator : AbstractValidator<GetSupplementCategoryByIdQuery>
 {
@@ -71,5 +57,4 @@ public class GetSupplementCategoryByIdQueryValidator : AbstractValidator<GetSupp
     {
         RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

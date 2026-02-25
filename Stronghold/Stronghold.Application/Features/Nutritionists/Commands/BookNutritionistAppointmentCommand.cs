@@ -6,13 +6,15 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Commands;
 
-public class BookNutritionistAppointmentCommand : IRequest<AppointmentResponse>
+public class BookNutritionistAppointmentCommand : IRequest<AppointmentResponse>, IAuthorizeGymMemberRequest
 {
     public int NutritionistId { get; set; }
-    public DateTime Date { get; set; }
+
+public DateTime Date { get; set; }
 }
 
 public class BookNutritionistAppointmentCommandHandler
@@ -29,10 +31,8 @@ public class BookNutritionistAppointmentCommandHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<AppointmentResponse> Handle(BookNutritionistAppointmentCommand request, CancellationToken cancellationToken)
+public async Task<AppointmentResponse> Handle(BookNutritionistAppointmentCommand request, CancellationToken cancellationToken)
     {
-        EnsureGymMemberAccess();
-
         var normalizedDate = NormalizeAndValidateAppointmentDate(request.Date);
 
         var nutritionist = await _nutritionistRepository.GetByIdAsync(request.NutritionistId, cancellationToken);
@@ -81,20 +81,7 @@ public class BookNutritionistAppointmentCommandHandler
         };
     }
 
-    private void EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
+private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
     {
         var localDate = StrongholdTimeUtils.ToLocal(date);
 
@@ -120,7 +107,7 @@ public class BookNutritionistAppointmentCommandHandler
 
         return new DateTime(localDate.Year, localDate.Month, localDate.Day, localDate.Hour, 0, 0, localDate.Kind);
     }
-}
+    }
 
 public class BookNutritionistAppointmentCommandValidator : AbstractValidator<BookNutritionistAppointmentCommand>
 {
@@ -132,5 +119,4 @@ public class BookNutritionistAppointmentCommandValidator : AbstractValidator<Boo
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("{PropertyName} je obavezno.");
     }
-}
-
+    }

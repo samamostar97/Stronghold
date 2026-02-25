@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Queries;
 
-public class GetTrainerByIdQuery : IRequest<TrainerResponse>
+public class GetTrainerByIdQuery : IRequest<TrainerResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -23,10 +24,8 @@ public class GetTrainerByIdQueryHandler : IRequestHandler<GetTrainerByIdQuery, T
         _currentUserService = currentUserService;
     }
 
-    public async Task<TrainerResponse> Handle(GetTrainerByIdQuery request, CancellationToken cancellationToken)
+public async Task<TrainerResponse> Handle(GetTrainerByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var trainer = await _trainerRepository.GetByIdAsync(request.Id, cancellationToken);
         if (trainer is null)
         {
@@ -36,20 +35,7 @@ public class GetTrainerByIdQueryHandler : IRequestHandler<GetTrainerByIdQuery, T
         return MapToResponse(trainer);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static TrainerResponse MapToResponse(Trainer trainer)
+private static TrainerResponse MapToResponse(Trainer trainer)
     {
         return new TrainerResponse
         {
@@ -61,7 +47,7 @@ public class GetTrainerByIdQueryHandler : IRequestHandler<GetTrainerByIdQuery, T
             CreatedAt = trainer.CreatedAt
         };
     }
-}
+    }
 
 public class GetTrainerByIdQueryValidator : AbstractValidator<GetTrainerByIdQuery>
 {
@@ -70,5 +56,4 @@ public class GetTrainerByIdQueryValidator : AbstractValidator<GetTrainerByIdQuer
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

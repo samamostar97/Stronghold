@@ -4,16 +4,21 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Commands;
 
-public class UpdateTrainerCommand : IRequest<TrainerResponse>
+public class UpdateTrainerCommand : IRequest<TrainerResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Email { get; set; }
-    public string? PhoneNumber { get; set; }
+
+public string? FirstName { get; set; }
+
+public string? LastName { get; set; }
+
+public string? Email { get; set; }
+
+public string? PhoneNumber { get; set; }
 }
 
 public class UpdateTrainerCommandHandler : IRequestHandler<UpdateTrainerCommand, TrainerResponse>
@@ -27,10 +32,8 @@ public class UpdateTrainerCommandHandler : IRequestHandler<UpdateTrainerCommand,
         _currentUserService = currentUserService;
     }
 
-    public async Task<TrainerResponse> Handle(UpdateTrainerCommand request, CancellationToken cancellationToken)
+public async Task<TrainerResponse> Handle(UpdateTrainerCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var trainer = await _trainerRepository.GetByIdAsync(request.Id, cancellationToken);
         if (trainer is null)
         {
@@ -81,20 +84,7 @@ public class UpdateTrainerCommandHandler : IRequestHandler<UpdateTrainerCommand,
             CreatedAt = trainer.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class UpdateTrainerCommandValidator : AbstractValidator<UpdateTrainerCommand>
 {
@@ -130,6 +120,4 @@ public class UpdateTrainerCommandValidator : AbstractValidator<UpdateTrainerComm
             .When(x => x.PhoneNumber is not null)
             .WithMessage("Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.");
     }
-}
-
-
+    }

@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Queries;
 
-public class GetNutritionistByIdQuery : IRequest<NutritionistResponse>
+public class GetNutritionistByIdQuery : IRequest<NutritionistResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -25,10 +26,8 @@ public class GetNutritionistByIdQueryHandler : IRequestHandler<GetNutritionistBy
         _currentUserService = currentUserService;
     }
 
-    public async Task<NutritionistResponse> Handle(GetNutritionistByIdQuery request, CancellationToken cancellationToken)
+public async Task<NutritionistResponse> Handle(GetNutritionistByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var nutritionist = await _nutritionistRepository.GetByIdAsync(request.Id, cancellationToken);
         if (nutritionist is null)
         {
@@ -38,20 +37,7 @@ public class GetNutritionistByIdQueryHandler : IRequestHandler<GetNutritionistBy
         return MapToResponse(nutritionist);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static NutritionistResponse MapToResponse(Nutritionist nutritionist)
+private static NutritionistResponse MapToResponse(Nutritionist nutritionist)
     {
         return new NutritionistResponse
         {
@@ -63,7 +49,7 @@ public class GetNutritionistByIdQueryHandler : IRequestHandler<GetNutritionistBy
             CreatedAt = nutritionist.CreatedAt
         };
     }
-}
+    }
 
 public class GetNutritionistByIdQueryValidator : AbstractValidator<GetNutritionistByIdQuery>
 {
@@ -72,5 +58,4 @@ public class GetNutritionistByIdQueryValidator : AbstractValidator<GetNutritioni
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

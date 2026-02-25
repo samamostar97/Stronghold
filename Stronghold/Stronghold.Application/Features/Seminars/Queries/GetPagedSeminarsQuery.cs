@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Queries;
 
-public class GetPagedSeminarsQuery : IRequest<PagedResult<SeminarResponse>>
+public class GetPagedSeminarsQuery : IRequest<PagedResult<SeminarResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public SeminarFilter Filter { get; set; } = new();
 }
@@ -28,10 +29,8 @@ public class GetPagedSeminarsQueryHandler : IRequestHandler<GetPagedSeminarsQuer
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<SeminarResponse>> Handle(GetPagedSeminarsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<SeminarResponse>> Handle(GetPagedSeminarsQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new SeminarFilter();
         var page = await _seminarRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -50,20 +49,7 @@ public class GetPagedSeminarsQueryHandler : IRequestHandler<GetPagedSeminarsQuer
         };
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SeminarResponse MapToResponse(Seminar seminar, int attendeeCount, DateTime nowUtc)
+private static SeminarResponse MapToResponse(Seminar seminar, int attendeeCount, DateTime nowUtc)
     {
         return new SeminarResponse
         {
@@ -78,7 +64,7 @@ public class GetPagedSeminarsQueryHandler : IRequestHandler<GetPagedSeminarsQuer
         };
     }
 
-    private static string ResolveStatus(DateTime eventDate, bool isCancelled, DateTime nowUtc)
+private static string ResolveStatus(DateTime eventDate, bool isCancelled, DateTime nowUtc)
     {
         if (isCancelled)
         {
@@ -87,7 +73,7 @@ public class GetPagedSeminarsQueryHandler : IRequestHandler<GetPagedSeminarsQuer
 
         return eventDate <= nowUtc ? StatusFinished : StatusActive;
     }
-}
+    }
 
 public class GetPagedSeminarsQueryValidator : AbstractValidator<GetPagedSeminarsQuery>
 {
@@ -121,7 +107,7 @@ public class GetPagedSeminarsQueryValidator : AbstractValidator<GetPagedSeminars
             .WithMessage("Status mora biti active, cancelled ili finished.");
     }
 
-    private static bool BeValidStatus(string? status)
+private static bool BeValidStatus(string? status)
     {
         if (string.IsNullOrWhiteSpace(status))
         {
@@ -132,7 +118,7 @@ public class GetPagedSeminarsQueryValidator : AbstractValidator<GetPagedSeminars
         return value is "active" or "cancelled" or "finished";
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is
@@ -145,5 +131,4 @@ public class GetPagedSeminarsQueryValidator : AbstractValidator<GetPagedSeminars
             "maxcapacity" or
             "maxcapacitydesc";
     }
-}
-
+    }

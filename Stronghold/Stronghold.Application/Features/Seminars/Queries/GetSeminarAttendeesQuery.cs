@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Queries;
 
-public class GetSeminarAttendeesQuery : IRequest<IReadOnlyList<SeminarAttendeeResponse>>
+public class GetSeminarAttendeesQuery : IRequest<IReadOnlyList<SeminarAttendeeResponse>>, IAuthorizeAdminRequest
 {
     public int SeminarId { get; set; }
 }
@@ -22,10 +23,8 @@ public class GetSeminarAttendeesQueryHandler : IRequestHandler<GetSeminarAttende
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<SeminarAttendeeResponse>> Handle(GetSeminarAttendeesQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<SeminarAttendeeResponse>> Handle(GetSeminarAttendeesQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var seminarExists = await _seminarRepository.ExistsAsync(request.SeminarId, cancellationToken);
         if (!seminarExists)
         {
@@ -44,20 +43,7 @@ public class GetSeminarAttendeesQueryHandler : IRequestHandler<GetSeminarAttende
             RegisteredAt = x.RegisteredAt
         }).ToList();
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetSeminarAttendeesQueryValidator : AbstractValidator<GetSeminarAttendeesQuery>
 {
@@ -65,5 +51,4 @@ public class GetSeminarAttendeesQueryValidator : AbstractValidator<GetSeminarAtt
     {
         RuleFor(x => x.SeminarId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

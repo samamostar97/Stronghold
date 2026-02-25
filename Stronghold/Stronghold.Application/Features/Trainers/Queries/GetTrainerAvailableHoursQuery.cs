@@ -3,13 +3,15 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Queries;
 
-public class GetTrainerAvailableHoursQuery : IRequest<IReadOnlyList<int>>
+public class GetTrainerAvailableHoursQuery : IRequest<IReadOnlyList<int>>, IAuthorizeGymMemberRequest
 {
     public int TrainerId { get; set; }
-    public DateTime Date { get; set; }
+
+public DateTime Date { get; set; }
 }
 
 public class GetTrainerAvailableHoursQueryHandler : IRequestHandler<GetTrainerAvailableHoursQuery, IReadOnlyList<int>>
@@ -23,10 +25,8 @@ public class GetTrainerAvailableHoursQueryHandler : IRequestHandler<GetTrainerAv
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<int>> Handle(GetTrainerAvailableHoursQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<int>> Handle(GetTrainerAvailableHoursQuery request, CancellationToken cancellationToken)
     {
-        EnsureGymMemberAccess();
-
         const int workStartHour = 9;
         const int workEndHour = 17;
 
@@ -49,24 +49,10 @@ public class GetTrainerAvailableHoursQueryHandler : IRequestHandler<GetTrainerAv
             {
                 availableHours.Add(hour);
             }
-        }
-
+            }
         return availableHours;
     }
-
-    private void EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetTrainerAvailableHoursQueryValidator : AbstractValidator<GetTrainerAvailableHoursQuery>
 {
@@ -78,5 +64,4 @@ public class GetTrainerAvailableHoursQueryValidator : AbstractValidator<GetTrain
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("{PropertyName} je obavezno.");
     }
-}
-
+    }

@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Profiles.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Profiles.Queries;
 
-public class GetLeaderboardQuery : IRequest<IReadOnlyList<LeaderboardEntryResponse>>
+public class GetLeaderboardQuery : IRequest<IReadOnlyList<LeaderboardEntryResponse>>, IAuthorizeAuthenticatedRequest
 {
     public int Top { get; set; } = 5;
 }
@@ -23,21 +24,12 @@ public class GetLeaderboardQueryHandler : IRequestHandler<GetLeaderboardQuery, I
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<LeaderboardEntryResponse>> Handle(GetLeaderboardQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<LeaderboardEntryResponse>> Handle(GetLeaderboardQuery request, CancellationToken cancellationToken)
     {
-        EnsureAuthenticatedAccess();
         var leaderboard = await _userProfileService.GetLeaderboardAsync(request.Top);
         return leaderboard;
     }
-
-    private void EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
     }
-}
 
 public class GetLeaderboardQueryValidator : AbstractValidator<GetLeaderboardQuery>
 {
@@ -46,5 +38,4 @@ public class GetLeaderboardQueryValidator : AbstractValidator<GetLeaderboardQuer
         RuleFor(x => x.Top)
             .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

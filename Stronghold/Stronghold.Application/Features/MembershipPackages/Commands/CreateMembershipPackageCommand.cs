@@ -5,14 +5,16 @@ using Stronghold.Application.Features.MembershipPackages.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.MembershipPackages.Commands;
 
-public class CreateMembershipPackageCommand : IRequest<MembershipPackageResponse>
+public class CreateMembershipPackageCommand : IRequest<MembershipPackageResponse>, IAuthorizeAdminRequest
 {
     public string PackageName { get; set; } = string.Empty;
     public decimal PackagePrice { get; set; }
-    public string? Description { get; set; }
+
+public string? Description { get; set; }
 }
 
 public class CreateMembershipPackageCommandHandler
@@ -29,12 +31,10 @@ public class CreateMembershipPackageCommandHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<MembershipPackageResponse> Handle(
+public async Task<MembershipPackageResponse> Handle(
         CreateMembershipPackageCommand request,
         CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var exists = await _membershipPackageRepository.ExistsByNameAsync(
             request.PackageName,
             cancellationToken: cancellationToken);
@@ -61,20 +61,7 @@ public class CreateMembershipPackageCommandHandler
             CreatedAt = entity.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CreateMembershipPackageCommandValidator : AbstractValidator<CreateMembershipPackageCommand>
 {
@@ -93,5 +80,4 @@ public class CreateMembershipPackageCommandValidator : AbstractValidator<CreateM
             .MaximumLength(500).WithMessage("{PropertyName} ne smije imati vise od 500 karaktera.")
             .When(x => x.Description is not null);
     }
-}
-
+    }

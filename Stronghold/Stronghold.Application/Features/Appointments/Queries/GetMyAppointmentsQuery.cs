@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Appointments.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Queries;
 
-public class GetMyAppointmentsQuery : IRequest<PagedResult<AppointmentResponse>>
+public class GetMyAppointmentsQuery : IRequest<PagedResult<AppointmentResponse>>, IAuthorizeAuthenticatedRequest
 {
     public AppointmentFilter Filter { get; set; } = new();
 }
@@ -25,9 +26,9 @@ public class GetMyAppointmentsQueryHandler : IRequestHandler<GetMyAppointmentsQu
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<AppointmentResponse>> Handle(GetMyAppointmentsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<AppointmentResponse>> Handle(GetMyAppointmentsQuery request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
+        var userId = _currentUserService.UserId!.Value;
         var filter = request.Filter ?? new AppointmentFilter();
 
         var page = await _appointmentRepository.GetUserUpcomingPagedAsync(userId, filter, cancellationToken);
@@ -45,17 +46,7 @@ public class GetMyAppointmentsQueryHandler : IRequestHandler<GetMyAppointmentsQu
             PageNumber = page.PageNumber
         };
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class GetMyAppointmentsQueryValidator : AbstractValidator<GetMyAppointmentsQuery>
 {
@@ -84,10 +75,9 @@ public class GetMyAppointmentsQueryValidator : AbstractValidator<GetMyAppointmen
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLower();
         return normalized is "date" or "datedesc";
     }
-}
-
+    }

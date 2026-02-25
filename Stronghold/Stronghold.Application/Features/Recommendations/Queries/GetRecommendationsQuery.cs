@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Recommendations.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Recommendations.Queries;
 
-public class GetRecommendationsQuery : IRequest<IReadOnlyList<RecommendationResponse>>
+public class GetRecommendationsQuery : IRequest<IReadOnlyList<RecommendationResponse>>, IAuthorizeAuthenticatedRequest
 {
     public int Count { get; set; } = 6;
 }
@@ -23,25 +24,15 @@ public class GetRecommendationsQueryHandler : IRequestHandler<GetRecommendations
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<RecommendationResponse>> Handle(
+public async Task<IReadOnlyList<RecommendationResponse>> Handle(
         GetRecommendationsQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
+        var userId = _currentUserService.UserId!.Value;
         var recommendations = await _recommendationService.GetRecommendationsAsync(userId, request.Count);
         return recommendations;
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class GetRecommendationsQueryValidator : AbstractValidator<GetRecommendationsQuery>
 {
@@ -50,5 +41,4 @@ public class GetRecommendationsQueryValidator : AbstractValidator<GetRecommendat
         RuleFor(x => x.Count)
             .InclusiveBetween(1, 50).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

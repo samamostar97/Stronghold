@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Orders.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Queries;
 
-public class GetOrderByIdQuery : IRequest<OrderResponse>
+public class GetOrderByIdQuery : IRequest<OrderResponse>, IAuthorizeAdminRequest
 {
     public int OrderId { get; set; }
 }
@@ -23,10 +24,8 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
         _currentUserService = currentUserService;
     }
 
-    public async Task<OrderResponse> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
+public async Task<OrderResponse> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var order = await _orderRepository.GetByIdWithDetailsAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
@@ -36,20 +35,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
         return MapToOrderResponse(order);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static OrderResponse MapToOrderResponse(Order order)
+private static OrderResponse MapToOrderResponse(Order order)
     {
         return new OrderResponse
         {
@@ -73,7 +59,7 @@ public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, Order
             }).ToList()
         };
     }
-}
+    }
 
 public class GetOrderByIdQueryValidator : AbstractValidator<GetOrderByIdQuery>
 {
@@ -81,5 +67,4 @@ public class GetOrderByIdQueryValidator : AbstractValidator<GetOrderByIdQuery>
     {
         RuleFor(x => x.OrderId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

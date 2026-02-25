@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Queries;
 
-public class GetPagedTrainersQuery : IRequest<PagedResult<TrainerResponse>>
+public class GetPagedTrainersQuery : IRequest<PagedResult<TrainerResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public TrainerFilter Filter { get; set; } = new();
 }
@@ -24,10 +25,8 @@ public class GetPagedTrainersQueryHandler : IRequestHandler<GetPagedTrainersQuer
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<TrainerResponse>> Handle(GetPagedTrainersQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<TrainerResponse>> Handle(GetPagedTrainersQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new TrainerFilter();
         var page = await _trainerRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -39,20 +38,7 @@ public class GetPagedTrainersQueryHandler : IRequestHandler<GetPagedTrainersQuer
         };
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static TrainerResponse MapToResponse(Trainer trainer)
+private static TrainerResponse MapToResponse(Trainer trainer)
     {
         return new TrainerResponse
         {
@@ -64,7 +50,7 @@ public class GetPagedTrainersQueryHandler : IRequestHandler<GetPagedTrainersQuer
             CreatedAt = trainer.CreatedAt
         };
     }
-}
+    }
 
 public class GetPagedTrainersQueryValidator : AbstractValidator<GetPagedTrainersQuery>
 {
@@ -93,7 +79,7 @@ public class GetPagedTrainersQueryValidator : AbstractValidator<GetPagedTrainers
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is
@@ -104,5 +90,4 @@ public class GetPagedTrainersQueryValidator : AbstractValidator<GetPagedTrainers
             "createdat" or
             "createdatdesc";
     }
-}
-
+    }

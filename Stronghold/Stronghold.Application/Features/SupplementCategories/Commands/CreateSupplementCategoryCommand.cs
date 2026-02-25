@@ -5,10 +5,11 @@ using Stronghold.Application.Features.SupplementCategories.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.SupplementCategories.Commands;
 
-public class CreateSupplementCategoryCommand : IRequest<SupplementCategoryResponse>
+public class CreateSupplementCategoryCommand : IRequest<SupplementCategoryResponse>, IAuthorizeAdminRequest
 {
     public string Name { get; set; } = string.Empty;
 }
@@ -26,10 +27,8 @@ public class CreateSupplementCategoryCommandHandler : IRequestHandler<CreateSupp
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplementCategoryResponse> Handle(CreateSupplementCategoryCommand request, CancellationToken cancellationToken)
+public async Task<SupplementCategoryResponse> Handle(CreateSupplementCategoryCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var exists = await _repository.ExistsByNameAsync(request.Name, cancellationToken: cancellationToken);
         if (exists)
         {
@@ -50,20 +49,7 @@ public class CreateSupplementCategoryCommandHandler : IRequestHandler<CreateSupp
             CreatedAt = entity.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CreateSupplementCategoryCommandValidator : AbstractValidator<CreateSupplementCategoryCommand>
 {
@@ -74,5 +60,4 @@ public class CreateSupplementCategoryCommandValidator : AbstractValidator<Create
             .MinimumLength(2).WithMessage("{PropertyName} mora imati najmanje 2 karaktera.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
+    }

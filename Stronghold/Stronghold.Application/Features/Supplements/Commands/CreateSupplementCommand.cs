@@ -5,16 +5,20 @@ using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Supplements.Commands;
 
-public class CreateSupplementCommand : IRequest<SupplementResponse>
+public class CreateSupplementCommand : IRequest<SupplementResponse>, IAuthorizeAdminRequest
 {
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; }
-    public string? Description { get; set; }
-    public int SupplementCategoryId { get; set; }
-    public int SupplierId { get; set; }
+
+public string? Description { get; set; }
+
+public int SupplementCategoryId { get; set; }
+
+public int SupplierId { get; set; }
 }
 
 public class CreateSupplementCommandHandler : IRequestHandler<CreateSupplementCommand, SupplementResponse>
@@ -30,10 +34,8 @@ public class CreateSupplementCommandHandler : IRequestHandler<CreateSupplementCo
         _currentUserService = currentUserService;
     }
 
-    public async Task<SupplementResponse> Handle(CreateSupplementCommand request, CancellationToken cancellationToken)
+public async Task<SupplementResponse> Handle(CreateSupplementCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var exists = await _supplementRepository.ExistsByNameAsync(request.Name, cancellationToken: cancellationToken);
         if (exists)
         {
@@ -69,20 +71,7 @@ public class CreateSupplementCommandHandler : IRequestHandler<CreateSupplementCo
         return MapToResponse(created);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplementResponse MapToResponse(Supplement supplement)
+private static SupplementResponse MapToResponse(Supplement supplement)
     {
         return new SupplementResponse
         {
@@ -98,7 +87,7 @@ public class CreateSupplementCommandHandler : IRequestHandler<CreateSupplementCo
             CreatedAt = supplement.CreatedAt
         };
     }
-}
+    }
 
 public class CreateSupplementCommandValidator : AbstractValidator<CreateSupplementCommand>
 {
@@ -124,5 +113,4 @@ public class CreateSupplementCommandValidator : AbstractValidator<CreateSuppleme
         RuleFor(x => x.SupplierId)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

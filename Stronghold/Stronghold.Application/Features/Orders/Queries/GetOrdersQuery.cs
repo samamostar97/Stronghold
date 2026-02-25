@@ -5,10 +5,11 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Queries;
 
-public class GetOrdersQuery : IRequest<IReadOnlyList<OrderResponse>>
+public class GetOrdersQuery : IRequest<IReadOnlyList<OrderResponse>>, IAuthorizeAdminRequest
 {
     public OrderFilter? Filter { get; set; }
 }
@@ -24,28 +25,13 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, IReadOnlyLi
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<OrderResponse>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<OrderResponse>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var orders = await _orderRepository.GetAllAsync(request.Filter, cancellationToken);
         return orders.Select(MapToOrderResponse).ToList();
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static OrderResponse MapToOrderResponse(Order order)
+private static OrderResponse MapToOrderResponse(Order order)
     {
         return new OrderResponse
         {
@@ -69,7 +55,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, IReadOnlyLi
             }).ToList()
         };
     }
-}
+    }
 
 public class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
 {
@@ -108,22 +94,21 @@ public class GetOrdersQueryValidator : AbstractValidator<GetOrdersQuery>
         });
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "date" or "amount" or "status" or "user";
     }
 
-    private static bool BeValidStatus(OrderStatus? status)
+private static bool BeValidStatus(OrderStatus? status)
     {
         return !status.HasValue || Enum.IsDefined(typeof(OrderStatus), status.Value);
     }
 
-    private static bool HaveValidDateRange(OrderFilter filter)
+private static bool HaveValidDateRange(OrderFilter filter)
     {
         return !filter.DateFrom.HasValue ||
                !filter.DateTo.HasValue ||
                filter.DateFrom.Value <= filter.DateTo.Value;
     }
-}
-
+    }

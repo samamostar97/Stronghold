@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Queries;
 
-public class HasActiveMembershipQuery : IRequest<bool>
+public class HasActiveMembershipQuery : IRequest<bool>, IAuthorizeAdminRequest
 {
     public int UserId { get; set; }
 }
@@ -22,10 +23,8 @@ public class HasActiveMembershipQueryHandler : IRequestHandler<HasActiveMembersh
         _currentUserService = currentUserService;
     }
 
-    public async Task<bool> Handle(HasActiveMembershipQuery request, CancellationToken cancellationToken)
+public async Task<bool> Handle(HasActiveMembershipQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var userExists = await _membershipRepository.UserExistsAsync(request.UserId, cancellationToken);
         if (!userExists)
         {
@@ -35,20 +34,7 @@ public class HasActiveMembershipQueryHandler : IRequestHandler<HasActiveMembersh
         var nowUtc = StrongholdTimeUtils.UtcNow;
         return await _membershipRepository.HasActiveMembershipAsync(request.UserId, nowUtc, cancellationToken);
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class HasActiveMembershipQueryValidator : AbstractValidator<HasActiveMembershipQuery>
 {
@@ -56,5 +42,4 @@ public class HasActiveMembershipQueryValidator : AbstractValidator<HasActiveMemb
     {
         RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

@@ -4,10 +4,11 @@ using Stronghold.Application.Features.SupplementCategories.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.SupplementCategories.Queries;
 
-public class GetSupplementCategoriesQuery : IRequest<IReadOnlyList<SupplementCategoryResponse>>
+public class GetSupplementCategoriesQuery : IRequest<IReadOnlyList<SupplementCategoryResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public SupplementCategoryFilter Filter { get; set; } = new();
 }
@@ -26,12 +27,10 @@ public class GetSupplementCategoriesQueryHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<SupplementCategoryResponse>> Handle(
+public async Task<IReadOnlyList<SupplementCategoryResponse>> Handle(
         GetSupplementCategoriesQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new SupplementCategoryFilter();
         filter.PageNumber = 1;
         filter.PageSize = int.MaxValue;
@@ -39,20 +38,7 @@ public class GetSupplementCategoriesQueryHandler
         return page.Items.Select(MapToResponse).ToList();
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplementCategoryResponse MapToResponse(SupplementCategory entity)
+private static SupplementCategoryResponse MapToResponse(SupplementCategory entity)
     {
         return new SupplementCategoryResponse
         {
@@ -61,7 +47,7 @@ public class GetSupplementCategoriesQueryHandler
             CreatedAt = entity.CreatedAt
         };
     }
-}
+    }
 
 public class GetSupplementCategoriesQueryValidator : AbstractValidator<GetSupplementCategoriesQuery>
 {
@@ -83,10 +69,9 @@ public class GetSupplementCategoriesQueryValidator : AbstractValidator<GetSupple
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is "name" or "namedesc" or "createdat" or "createdatdesc";
     }
-}
-
+    }

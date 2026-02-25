@@ -4,10 +4,11 @@ using Stronghold.Application.Features.MembershipPackages.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.MembershipPackages.Queries;
 
-public class GetMembershipPackagesQuery : IRequest<IReadOnlyList<MembershipPackageResponse>>
+public class GetMembershipPackagesQuery : IRequest<IReadOnlyList<MembershipPackageResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public MembershipPackageFilter Filter { get; set; } = new();
 }
@@ -26,12 +27,10 @@ public class GetMembershipPackagesQueryHandler
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<MembershipPackageResponse>> Handle(
+public async Task<IReadOnlyList<MembershipPackageResponse>> Handle(
         GetMembershipPackagesQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new MembershipPackageFilter();
         filter.PageNumber = 1;
         filter.PageSize = int.MaxValue;
@@ -40,20 +39,7 @@ public class GetMembershipPackagesQueryHandler
         return page.Items.Select(MapToResponse).ToList();
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static MembershipPackageResponse MapToResponse(MembershipPackage membershipPackage)
+private static MembershipPackageResponse MapToResponse(MembershipPackage membershipPackage)
     {
         return new MembershipPackageResponse
         {
@@ -64,7 +50,7 @@ public class GetMembershipPackagesQueryHandler
             CreatedAt = membershipPackage.CreatedAt
         };
     }
-}
+    }
 
 public class GetMembershipPackagesQueryValidator : AbstractValidator<GetMembershipPackagesQuery>
 {
@@ -86,7 +72,7 @@ public class GetMembershipPackagesQueryValidator : AbstractValidator<GetMembersh
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is
@@ -97,5 +83,4 @@ public class GetMembershipPackagesQueryValidator : AbstractValidator<GetMembersh
             "createdat" or
             "createdatdesc";
     }
-}
-
+    }

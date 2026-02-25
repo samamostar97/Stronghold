@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Reviews.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reviews.Queries;
 
-public class GetPagedReviewsQuery : IRequest<PagedResult<ReviewResponse>>
+public class GetPagedReviewsQuery : IRequest<PagedResult<ReviewResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public ReviewFilter Filter { get; set; } = new();
 }
@@ -26,10 +27,8 @@ public class GetPagedReviewsQueryHandler : IRequestHandler<GetPagedReviewsQuery,
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<ReviewResponse>> Handle(GetPagedReviewsQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<ReviewResponse>> Handle(GetPagedReviewsQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new ReviewFilter();
         var page = await _reviewRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -41,20 +40,7 @@ public class GetPagedReviewsQueryHandler : IRequestHandler<GetPagedReviewsQuery,
         };
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static ReviewResponse MapToResponse(Review review)
+private static ReviewResponse MapToResponse(Review review)
     {
         var userLastName = review.User?.LastName ?? string.Empty;
         return new ReviewResponse
@@ -71,7 +57,7 @@ public class GetPagedReviewsQueryHandler : IRequestHandler<GetPagedReviewsQuery,
             CreatedAt = review.CreatedAt
         };
     }
-}
+    }
 
 public class GetPagedReviewsQueryValidator : AbstractValidator<GetPagedReviewsQuery>
 {
@@ -100,7 +86,7 @@ public class GetPagedReviewsQueryValidator : AbstractValidator<GetPagedReviewsQu
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is
@@ -113,5 +99,4 @@ public class GetPagedReviewsQueryValidator : AbstractValidator<GetPagedReviewsQu
             "createdat" or
             "createdatdesc";
     }
-}
-
+    }

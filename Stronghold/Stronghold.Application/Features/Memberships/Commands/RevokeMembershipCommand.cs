@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Commands;
 
-public class RevokeMembershipCommand : IRequest<bool>
+public class RevokeMembershipCommand : IRequest<bool>, IAuthorizeAdminRequest
 {
     public int UserId { get; set; }
 }
@@ -22,10 +23,8 @@ public class RevokeMembershipCommandHandler : IRequestHandler<RevokeMembershipCo
         _currentUserService = currentUserService;
     }
 
-    public async Task<bool> Handle(RevokeMembershipCommand request, CancellationToken cancellationToken)
+public async Task<bool> Handle(RevokeMembershipCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var nowUtc = StrongholdTimeUtils.UtcNow;
         var userExists = await _membershipRepository.UserExistsAsync(request.UserId, cancellationToken);
         if (!userExists)
@@ -60,20 +59,7 @@ public class RevokeMembershipCommandHandler : IRequestHandler<RevokeMembershipCo
 
         return true;
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class RevokeMembershipCommandValidator : AbstractValidator<RevokeMembershipCommand>
 {
@@ -81,5 +67,4 @@ public class RevokeMembershipCommandValidator : AbstractValidator<RevokeMembersh
     {
         RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

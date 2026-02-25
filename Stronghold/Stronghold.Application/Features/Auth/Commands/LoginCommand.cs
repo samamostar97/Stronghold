@@ -21,7 +21,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
         _jwtService = jwtService;
     }
 
-    public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
+public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         return await _jwtService.LoginAsync(new LoginRequest
         {
@@ -29,7 +29,7 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
             Password = request.Password
         });
     }
-}
+    }
 
 public class LoginCommandValidator : AbstractValidator<LoginCommand>
 {
@@ -44,5 +44,4 @@ public class LoginCommandValidator : AbstractValidator<LoginCommand>
             .NotEmpty().WithMessage("{PropertyName} je obavezno.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
+    }

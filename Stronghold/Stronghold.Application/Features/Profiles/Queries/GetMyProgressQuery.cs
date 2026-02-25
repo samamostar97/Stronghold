@@ -1,10 +1,11 @@
 using MediatR;
 using Stronghold.Application.Features.Profiles.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Profiles.Queries;
 
-public class GetMyProgressQuery : IRequest<UserProgressResponse>
+public class GetMyProgressQuery : IRequest<UserProgressResponse>, IAuthorizeAuthenticatedRequest
 {
 }
 
@@ -21,19 +22,9 @@ public class GetMyProgressQueryHandler : IRequestHandler<GetMyProgressQuery, Use
         _currentUserService = currentUserService;
     }
 
-    public async Task<UserProgressResponse> Handle(GetMyProgressQuery request, CancellationToken cancellationToken)
+public async Task<UserProgressResponse> Handle(GetMyProgressQuery request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
+        var userId = _currentUserService.UserId!.Value;
         return await _userProfileService.GetProgressAsync(userId);
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}

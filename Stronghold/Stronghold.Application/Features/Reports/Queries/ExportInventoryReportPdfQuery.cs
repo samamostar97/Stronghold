@@ -1,10 +1,11 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class ExportInventoryReportPdfQuery : IRequest<byte[]>
+public class ExportInventoryReportPdfQuery : IRequest<byte[]>, IAuthorizeAdminRequest
 {
     public int DaysToAnalyze { get; set; } = 30;
 }
@@ -22,25 +23,11 @@ public class ExportInventoryReportPdfQueryHandler : IRequestHandler<ExportInvent
         _currentUserService = currentUserService;
     }
 
-    public async Task<byte[]> Handle(ExportInventoryReportPdfQuery request, CancellationToken cancellationToken)
+public async Task<byte[]> Handle(ExportInventoryReportPdfQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.ExportInventoryReportToPdfAsync(request.DaysToAnalyze);
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class ExportInventoryReportPdfQueryValidator : AbstractValidator<ExportInventoryReportPdfQuery>
 {
@@ -49,5 +36,4 @@ public class ExportInventoryReportPdfQueryValidator : AbstractValidator<ExportIn
         RuleFor(x => x.DaysToAnalyze)
             .InclusiveBetween(1, 365).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

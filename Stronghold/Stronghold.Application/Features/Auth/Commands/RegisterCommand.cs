@@ -25,7 +25,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
         _jwtService = jwtService;
     }
 
-    public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
+public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var response = await _jwtService.RegisterAsync(new RegisterRequest
         {
@@ -39,7 +39,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 
         return response ?? throw new InvalidOperationException("Registracija nije uspjela.");
     }
-}
+    }
 
 public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
 {
@@ -78,6 +78,4 @@ public class RegisterCommandValidator : AbstractValidator<RegisterCommand>
             .MinimumLength(6).WithMessage("{PropertyName} mora imati najmanje 6 karaktera.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
-
+    }

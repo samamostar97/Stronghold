@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Queries;
 
-public class GetPagedNutritionistsQuery : IRequest<PagedResult<NutritionistResponse>>
+public class GetPagedNutritionistsQuery : IRequest<PagedResult<NutritionistResponse>>, IAuthorizeAdminOrGymMemberRequest
 {
     public NutritionistFilter Filter { get; set; } = new();
 }
@@ -26,12 +27,10 @@ public class GetPagedNutritionistsQueryHandler : IRequestHandler<GetPagedNutriti
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<NutritionistResponse>> Handle(
+public async Task<PagedResult<NutritionistResponse>> Handle(
         GetPagedNutritionistsQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var filter = request.Filter ?? new NutritionistFilter();
         var page = await _nutritionistRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -43,20 +42,7 @@ public class GetPagedNutritionistsQueryHandler : IRequestHandler<GetPagedNutriti
         };
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static NutritionistResponse MapToResponse(Nutritionist nutritionist)
+private static NutritionistResponse MapToResponse(Nutritionist nutritionist)
     {
         return new NutritionistResponse
         {
@@ -68,7 +54,7 @@ public class GetPagedNutritionistsQueryHandler : IRequestHandler<GetPagedNutriti
             CreatedAt = nutritionist.CreatedAt
         };
     }
-}
+    }
 
 public class GetPagedNutritionistsQueryValidator : AbstractValidator<GetPagedNutritionistsQuery>
 {
@@ -97,7 +83,7 @@ public class GetPagedNutritionistsQueryValidator : AbstractValidator<GetPagedNut
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is
@@ -108,5 +94,4 @@ public class GetPagedNutritionistsQueryValidator : AbstractValidator<GetPagedNut
             "createdat" or
             "createdatdesc";
     }
-}
-
+    }

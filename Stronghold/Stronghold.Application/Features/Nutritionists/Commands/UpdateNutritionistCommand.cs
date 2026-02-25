@@ -4,16 +4,21 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Commands;
 
-public class UpdateNutritionistCommand : IRequest<NutritionistResponse>
+public class UpdateNutritionistCommand : IRequest<NutritionistResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Email { get; set; }
-    public string? PhoneNumber { get; set; }
+
+public string? FirstName { get; set; }
+
+public string? LastName { get; set; }
+
+public string? Email { get; set; }
+
+public string? PhoneNumber { get; set; }
 }
 
 public class UpdateNutritionistCommandHandler : IRequestHandler<UpdateNutritionistCommand, NutritionistResponse>
@@ -29,10 +34,8 @@ public class UpdateNutritionistCommandHandler : IRequestHandler<UpdateNutritioni
         _currentUserService = currentUserService;
     }
 
-    public async Task<NutritionistResponse> Handle(UpdateNutritionistCommand request, CancellationToken cancellationToken)
+public async Task<NutritionistResponse> Handle(UpdateNutritionistCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var nutritionist = await _nutritionistRepository.GetByIdAsync(request.Id, cancellationToken);
         if (nutritionist is null)
         {
@@ -89,20 +92,7 @@ public class UpdateNutritionistCommandHandler : IRequestHandler<UpdateNutritioni
             CreatedAt = nutritionist.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class UpdateNutritionistCommandValidator : AbstractValidator<UpdateNutritionistCommand>
 {
@@ -138,6 +128,4 @@ public class UpdateNutritionistCommandValidator : AbstractValidator<UpdateNutrit
             .When(x => x.PhoneNumber is not null)
             .WithMessage("Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.");
     }
-}
-
-
+    }

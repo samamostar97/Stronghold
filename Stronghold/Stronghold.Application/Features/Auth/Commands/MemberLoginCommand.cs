@@ -21,7 +21,7 @@ public class MemberLoginCommandHandler : IRequestHandler<MemberLoginCommand, Aut
         _jwtService = jwtService;
     }
 
-    public async Task<AuthResponse> Handle(MemberLoginCommand request, CancellationToken cancellationToken)
+public async Task<AuthResponse> Handle(MemberLoginCommand request, CancellationToken cancellationToken)
     {
         var response = await _jwtService.LoginAsync(new LoginRequest
         {
@@ -36,7 +36,7 @@ public class MemberLoginCommandHandler : IRequestHandler<MemberLoginCommand, Aut
 
         return response;
     }
-}
+    }
 
 public class MemberLoginCommandValidator : AbstractValidator<MemberLoginCommand>
 {
@@ -50,5 +50,4 @@ public class MemberLoginCommandValidator : AbstractValidator<MemberLoginCommand>
             .NotEmpty().WithMessage("{PropertyName} je obavezno.")
             .MaximumLength(100).WithMessage("{PropertyName} ne smije imati vise od 100 karaktera.");
     }
-}
-
+    }

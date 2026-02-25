@@ -1,9 +1,10 @@
 using MediatR;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class ExportBusinessReportExcelQuery : IRequest<byte[]>
+public class ExportBusinessReportExcelQuery : IRequest<byte[]>, IAuthorizeAdminRequest
 {
 }
 
@@ -20,22 +21,8 @@ public class ExportBusinessReportExcelQueryHandler : IRequestHandler<ExportBusin
         _currentUserService = currentUserService;
     }
 
-    public async Task<byte[]> Handle(ExportBusinessReportExcelQuery request, CancellationToken cancellationToken)
+public async Task<byte[]> Handle(ExportBusinessReportExcelQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.ExportToExcelAsync();
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}

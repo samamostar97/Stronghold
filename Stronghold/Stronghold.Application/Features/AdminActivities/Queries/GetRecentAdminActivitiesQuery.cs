@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.AdminActivities.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.AdminActivities.Queries;
 
-public class GetRecentAdminActivitiesQuery : IRequest<IReadOnlyList<AdminActivityResponse>>
+public class GetRecentAdminActivitiesQuery : IRequest<IReadOnlyList<AdminActivityResponse>>, IAuthorizeAdminRequest
 {
     public int Count { get; set; } = 20;
 }
@@ -23,28 +24,14 @@ public class GetRecentAdminActivitiesQueryHandler : IRequestHandler<GetRecentAdm
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<AdminActivityResponse>> Handle(
+public async Task<IReadOnlyList<AdminActivityResponse>> Handle(
         GetRecentAdminActivitiesQuery request,
         CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         var activities = await _adminActivityService.GetRecentAsync(request.Count);
         return activities;
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetRecentAdminActivitiesQueryValidator : AbstractValidator<GetRecentAdminActivitiesQuery>
 {
@@ -53,5 +40,4 @@ public class GetRecentAdminActivitiesQueryValidator : AbstractValidator<GetRecen
         RuleFor(x => x.Count)
             .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Suppliers.Queries;
 
-public class GetPagedSuppliersQuery : IRequest<PagedResult<SupplierResponse>>
+public class GetPagedSuppliersQuery : IRequest<PagedResult<SupplierResponse>>, IAuthorizeAdminRequest
 {
     public SupplierFilter Filter { get; set; } = new();
 }
@@ -24,10 +25,8 @@ public class GetPagedSuppliersQueryHandler : IRequestHandler<GetPagedSuppliersQu
         _currentUserService = currentUserService;
     }
 
-    public async Task<PagedResult<SupplierResponse>> Handle(GetPagedSuppliersQuery request, CancellationToken cancellationToken)
+public async Task<PagedResult<SupplierResponse>> Handle(GetPagedSuppliersQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var filter = request.Filter ?? new SupplierFilter();
         var page = await _supplierRepository.GetPagedAsync(filter, cancellationToken);
 
@@ -39,20 +38,7 @@ public class GetPagedSuppliersQueryHandler : IRequestHandler<GetPagedSuppliersQu
         };
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SupplierResponse MapToResponse(Supplier supplier)
+private static SupplierResponse MapToResponse(Supplier supplier)
     {
         return new SupplierResponse
         {
@@ -62,7 +48,7 @@ public class GetPagedSuppliersQueryHandler : IRequestHandler<GetPagedSuppliersQu
             CreatedAt = supplier.CreatedAt
         };
     }
-}
+    }
 
 public class GetPagedSuppliersQueryValidator : AbstractValidator<GetPagedSuppliersQuery>
 {
@@ -91,10 +77,9 @@ public class GetPagedSuppliersQueryValidator : AbstractValidator<GetPagedSupplie
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-    private static bool BeValidOrderBy(string? orderBy)
+private static bool BeValidOrderBy(string? orderBy)
     {
         var value = orderBy?.Trim().ToLowerInvariant();
         return value is "name" or "namedesc" or "createdat" or "createdatdesc";
     }
-}
-
+    }

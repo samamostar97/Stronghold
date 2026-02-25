@@ -5,13 +5,15 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Commands;
 
-public class CancelOrderCommand : IRequest<OrderResponse>
+public class CancelOrderCommand : IRequest<OrderResponse>, IAuthorizeAdminRequest
 {
     public int OrderId { get; set; }
-    public string? Reason { get; set; }
+
+public string? Reason { get; set; }
 }
 
 public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, OrderResponse>
@@ -36,10 +38,8 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Ord
         _notificationService = notificationService;
     }
 
-    public async Task<OrderResponse> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
+public async Task<OrderResponse> Handle(CancelOrderCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var order = await _orderRepository.GetByIdWithDetailsAsync(request.OrderId, cancellationToken);
         if (order is null)
         {
@@ -88,20 +88,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Ord
         return MapToOrderResponse(order);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private async Task SendCancellationEmailAsync(Order order)
+private async Task SendCancellationEmailAsync(Order order)
     {
         var itemsList = string.Join(
             "",
@@ -144,7 +131,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Ord
             emailBody);
     }
 
-    private static OrderResponse MapToOrderResponse(Order order)
+private static OrderResponse MapToOrderResponse(Order order)
     {
         return new OrderResponse
         {
@@ -168,7 +155,7 @@ public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, Ord
             }).ToList()
         };
     }
-}
+    }
 
 public class CancelOrderCommandValidator : AbstractValidator<CancelOrderCommand>
 {
@@ -180,5 +167,4 @@ public class CancelOrderCommandValidator : AbstractValidator<CancelOrderCommand>
             .MaximumLength(500).WithMessage("{PropertyName} ne smije imati vise od 500 karaktera.")
             .When(x => !string.IsNullOrWhiteSpace(x.Reason));
     }
-}
-
+    }

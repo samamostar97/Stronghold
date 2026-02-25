@@ -4,13 +4,15 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Users.Commands;
 
-public class UploadUserImageCommand : IRequest<UserResponse>
+public class UploadUserImageCommand : IRequest<UserResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public FileUploadRequest FileRequest { get; set; } = null!;
+
+public FileUploadRequest FileRequest { get; set; } = null!;
 }
 
 public class UploadUserImageCommandHandler : IRequestHandler<UploadUserImageCommand, UserResponse>
@@ -29,10 +31,8 @@ public class UploadUserImageCommandHandler : IRequestHandler<UploadUserImageComm
         _fileStorageService = fileStorageService;
     }
 
-    public async Task<UserResponse> Handle(UploadUserImageCommand request, CancellationToken cancellationToken)
+public async Task<UserResponse> Handle(UploadUserImageCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
         if (user is null)
         {
@@ -56,20 +56,7 @@ public class UploadUserImageCommandHandler : IRequestHandler<UploadUserImageComm
         return MapToResponse(user);
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static UserResponse MapToResponse(Core.Entities.User user)
+private static UserResponse MapToResponse(Core.Entities.User user)
     {
         return new UserResponse
         {
@@ -83,7 +70,7 @@ public class UploadUserImageCommandHandler : IRequestHandler<UploadUserImageComm
             ProfileImageUrl = user.ProfileImageUrl
         };
     }
-}
+    }
 
 public class UploadUserImageCommandValidator : AbstractValidator<UploadUserImageCommand>
 {
@@ -103,5 +90,4 @@ public class UploadUserImageCommandValidator : AbstractValidator<UploadUserImage
         RuleFor(x => x.FileRequest.FileSize)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

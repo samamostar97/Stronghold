@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Commands;
 
-public class CreateTrainerCommand : IRequest<TrainerResponse>
+public class CreateTrainerCommand : IRequest<TrainerResponse>, IAuthorizeAdminRequest
 {
     public string FirstName { get; set; } = string.Empty;
     public string LastName { get; set; } = string.Empty;
@@ -27,10 +28,8 @@ public class CreateTrainerCommandHandler : IRequestHandler<CreateTrainerCommand,
         _currentUserService = currentUserService;
     }
 
-    public async Task<TrainerResponse> Handle(CreateTrainerCommand request, CancellationToken cancellationToken)
+public async Task<TrainerResponse> Handle(CreateTrainerCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var emailExists = await _trainerRepository.ExistsByEmailAsync(request.Email, cancellationToken: cancellationToken);
         if (emailExists)
         {
@@ -63,20 +62,7 @@ public class CreateTrainerCommandHandler : IRequestHandler<CreateTrainerCommand,
             CreatedAt = entity.CreatedAt
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CreateTrainerCommandValidator : AbstractValidator<CreateTrainerCommand>
 {
@@ -105,6 +91,4 @@ public class CreateTrainerCommandValidator : AbstractValidator<CreateTrainerComm
             .Matches(@"^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$")
             .WithMessage("Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.");
     }
-}
-
-
+    }

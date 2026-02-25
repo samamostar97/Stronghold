@@ -1,10 +1,11 @@
 using MediatR;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class GetBusinessReportQuery : IRequest<BusinessReportResponse>
+public class GetBusinessReportQuery : IRequest<BusinessReportResponse>, IAuthorizeAdminRequest
 {
 }
 
@@ -21,22 +22,8 @@ public class GetBusinessReportQueryHandler : IRequestHandler<GetBusinessReportQu
         _currentUserService = currentUserService;
     }
 
-    public async Task<BusinessReportResponse> Handle(GetBusinessReportQuery request, CancellationToken cancellationToken)
+public async Task<BusinessReportResponse> Handle(GetBusinessReportQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.GetBusinessReportAsync();
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}

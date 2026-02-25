@@ -1,9 +1,10 @@
 using MediatR;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reports.Queries;
 
-public class ExportMembershipPopularityPdfQuery : IRequest<byte[]>
+public class ExportMembershipPopularityPdfQuery : IRequest<byte[]>, IAuthorizeAdminRequest
 {
 }
 
@@ -20,22 +21,8 @@ public class ExportMembershipPopularityPdfQueryHandler : IRequestHandler<ExportM
         _currentUserService = currentUserService;
     }
 
-    public async Task<byte[]> Handle(ExportMembershipPopularityPdfQuery request, CancellationToken cancellationToken)
+public async Task<byte[]> Handle(ExportMembershipPopularityPdfQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _reportService.ExportMembershipPopularityToPdfAsync();
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}

@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Users.Queries;
 
-public class GetUserByIdQuery : IRequest<UserResponse>
+public class GetUserByIdQuery : IRequest<UserResponse>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
 }
@@ -22,10 +23,8 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserRes
         _currentUserService = currentUserService;
     }
 
-    public async Task<UserResponse> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+public async Task<UserResponse> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var user = await _userRepository.GetByIdAsync(request.Id, cancellationToken);
         if (user is null)
         {
@@ -44,20 +43,7 @@ public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, UserRes
             ProfileImageUrl = user.ProfileImageUrl
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class GetUserByIdQueryValidator : AbstractValidator<GetUserByIdQuery>
 {
@@ -65,5 +51,4 @@ public class GetUserByIdQueryValidator : AbstractValidator<GetUserByIdQuery>
     {
         RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

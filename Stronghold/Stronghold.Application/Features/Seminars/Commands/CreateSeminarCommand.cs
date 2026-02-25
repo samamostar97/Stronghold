@@ -6,15 +6,17 @@ using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Commands;
 
-public class CreateSeminarCommand : IRequest<SeminarResponse>
+public class CreateSeminarCommand : IRequest<SeminarResponse>, IAuthorizeAdminRequest
 {
     public string Topic { get; set; } = string.Empty;
     public string SpeakerName { get; set; } = string.Empty;
     public DateTime EventDate { get; set; }
-    public int MaxCapacity { get; set; }
+
+public int MaxCapacity { get; set; }
 }
 
 public class CreateSeminarCommandHandler : IRequestHandler<CreateSeminarCommand, SeminarResponse>
@@ -30,10 +32,8 @@ public class CreateSeminarCommandHandler : IRequestHandler<CreateSeminarCommand,
         _currentUserService = currentUserService;
     }
 
-    public async Task<SeminarResponse> Handle(CreateSeminarCommand request, CancellationToken cancellationToken)
+public async Task<SeminarResponse> Handle(CreateSeminarCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var topic = request.Topic.Trim();
         var speakerName = request.SpeakerName.Trim();
         var normalizedEventDate = StrongholdTimeUtils.ToUtc(request.EventDate);
@@ -75,20 +75,7 @@ public class CreateSeminarCommandHandler : IRequestHandler<CreateSeminarCommand,
             Status = StatusActive
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CreateSeminarCommandValidator : AbstractValidator<CreateSeminarCommand>
 {
@@ -111,5 +98,4 @@ public class CreateSeminarCommandValidator : AbstractValidator<CreateSeminarComm
         RuleFor(x => x.MaxCapacity)
             .InclusiveBetween(1, 10000).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

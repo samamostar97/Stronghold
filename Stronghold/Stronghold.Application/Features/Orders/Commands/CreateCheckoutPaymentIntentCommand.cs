@@ -3,10 +3,11 @@ using MediatR;
 using Stronghold.Application.Features.Orders.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Commands;
 
-public class CreateCheckoutPaymentIntentCommand : IRequest<CheckoutResponse>
+public class CreateCheckoutPaymentIntentCommand : IRequest<CheckoutResponse>, IAuthorizeAuthenticatedRequest
 {
     public List<CheckoutItem> Items { get; set; } = new();
 }
@@ -14,7 +15,8 @@ public class CreateCheckoutPaymentIntentCommand : IRequest<CheckoutResponse>
 public class CheckoutItem
 {
     public int SupplementId { get; set; }
-    public int Quantity { get; set; }
+
+public int Quantity { get; set; }
 }
 
 public class CreateCheckoutPaymentIntentCommandHandler
@@ -34,10 +36,9 @@ public class CreateCheckoutPaymentIntentCommandHandler
         _stripePaymentService = stripePaymentService;
     }
 
-    public async Task<CheckoutResponse> Handle(CreateCheckoutPaymentIntentCommand request, CancellationToken cancellationToken)
+public async Task<CheckoutResponse> Handle(CreateCheckoutPaymentIntentCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         if (request.Items.Count == 0)
         {
             throw new InvalidOperationException("Korpa je prazna.");
@@ -81,21 +82,11 @@ public class CreateCheckoutPaymentIntentCommandHandler
         };
     }
 
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
-    }
-
-    private static long ToMinorUnits(decimal amount)
+private static long ToMinorUnits(decimal amount)
     {
         return (long)Math.Round(amount * 100m, MidpointRounding.AwayFromZero);
     }
-}
+    }
 
 public class CreateCheckoutPaymentIntentCommandValidator : AbstractValidator<CreateCheckoutPaymentIntentCommand>
 {
@@ -115,7 +106,7 @@ public class CreateCheckoutPaymentIntentCommandValidator : AbstractValidator<Cre
             .SetValidator(new CheckoutItemValidator())
             .WithMessage("Stavke narudzbe sadrze neispravne podatke.");
     }
-}
+    }
 
 public class CheckoutItemValidator : AbstractValidator<CheckoutItem>
 {
@@ -127,5 +118,4 @@ public class CheckoutItemValidator : AbstractValidator<CheckoutItem>
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
             .LessThanOrEqualTo(99).WithMessage("{PropertyName} mora biti manje ili jednako dozvoljenoj vrijednosti.");
     }
-}
-
+    }

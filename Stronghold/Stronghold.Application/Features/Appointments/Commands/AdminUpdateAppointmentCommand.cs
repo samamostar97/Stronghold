@@ -4,15 +4,19 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Commands;
 
-public class AdminUpdateAppointmentCommand : IRequest<Unit>
+public class AdminUpdateAppointmentCommand : IRequest<Unit>, IAuthorizeAdminRequest
 {
     public int Id { get; set; }
-    public int? TrainerId { get; set; }
-    public int? NutritionistId { get; set; }
-    public DateTime AppointmentDate { get; set; }
+
+public int? TrainerId { get; set; }
+
+public int? NutritionistId { get; set; }
+
+public DateTime AppointmentDate { get; set; }
 }
 
 public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateAppointmentCommand, Unit>
@@ -28,10 +32,8 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(AdminUpdateAppointmentCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(AdminUpdateAppointmentCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var appointment = await _appointmentRepository.GetByIdAsync(request.Id, cancellationToken);
         if (appointment is null)
         {
@@ -48,8 +50,7 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
             {
                 throw new KeyNotFoundException("Trener ne postoji.");
             }
-        }
-
+            }
         if (request.NutritionistId.HasValue)
         {
             var nutritionistExists = await _appointmentRepository.NutritionistExistsAsync(request.NutritionistId.Value, cancellationToken);
@@ -57,8 +58,7 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
             {
                 throw new KeyNotFoundException("Nutricionist ne postoji.");
             }
-        }
-
+            }
         var userHasAppointment = await _appointmentRepository.UserHasAppointmentOnDateAsync(
             appointment.UserId,
             normalizedDate,
@@ -84,8 +84,7 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
             {
                 throw new InvalidOperationException("Odabrani trener je zauzet u ovom terminu.");
             }
-        }
-
+            }
         if (request.NutritionistId.HasValue)
         {
             var nutritionistBusy = await _appointmentRepository.IsNutritionistBusyInSlotAsync(
@@ -98,8 +97,7 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
             {
                 throw new InvalidOperationException("Odabrani nutricionista je zauzet/a u ovom terminu.");
             }
-        }
-
+            }
         appointment.TrainerId = request.TrainerId;
         appointment.NutritionistId = request.NutritionistId;
         appointment.AppointmentDate = normalizedDate;
@@ -113,20 +111,7 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
         return Unit.Value;
     }
 
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static void ValidateSingleStaffSelection(int? trainerId, int? nutritionistId)
+private static void ValidateSingleStaffSelection(int? trainerId, int? nutritionistId)
     {
         if (trainerId is null && nutritionistId is null)
         {
@@ -137,9 +122,9 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
         {
             throw new ArgumentException("Termin moze biti samo kod trenera ili nutricioniste, ne oba.");
         }
-    }
+        }
 
-    private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
+private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
     {
         var localDate = StrongholdTimeUtils.ToLocal(date);
 
@@ -165,7 +150,7 @@ public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateA
 
         return new DateTime(localDate.Year, localDate.Month, localDate.Day, localDate.Hour, 0, 0, localDate.Kind);
     }
-}
+    }
 
 public class AdminUpdateAppointmentCommandValidator : AbstractValidator<AdminUpdateAppointmentCommand>
 {
@@ -183,5 +168,4 @@ public class AdminUpdateAppointmentCommandValidator : AbstractValidator<AdminUpd
             .Must(x => !(x.TrainerId.HasValue && x.NutritionistId.HasValue))
             .WithMessage("Termin moze biti samo kod trenera ili nutricioniste, ne oba.");
     }
-}
-
+    }

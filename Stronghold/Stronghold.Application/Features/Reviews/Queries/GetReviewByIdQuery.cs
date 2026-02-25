@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Reviews.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Reviews.Queries;
 
-public class GetReviewByIdQuery : IRequest<ReviewResponse>
+public class GetReviewByIdQuery : IRequest<ReviewResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -25,10 +26,8 @@ public class GetReviewByIdQueryHandler : IRequestHandler<GetReviewByIdQuery, Rev
         _currentUserService = currentUserService;
     }
 
-    public async Task<ReviewResponse> Handle(GetReviewByIdQuery request, CancellationToken cancellationToken)
+public async Task<ReviewResponse> Handle(GetReviewByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var review = await _reviewRepository.GetByIdAsync(request.Id, cancellationToken);
         if (review is null)
         {
@@ -38,20 +37,7 @@ public class GetReviewByIdQueryHandler : IRequestHandler<GetReviewByIdQuery, Rev
         return MapToResponse(review);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static ReviewResponse MapToResponse(Review review)
+private static ReviewResponse MapToResponse(Review review)
     {
         var userLastName = review.User?.LastName ?? string.Empty;
         return new ReviewResponse
@@ -68,7 +54,7 @@ public class GetReviewByIdQueryHandler : IRequestHandler<GetReviewByIdQuery, Rev
             CreatedAt = review.CreatedAt
         };
     }
-}
+    }
 
 public class GetReviewByIdQueryValidator : AbstractValidator<GetReviewByIdQuery>
 {
@@ -77,5 +63,4 @@ public class GetReviewByIdQueryValidator : AbstractValidator<GetReviewByIdQuery>
         RuleFor(x => x.Id)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

@@ -4,10 +4,11 @@ using Stronghold.Application.Features.Notifications.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Notifications.Queries;
 
-public class GetMyNotificationsQuery : IRequest<IReadOnlyList<NotificationResponse>>
+public class GetMyNotificationsQuery : IRequest<IReadOnlyList<NotificationResponse>>, IAuthorizeAuthenticatedRequest
 {
     public int Count { get; set; } = 20;
 }
@@ -25,26 +26,15 @@ public class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotifications
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<NotificationResponse>> Handle(GetMyNotificationsQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<NotificationResponse>> Handle(GetMyNotificationsQuery request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         var notifications = await _notificationRepository.GetRecentForUserAsync(userId, request.Count, cancellationToken);
 
         return notifications.Select(MapToResponse).ToList();
     }
 
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
-    }
-
-    private static NotificationResponse MapToResponse(Notification notification)
+private static NotificationResponse MapToResponse(Notification notification)
     {
         return new NotificationResponse
         {
@@ -58,7 +48,7 @@ public class GetMyNotificationsQueryHandler : IRequestHandler<GetMyNotifications
             RelatedEntityType = notification.RelatedEntityType
         };
     }
-}
+    }
 
 public class GetMyNotificationsQueryValidator : AbstractValidator<GetMyNotificationsQuery>
 {
@@ -67,5 +57,4 @@ public class GetMyNotificationsQueryValidator : AbstractValidator<GetMyNotificat
         RuleFor(x => x.Count)
             .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-}
-
+    }

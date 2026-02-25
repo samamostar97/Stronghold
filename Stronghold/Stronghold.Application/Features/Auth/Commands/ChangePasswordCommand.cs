@@ -2,10 +2,11 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Auth.DTOs;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Auth.Commands;
 
-public class ChangePasswordCommand : IRequest<Unit>
+public class ChangePasswordCommand : IRequest<Unit>, IAuthorizeAuthenticatedRequest
 {
     public string CurrentPassword { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
@@ -22,10 +23,9 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
         _currentUserService = currentUserService;
     }
 
-    public async Task<Unit> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+public async Task<Unit> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
-        var userId = EnsureAuthenticatedAccess();
-
+        var userId = _currentUserService.UserId!.Value;
         await _jwtService.ChangePasswordAsync(userId, new ChangePasswordRequest
         {
             CurrentPassword = request.CurrentPassword,
@@ -34,17 +34,7 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
 
         return Unit.Value;
     }
-
-    private int EnsureAuthenticatedAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCommand>
 {
@@ -63,5 +53,4 @@ public class ChangePasswordCommandValidator : AbstractValidator<ChangePasswordCo
             .Must(x => !string.Equals(x.CurrentPassword, x.NewPassword, StringComparison.Ordinal))
             .WithMessage("Nova lozinka mora biti razlicita od trenutne.");
     }
-}
-
+    }

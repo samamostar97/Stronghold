@@ -6,13 +6,15 @@ using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Commands;
 
-public class BookTrainerAppointmentCommand : IRequest<AppointmentResponse>
+public class BookTrainerAppointmentCommand : IRequest<AppointmentResponse>, IAuthorizeGymMemberRequest
 {
     public int TrainerId { get; set; }
-    public DateTime Date { get; set; }
+
+public DateTime Date { get; set; }
 }
 
 public class BookTrainerAppointmentCommandHandler : IRequestHandler<BookTrainerAppointmentCommand, AppointmentResponse>
@@ -26,10 +28,8 @@ public class BookTrainerAppointmentCommandHandler : IRequestHandler<BookTrainerA
         _currentUserService = currentUserService;
     }
 
-    public async Task<AppointmentResponse> Handle(BookTrainerAppointmentCommand request, CancellationToken cancellationToken)
+public async Task<AppointmentResponse> Handle(BookTrainerAppointmentCommand request, CancellationToken cancellationToken)
     {
-        EnsureGymMemberAccess();
-
         var normalizedDate = NormalizeAndValidateAppointmentDate(request.Date);
 
         var trainer = await _trainerRepository.GetByIdAsync(request.TrainerId, cancellationToken);
@@ -71,20 +71,7 @@ public class BookTrainerAppointmentCommandHandler : IRequestHandler<BookTrainerA
         };
     }
 
-    private void EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
+private static DateTime NormalizeAndValidateAppointmentDate(DateTime date)
     {
         var localDate = StrongholdTimeUtils.ToLocal(date);
 
@@ -110,7 +97,7 @@ public class BookTrainerAppointmentCommandHandler : IRequestHandler<BookTrainerA
 
         return new DateTime(localDate.Year, localDate.Month, localDate.Day, localDate.Hour, 0, 0, localDate.Kind);
     }
-}
+    }
 
 public class BookTrainerAppointmentCommandValidator : AbstractValidator<BookTrainerAppointmentCommand>
 {
@@ -122,5 +109,4 @@ public class BookTrainerAppointmentCommandValidator : AbstractValidator<BookTrai
         RuleFor(x => x.Date)
             .NotEmpty().WithMessage("{PropertyName} je obavezno.");
     }
-}
-
+    }

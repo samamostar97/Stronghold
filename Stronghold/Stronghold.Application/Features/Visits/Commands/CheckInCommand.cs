@@ -5,10 +5,11 @@ using Stronghold.Application.Features.Visits.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Visits.Commands;
 
-public class CheckInCommand : IRequest<VisitResponse>
+public class CheckInCommand : IRequest<VisitResponse>, IAuthorizeAdminRequest
 {
     public int UserId { get; set; }
 }
@@ -24,10 +25,8 @@ public class CheckInCommandHandler : IRequestHandler<CheckInCommand, VisitRespon
         _currentUserService = currentUserService;
     }
 
-    public async Task<VisitResponse> Handle(CheckInCommand request, CancellationToken cancellationToken)
+public async Task<VisitResponse> Handle(CheckInCommand request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
-
         var user = await _visitRepository.GetUserByIdAsync(request.UserId, cancellationToken);
         if (user is null)
         {
@@ -65,20 +64,7 @@ public class CheckInCommandHandler : IRequestHandler<CheckInCommand, VisitRespon
             CheckInTime = visit.CheckInTime
         };
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}
 
 public class CheckInCommandValidator : AbstractValidator<CheckInCommand>
 {
@@ -86,5 +72,4 @@ public class CheckInCommandValidator : AbstractValidator<CheckInCommand>
     {
         RuleFor(x => x.UserId).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

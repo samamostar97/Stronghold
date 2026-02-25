@@ -1,10 +1,11 @@
 using MediatR;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Notifications.Queries;
 
-public class GetAdminUnreadCountQuery : IRequest<int>
+public class GetAdminUnreadCountQuery : IRequest<int>, IAuthorizeAdminRequest
 {
 }
 
@@ -21,22 +22,8 @@ public class GetAdminUnreadCountQueryHandler : IRequestHandler<GetAdminUnreadCou
         _currentUserService = currentUserService;
     }
 
-    public async Task<int> Handle(GetAdminUnreadCountQuery request, CancellationToken cancellationToken)
+public async Task<int> Handle(GetAdminUnreadCountQuery request, CancellationToken cancellationToken)
     {
-        EnsureAdminAccess();
         return await _notificationRepository.GetAdminUnreadCountAsync(cancellationToken);
     }
-
-    private void EnsureAdminAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
     }
-}

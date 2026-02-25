@@ -4,4 +4,4 @@ namespace Stronghold.Application.Features.Auth.DTOs
     {
         public string Email { get; set; } = string.Empty;
     }
-}
+    }

@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Queries;
 
-public class GetSeminarByIdQuery : IRequest<SeminarResponse>
+public class GetSeminarByIdQuery : IRequest<SeminarResponse>, IAuthorizeAdminOrGymMemberRequest
 {
     public int Id { get; set; }
 }
@@ -27,10 +28,8 @@ public class GetSeminarByIdQueryHandler : IRequestHandler<GetSeminarByIdQuery, S
         _currentUserService = currentUserService;
     }
 
-    public async Task<SeminarResponse> Handle(GetSeminarByIdQuery request, CancellationToken cancellationToken)
+public async Task<SeminarResponse> Handle(GetSeminarByIdQuery request, CancellationToken cancellationToken)
     {
-        EnsureReadAccess();
-
         var seminar = await _seminarRepository.GetByIdAsync(request.Id, cancellationToken);
         if (seminar is null)
         {
@@ -41,20 +40,7 @@ public class GetSeminarByIdQueryHandler : IRequestHandler<GetSeminarByIdQuery, S
         return MapToResponse(seminar, attendeeCount, StrongholdTimeUtils.UtcNow);
     }
 
-    private void EnsureReadAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("Admin") && !_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-    }
-
-    private static SeminarResponse MapToResponse(Core.Entities.Seminar seminar, int attendeeCount, DateTime nowUtc)
+private static SeminarResponse MapToResponse(Core.Entities.Seminar seminar, int attendeeCount, DateTime nowUtc)
     {
         return new SeminarResponse
         {
@@ -69,7 +55,7 @@ public class GetSeminarByIdQueryHandler : IRequestHandler<GetSeminarByIdQuery, S
         };
     }
 
-    private static string ResolveStatus(DateTime eventDate, bool isCancelled, DateTime nowUtc)
+private static string ResolveStatus(DateTime eventDate, bool isCancelled, DateTime nowUtc)
     {
         if (isCancelled)
         {
@@ -78,7 +64,7 @@ public class GetSeminarByIdQueryHandler : IRequestHandler<GetSeminarByIdQuery, S
 
         return eventDate <= nowUtc ? StatusFinished : StatusActive;
     }
-}
+    }
 
 public class GetSeminarByIdQueryValidator : AbstractValidator<GetSeminarByIdQuery>
 {
@@ -86,5 +72,4 @@ public class GetSeminarByIdQueryValidator : AbstractValidator<GetSeminarByIdQuer
     {
         RuleFor(x => x.Id).GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
     }
-}
-
+    }

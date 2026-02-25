@@ -4,10 +4,11 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
+using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Queries;
 
-public class GetUpcomingSeminarsQuery : IRequest<IReadOnlyList<UserSeminarResponse>>
+public class GetUpcomingSeminarsQuery : IRequest<IReadOnlyList<UserSeminarResponse>>, IAuthorizeGymMemberRequest
 {
 }
 
@@ -24,9 +25,9 @@ public class GetUpcomingSeminarsQueryHandler : IRequestHandler<GetUpcomingSemina
         _currentUserService = currentUserService;
     }
 
-    public async Task<IReadOnlyList<UserSeminarResponse>> Handle(GetUpcomingSeminarsQuery request, CancellationToken cancellationToken)
+public async Task<IReadOnlyList<UserSeminarResponse>> Handle(GetUpcomingSeminarsQuery request, CancellationToken cancellationToken)
     {
-        var userId = EnsureGymMemberAccess();
+        var userId = _currentUserService.UserId!.Value;
         var now = StrongholdTimeUtils.UtcNow;
 
         var seminars = await _seminarRepository.GetUpcomingSeminarsAsync(now, cancellationToken);
@@ -58,22 +59,7 @@ public class GetUpcomingSeminarsQueryHandler : IRequestHandler<GetUpcomingSemina
             };
         }).ToList();
     }
-
-    private int EnsureGymMemberAccess()
-    {
-        if (!_currentUserService.IsAuthenticated || !_currentUserService.UserId.HasValue)
-        {
-            throw new UnauthorizedAccessException("Korisnik nije autentificiran.");
-        }
-
-        if (!_currentUserService.IsInRole("GymMember"))
-        {
-            throw new UnauthorizedAccessException("Nemate dozvolu za ovu akciju.");
-        }
-
-        return _currentUserService.UserId.Value;
     }
-}
 
 public class GetUpcomingSeminarsQueryValidator : AbstractValidator<GetUpcomingSeminarsQuery>
 {
