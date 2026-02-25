@@ -50,11 +50,7 @@ class LoginBrandingPanel extends StatelessWidget {
       Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl + 16),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            _logo(),
-            const SizedBox(height: AppSpacing.xxxl + 8),
-            _headline(),
-          ]),
+          child: _logo(),
         ),
       ),
       // Bottom gradient line
@@ -77,46 +73,31 @@ class LoginBrandingPanel extends StatelessWidget {
     ]);
   }
 
-  Widget _logo() => Row(mainAxisSize: MainAxisSize.min, children: [
+  Widget _logo() => Column(mainAxisSize: MainAxisSize.min, children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 64,
+          height: 64,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
                 colors: [AppColors.primary, AppColors.secondary]),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
             boxShadow: [
               BoxShadow(
                 color: AppColors.primary.withValues(alpha: 0.3),
-                blurRadius: 16,
+                blurRadius: 24,
               ),
             ],
           ),
           alignment: Alignment.center,
-          child: const Icon(LucideIcons.shield, color: Colors.white, size: 22),
+          child: const Icon(LucideIcons.shield, color: Colors.white, size: 32),
         ),
-        const SizedBox(width: AppSpacing.md),
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('TheStronghold',
-              style: AppTextStyles.headingMd.copyWith(fontSize: 22)),
-          Text('ADMINISTRATORSKI CENTAR',
-              style: AppTextStyles.label.copyWith(
-                  color: AppColors.primary, letterSpacing: 2, fontSize: 10)),
-        ]),
+        const SizedBox(height: AppSpacing.lg),
+        Text('TheStronghold',
+            style: AppTextStyles.headingMd.copyWith(fontSize: 26)),
+        const SizedBox(height: AppSpacing.xs),
+        Text('ADMINISTRATORSKI CENTAR',
+            style: AppTextStyles.label.copyWith(
+                color: AppColors.primary, letterSpacing: 3, fontSize: 11)),
       ]);
 
-  Widget _headline() => Column(children: [
-        Text('Upravljaj',
-            style: AppTextStyles.statLg.copyWith(fontSize: 38)),
-        ShaderMask(
-          shaderCallback: (bounds) => const LinearGradient(
-            colors: [AppColors.primary, AppColors.secondary],
-          ).createShader(bounds),
-          child: Text('Svojom Arenom',
-              style: AppTextStyles.statLg.copyWith(
-                  fontSize: 38,
-                  fontStyle: FontStyle.italic,
-                  color: Colors.white)),
-        ),
-      ]);
 }

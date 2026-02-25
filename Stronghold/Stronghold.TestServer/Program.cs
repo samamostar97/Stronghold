@@ -11,7 +11,7 @@ using Stronghold.TestServer;
 Environment.SetEnvironmentVariable("JWT_SECRET", "TestServerSuperSecretKey_AtLeast32Characters!");
 Environment.SetEnvironmentVariable("JWT_ISSUER", "Stronghold");
 Environment.SetEnvironmentVariable("JWT_AUDIENCE", "StrongholdApp");
-Environment.SetEnvironmentVariable("STRIPE_SECRET_KEY", "sk_test_fake_not_real");
+Environment.SetEnvironmentVariable("STRIPE_SECRET_KEY", "sk_test_51SvL7dBlrIi9HZmr5XpTewWgBnPsbVYGwEXhpMRqcXhNUBXIV5U4oMrbzmFqZZaKqlPlPVZaFRiIJRMJxYRgJxd300I7Chv1Gw");
 Environment.SetEnvironmentVariable("DB_SERVER", "not-used");
 Environment.SetEnvironmentVariable("DB_NAME", "not-used");
 Environment.SetEnvironmentVariable("DB_USER", "not-used");
@@ -51,11 +51,7 @@ foreach (var d in dbOptionsNonGeneric) builder.Services.Remove(d);
 builder.Services.AddDbContext<StrongholdDbContext>(options =>
     options.UseInMemoryDatabase("StrongholdTestDb"));
 
-// Override Stripe -> Fake
-var stripeDescriptor = builder.Services
-    .FirstOrDefault(d => d.ServiceType == typeof(IStripePaymentService));
-if (stripeDescriptor != null) builder.Services.Remove(stripeDescriptor);
-builder.Services.AddScoped<IStripePaymentService, FakeStripePaymentService>();
+// Stripe uses real service with test key from env var above
 
 // Override Email -> Fake
 var emailDescriptor = builder.Services
