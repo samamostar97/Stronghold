@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.MembershipPackages.Commands;
@@ -15,14 +14,11 @@ public class DeleteMembershipPackageCommand : IRequest<Unit>, IAuthorizeAdminReq
 public class DeleteMembershipPackageCommandHandler : IRequestHandler<DeleteMembershipPackageCommand, Unit>
 {
     private readonly IMembershipPackageRepository _membershipPackageRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public DeleteMembershipPackageCommandHandler(
-        IMembershipPackageRepository membershipPackageRepository,
-        ICurrentUserService currentUserService)
+        IMembershipPackageRepository membershipPackageRepository)
     {
         _membershipPackageRepository = membershipPackageRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(DeleteMembershipPackageCommand request, CancellationToken cancellationToken)

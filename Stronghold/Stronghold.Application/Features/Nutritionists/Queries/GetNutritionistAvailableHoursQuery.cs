@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Queries;
@@ -18,14 +17,11 @@ public class GetNutritionistAvailableHoursQueryHandler
     : IRequestHandler<GetNutritionistAvailableHoursQuery, IReadOnlyList<int>>
 {
     private readonly INutritionistRepository _nutritionistRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetNutritionistAvailableHoursQueryHandler(
-        INutritionistRepository nutritionistRepository,
-        ICurrentUserService currentUserService)
+        INutritionistRepository nutritionistRepository)
     {
         _nutritionistRepository = nutritionistRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<int>> Handle(

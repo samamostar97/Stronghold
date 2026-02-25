@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.MembershipPackages.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.MembershipPackages.Commands;
@@ -23,14 +22,11 @@ public class UpdateMembershipPackageCommandHandler
     : IRequestHandler<UpdateMembershipPackageCommand, MembershipPackageResponse>
 {
     private readonly IMembershipPackageRepository _membershipPackageRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public UpdateMembershipPackageCommandHandler(
-        IMembershipPackageRepository membershipPackageRepository,
-        ICurrentUserService currentUserService)
+        IMembershipPackageRepository membershipPackageRepository)
     {
         _membershipPackageRepository = membershipPackageRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<MembershipPackageResponse> Handle(

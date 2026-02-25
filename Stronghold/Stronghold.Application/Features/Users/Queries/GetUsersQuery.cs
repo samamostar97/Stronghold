@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,12 +15,10 @@ public class GetUsersQuery : IRequest<IReadOnlyList<UserResponse>>, IAuthorizeAd
 public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, IReadOnlyList<UserResponse>>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetUsersQueryHandler(IUserRepository userRepository, ICurrentUserService currentUserService)
+    public GetUsersQueryHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<UserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)

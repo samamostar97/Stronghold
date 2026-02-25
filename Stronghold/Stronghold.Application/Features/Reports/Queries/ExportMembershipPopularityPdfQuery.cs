@@ -11,14 +11,11 @@ public class ExportMembershipPopularityPdfQuery : IRequest<byte[]>, IAuthorizeAd
 public class ExportMembershipPopularityPdfQueryHandler : IRequestHandler<ExportMembershipPopularityPdfQuery, byte[]>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public ExportMembershipPopularityPdfQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<byte[]> Handle(ExportMembershipPopularityPdfQuery request, CancellationToken cancellationToken)

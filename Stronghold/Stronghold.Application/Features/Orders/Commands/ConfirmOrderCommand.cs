@@ -5,6 +5,7 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Commands;
@@ -108,7 +109,7 @@ public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, Cancell
         {
             UserId = userId,
             TotalAmount = ToMajorUnits(totalMinorUnits),
-            PurchaseDate = DateTime.UtcNow,
+            PurchaseDate = StrongholdTimeUtils.UtcNow,
             Status = OrderStatus.Processing,
             StripePaymentId = request.PaymentIntentId,
             OrderItems = orderItems

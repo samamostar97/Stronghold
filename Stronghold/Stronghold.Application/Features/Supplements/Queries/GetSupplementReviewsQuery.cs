@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Supplements.Queries;
@@ -15,12 +14,10 @@ public class GetSupplementReviewsQuery : IRequest<IReadOnlyList<SupplementReview
 public class GetSupplementReviewsQueryHandler : IRequestHandler<GetSupplementReviewsQuery, IReadOnlyList<SupplementReviewResponse>>
 {
     private readonly ISupplementRepository _supplementRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetSupplementReviewsQueryHandler(ISupplementRepository supplementRepository, ICurrentUserService currentUserService)
+    public GetSupplementReviewsQueryHandler(ISupplementRepository supplementRepository)
     {
         _supplementRepository = supplementRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<SupplementReviewResponse>> Handle(

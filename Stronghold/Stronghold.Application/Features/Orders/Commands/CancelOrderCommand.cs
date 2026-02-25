@@ -5,6 +5,7 @@ using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
+using Stronghold.Application.Common;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Orders.Commands;
@@ -19,20 +20,17 @@ public string? Reason { get; set; }
 public class CancelOrderCommandHandler : IRequestHandler<CancelOrderCommand, OrderResponse>
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IStripePaymentService _stripePaymentService;
     private readonly IEmailService _emailService;
     private readonly INotificationService _notificationService;
 
     public CancelOrderCommandHandler(
         IOrderRepository orderRepository,
-        ICurrentUserService currentUserService,
         IStripePaymentService stripePaymentService,
         IEmailService emailService,
         INotificationService notificationService)
     {
         _orderRepository = orderRepository;
-        _currentUserService = currentUserService;
         _stripePaymentService = stripePaymentService;
         _emailService = emailService;
         _notificationService = notificationService;
@@ -62,7 +60,7 @@ public async Task<OrderResponse> Handle(CancelOrderCommand request, Cancellation
         }
 
         order.Status = OrderStatus.Cancelled;
-        order.CancelledAt = DateTime.UtcNow;
+        order.CancelledAt = StrongholdTimeUtils.UtcNow;
         order.CancellationReason = string.IsNullOrWhiteSpace(request.Reason)
             ? null
             : request.Reason.Trim();

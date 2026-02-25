@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -27,12 +26,10 @@ public DateTime PaymentDate { get; set; }
 public class AssignMembershipCommandHandler : IRequestHandler<AssignMembershipCommand, MembershipResponse>
 {
     private readonly IMembershipRepository _membershipRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public AssignMembershipCommandHandler(IMembershipRepository membershipRepository, ICurrentUserService currentUserService)
+    public AssignMembershipCommandHandler(IMembershipRepository membershipRepository)
     {
         _membershipRepository = membershipRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<MembershipResponse> Handle(AssignMembershipCommand request, CancellationToken cancellationToken)

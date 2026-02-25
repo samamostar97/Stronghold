@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.SupplementCategories.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -17,14 +16,11 @@ public class GetSupplementCategoriesQueryHandler
     : IRequestHandler<GetSupplementCategoriesQuery, IReadOnlyList<SupplementCategoryResponse>>
 {
     private readonly ISupplementCategoryRepository _repository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetSupplementCategoriesQueryHandler(
-        ISupplementCategoryRepository repository,
-        ICurrentUserService currentUserService)
+        ISupplementCategoryRepository repository)
     {
         _repository = repository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<SupplementCategoryResponse>> Handle(

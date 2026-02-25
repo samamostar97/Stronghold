@@ -14,14 +14,11 @@ public class GetRecentAdminActivitiesQuery : IRequest<IReadOnlyList<AdminActivit
 public class GetRecentAdminActivitiesQueryHandler : IRequestHandler<GetRecentAdminActivitiesQuery, IReadOnlyList<AdminActivityResponse>>
 {
     private readonly IAdminActivityService _adminActivityService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetRecentAdminActivitiesQueryHandler(
-        IAdminActivityService adminActivityService,
-        ICurrentUserService currentUserService)
+        IAdminActivityService adminActivityService)
     {
         _adminActivityService = adminActivityService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<AdminActivityResponse>> Handle(

@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Commands;
@@ -22,14 +21,11 @@ public DateTime AppointmentDate { get; set; }
 public class AdminUpdateAppointmentCommandHandler : IRequestHandler<AdminUpdateAppointmentCommand, Unit>
 {
     private readonly IAppointmentRepository _appointmentRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public AdminUpdateAppointmentCommandHandler(
-        IAppointmentRepository appointmentRepository,
-        ICurrentUserService currentUserService)
+        IAppointmentRepository appointmentRepository)
     {
         _appointmentRepository = appointmentRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(AdminUpdateAppointmentCommand request, CancellationToken cancellationToken)

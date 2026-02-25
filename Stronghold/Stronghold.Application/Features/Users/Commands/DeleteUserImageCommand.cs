@@ -14,16 +14,13 @@ public class DeleteUserImageCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class DeleteUserImageCommandHandler : IRequestHandler<DeleteUserImageCommand, Unit>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorageService _fileStorageService;
 
     public DeleteUserImageCommandHandler(
         IUserRepository userRepository,
-        ICurrentUserService currentUserService,
         IFileStorageService fileStorageService)
     {
         _userRepository = userRepository;
-        _currentUserService = currentUserService;
         _fileStorageService = fileStorageService;
     }
 

@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Orders.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
 using Stronghold.Application.Common.Authorization;
@@ -18,12 +17,10 @@ public class GetPagedOrdersQuery : IRequest<PagedResult<OrderResponse>>, IAuthor
 public class GetPagedOrdersQueryHandler : IRequestHandler<GetPagedOrdersQuery, PagedResult<OrderResponse>>
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetPagedOrdersQueryHandler(IOrderRepository orderRepository, ICurrentUserService currentUserService)
+    public GetPagedOrdersQueryHandler(IOrderRepository orderRepository)
     {
         _orderRepository = orderRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<OrderResponse>> Handle(GetPagedOrdersQuery request, CancellationToken cancellationToken)

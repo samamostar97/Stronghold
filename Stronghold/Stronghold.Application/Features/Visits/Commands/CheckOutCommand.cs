@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Visits.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Visits.Commands;
@@ -16,12 +15,10 @@ public class CheckOutCommand : IRequest<VisitResponse>, IAuthorizeAdminRequest
 public class CheckOutCommandHandler : IRequestHandler<CheckOutCommand, VisitResponse>
 {
     private readonly IVisitRepository _visitRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CheckOutCommandHandler(IVisitRepository visitRepository, ICurrentUserService currentUserService)
+    public CheckOutCommandHandler(IVisitRepository visitRepository)
     {
         _visitRepository = visitRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<VisitResponse> Handle(CheckOutCommand request, CancellationToken cancellationToken)

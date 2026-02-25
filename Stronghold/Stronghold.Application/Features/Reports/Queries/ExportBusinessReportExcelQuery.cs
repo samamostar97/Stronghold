@@ -11,14 +11,11 @@ public class ExportBusinessReportExcelQuery : IRequest<byte[]>, IAuthorizeAdminR
 public class ExportBusinessReportExcelQueryHandler : IRequestHandler<ExportBusinessReportExcelQuery, byte[]>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public ExportBusinessReportExcelQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<byte[]> Handle(ExportBusinessReportExcelQuery request, CancellationToken cancellationToken)

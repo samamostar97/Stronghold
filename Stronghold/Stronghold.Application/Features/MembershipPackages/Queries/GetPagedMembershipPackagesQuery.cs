@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.MembershipPackages.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -18,14 +17,11 @@ public class GetPagedMembershipPackagesQueryHandler
     : IRequestHandler<GetPagedMembershipPackagesQuery, PagedResult<MembershipPackageResponse>>
 {
     private readonly IMembershipPackageRepository _membershipPackageRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetPagedMembershipPackagesQueryHandler(
-        IMembershipPackageRepository membershipPackageRepository,
-        ICurrentUserService currentUserService)
+        IMembershipPackageRepository membershipPackageRepository)
     {
         _membershipPackageRepository = membershipPackageRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<MembershipPackageResponse>> Handle(

@@ -12,14 +12,11 @@ public class GetMembershipPopularityReportQuery : IRequest<MembershipPopularityR
 public class GetMembershipPopularityReportQueryHandler : IRequestHandler<GetMembershipPopularityReportQuery, MembershipPopularityReportResponse>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetMembershipPopularityReportQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<MembershipPopularityReportResponse> Handle(

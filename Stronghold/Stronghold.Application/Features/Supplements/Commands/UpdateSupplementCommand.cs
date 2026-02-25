@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -27,14 +26,11 @@ public int? SupplierId { get; set; }
 public class UpdateSupplementCommandHandler : IRequestHandler<UpdateSupplementCommand, SupplementResponse>
 {
     private readonly ISupplementRepository _supplementRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public UpdateSupplementCommandHandler(
-        ISupplementRepository supplementRepository,
-        ICurrentUserService currentUserService)
+        ISupplementRepository supplementRepository)
     {
         _supplementRepository = supplementRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<SupplementResponse> Handle(UpdateSupplementCommand request, CancellationToken cancellationToken)

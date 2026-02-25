@@ -12,14 +12,11 @@ public class GetBusinessReportQuery : IRequest<BusinessReportResponse>, IAuthori
 public class GetBusinessReportQueryHandler : IRequestHandler<GetBusinessReportQuery, BusinessReportResponse>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetBusinessReportQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<BusinessReportResponse> Handle(GetBusinessReportQuery request, CancellationToken cancellationToken)

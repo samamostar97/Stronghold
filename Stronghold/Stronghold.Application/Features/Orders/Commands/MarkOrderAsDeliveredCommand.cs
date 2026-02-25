@@ -17,18 +17,15 @@ public class MarkOrderAsDeliveredCommand : IRequest<OrderResponse>, IAuthorizeAd
 public class MarkOrderAsDeliveredCommandHandler : IRequestHandler<MarkOrderAsDeliveredCommand, OrderResponse>
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IEmailService _emailService;
     private readonly INotificationService _notificationService;
 
     public MarkOrderAsDeliveredCommandHandler(
         IOrderRepository orderRepository,
-        ICurrentUserService currentUserService,
         IEmailService emailService,
         INotificationService notificationService)
     {
         _orderRepository = orderRepository;
-        _currentUserService = currentUserService;
         _emailService = emailService;
         _notificationService = notificationService;
     }

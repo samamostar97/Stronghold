@@ -1,7 +1,6 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Commands;
@@ -14,12 +13,10 @@ public class DeleteSeminarCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class DeleteSeminarCommandHandler : IRequestHandler<DeleteSeminarCommand, Unit>
 {
     private readonly ISeminarRepository _seminarRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteSeminarCommandHandler(ISeminarRepository seminarRepository, ICurrentUserService currentUserService)
+    public DeleteSeminarCommandHandler(ISeminarRepository seminarRepository)
     {
         _seminarRepository = seminarRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(DeleteSeminarCommand request, CancellationToken cancellationToken)

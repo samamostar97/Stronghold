@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,12 +15,10 @@ public class GetTrainersQuery : IRequest<IReadOnlyList<TrainerResponse>>, IAutho
 public class GetTrainersQueryHandler : IRequestHandler<GetTrainersQuery, IReadOnlyList<TrainerResponse>>
 {
     private readonly ITrainerRepository _trainerRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetTrainersQueryHandler(ITrainerRepository trainerRepository, ICurrentUserService currentUserService)
+    public GetTrainersQueryHandler(ITrainerRepository trainerRepository)
     {
         _trainerRepository = trainerRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<TrainerResponse>> Handle(GetTrainersQuery request, CancellationToken cancellationToken)

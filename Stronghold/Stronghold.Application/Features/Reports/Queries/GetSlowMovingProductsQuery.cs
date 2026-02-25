@@ -15,14 +15,11 @@ public class GetSlowMovingProductsQuery : IRequest<PagedResult<SlowMovingProduct
 public class GetSlowMovingProductsQueryHandler : IRequestHandler<GetSlowMovingProductsQuery, PagedResult<SlowMovingProductResponse>>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetSlowMovingProductsQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<SlowMovingProductResponse>> Handle(GetSlowMovingProductsQuery request, CancellationToken cancellationToken)

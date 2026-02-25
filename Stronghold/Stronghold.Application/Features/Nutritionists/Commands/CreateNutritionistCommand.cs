@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -20,14 +19,11 @@ public class CreateNutritionistCommand : IRequest<NutritionistResponse>, IAuthor
 public class CreateNutritionistCommandHandler : IRequestHandler<CreateNutritionistCommand, NutritionistResponse>
 {
     private readonly INutritionistRepository _nutritionistRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public CreateNutritionistCommandHandler(
-        INutritionistRepository nutritionistRepository,
-        ICurrentUserService currentUserService)
+        INutritionistRepository nutritionistRepository)
     {
         _nutritionistRepository = nutritionistRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<NutritionistResponse> Handle(CreateNutritionistCommand request, CancellationToken cancellationToken)

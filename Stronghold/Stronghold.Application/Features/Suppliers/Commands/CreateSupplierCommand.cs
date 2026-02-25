@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -18,12 +17,10 @@ public class CreateSupplierCommand : IRequest<SupplierResponse>, IAuthorizeAdmin
 public class CreateSupplierCommandHandler : IRequestHandler<CreateSupplierCommand, SupplierResponse>
 {
     private readonly ISupplierRepository _supplierRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CreateSupplierCommandHandler(ISupplierRepository supplierRepository, ICurrentUserService currentUserService)
+    public CreateSupplierCommandHandler(ISupplierRepository supplierRepository)
     {
         _supplierRepository = supplierRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<SupplierResponse> Handle(CreateSupplierCommand request, CancellationToken cancellationToken)

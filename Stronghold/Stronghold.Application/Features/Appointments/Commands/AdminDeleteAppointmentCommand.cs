@@ -1,7 +1,6 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Commands;
@@ -14,14 +13,11 @@ public class AdminDeleteAppointmentCommand : IRequest<Unit>, IAuthorizeAdminRequ
 public class AdminDeleteAppointmentCommandHandler : IRequestHandler<AdminDeleteAppointmentCommand, Unit>
 {
     private readonly IAppointmentRepository _appointmentRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public AdminDeleteAppointmentCommandHandler(
-        IAppointmentRepository appointmentRepository,
-        ICurrentUserService currentUserService)
+        IAppointmentRepository appointmentRepository)
     {
         _appointmentRepository = appointmentRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(AdminDeleteAppointmentCommand request, CancellationToken cancellationToken)

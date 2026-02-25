@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Orders.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,12 +15,10 @@ public class GetOrderByIdQuery : IRequest<OrderResponse>, IAuthorizeAdminRequest
 public class GetOrderByIdQueryHandler : IRequestHandler<GetOrderByIdQuery, OrderResponse>
 {
     private readonly IOrderRepository _orderRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetOrderByIdQueryHandler(IOrderRepository orderRepository, ICurrentUserService currentUserService)
+    public GetOrderByIdQueryHandler(IOrderRepository orderRepository)
     {
         _orderRepository = orderRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<OrderResponse> Handle(GetOrderByIdQuery request, CancellationToken cancellationToken)

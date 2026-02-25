@@ -19,16 +19,13 @@ public FileUploadRequest FileRequest { get; set; } = null!;
 public class UploadSupplementImageCommandHandler : IRequestHandler<UploadSupplementImageCommand, SupplementResponse>
 {
     private readonly ISupplementRepository _supplementRepository;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorageService _fileStorageService;
 
     public UploadSupplementImageCommandHandler(
         ISupplementRepository supplementRepository,
-        ICurrentUserService currentUserService,
         IFileStorageService fileStorageService)
     {
         _supplementRepository = supplementRepository;
-        _currentUserService = currentUserService;
         _fileStorageService = fileStorageService;
     }
 

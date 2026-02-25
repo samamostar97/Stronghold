@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -21,12 +20,10 @@ public class GetSeminarsQueryHandler : IRequestHandler<GetSeminarsQuery, IReadOn
     private const string StatusFinished = "finished";
 
     private readonly ISeminarRepository _seminarRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetSeminarsQueryHandler(ISeminarRepository seminarRepository, ICurrentUserService currentUserService)
+    public GetSeminarsQueryHandler(ISeminarRepository seminarRepository)
     {
         _seminarRepository = seminarRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<SeminarResponse>> Handle(GetSeminarsQuery request, CancellationToken cancellationToken)

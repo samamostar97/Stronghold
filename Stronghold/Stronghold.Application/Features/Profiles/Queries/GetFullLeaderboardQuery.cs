@@ -12,14 +12,11 @@ public class GetFullLeaderboardQuery : IRequest<IReadOnlyList<LeaderboardEntryRe
 public class GetFullLeaderboardQueryHandler : IRequestHandler<GetFullLeaderboardQuery, IReadOnlyList<LeaderboardEntryResponse>>
 {
     private readonly IUserProfileService _userProfileService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetFullLeaderboardQueryHandler(
-        IUserProfileService userProfileService,
-        ICurrentUserService currentUserService)
+        IUserProfileService userProfileService)
     {
         _userProfileService = userProfileService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<LeaderboardEntryResponse>> Handle(GetFullLeaderboardQuery request, CancellationToken cancellationToken)

@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Commands;
@@ -15,12 +14,10 @@ public class DeleteTrainerCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class DeleteTrainerCommandHandler : IRequestHandler<DeleteTrainerCommand, Unit>
 {
     private readonly ITrainerRepository _trainerRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteTrainerCommandHandler(ITrainerRepository trainerRepository, ICurrentUserService currentUserService)
+    public DeleteTrainerCommandHandler(ITrainerRepository trainerRepository)
     {
         _trainerRepository = trainerRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(DeleteTrainerCommand request, CancellationToken cancellationToken)

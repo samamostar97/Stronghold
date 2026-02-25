@@ -24,7 +24,7 @@ public class AppointmentCommandTests
             TrainerId = 5,
             AppointmentDate = NextValidAppointmentDate()
         };
-        var handler = new AdminCreateAppointmentCommandHandler(repository, currentUser);
+        var handler = new AdminCreateAppointmentCommandHandler(repository);
         var behavior = new AuthorizationBehavior<AdminCreateAppointmentCommand, int>(currentUser);
 
         var act = () => behavior.Handle(
@@ -44,7 +44,7 @@ public class AppointmentCommandTests
             username: "admin",
             isAuthenticated: true,
             "Admin");
-        var handler = new AdminCreateAppointmentCommandHandler(repository, currentUser);
+        var handler = new AdminCreateAppointmentCommandHandler(repository);
 
         var act = () => handler.Handle(new AdminCreateAppointmentCommand
         {
@@ -69,7 +69,7 @@ public class AppointmentCommandTests
             username: "admin",
             isAuthenticated: true,
             "Admin");
-        var handler = new AdminCreateAppointmentCommandHandler(repository, currentUser);
+        var handler = new AdminCreateAppointmentCommandHandler(repository);
 
         var act = () => handler.Handle(new AdminCreateAppointmentCommand
         {
@@ -93,7 +93,7 @@ public class AppointmentCommandTests
             username: "admin",
             isAuthenticated: true,
             "Admin");
-        var handler = new AdminCreateAppointmentCommandHandler(repository, currentUser);
+        var handler = new AdminCreateAppointmentCommandHandler(repository);
 
         var result = await handler.Handle(new AdminCreateAppointmentCommand
         {

@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Reviews.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -17,14 +16,11 @@ public class GetPagedReviewsQuery : IRequest<PagedResult<ReviewResponse>>, IAuth
 public class GetPagedReviewsQueryHandler : IRequestHandler<GetPagedReviewsQuery, PagedResult<ReviewResponse>>
 {
     private readonly IReviewRepository _reviewRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetPagedReviewsQueryHandler(
-        IReviewRepository reviewRepository,
-        ICurrentUserService currentUserService)
+        IReviewRepository reviewRepository)
     {
         _reviewRepository = reviewRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<ReviewResponse>> Handle(GetPagedReviewsQuery request, CancellationToken cancellationToken)

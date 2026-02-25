@@ -13,14 +13,11 @@ public class ExportInventoryReportExcelQuery : IRequest<byte[]>, IAuthorizeAdmin
 public class ExportInventoryReportExcelQueryHandler : IRequestHandler<ExportInventoryReportExcelQuery, byte[]>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public ExportInventoryReportExcelQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<byte[]> Handle(ExportInventoryReportExcelQuery request, CancellationToken cancellationToken)

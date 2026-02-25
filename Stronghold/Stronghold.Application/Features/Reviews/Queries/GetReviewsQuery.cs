@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Reviews.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,14 +15,11 @@ public class GetReviewsQuery : IRequest<IReadOnlyList<ReviewResponse>>, IAuthori
 public class GetReviewsQueryHandler : IRequestHandler<GetReviewsQuery, IReadOnlyList<ReviewResponse>>
 {
     private readonly IReviewRepository _reviewRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetReviewsQueryHandler(
-        IReviewRepository reviewRepository,
-        ICurrentUserService currentUserService)
+        IReviewRepository reviewRepository)
     {
         _reviewRepository = reviewRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<ReviewResponse>> Handle(GetReviewsQuery request, CancellationToken cancellationToken)

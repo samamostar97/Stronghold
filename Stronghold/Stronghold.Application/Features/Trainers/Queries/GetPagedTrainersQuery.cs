@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -17,12 +16,10 @@ public class GetPagedTrainersQuery : IRequest<PagedResult<TrainerResponse>>, IAu
 public class GetPagedTrainersQueryHandler : IRequestHandler<GetPagedTrainersQuery, PagedResult<TrainerResponse>>
 {
     private readonly ITrainerRepository _trainerRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetPagedTrainersQueryHandler(ITrainerRepository trainerRepository, ICurrentUserService currentUserService)
+    public GetPagedTrainersQueryHandler(ITrainerRepository trainerRepository)
     {
         _trainerRepository = trainerRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<TrainerResponse>> Handle(GetPagedTrainersQuery request, CancellationToken cancellationToken)

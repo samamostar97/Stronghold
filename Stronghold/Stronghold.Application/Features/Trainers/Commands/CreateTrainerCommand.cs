@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -20,12 +19,10 @@ public class CreateTrainerCommand : IRequest<TrainerResponse>, IAuthorizeAdminRe
 public class CreateTrainerCommandHandler : IRequestHandler<CreateTrainerCommand, TrainerResponse>
 {
     private readonly ITrainerRepository _trainerRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CreateTrainerCommandHandler(ITrainerRepository trainerRepository, ICurrentUserService currentUserService)
+    public CreateTrainerCommandHandler(ITrainerRepository trainerRepository)
     {
         _trainerRepository = trainerRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<TrainerResponse> Handle(CreateTrainerCommand request, CancellationToken cancellationToken)

@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Faqs.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Faqs.Commands;
@@ -19,12 +18,10 @@ public string? Answer { get; set; }
 public class UpdateFaqCommandHandler : IRequestHandler<UpdateFaqCommand, FaqResponse>
 {
     private readonly IFaqRepository _faqRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateFaqCommandHandler(IFaqRepository faqRepository, ICurrentUserService currentUserService)
+    public UpdateFaqCommandHandler(IFaqRepository faqRepository)
     {
         _faqRepository = faqRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<FaqResponse> Handle(UpdateFaqCommand request, CancellationToken cancellationToken)

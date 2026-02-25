@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Core.Enums;
 using Stronghold.Application.Common.Authorization;
@@ -25,12 +24,10 @@ public string Password { get; set; } = string.Empty;
 public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserResponse>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CreateUserCommandHandler(IUserRepository userRepository, ICurrentUserService currentUserService)
+    public CreateUserCommandHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<UserResponse> Handle(CreateUserCommand request, CancellationToken cancellationToken)

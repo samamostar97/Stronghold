@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Commands;
@@ -24,12 +23,10 @@ public string? PhoneNumber { get; set; }
 public class UpdateTrainerCommandHandler : IRequestHandler<UpdateTrainerCommand, TrainerResponse>
 {
     private readonly ITrainerRepository _trainerRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateTrainerCommandHandler(ITrainerRepository trainerRepository, ICurrentUserService currentUserService)
+    public UpdateTrainerCommandHandler(ITrainerRepository trainerRepository)
     {
         _trainerRepository = trainerRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<TrainerResponse> Handle(UpdateTrainerCommand request, CancellationToken cancellationToken)

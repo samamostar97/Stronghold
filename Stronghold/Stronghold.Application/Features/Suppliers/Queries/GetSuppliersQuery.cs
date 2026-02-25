@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,12 +15,10 @@ public class GetSuppliersQuery : IRequest<IReadOnlyList<SupplierResponse>>, IAut
 public class GetSuppliersQueryHandler : IRequestHandler<GetSuppliersQuery, IReadOnlyList<SupplierResponse>>
 {
     private readonly ISupplierRepository _supplierRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetSuppliersQueryHandler(ISupplierRepository supplierRepository, ICurrentUserService currentUserService)
+    public GetSuppliersQueryHandler(ISupplierRepository supplierRepository)
     {
         _supplierRepository = supplierRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<SupplierResponse>> Handle(GetSuppliersQuery request, CancellationToken cancellationToken)

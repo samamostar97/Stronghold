@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Memberships.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Queries;
@@ -18,12 +17,10 @@ public MembershipPaymentFilter Filter { get; set; } = new();
 public class GetMembershipPaymentsQueryHandler : IRequestHandler<GetMembershipPaymentsQuery, PagedResult<MembershipPaymentResponse>>
 {
     private readonly IMembershipRepository _membershipRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetMembershipPaymentsQueryHandler(IMembershipRepository membershipRepository, ICurrentUserService currentUserService)
+    public GetMembershipPaymentsQueryHandler(IMembershipRepository membershipRepository)
     {
         _membershipRepository = membershipRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<MembershipPaymentResponse>> Handle(GetMembershipPaymentsQuery request, CancellationToken cancellationToken)

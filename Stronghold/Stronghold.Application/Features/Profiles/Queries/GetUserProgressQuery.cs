@@ -14,14 +14,11 @@ public class GetUserProgressQuery : IRequest<UserProgressResponse>, IAuthorizeAd
 public class GetUserProgressQueryHandler : IRequestHandler<GetUserProgressQuery, UserProgressResponse>
 {
     private readonly IUserProfileService _userProfileService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetUserProgressQueryHandler(
-        IUserProfileService userProfileService,
-        ICurrentUserService currentUserService)
+        IUserProfileService userProfileService)
     {
         _userProfileService = userProfileService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<UserProgressResponse> Handle(GetUserProgressQuery request, CancellationToken cancellationToken)

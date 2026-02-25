@@ -1,6 +1,5 @@
 using MediatR;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Notifications.Commands;
@@ -12,14 +11,11 @@ public class MarkAllAdminNotificationsAsReadCommand : IRequest<Unit>, IAuthorize
 public class MarkAllAdminNotificationsAsReadCommandHandler : IRequestHandler<MarkAllAdminNotificationsAsReadCommand, Unit>
 {
     private readonly INotificationRepository _notificationRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public MarkAllAdminNotificationsAsReadCommandHandler(
-        INotificationRepository notificationRepository,
-        ICurrentUserService currentUserService)
+        INotificationRepository notificationRepository)
     {
         _notificationRepository = notificationRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(MarkAllAdminNotificationsAsReadCommand request, CancellationToken cancellationToken)

@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Queries;
@@ -15,12 +14,10 @@ public class HasActiveMembershipQuery : IRequest<bool>, IAuthorizeAdminRequest
 public class HasActiveMembershipQueryHandler : IRequestHandler<HasActiveMembershipQuery, bool>
 {
     private readonly IMembershipRepository _membershipRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public HasActiveMembershipQueryHandler(IMembershipRepository membershipRepository, ICurrentUserService currentUserService)
+    public HasActiveMembershipQueryHandler(IMembershipRepository membershipRepository)
     {
         _membershipRepository = membershipRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<bool> Handle(HasActiveMembershipQuery request, CancellationToken cancellationToken)

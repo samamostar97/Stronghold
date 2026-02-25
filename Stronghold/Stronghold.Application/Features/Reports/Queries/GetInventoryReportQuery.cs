@@ -14,14 +14,11 @@ public class GetInventoryReportQuery : IRequest<InventoryReportResponse>, IAutho
 public class GetInventoryReportQueryHandler : IRequestHandler<GetInventoryReportQuery, InventoryReportResponse>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetInventoryReportQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<InventoryReportResponse> Handle(GetInventoryReportQuery request, CancellationToken cancellationToken)

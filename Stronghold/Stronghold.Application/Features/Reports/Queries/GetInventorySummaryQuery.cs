@@ -14,14 +14,11 @@ public class GetInventorySummaryQuery : IRequest<InventorySummaryResponse>, IAut
 public class GetInventorySummaryQueryHandler : IRequestHandler<GetInventorySummaryQuery, InventorySummaryResponse>
 {
     private readonly IReportService _reportService;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetInventorySummaryQueryHandler(
-        IReportService reportService,
-        ICurrentUserService currentUserService)
+        IReportService reportService)
     {
         _reportService = reportService;
-        _currentUserService = currentUserService;
     }
 
 public async Task<InventorySummaryResponse> Handle(GetInventorySummaryQuery request, CancellationToken cancellationToken)

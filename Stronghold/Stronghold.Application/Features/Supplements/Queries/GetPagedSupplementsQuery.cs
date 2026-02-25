@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -17,12 +16,10 @@ public class GetPagedSupplementsQuery : IRequest<PagedResult<SupplementResponse>
 public class GetPagedSupplementsQueryHandler : IRequestHandler<GetPagedSupplementsQuery, PagedResult<SupplementResponse>>
 {
     private readonly ISupplementRepository _supplementRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetPagedSupplementsQueryHandler(ISupplementRepository supplementRepository, ICurrentUserService currentUserService)
+    public GetPagedSupplementsQueryHandler(ISupplementRepository supplementRepository)
     {
         _supplementRepository = supplementRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<SupplementResponse>> Handle(GetPagedSupplementsQuery request, CancellationToken cancellationToken)

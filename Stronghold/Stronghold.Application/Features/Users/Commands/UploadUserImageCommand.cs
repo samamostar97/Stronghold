@@ -18,16 +18,13 @@ public FileUploadRequest FileRequest { get; set; } = null!;
 public class UploadUserImageCommandHandler : IRequestHandler<UploadUserImageCommand, UserResponse>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorageService _fileStorageService;
 
     public UploadUserImageCommandHandler(
         IUserRepository userRepository,
-        ICurrentUserService currentUserService,
         IFileStorageService fileStorageService)
     {
         _userRepository = userRepository;
-        _currentUserService = currentUserService;
         _fileStorageService = fileStorageService;
     }
 

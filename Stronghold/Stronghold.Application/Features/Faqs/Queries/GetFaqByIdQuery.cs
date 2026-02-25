@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Faqs.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,12 +15,10 @@ public class GetFaqByIdQuery : IRequest<FaqResponse>, IAuthorizeAdminOrGymMember
 public class GetFaqByIdQueryHandler : IRequestHandler<GetFaqByIdQuery, FaqResponse>
 {
     private readonly IFaqRepository _faqRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetFaqByIdQueryHandler(IFaqRepository faqRepository, ICurrentUserService currentUserService)
+    public GetFaqByIdQueryHandler(IFaqRepository faqRepository)
     {
         _faqRepository = faqRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<FaqResponse> Handle(GetFaqByIdQuery request, CancellationToken cancellationToken)

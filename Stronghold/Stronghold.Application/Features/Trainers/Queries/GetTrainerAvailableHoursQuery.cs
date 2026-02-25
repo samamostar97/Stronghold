@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Trainers.Queries;
@@ -17,12 +16,10 @@ public DateTime Date { get; set; }
 public class GetTrainerAvailableHoursQueryHandler : IRequestHandler<GetTrainerAvailableHoursQuery, IReadOnlyList<int>>
 {
     private readonly ITrainerRepository _trainerRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetTrainerAvailableHoursQueryHandler(ITrainerRepository trainerRepository, ICurrentUserService currentUserService)
+    public GetTrainerAvailableHoursQueryHandler(ITrainerRepository trainerRepository)
     {
         _trainerRepository = trainerRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<int>> Handle(GetTrainerAvailableHoursQuery request, CancellationToken cancellationToken)

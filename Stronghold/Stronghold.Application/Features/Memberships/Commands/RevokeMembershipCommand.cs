@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Memberships.Commands;
@@ -15,12 +14,10 @@ public class RevokeMembershipCommand : IRequest<bool>, IAuthorizeAdminRequest
 public class RevokeMembershipCommandHandler : IRequestHandler<RevokeMembershipCommand, bool>
 {
     private readonly IMembershipRepository _membershipRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public RevokeMembershipCommandHandler(IMembershipRepository membershipRepository, ICurrentUserService currentUserService)
+    public RevokeMembershipCommandHandler(IMembershipRepository membershipRepository)
     {
         _membershipRepository = membershipRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<bool> Handle(RevokeMembershipCommand request, CancellationToken cancellationToken)

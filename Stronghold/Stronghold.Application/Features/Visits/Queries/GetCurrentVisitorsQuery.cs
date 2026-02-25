@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Visits.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Visits.Queries;
@@ -16,12 +15,10 @@ public class GetCurrentVisitorsQuery : IRequest<PagedResult<VisitResponse>>, IAu
 public class GetCurrentVisitorsQueryHandler : IRequestHandler<GetCurrentVisitorsQuery, PagedResult<VisitResponse>>
 {
     private readonly IVisitRepository _visitRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetCurrentVisitorsQueryHandler(IVisitRepository visitRepository, ICurrentUserService currentUserService)
+    public GetCurrentVisitorsQueryHandler(IVisitRepository visitRepository)
     {
         _visitRepository = visitRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<VisitResponse>> Handle(GetCurrentVisitorsQuery request, CancellationToken cancellationToken)

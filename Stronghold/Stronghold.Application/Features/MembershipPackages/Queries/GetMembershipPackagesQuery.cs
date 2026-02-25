@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.MembershipPackages.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -17,14 +16,11 @@ public class GetMembershipPackagesQueryHandler
     : IRequestHandler<GetMembershipPackagesQuery, IReadOnlyList<MembershipPackageResponse>>
 {
     private readonly IMembershipPackageRepository _membershipPackageRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetMembershipPackagesQueryHandler(
-        IMembershipPackageRepository membershipPackageRepository,
-        ICurrentUserService currentUserService)
+        IMembershipPackageRepository membershipPackageRepository)
     {
         _membershipPackageRepository = membershipPackageRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<MembershipPackageResponse>> Handle(

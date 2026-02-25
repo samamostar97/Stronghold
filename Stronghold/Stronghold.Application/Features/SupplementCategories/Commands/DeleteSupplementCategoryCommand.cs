@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.SupplementCategories.Commands;
@@ -15,14 +14,11 @@ public class DeleteSupplementCategoryCommand : IRequest<Unit>, IAuthorizeAdminRe
 public class DeleteSupplementCategoryCommandHandler : IRequestHandler<DeleteSupplementCategoryCommand, Unit>
 {
     private readonly ISupplementCategoryRepository _repository;
-    private readonly ICurrentUserService _currentUserService;
 
     public DeleteSupplementCategoryCommandHandler(
-        ISupplementCategoryRepository repository,
-        ICurrentUserService currentUserService)
+        ISupplementCategoryRepository repository)
     {
         _repository = repository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(DeleteSupplementCategoryCommand request, CancellationToken cancellationToken)

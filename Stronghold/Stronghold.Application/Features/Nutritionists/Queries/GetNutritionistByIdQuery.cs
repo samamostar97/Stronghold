@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,14 +15,11 @@ public class GetNutritionistByIdQuery : IRequest<NutritionistResponse>, IAuthori
 public class GetNutritionistByIdQueryHandler : IRequestHandler<GetNutritionistByIdQuery, NutritionistResponse>
 {
     private readonly INutritionistRepository _nutritionistRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetNutritionistByIdQueryHandler(
-        INutritionistRepository nutritionistRepository,
-        ICurrentUserService currentUserService)
+        INutritionistRepository nutritionistRepository)
     {
         _nutritionistRepository = nutritionistRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<NutritionistResponse> Handle(GetNutritionistByIdQuery request, CancellationToken cancellationToken)

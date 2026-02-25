@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Suppliers.Commands;
@@ -15,12 +14,10 @@ public class DeleteSupplierCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class DeleteSupplierCommandHandler : IRequestHandler<DeleteSupplierCommand, Unit>
 {
     private readonly ISupplierRepository _supplierRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteSupplierCommandHandler(ISupplierRepository supplierRepository, ICurrentUserService currentUserService)
+    public DeleteSupplierCommandHandler(ISupplierRepository supplierRepository)
     {
         _supplierRepository = supplierRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(DeleteSupplierCommand request, CancellationToken cancellationToken)

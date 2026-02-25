@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Commands;
@@ -15,12 +14,10 @@ public class CancelSeminarCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class CancelSeminarCommandHandler : IRequestHandler<CancelSeminarCommand, Unit>
 {
     private readonly ISeminarRepository _seminarRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CancelSeminarCommandHandler(ISeminarRepository seminarRepository, ICurrentUserService currentUserService)
+    public CancelSeminarCommandHandler(ISeminarRepository seminarRepository)
     {
         _seminarRepository = seminarRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(CancelSeminarCommand request, CancellationToken cancellationToken)

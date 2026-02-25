@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Suppliers.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Suppliers.Commands;
@@ -20,12 +19,10 @@ public string? Website { get; set; }
 public class UpdateSupplierCommandHandler : IRequestHandler<UpdateSupplierCommand, SupplierResponse>
 {
     private readonly ISupplierRepository _supplierRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UpdateSupplierCommandHandler(ISupplierRepository supplierRepository, ICurrentUserService currentUserService)
+    public UpdateSupplierCommandHandler(ISupplierRepository supplierRepository)
     {
         _supplierRepository = supplierRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<SupplierResponse> Handle(UpdateSupplierCommand request, CancellationToken cancellationToken)

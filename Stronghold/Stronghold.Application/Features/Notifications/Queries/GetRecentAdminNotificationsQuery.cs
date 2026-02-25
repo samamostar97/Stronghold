@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Notifications.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -16,14 +15,11 @@ public class GetRecentAdminNotificationsQuery : IRequest<IReadOnlyList<Notificat
 public class GetRecentAdminNotificationsQueryHandler : IRequestHandler<GetRecentAdminNotificationsQuery, IReadOnlyList<NotificationResponse>>
 {
     private readonly INotificationRepository _notificationRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetRecentAdminNotificationsQueryHandler(
-        INotificationRepository notificationRepository,
-        ICurrentUserService currentUserService)
+        INotificationRepository notificationRepository)
     {
         _notificationRepository = notificationRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<NotificationResponse>> Handle(

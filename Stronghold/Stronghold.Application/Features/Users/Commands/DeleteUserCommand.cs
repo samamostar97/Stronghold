@@ -1,7 +1,6 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Enums;
 using Stronghold.Application.Common.Authorization;
 
@@ -15,12 +14,10 @@ public class DeleteUserCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Unit>
 {
     private readonly IUserRepository _userRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public DeleteUserCommandHandler(IUserRepository userRepository, ICurrentUserService currentUserService)
+    public DeleteUserCommandHandler(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<Unit> Handle(DeleteUserCommand request, CancellationToken cancellationToken)

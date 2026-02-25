@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Appointments.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Appointments.Queries;
@@ -16,14 +15,11 @@ public class GetAdminAppointmentsQuery : IRequest<PagedResult<AdminAppointmentRe
 public class GetAdminAppointmentsQueryHandler : IRequestHandler<GetAdminAppointmentsQuery, PagedResult<AdminAppointmentResponse>>
 {
     private readonly IAppointmentRepository _appointmentRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetAdminAppointmentsQueryHandler(
-        IAppointmentRepository appointmentRepository,
-        ICurrentUserService currentUserService)
+        IAppointmentRepository appointmentRepository)
     {
         _appointmentRepository = appointmentRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<AdminAppointmentResponse>> Handle(GetAdminAppointmentsQuery request, CancellationToken cancellationToken)

@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Nutritionists.Commands;
@@ -24,14 +23,11 @@ public string? PhoneNumber { get; set; }
 public class UpdateNutritionistCommandHandler : IRequestHandler<UpdateNutritionistCommand, NutritionistResponse>
 {
     private readonly INutritionistRepository _nutritionistRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public UpdateNutritionistCommandHandler(
-        INutritionistRepository nutritionistRepository,
-        ICurrentUserService currentUserService)
+        INutritionistRepository nutritionistRepository)
     {
         _nutritionistRepository = nutritionistRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<NutritionistResponse> Handle(UpdateNutritionistCommand request, CancellationToken cancellationToken)

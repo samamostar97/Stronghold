@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.SupplementCategories.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.SupplementCategories.Commands;
@@ -18,14 +17,11 @@ public string? Name { get; set; }
 public class UpdateSupplementCategoryCommandHandler : IRequestHandler<UpdateSupplementCategoryCommand, SupplementCategoryResponse>
 {
     private readonly ISupplementCategoryRepository _repository;
-    private readonly ICurrentUserService _currentUserService;
 
     public UpdateSupplementCategoryCommandHandler(
-        ISupplementCategoryRepository repository,
-        ICurrentUserService currentUserService)
+        ISupplementCategoryRepository repository)
     {
         _repository = repository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<SupplementCategoryResponse> Handle(UpdateSupplementCategoryCommand request, CancellationToken cancellationToken)

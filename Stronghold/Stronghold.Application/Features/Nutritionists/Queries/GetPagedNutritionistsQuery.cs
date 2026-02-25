@@ -3,7 +3,6 @@ using MediatR;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Nutritionists.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -17,14 +16,11 @@ public class GetPagedNutritionistsQuery : IRequest<PagedResult<NutritionistRespo
 public class GetPagedNutritionistsQueryHandler : IRequestHandler<GetPagedNutritionistsQuery, PagedResult<NutritionistResponse>>
 {
     private readonly INutritionistRepository _nutritionistRepository;
-    private readonly ICurrentUserService _currentUserService;
 
     public GetPagedNutritionistsQueryHandler(
-        INutritionistRepository nutritionistRepository,
-        ICurrentUserService currentUserService)
+        INutritionistRepository nutritionistRepository)
     {
         _nutritionistRepository = nutritionistRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<PagedResult<NutritionistResponse>> Handle(

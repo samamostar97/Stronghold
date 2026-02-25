@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Seminars.Queries;
@@ -15,12 +14,10 @@ public class GetSeminarAttendeesQuery : IRequest<IReadOnlyList<SeminarAttendeeRe
 public class GetSeminarAttendeesQueryHandler : IRequestHandler<GetSeminarAttendeesQuery, IReadOnlyList<SeminarAttendeeResponse>>
 {
     private readonly ISeminarRepository _seminarRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetSeminarAttendeesQueryHandler(ISeminarRepository seminarRepository, ICurrentUserService currentUserService)
+    public GetSeminarAttendeesQueryHandler(ISeminarRepository seminarRepository)
     {
         _seminarRepository = seminarRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<IReadOnlyList<SeminarAttendeeResponse>> Handle(GetSeminarAttendeesQuery request, CancellationToken cancellationToken)

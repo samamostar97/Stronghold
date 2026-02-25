@@ -4,7 +4,6 @@ using Stronghold.Application.Common;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 using Stronghold.Application.Common.Authorization;
 
@@ -24,12 +23,10 @@ public class CreateSeminarCommandHandler : IRequestHandler<CreateSeminarCommand,
     private const string StatusActive = "active";
 
     private readonly ISeminarRepository _seminarRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public CreateSeminarCommandHandler(ISeminarRepository seminarRepository, ICurrentUserService currentUserService)
+    public CreateSeminarCommandHandler(ISeminarRepository seminarRepository)
     {
         _seminarRepository = seminarRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<SeminarResponse> Handle(CreateSeminarCommand request, CancellationToken cancellationToken)

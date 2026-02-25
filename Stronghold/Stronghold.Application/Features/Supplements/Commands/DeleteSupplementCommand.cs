@@ -15,16 +15,13 @@ public class DeleteSupplementCommand : IRequest<Unit>, IAuthorizeAdminRequest
 public class DeleteSupplementCommandHandler : IRequestHandler<DeleteSupplementCommand, Unit>
 {
     private readonly ISupplementRepository _supplementRepository;
-    private readonly ICurrentUserService _currentUserService;
     private readonly IFileStorageService _fileStorageService;
 
     public DeleteSupplementCommandHandler(
         ISupplementRepository supplementRepository,
-        ICurrentUserService currentUserService,
         IFileStorageService fileStorageService)
     {
         _supplementRepository = supplementRepository;
-        _currentUserService = currentUserService;
         _fileStorageService = fileStorageService;
     }
 

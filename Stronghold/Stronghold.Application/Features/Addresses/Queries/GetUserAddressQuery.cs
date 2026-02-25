@@ -2,7 +2,6 @@ using FluentValidation;
 using MediatR;
 using Stronghold.Application.Features.Addresses.DTOs;
 using Stronghold.Application.IRepositories;
-using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
 namespace Stronghold.Application.Features.Addresses.Queries;
@@ -15,12 +14,10 @@ public class GetUserAddressQuery : IRequest<AddressResponse?>, IAuthorizeAdminRe
 public class GetUserAddressQueryHandler : IRequestHandler<GetUserAddressQuery, AddressResponse?>
 {
     private readonly IAddressRepository _addressRepository;
-    private readonly ICurrentUserService _currentUserService;
 
-    public GetUserAddressQueryHandler(IAddressRepository addressRepository, ICurrentUserService currentUserService)
+    public GetUserAddressQueryHandler(IAddressRepository addressRepository)
     {
         _addressRepository = addressRepository;
-        _currentUserService = currentUserService;
     }
 
 public async Task<AddressResponse?> Handle(GetUserAddressQuery request, CancellationToken cancellationToken)
