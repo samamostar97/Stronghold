@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/address_provider.dart';
+import '../utils/error_handler.dart';
 import '../utils/validators.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/glass_card.dart';
@@ -61,7 +62,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
       if (mounted) {
         await showErrorFeedback(
           context,
-          e.toString().replaceFirst('Exception: ', ''),
+          ErrorHandler.message(e),
         );
       }
     } finally {

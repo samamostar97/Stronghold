@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../utils/error_handler.dart';
 import 'api_providers.dart';
 
 /// User notification state
@@ -48,7 +49,7 @@ class UserNotificationNotifier extends StateNotifier<UserNotificationState> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: ErrorHandler.message(e));
     }
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../utils/error_handler.dart';
 import 'api_providers.dart';
 
 /// Auth state
@@ -47,26 +48,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         client: _client,
       );
       state = state.copyWith(user: authResponse, isLoading: false);
-    } on ApiException catch (e) {
-      if (e.statusCode == 403) {
-        state = state.copyWith(
-          error: 'Administratori koriste desktop aplikaciju.',
-          isLoading: false,
-        );
-      } else if (e.statusCode == 401) {
-        state = state.copyWith(
-          error: 'Neispravan username ili lozinka',
-          isLoading: false,
-        );
-      } else {
-        state = state.copyWith(error: e.message, isLoading: false);
-      }
-      rethrow;
     } catch (e) {
-      state = state.copyWith(
-        error: 'Greska prilikom prijave. Pokusajte ponovo.',
-        isLoading: false,
-      );
+      state = state.copyWith(error: ErrorHandler.message(e), isLoading: false);
       rethrow;
     }
   }
@@ -92,14 +75,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         client: _client,
       );
       state = state.copyWith(user: authResponse, isLoading: false);
-    } on ApiException catch (e) {
-      state = state.copyWith(error: e.message, isLoading: false);
-      rethrow;
     } catch (e) {
-      state = state.copyWith(
-        error: 'Greska prilikom registracije. Pokusajte ponovo.',
-        isLoading: false,
-      );
+      state = state.copyWith(error: ErrorHandler.message(e), isLoading: false);
       rethrow;
     }
   }
@@ -110,14 +87,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       await AuthService.forgotPassword(email: email, client: _client);
       state = state.copyWith(isLoading: false);
-    } on ApiException catch (e) {
-      state = state.copyWith(error: e.message, isLoading: false);
-      rethrow;
     } catch (e) {
-      state = state.copyWith(
-        error: 'Greska prilikom slanja koda. Pokusajte ponovo.',
-        isLoading: false,
-      );
+      state = state.copyWith(error: ErrorHandler.message(e), isLoading: false);
       rethrow;
     }
   }
@@ -137,21 +108,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         client: _client,
       );
       state = state.copyWith(isLoading: false);
-    } on ApiException catch (e) {
-      if (e.statusCode == 401) {
-        state = state.copyWith(
-          error: 'Kod je nevazeci ili je istekao',
-          isLoading: false,
-        );
-      } else {
-        state = state.copyWith(error: e.message, isLoading: false);
-      }
-      rethrow;
     } catch (e) {
-      state = state.copyWith(
-        error: 'Greska prilikom resetovanja lozinke. Pokusajte ponovo.',
-        isLoading: false,
-      );
+      state = state.copyWith(error: ErrorHandler.message(e), isLoading: false);
       rethrow;
     }
   }
@@ -169,21 +127,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         client: _client,
       );
       state = state.copyWith(isLoading: false);
-    } on ApiException catch (e) {
-      if (e.statusCode == 401) {
-        state = state.copyWith(
-          error: 'Trenutna lozinka nije ispravna',
-          isLoading: false,
-        );
-      } else {
-        state = state.copyWith(error: e.message, isLoading: false);
-      }
-      rethrow;
     } catch (e) {
-      state = state.copyWith(
-        error: 'Greska prilikom promjene lozinke. Pokusajte ponovo.',
-        isLoading: false,
-      );
+      state = state.copyWith(error: ErrorHandler.message(e), isLoading: false);
       rethrow;
     }
   }

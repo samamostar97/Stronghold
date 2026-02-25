@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/faq_provider.dart';
+import '../utils/error_handler.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_loading_indicator.dart';
@@ -50,9 +51,7 @@ class FaqScreen extends ConsumerWidget {
             child: faqsAsync.when(
               loading: () => const AppLoadingIndicator(),
               error: (error, _) => AppErrorState(
-                message: error
-                    .toString()
-                    .replaceFirst('Exception: ', ''),
+                message: ErrorHandler.message(error),
                 onRetry: () =>
                     ref.invalidate(allFaqsProvider),
               ),

@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/seminar_provider.dart';
+import '../utils/error_handler.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_loading_indicator.dart';
@@ -41,7 +42,7 @@ class _SeminarScreenState extends ConsumerState<SeminarScreen> {
       if (mounted) {
         setState(() => _attendingIds.remove(id));
         await showErrorFeedback(
-            context, e.toString().replaceFirst('Exception: ', ''));
+            context, ErrorHandler.message(e));
       }
     }
   }
@@ -59,7 +60,7 @@ class _SeminarScreenState extends ConsumerState<SeminarScreen> {
       if (mounted) {
         setState(() => _cancelingIds.remove(id));
         await showErrorFeedback(
-            context, e.toString().replaceFirst('Exception: ', ''));
+            context, ErrorHandler.message(e));
       }
     }
   }

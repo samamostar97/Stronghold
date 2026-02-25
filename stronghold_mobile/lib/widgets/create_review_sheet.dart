@@ -6,6 +6,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/review_provider.dart';
+import '../utils/error_handler.dart';
 import 'gradient_button.dart';
 
 class CreateReviewSheet extends ConsumerStatefulWidget {
@@ -61,7 +62,7 @@ class _CreateReviewSheetState extends ConsumerState<CreateReviewSheet> {
     } catch (e) {
       if (mounted) {
         Navigator.pop(context);
-        widget.onError(e.toString().replaceFirst('Exception: ', ''));
+        widget.onError(ErrorHandler.message(e));
       }
     }
   }

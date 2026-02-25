@@ -6,6 +6,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/appointment_provider.dart';
 import '../utils/date_format_utils.dart';
+import '../utils/error_handler.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/glass_card.dart';
 import '../widgets/gradient_button.dart';
@@ -93,7 +94,7 @@ class _BookAppointmentScreenState
       if (mounted) {
         setState(() => _isSubmitting = false);
         await showErrorFeedback(
-            context, e.toString().replaceFirst('Exception: ', ''));
+            context, ErrorHandler.message(e));
       }
     }
   }
@@ -267,7 +268,7 @@ class _BookAppointmentScreenState
               error: (error, _) => Padding(
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 child: Text(
-                  error.toString().replaceFirst('Exception: ', ''),
+                  ErrorHandler.message(error),
                   style: AppTextStyles.bodyMd,
                   textAlign: TextAlign.center,
                 ),

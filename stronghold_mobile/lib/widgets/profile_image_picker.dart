@@ -6,6 +6,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/profile_provider.dart';
+import '../utils/error_handler.dart';
 import 'bottom_sheet_handle.dart';
 import 'feedback_dialog.dart';
 
@@ -85,7 +86,7 @@ Future<void> _pick(
       final state = ref.read(profilePictureProvider);
       await showErrorFeedback(
         parentCtx,
-        state.error ?? e.toString().replaceFirst('Exception: ', ''),
+        state.error ?? ErrorHandler.message(e),
       );
     }
   }
@@ -107,7 +108,7 @@ Future<void> _delete(
       final state = ref.read(profilePictureProvider);
       await showErrorFeedback(
         parentCtx,
-        state.error ?? e.toString().replaceFirst('Exception: ', ''),
+        state.error ?? ErrorHandler.message(e),
       );
     }
   }

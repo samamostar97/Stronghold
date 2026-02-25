@@ -5,6 +5,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/profile_provider.dart';
+import '../utils/error_handler.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_loading_indicator.dart';
 import '../widgets/progress_level_card.dart';
@@ -77,7 +78,7 @@ class _UserProgressScreenState extends ConsumerState<UserProgressScreen>
               loading: () => const AppLoadingIndicator(),
               error: (error, _) => AppErrorState(
                 message:
-                    error.toString().replaceFirst('Exception: ', ''),
+                    ErrorHandler.message(error),
                 onRetry: () => ref.invalidate(userProgressProvider),
               ),
               data: (progress) {

@@ -13,6 +13,7 @@ import '../widgets/checkout_address_step.dart';
 import '../widgets/checkout_confirmation_step.dart';
 import '../widgets/checkout_payment_step.dart';
 import '../widgets/checkout_review_step.dart';
+import '../utils/error_handler.dart';
 import '../widgets/checkout_step_indicator.dart';
 
 class CheckoutScreen extends ConsumerStatefulWidget {
@@ -107,7 +108,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                 'Uplata je uspjela, ali kreiranje narudzbe nije. '
                 'Kontaktirajte podrsku sa ID: $paymentIntentId';
           } else {
-            _errorMessage = e.toString().replaceFirst('Exception: ', '');
+            _errorMessage = ErrorHandler.message(e);
           }
         });
       }

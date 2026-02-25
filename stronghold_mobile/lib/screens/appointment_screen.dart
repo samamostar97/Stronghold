@@ -9,6 +9,7 @@ import '../widgets/app_empty_state.dart';
 import '../widgets/app_error_state.dart';
 import '../widgets/app_loading_indicator.dart';
 import '../widgets/appointment_card.dart';
+import '../utils/error_handler.dart';
 import '../widgets/feedback_dialog.dart';
 
 class AppointmentScreen extends ConsumerStatefulWidget {
@@ -57,7 +58,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
       if (mounted) {
         setState(() => _cancelingIds.remove(id));
         await showErrorFeedback(
-            context, e.toString().replaceFirst('Exception: ', ''));
+            context, ErrorHandler.message(e));
       }
     }
   }
