@@ -83,7 +83,7 @@ public class ProtectedEndpointsSmokeTests : IClassFixture<StrongholdApiFactory>,
     }
 
     [Fact]
-    public async Task GetAdminAppointments_ShouldReturnUnauthorized_ForMemberToken()
+    public async Task GetAdminAppointments_ShouldReturnForbidden_ForMemberToken()
     {
         var client = _factory.CreateApiClient();
         var token = await _factory.LoginAndGetTokenAsync(
@@ -95,7 +95,7 @@ public class ProtectedEndpointsSmokeTests : IClassFixture<StrongholdApiFactory>,
 
         var response = await client.GetAsync("/api/appointments/admin?pageNumber=1&pageSize=10");
 
-        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
     }
 
     [Fact]

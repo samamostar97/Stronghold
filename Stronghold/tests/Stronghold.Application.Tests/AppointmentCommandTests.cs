@@ -1,4 +1,5 @@
 using Stronghold.Application.Common;
+using Stronghold.Application.Common.Behaviors;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Features.Appointments.Commands;
 using Stronghold.Application.Tests.TestDoubles;
@@ -9,7 +10,7 @@ namespace Stronghold.Application.Tests;
 public class AppointmentCommandTests
 {
     [Fact]
-    public async Task AdminCreate_ShouldThrowUnauthorized_WhenCurrentUserIsNotAdmin()
+    public async Task AdminCreate_ShouldThrowForbidden_WhenCurrentUserIsNotAdmin()
     {
         var repository = new FakeAppointmentRepository();
         var currentUser = new FakeCurrentUserService(
@@ -17,16 +18,21 @@ public class AppointmentCommandTests
             username: "member",
             isAuthenticated: true,
             "GymMember");
-        var handler = new AdminCreateAppointmentCommandHandler(repository, currentUser);
-
-        var act = () => handler.Handle(new AdminCreateAppointmentCommand
+        var command = new AdminCreateAppointmentCommand
         {
             UserId = 99,
             TrainerId = 5,
             AppointmentDate = NextValidAppointmentDate()
-        }, CancellationToken.None);
+        };
+        var handler = new AdminCreateAppointmentCommandHandler(repository, currentUser);
+        var behavior = new AuthorizationBehavior<AdminCreateAppointmentCommand, int>(currentUser);
 
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(act);
+        var act = () => behavior.Handle(
+            command,
+            () => handler.Handle(command, CancellationToken.None),
+            CancellationToken.None);
+
+        await Assert.ThrowsAsync<ForbiddenException>(act);
     }
 
     [Fact]

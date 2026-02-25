@@ -38,6 +38,7 @@ namespace Stronghold.API.Middleware
                 InvalidOperationException => HttpStatusCode.BadRequest,
                 ArgumentException => HttpStatusCode.BadRequest,
                 UnauthorizedAccessException => HttpStatusCode.Unauthorized,
+                ForbiddenException => HttpStatusCode.Forbidden,
                 _ => HttpStatusCode.InternalServerError
             };
 
