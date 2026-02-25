@@ -156,8 +156,8 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
             .MinimumLength(9).WithMessage("{PropertyName} mora imati najmanje 9 karaktera.")
             .MaximumLength(20).WithMessage("{PropertyName} ne smije imati vise od 20 karaktera.")
             .Matches(@"^(\+387|387|0)?\s?6\d([-\s]?\d){6,7}$")
-            .When(x => x.PhoneNumber is not null)
-            .WithMessage("Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.");
+            .WithMessage("Broj telefona mora biti u formatu 061 123 456 ili +387 61 123 456.")
+            .When(x => x.PhoneNumber is not null);
 
         RuleFor(x => x.Password)
             .NotEmpty().WithMessage("{PropertyName} je obavezno.")

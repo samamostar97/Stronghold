@@ -57,10 +57,15 @@ namespace Stronghold.Infrastructure.Services
                 .Where(p => !p.IsDeleted && p.PaymentDate >= startOfMonth && p.PaymentDate < startOfNextMonth)
                 .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
 
-            var lastMonthRevenue = await _context.MembershipPaymentHistory
+            var lastMonthMembershipRevenue = await _context.MembershipPaymentHistory
                 .AsNoTracking()
                 .Where(p => !p.IsDeleted && p.PaymentDate >= startOfLastMonth && p.PaymentDate < startOfMonth)
                 .SumAsync(p => (decimal?)p.AmountPaid) ?? 0m;
+
+            var lastMonthOrderRevenue = await _context.Orders
+                .AsNoTracking()
+                .Where(o => !o.IsDeleted && o.PurchaseDate >= startOfLastMonth && o.PurchaseDate < startOfMonth)
+                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0m;
 
             // Active memberships
             var activeMemberships = await _context.Memberships
@@ -188,9 +193,9 @@ namespace Stronghold.Infrastructure.Services
                 LastWeekVisits = lastWeekVisits,
                 WeekChangePct = CalculateChangePct(thisWeekVisits, lastWeekVisits),
 
-                ThisMonthRevenue = thisMonthRevenue,
-                LastMonthRevenue = lastMonthRevenue,
-                MonthChangePct = CalculateChangePct(thisMonthRevenue, lastMonthRevenue),
+                ThisMonthRevenue = monthOrderRevenue + thisMonthRevenue,
+                LastMonthRevenue = lastMonthOrderRevenue + lastMonthMembershipRevenue,
+                MonthChangePct = CalculateChangePct(monthOrderRevenue + thisMonthRevenue, lastMonthOrderRevenue + lastMonthMembershipRevenue),
 
                 ActiveMemberships = activeMemberships,
                 VisitsByWeekday = visitsByWeekday,
