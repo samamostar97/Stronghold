@@ -18,6 +18,7 @@ class DashboardTodaySales extends StatelessWidget {
     final weekRevenue = breakdown?.thisWeekRevenue ?? 0;
 
     return GlassCard(
+      backgroundColor: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

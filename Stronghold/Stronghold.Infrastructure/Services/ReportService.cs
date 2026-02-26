@@ -25,7 +25,7 @@ namespace Stronghold.Infrastructure.Services
             _context = context;
         }
 
-        public async Task<BusinessReportResponse> GetBusinessReportAsync()
+        public async Task<BusinessReportResponse> GetBusinessReportAsync(int days = 30)
         {
             var now = DateTime.UtcNow;
 
@@ -91,8 +91,8 @@ namespace Stronghold.Infrastructure.Services
 
             var visitsByWeekday = BuildWeekdayVisits(rawByDay);
 
-            // Bestseller (last 30 days)
-            var since = now.AddDays(-30);
+            // Bestseller & daily sales (configurable period)
+            var since = now.AddDays(-days);
 
             var bestseller = await _context.OrderItems
                 .AsNoTracking()
@@ -441,11 +441,11 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
-        public async Task<MembershipPopularityReportResponse> GetMembershipPopularityReportAsync()
+        public async Task<MembershipPopularityReportResponse> GetMembershipPopularityReportAsync(int days = 90)
         {
             var now = DateTime.UtcNow;
             var last30Days = now.AddDays(-30);
-            var last90Days = now.AddDays(-90);
+            var revenueWindow = now.AddDays(-days);
 
             var packages = await _context.MembershipPackages
                 .AsNoTracking()
@@ -482,7 +482,7 @@ namespace Stronghold.Infrastructure.Services
 
             var revenueLast90Days = await _context.MembershipPaymentHistory
                 .AsNoTracking()
-                .Where(p => !p.IsDeleted && p.PaymentDate >= last90Days && p.PaymentDate <= now)
+                .Where(p => !p.IsDeleted && p.PaymentDate >= revenueWindow && p.PaymentDate <= now)
                 .GroupBy(p => p.MembershipPackageId)
                 .Select(g => new
                 {

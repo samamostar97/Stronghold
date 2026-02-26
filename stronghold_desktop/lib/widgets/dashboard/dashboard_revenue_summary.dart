@@ -16,6 +16,7 @@ class DashboardRevenueSummary extends StatelessWidget {
     final data = breakdown;
 
     return GlassCard(
+      backgroundColor: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

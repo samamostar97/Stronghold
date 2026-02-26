@@ -1,26 +1,38 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
+import '../../providers/reports_provider.dart';
 
-/// Sales chart showing daily revenue for the last 30 days as an area chart.
-class DashboardSalesChart extends StatefulWidget {
+/// Period option for the sales chart dropdown.
+enum _SalesPeriod {
+  days30(30, '30 dana'),
+  months6(180, '6 mjeseci'),
+  year(365, 'Godina');
+
+  const _SalesPeriod(this.days, this.label);
+  final int days;
+  final String label;
+}
+
+/// Sales chart showing daily revenue as an area chart with configurable period.
+class DashboardSalesChart extends ConsumerStatefulWidget {
   const DashboardSalesChart({
     super.key,
-    required this.dailySales,
     this.expand = false,
   });
 
-  final List<DailySalesDTO> dailySales;
   final bool expand;
 
   @override
-  State<DashboardSalesChart> createState() => _DashboardSalesChartState();
+  ConsumerState<DashboardSalesChart> createState() =>
+      _DashboardSalesChartState();
 }
 
-class _DashboardSalesChartState extends State<DashboardSalesChart>
+class _DashboardSalesChartState extends ConsumerState<DashboardSalesChart>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   int? _hoveredIndex;
@@ -35,76 +47,78 @@ class _DashboardSalesChartState extends State<DashboardSalesChart>
   }
 
   @override
-  void didUpdateWidget(DashboardSalesChart old) {
-    super.didUpdateWidget(old);
-    if (old.dailySales != widget.dailySales) _controller.forward(from: 0);
-  }
-
-  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  void _onPeriodChanged(_SalesPeriod period) {
+    ref.read(salesPeriodProvider.notifier).state = period.days;
+    _controller.forward(from: 0);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final totalRevenue = widget.dailySales.fold<num>(
-      0,
-      (sum, d) => sum + d.revenue,
-    );
-    final totalOrders = widget.dailySales.fold<int>(
-      0,
-      (sum, d) => sum + d.orderCount,
-    );
-
-    final chartArea = AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return LayoutBuilder(
-          builder: (context, constraints) {
-            final h = widget.expand ? constraints.maxHeight : 200.0;
-            return MouseRegion(
-              onHover: (event) {
-                final idx = _hitIndex(
-                  event.localPosition,
-                  constraints.maxWidth,
-                );
-                if (idx != _hoveredIndex) setState(() => _hoveredIndex = idx);
-              },
-              onExit: (_) => setState(() => _hoveredIndex = null),
-              child: CustomPaint(
-                size: Size(constraints.maxWidth, h),
-                painter: _SalesChartPainter(
-                  data: widget.dailySales,
-                  progress: Curves.easeOutCubic
-                      .transform(_controller.value),
-                  hoveredIndex: _hoveredIndex,
-                ),
-                child: _hoveredIndex != null &&
-                        _hoveredIndex! < widget.dailySales.length
-                    ? _buildTooltip(constraints.maxWidth)
-                    : null,
-              ),
-            );
-          },
-        );
-      },
+    final selectedDays = ref.watch(salesPeriodProvider);
+    final asyncData = ref.watch(salesChartDataProvider);
+    final currentPeriod = _SalesPeriod.values.firstWhere(
+      (p) => p.days == selectedDays,
+      orElse: () => _SalesPeriod.days30,
     );
 
     return GlassCard(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxHeight < 80;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
-            children: [
-              if (!compact) ...[
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text('Prodaja (30 dana)', style: AppTextStyles.headingSm),
-                    ),
+      backgroundColor: AppColors.surface,
+      child: asyncData.when(
+        loading: () => _buildShell(currentPeriod, null),
+        error: (e, _) => _buildShell(currentPeriod, null, error: e.toString()),
+        data: (dailySales) => _buildShell(currentPeriod, dailySales),
+      ),
+    );
+  }
+
+  Widget _buildShell(
+    _SalesPeriod period,
+    List<DailySalesDTO>? dailySales, {
+    String? error,
+  }) {
+    final totalRevenue = dailySales?.fold<num>(0, (s, d) => s + d.revenue) ?? 0;
+    final totalOrders =
+        dailySales?.fold<int>(0, (s, d) => s + d.orderCount) ?? 0;
+
+    final chartArea = dailySales != null
+        ? _buildChart(dailySales)
+        : error != null
+            ? Center(
+                child: Text(error,
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.danger)))
+            : const Center(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: AppColors.primary),
+                ),
+              );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxHeight < 80;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
+          children: [
+            if (!compact) ...[
+              Row(
+                children: [
+                  Text('Prodaja', style: AppTextStyles.headingSm),
+                  const SizedBox(width: AppSpacing.md),
+                  _PeriodDropdown(
+                    value: period,
+                    onChanged: _onPeriodChanged,
+                  ),
+                  const Spacer(),
+                  if (dailySales != null) ...[
                     _SummaryChip(
                       label: 'Ukupno',
                       value: '${totalRevenue.toStringAsFixed(0)} KM',
@@ -117,31 +131,76 @@ class _DashboardSalesChartState extends State<DashboardSalesChart>
                       color: AppColors.primary,
                     ),
                   ],
-                ),
-                const SizedBox(height: AppSpacing.xl),
-              ],
-              if (widget.expand)
-                Expanded(child: chartArea)
-              else
-                SizedBox(height: 200, child: chartArea),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
             ],
-          );
-        },
-      ),
+            if (widget.expand)
+              Expanded(child: chartArea)
+            else
+              SizedBox(height: 200, child: chartArea),
+          ],
+        );
+      },
     );
   }
 
-  int? _hitIndex(Offset local, double width) {
-    if (widget.dailySales.isEmpty) return null;
-    final step = width / (widget.dailySales.length - 1).clamp(1, 999);
+  Widget _buildChart(List<DailySalesDTO> dailySales) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final h = widget.expand ? constraints.maxHeight : 200.0;
+            return MouseRegion(
+              onHover: (event) {
+                final idx = _hitIndex(
+                  event.localPosition,
+                  constraints.maxWidth,
+                  dailySales.length,
+                );
+                if (idx != _hoveredIndex) setState(() => _hoveredIndex = idx);
+              },
+              onExit: (_) => setState(() => _hoveredIndex = null),
+              child: CustomPaint(
+                size: Size(constraints.maxWidth, h),
+                painter: _SalesChartPainter(
+                  data: dailySales,
+                  progress:
+                      Curves.easeOutCubic.transform(_controller.value),
+                  hoveredIndex: _hoveredIndex,
+                  labelInterval: _labelInterval(dailySales.length),
+                ),
+                child: _hoveredIndex != null &&
+                        _hoveredIndex! < dailySales.length
+                    ? _buildTooltip(
+                        constraints.maxWidth, dailySales)
+                    : null,
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  int _labelInterval(int dataLength) {
+    if (dataLength <= 31) return 5;
+    if (dataLength <= 180) return 15;
+    return 30;
+  }
+
+  int? _hitIndex(Offset local, double width, int length) {
+    if (length == 0) return null;
+    final step = width / (length - 1).clamp(1, 999);
     final idx = (local.dx / step).round();
-    if (idx < 0 || idx >= widget.dailySales.length) return null;
+    if (idx < 0 || idx >= length) return null;
     return idx;
   }
 
-  Widget _buildTooltip(double chartWidth) {
-    final item = widget.dailySales[_hoveredIndex!];
-    final step = chartWidth / (widget.dailySales.length - 1).clamp(1, 999);
+  Widget _buildTooltip(double chartWidth, List<DailySalesDTO> dailySales) {
+    final item = dailySales[_hoveredIndex!];
+    final step = chartWidth / (dailySales.length - 1).clamp(1, 999);
     final x = _hoveredIndex! * step;
 
     return Stack(
@@ -185,6 +244,51 @@ class _DashboardSalesChartState extends State<DashboardSalesChart>
   }
 }
 
+// ── Period dropdown ──────────────────────────────────────────────────────
+
+class _PeriodDropdown extends StatelessWidget {
+  const _PeriodDropdown({required this.value, required this.onChanged});
+
+  final _SalesPeriod value;
+  final ValueChanged<_SalesPeriod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<_SalesPeriod>(
+          value: value,
+          isDense: true,
+          dropdownColor: AppColors.surface,
+          style: AppTextStyles.bodyBold,
+          icon: const Icon(Icons.arrow_drop_down,
+              color: AppColors.textMuted, size: 18),
+          items: _SalesPeriod.values
+              .map((p) => DropdownMenuItem(
+                    value: p,
+                    child: Text(p.label, style: AppTextStyles.bodyMedium),
+                  ))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// ── Summary chip ────────────────────────────────────────────────────────
+
 class _SummaryChip extends StatelessWidget {
   const _SummaryChip({
     required this.label,
@@ -219,16 +323,20 @@ class _SummaryChip extends StatelessWidget {
   }
 }
 
+// ── Chart painter ───────────────────────────────────────────────────────
+
 class _SalesChartPainter extends CustomPainter {
   _SalesChartPainter({
     required this.data,
     required this.progress,
     this.hoveredIndex,
+    this.labelInterval = 5,
   });
 
   final List<DailySalesDTO> data;
   final double progress;
   final int? hoveredIndex;
+  final int labelInterval;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -238,7 +346,8 @@ class _SalesChartPainter extends CustomPainter {
     final chartH = size.height - bottomPad;
     final maxRev = data.map((d) => d.revenue.toDouble()).reduce(math.max);
     final maxVal = maxRev > 0 ? maxRev : 1.0;
-    final step = data.length > 1 ? size.width / (data.length - 1) : size.width;
+    final step =
+        data.length > 1 ? size.width / (data.length - 1) : size.width;
 
     // Build points
     final points = <Offset>[];
@@ -314,20 +423,22 @@ class _SalesChartPainter extends CustomPainter {
       final guidePaint = Paint()
         ..color = AppColors.primary.withValues(alpha: 0.3)
         ..strokeWidth = 1;
-      canvas.drawLine(Offset(hp.dx, hp.dy), Offset(hp.dx, chartH), guidePaint);
+      canvas.drawLine(
+          Offset(hp.dx, hp.dy), Offset(hp.dx, chartH), guidePaint);
     }
 
-    // X-axis labels (every 5th day)
+    // X-axis labels
     final labelStyle = TextStyle(
       color: AppColors.textDark,
       fontSize: 10,
     );
-    for (int i = 0; i < data.length; i += 5) {
+    for (int i = 0; i < data.length; i += labelInterval) {
+      final d = data[i].date;
+      final text = labelInterval >= 30
+          ? '${d.month}/${d.year % 100}'
+          : '${d.day}.${d.month}';
       final tp = TextPainter(
-        text: TextSpan(
-          text: '${data[i].date.day}.${data[i].date.month}',
-          style: labelStyle,
-        ),
+        text: TextSpan(text: text, style: labelStyle),
         textDirection: TextDirection.ltr,
       )..layout();
       tp.paint(canvas, Offset(i * step - tp.width / 2, chartH + 6));
@@ -336,5 +447,8 @@ class _SalesChartPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_SalesChartPainter old) =>
-      old.progress != progress || old.hoveredIndex != hoveredIndex || old.data != data;
+      old.progress != progress ||
+      old.hoveredIndex != hoveredIndex ||
+      old.data != data ||
+      old.labelInterval != labelInterval;
 }

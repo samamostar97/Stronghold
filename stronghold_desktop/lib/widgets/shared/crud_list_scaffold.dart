@@ -146,7 +146,7 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
             widget.extraFilter!,
           ],
           const SizedBox(height: AppSpacing.md),
-          GradientButton.text(text: widget.addButtonText, onPressed: widget.onAdd),
+          GradientButton.text(text: widget.addButtonText, gradient: const LinearGradient(colors: [AppColors.navyBlue, AppColors.midBlue]), onPressed: widget.onAdd),
         ],
       );
     }
@@ -169,7 +169,7 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
           widget.extraFilter!,
         ],
         const SizedBox(width: AppSpacing.lg),
-        GradientButton.text(text: widget.addButtonText, onPressed: widget.onAdd),
+        GradientButton.text(text: widget.addButtonText, gradient: const LinearGradient(colors: [AppColors.navyBlue, AppColors.midBlue]), onPressed: widget.onAdd),
       ],
     );
   }

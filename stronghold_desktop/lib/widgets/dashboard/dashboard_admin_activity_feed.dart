@@ -81,6 +81,7 @@ class DashboardAdminActivityFeed extends StatelessWidget {
 
     if (!expand) {
       return GlassCard(
+        backgroundColor: AppColors.surface,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -94,6 +95,7 @@ class DashboardAdminActivityFeed extends StatelessWidget {
     }
 
     return GlassCard(
+      backgroundColor: AppColors.surface,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

@@ -216,10 +216,10 @@ class _ActionCircleState extends State<_ActionCircle> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: widget.color.withValues(alpha: _hover ? 0.2 : 0.1),
+              color: widget.color.withValues(alpha: _hover ? 0.35 : 0.18),
               shape: BoxShape.circle,
               border: Border.all(
-                color: widget.color.withValues(alpha: _hover ? 0.5 : 0.25),
+                color: widget.color.withValues(alpha: _hover ? 0.7 : 0.4),
               ),
             ),
             child: Icon(widget.icon, size: 14, color: widget.color),

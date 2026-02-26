@@ -26,6 +26,7 @@ class ReportMembershipTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(membershipPopularityReportProvider);
+    final selectedDays = ref.watch(membershipRevenuePeriodProvider);
     return async.when(
       loading: () => const ShimmerDashboard(),
       error: (error, _) => _ErrorState(
@@ -34,6 +35,9 @@ class ReportMembershipTab extends ConsumerWidget {
       ),
       data: (report) => _Body(
         report: report,
+        selectedDays: selectedDays,
+        onDaysChanged: (days) =>
+            ref.read(membershipRevenuePeriodProvider.notifier).state = days,
         onExportExcel: isExporting ? null : onExportExcel,
         onExportPdf: isExporting ? null : onExportPdf,
       ),
@@ -44,11 +48,15 @@ class ReportMembershipTab extends ConsumerWidget {
 class _Body extends StatelessWidget {
   const _Body({
     required this.report,
+    required this.selectedDays,
+    required this.onDaysChanged,
     required this.onExportExcel,
     required this.onExportPdf,
   });
 
   final MembershipPopularityReportDTO report;
+  final int selectedDays;
+  final ValueChanged<int> onDaysChanged;
   final VoidCallback? onExportExcel;
   final VoidCallback? onExportPdf;
 
@@ -95,11 +103,10 @@ class _Body extends StatelessWidget {
         ),
         const SizedBox(width: AppSpacing.lg),
         Expanded(
-          child: _SummaryCard(
-            icon: LucideIcons.banknote,
-            label: 'Prihod (90 dana)',
-            value: '${report.totalRevenueLast90Days.toStringAsFixed(2)} KM',
-            color: AppColors.success,
+          child: _RevenueSummaryCard(
+            revenue: report.totalRevenueLast90Days,
+            selectedDays: selectedDays,
+            onDaysChanged: onDaysChanged,
           ),
         ),
       ]);
@@ -127,7 +134,7 @@ class _Body extends StatelessWidget {
                 ),
               )
             else
-              _MembershipStatsTable(plans: report.planStats),
+              _MembershipStatsTable(plans: report.planStats, revenueDays: selectedDays),
           ],
         ),
       );
@@ -267,8 +274,9 @@ class _MiniStat extends StatelessWidget {
 }
 
 class _MembershipStatsTable extends StatelessWidget {
-  const _MembershipStatsTable({required this.plans});
+  const _MembershipStatsTable({required this.plans, required this.revenueDays});
   final List<MembershipPlanStatsDTO> plans;
+  final int revenueDays;
 
   @override
   Widget build(BuildContext context) {
@@ -290,7 +298,7 @@ class _MembershipStatsTable extends StatelessWidget {
                 TableHeaderCell(text: 'Aktivnih', flex: 1),
                 TableHeaderCell(text: 'Novih', flex: 1),
                 TableHeaderCell(
-                    text: 'Prihod (90d)', flex: 2, alignRight: true),
+                    text: 'Prihod (${revenueDays}d)', flex: 2, alignRight: true),
                 TableHeaderCell(
                     text: 'Popularnost', flex: 2, alignRight: true),
               ]),
@@ -372,6 +380,119 @@ class _MembershipStatsTable extends StatelessWidget {
       ),
       child: Text('${pct.toStringAsFixed(1)}%',
           style: AppTextStyles.badge.copyWith(color: color)),
+    );
+  }
+}
+
+class _RevenueSummaryCard extends StatelessWidget {
+  const _RevenueSummaryCard({
+    required this.revenue,
+    required this.selectedDays,
+    required this.onDaysChanged,
+  });
+
+  final num revenue;
+  final int selectedDays;
+  final ValueChanged<int> onDaysChanged;
+
+  static const _periods = [30, 90, 180, 360];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.success.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          ),
+          child: Icon(LucideIcons.banknote, color: AppColors.success, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text('Prihod', style: AppTextStyles.bodySm),
+                  const SizedBox(width: AppSpacing.sm),
+                  _PeriodDropdown(
+                    value: selectedDays,
+                    periods: _periods,
+                    onChanged: onDaysChanged,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '${revenue.toStringAsFixed(2)} KM',
+                style: AppTextStyles.stat.copyWith(color: AppColors.success),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _PeriodDropdown extends StatelessWidget {
+  const _PeriodDropdown({
+    required this.value,
+    required this.periods,
+    required this.onChanged,
+  });
+
+  final int value;
+  final List<int> periods;
+  final ValueChanged<int> onChanged;
+
+  String _label(int days) {
+    if (days < 90) return '$days dana';
+    if (days < 365) return '${days ~/ 30} mjeseci';
+    return '1 godina';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<int>(
+          value: value,
+          isDense: true,
+          dropdownColor: AppColors.surface,
+          style: AppTextStyles.bodyBold,
+          icon: const Icon(Icons.arrow_drop_down,
+              color: AppColors.textMuted, size: 16),
+          items: periods
+              .map((d) => DropdownMenuItem(
+                    value: d,
+                    child: Text(_label(d), style: AppTextStyles.caption),
+                  ))
+              .toList(),
+          onChanged: (v) {
+            if (v != null) onChanged(v);
+          },
+        ),
+      ),
     );
   }
 }

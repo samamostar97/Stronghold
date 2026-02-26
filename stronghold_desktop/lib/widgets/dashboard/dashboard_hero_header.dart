@@ -25,7 +25,16 @@ class DashboardHeroHeader extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(32, 28, 32, 80),
       decoration: BoxDecoration(
-        gradient: AppColors.heroGradient,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppColors.deepBlue.withValues(alpha: 0.65),
+            AppColors.midBlue.withValues(alpha: 0.55),
+            AppColors.navyBlue.withValues(alpha: 0.50),
+          ],
+          stops: const [0.0, 0.6, 1.0],
+        ),
         borderRadius: AppSpacing.heroRadius,
       ),
       child: Stack(

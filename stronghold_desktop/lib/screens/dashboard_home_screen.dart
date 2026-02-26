@@ -143,7 +143,6 @@ class _MainContent extends StatelessWidget {
         final wide = constraints.maxWidth >= 900;
 
         final chart = DashboardSalesChart(
-          dailySales: report?.dailySales ?? <DailySalesDTO>[],
           expand: wide,
         );
 

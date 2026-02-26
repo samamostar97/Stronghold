@@ -69,7 +69,7 @@ class _Body extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl),
             _statsGrid(statsCols, w),
             const SizedBox(height: AppSpacing.xxl),
-            DashboardSalesChart(dailySales: report.dailySales),
+            const DashboardSalesChart(),
             const SizedBox(height: AppSpacing.xxl),
             _bottomSection(bottomCols, w),
           ],

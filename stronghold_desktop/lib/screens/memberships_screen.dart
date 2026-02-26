@@ -252,7 +252,7 @@ class _SortDropdown extends StatelessWidget {
   final ValueChanged<String?> onChanged;
 
   static const _options = [
-    (value: null, label: 'Sortiraj'),
+    (value: null, label: 'Zadano'),
     (value: 'firstname', label: 'Ime (A-Z)'),
     (value: 'membershipstatus', label: 'Status (aktivne prvo)'),
     (value: 'membershipstatusdesc', label: 'Status (istekle prvo)'),
@@ -282,7 +282,9 @@ class _SortDropdown extends StatelessWidget {
           items: _options
               .map((o) => DropdownMenuItem<String?>(
                     value: o.value,
-                    child: Text(o.label, style: AppTextStyles.bodySecondary),
+                    child: Text(o.label, style: o.value == null
+                        ? AppTextStyles.bodyBold
+                        : AppTextStyles.bodySecondary),
                   ))
               .toList(),
           onChanged: onChanged,

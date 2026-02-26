@@ -165,9 +165,9 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: AppColors.navyBlue.withValues(alpha: 0.12),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
-          border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.navyBlue),
         ),
         child: Text(
           '${state.totalCount} korisnika',
@@ -202,6 +202,9 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
               Expanded(
                 child: GradientButton.text(
                     text: '+ Check-in korisnika',
+                    gradient: const LinearGradient(
+                      colors: [AppColors.navyBlue, AppColors.midBlue],
+                    ),
                     onPressed: _openCheckIn),
               ),
               const SizedBox(width: AppSpacing.md),
@@ -231,7 +234,11 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             sort,
             const SizedBox(width: AppSpacing.lg),
             GradientButton.text(
-                text: '+ Check-in korisnika', onPressed: _openCheckIn),
+                text: '+ Check-in korisnika',
+                gradient: const LinearGradient(
+                  colors: [AppColors.navyBlue, AppColors.midBlue],
+                ),
+                onPressed: _openCheckIn),
             const SizedBox(width: AppSpacing.md),
             HoverIconButton(
               icon: LucideIcons.refreshCw,

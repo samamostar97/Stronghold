@@ -20,9 +20,9 @@ namespace Stronghold.API.Controllers
         }
 
         [HttpGet("business")]
-        public async Task<ActionResult<BusinessReportResponse>> GetBusinessReport()
+        public async Task<ActionResult<BusinessReportResponse>> GetBusinessReport([FromQuery] int days = 30)
         {
-            var report = await _mediator.Send(new GetBusinessReportQuery());
+            var report = await _mediator.Send(new GetBusinessReportQuery { Days = days });
             return Ok(report);
         }
 
@@ -48,9 +48,9 @@ namespace Stronghold.API.Controllers
         }
 
         [HttpGet("membership-popularity")]
-        public async Task<ActionResult<MembershipPopularityReportResponse>> GetMembershipPopularityReport()
+        public async Task<ActionResult<MembershipPopularityReportResponse>> GetMembershipPopularityReport([FromQuery] int days = 90)
         {
-            var report = await _mediator.Send(new GetMembershipPopularityReportQuery());
+            var report = await _mediator.Send(new GetMembershipPopularityReportQuery { Days = days });
             return Ok(report);
         }
 

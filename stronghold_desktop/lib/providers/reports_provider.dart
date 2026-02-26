@@ -14,6 +14,17 @@ final businessReportProvider = FutureProvider<BusinessReportDTO>((ref) async {
   return service.getBusinessReport();
 });
 
+/// Selected sales chart period (in days)
+final salesPeriodProvider = StateProvider<int>((ref) => 30);
+
+/// Daily sales data for the selected period
+final salesChartDataProvider = FutureProvider<List<DailySalesDTO>>((ref) async {
+  final days = ref.watch(salesPeriodProvider);
+  final service = ref.watch(reportsServiceProvider);
+  final report = await service.getBusinessReport(days: days);
+  return report.dailySales;
+});
+
 /// Inventory report provider with configurable days parameter (legacy - loads all)
 final inventoryReportProvider = FutureProvider.family<InventoryReportDTO, int>((
   ref,
@@ -133,11 +144,15 @@ class SlowMovingProductsNotifier
   }
 }
 
-/// Membership popularity report provider
+/// Selected membership revenue period (in days)
+final membershipRevenuePeriodProvider = StateProvider<int>((ref) => 90);
+
+/// Membership popularity report provider (reacts to period change)
 final membershipPopularityReportProvider =
     FutureProvider<MembershipPopularityReportDTO>((ref) async {
+      final days = ref.watch(membershipRevenuePeriodProvider);
       final service = ref.watch(reportsServiceProvider);
-      return service.getMembershipPopularityReport();
+      return service.getMembershipPopularityReport(days: days);
     });
 
 /// Export operations notifier for handling export state

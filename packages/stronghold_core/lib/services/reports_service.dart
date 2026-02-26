@@ -11,9 +11,10 @@ class ReportsService {
   ReportsService(this._client);
 
   /// Get business report with statistics
-  Future<BusinessReportDTO> getBusinessReport() async {
+  Future<BusinessReportDTO> getBusinessReport({int days = 30}) async {
     return _client.get<BusinessReportDTO>(
       '/api/reports/business',
+      queryParameters: {'days': days.toString()},
       parser: (json) => BusinessReportDTO.fromJson(json),
     );
   }
@@ -51,9 +52,10 @@ class ReportsService {
   }
 
   /// Get membership popularity report
-  Future<MembershipPopularityReportDTO> getMembershipPopularityReport() async {
+  Future<MembershipPopularityReportDTO> getMembershipPopularityReport({int days = 90}) async {
     return _client.get<MembershipPopularityReportDTO>(
       '/api/reports/membership-popularity',
+      queryParameters: {'days': days.toString()},
       parser: (json) => MembershipPopularityReportDTO.fromJson(json),
     );
   }
