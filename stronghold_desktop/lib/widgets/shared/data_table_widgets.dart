@@ -198,10 +198,10 @@ class _HoverableTableRowState extends State<HoverableTableRow> {
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
-                width: showBar ? 3 : 0,
+                width: 3,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: barColor,
+                  color: showBar ? barColor : Colors.transparent,
                   gradient: _hover
                       ? const LinearGradient(
                           begin: Alignment.topCenter,

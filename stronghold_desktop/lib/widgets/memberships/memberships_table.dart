@@ -48,7 +48,7 @@ class MembershipsTable extends StatelessWidget {
   }
 }
 
-class _MembershipRow extends ConsumerStatefulWidget {
+class _MembershipRow extends ConsumerWidget {
   const _MembershipRow({
     required this.user,
     required this.index,
@@ -66,28 +66,20 @@ class _MembershipRow extends ConsumerStatefulWidget {
   final VoidCallback onRevokeMembership;
 
   @override
-  ConsumerState<_MembershipRow> createState() => _MembershipRowState();
-}
-
-class _MembershipRowState extends ConsumerState<_MembershipRow> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final membershipAsync =
-        ref.watch(userHasActiveMembershipProvider(widget.user.id));
+        ref.watch(userHasActiveMembershipProvider(user.id));
     final isActive = !membershipAsync.isLoading &&
         (membershipAsync.valueOrNull == true);
 
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: HoverableTableRow(
-        index: widget.index,
-        isLast: widget.isLast,
-        activeAccentColor: isActive ? AppColors.success : null,
-        child: Row(children: [
-          TableDataCell(text: widget.user.username, flex: 2),
+    return HoverableTableRow(
+      index: index,
+      isLast: isLast,
+      activeAccentColor: isActive ? AppColors.success : null,
+      child: LayoutBuilder(builder: (context, constraints) {
+        final useButtons = constraints.maxWidth > 700;
+        return Row(children: [
+          TableDataCell(text: user.username, flex: 2),
           Expanded(
             flex: 2,
             child: Row(children: [
@@ -108,75 +100,69 @@ class _MembershipRowState extends ConsumerState<_MembershipRow> {
                       strokeWidth: 1.5, color: AppColors.textMuted),
                 ),
               Flexible(
-                child: Text(widget.user.firstName,
+                child: Text(user.firstName,
                     style: AppTextStyles.bodyBold,
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1),
               ),
             ]),
           ),
-          TableDataCell(text: widget.user.lastName, flex: 2),
-          TableDataCell(text: widget.user.email, flex: 3),
+          TableDataCell(text: user.lastName, flex: 2),
+          TableDataCell(text: user.email, flex: 3),
           Expanded(
             flex: 4,
-            child: AnimatedCrossFade(
-              duration: const Duration(milliseconds: 200),
-              crossFadeState: _hovered
-                  ? CrossFadeState.showSecond
-                  : CrossFadeState.showFirst,
-              alignment: Alignment.centerRight,
-              firstChild: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  _ActionCircle(
-                    icon: LucideIcons.eye,
-                    color: AppColors.secondary,
-                    tooltip: 'Pregled uplata',
-                    onTap: widget.onViewPayments,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _ActionCircle(
-                    icon: LucideIcons.plus,
-                    color: AppColors.primary,
-                    tooltip: 'Dodaj uplatu',
-                    onTap: widget.onAddPayment,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _ActionCircle(
-                    icon: LucideIcons.ban,
-                    color: AppColors.error,
-                    tooltip: 'Ukini clanarinu',
-                    onTap: widget.onRevokeMembership,
-                  ),
-                ],
-              ),
-              secondChild: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    SmallButton(
-                        text: 'Pregled uplata',
+            child: useButtons
+                ? FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SmallButton(
+                            text: 'Pregled uplata',
+                            color: AppColors.secondary,
+                            onTap: onViewPayments),
+                        const SizedBox(width: AppSpacing.sm),
+                        SmallButton(
+                            text: 'Dodaj uplatu',
+                            color: AppColors.primary,
+                            onTap: onAddPayment),
+                        const SizedBox(width: AppSpacing.sm),
+                        SmallButton(
+                            text: 'Ukini clanarinu',
+                            color: AppColors.error,
+                            onTap: onRevokeMembership),
+                      ],
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      _ActionCircle(
+                        icon: LucideIcons.eye,
                         color: AppColors.secondary,
-                        onTap: widget.onViewPayments),
-                    const SizedBox(width: AppSpacing.sm),
-                    SmallButton(
-                        text: 'Dodaj uplatu',
+                        tooltip: 'Pregled uplata',
+                        onTap: onViewPayments,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _ActionCircle(
+                        icon: LucideIcons.plus,
                         color: AppColors.primary,
-                        onTap: widget.onAddPayment),
-                    const SizedBox(width: AppSpacing.sm),
-                    SmallButton(
-                        text: 'Ukini clanarinu',
+                        tooltip: 'Dodaj uplatu',
+                        onTap: onAddPayment,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _ActionCircle(
+                        icon: LucideIcons.ban,
                         color: AppColors.error,
-                        onTap: widget.onRevokeMembership),
-                  ],
-                ),
-              ),
-            ),
+                        tooltip: 'Ukini clanarinu',
+                        onTap: onRevokeMembership,
+                      ),
+                    ],
+                  ),
           ),
-        ]),
-      ),
+        ]);
+      }),
     );
   }
 }

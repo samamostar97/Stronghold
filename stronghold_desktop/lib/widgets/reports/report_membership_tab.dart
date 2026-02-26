@@ -248,7 +248,7 @@ class _TopPlanCard extends StatelessWidget {
               Text('NAJPOPULARNIJI PAKET', style: AppTextStyles.label),
               const SizedBox(height: AppSpacing.xs),
               Text(plan.packageName,
-                  style: AppTextStyles.statLg.copyWith(fontSize: 24),
+                  style: AppTextStyles.statLg.copyWith(fontSize: 24, color: Colors.white),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: AppSpacing.sm),
               Wrap(
@@ -287,7 +287,7 @@ class _MiniStat extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label, style: AppTextStyles.bodySm),
-        Text(value, style: AppTextStyles.bodyBold),
+        Text(value, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
       ],
     );
   }
