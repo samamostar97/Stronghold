@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../constants/app_spacing.dart';
-import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
 import '../providers/user_provider.dart';
 import '../widgets/shared/confirm_dialog.dart';
@@ -98,31 +96,6 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Page header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text('Korisnici', style: AppTextStyles.pageTitle),
-                  ),
-                  if (!state.isLoading)
-                    Text(
-                      '${state.totalCount} ukupno',
-                      style: AppTextStyles.caption,
-                    ),
-                ],
-              )
-                  .animate()
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                  .slideY(
-                    begin: 0.06,
-                    end: 0,
-                    duration: Motion.smooth,
-                    curve: Motion.curve,
-                  ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
             // CRUD scaffold
             Expanded(
               child: CrudListScaffold<UserResponse, UserQueryFilter>(

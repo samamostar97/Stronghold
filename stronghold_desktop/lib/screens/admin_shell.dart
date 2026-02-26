@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:stronghold_core/stronghold_core.dart' show ParticleBackground;
 import '../constants/app_colors.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/shell/admin_top_bar.dart';
@@ -173,41 +174,56 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       child: Focus(
         autofocus: true,
         child: Scaffold(
-          backgroundColor: AppColors.background,
-          body: LayoutBuilder(
-            builder: (context, constraints) {
-              final collapsed =
-                  _userCollapse ?? constraints.maxWidth < 1200;
+          backgroundColor: AppColors.deepBlue,
+          body: Stack(
+            children: [
+              // Full-screen gradient + particles
+              Container(
+                decoration: const BoxDecoration(
+                    gradient: AppColors.heroGradient),
+              ),
+              const ParticleBackground(
+                particleColor: Color(0xFF38BDF8),
+                particleCount: 60,
+                connectDistance: 130,
+              ),
+              // App content
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final collapsed =
+                      _userCollapse ?? constraints.maxWidth < 1200;
 
-              return SafeArea(
-                child: Row(
-                  children: [
-                    AppSidebar(
-                      groups: _navGroups,
-                      activeId: activeId,
-                      onSelect: (id) {
-                        final path = _idToPath[id];
-                        if (path != null) context.go(path);
-                      },
-                      collapsed: collapsed,
-                      onToggleCollapse: _toggleCollapse,
-                    ),
-                    Expanded(
-                      child: Column(
-                        children: [
-                          AdminTopBar(
-                            title: title,
-                            onNavigateToOrders: () =>
-                                context.go('/orders'),
+                  return SafeArea(
+                    child: Row(
+                      children: [
+                        AppSidebar(
+                          groups: _navGroups,
+                          activeId: activeId,
+                          onSelect: (id) {
+                            final path = _idToPath[id];
+                            if (path != null) context.go(path);
+                          },
+                          collapsed: collapsed,
+                          onToggleCollapse: _toggleCollapse,
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              AdminTopBar(
+                                title: title,
+                                onNavigateToOrders: () =>
+                                    context.go('/orders'),
+                              ),
+                              Expanded(child: widget.child),
+                            ],
                           ),
-                          Expanded(child: widget.child),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              );
-            },
+                  );
+                },
+              ),
+            ],
           ),
         ),
       ),

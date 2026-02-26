@@ -22,19 +22,6 @@ class LeaderboardScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
-          child: Text('Rang lista', style: AppTextStyles.pageTitle)
-              .animate()
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-              .slideY(
-                begin: 0.06,
-                end: 0,
-                duration: Motion.smooth,
-                curve: Motion.curve,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: LayoutBuilder(builder: (context, constraints) {
             final w = constraints.maxWidth;

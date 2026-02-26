@@ -26,13 +26,13 @@ class AdminTopBar extends ConsumerWidget {
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: const Border(
-          bottom: BorderSide(color: AppColors.border, width: 1),
+        color: AppColors.deepBlue.withOpacity(0.65),
+        border: Border(
+          bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.electric.withOpacity(0.04),
+            color: Colors.black.withOpacity(0.15),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -42,7 +42,7 @@ class AdminTopBar extends ConsumerWidget {
         children: [
           Text(
             title,
-            style: AppTextStyles.headingMd,
+            style: AppTextStyles.headingMd.copyWith(color: Colors.white),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
           ),
@@ -158,10 +158,10 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
               color: Colors.transparent,
             ),
             child: IconButton(
-              icon: const Icon(
+              icon: Icon(
                 LucideIcons.bell,
                 size: 20,
-                color: AppColors.textSecondary,
+                color: Colors.white.withOpacity(0.7),
               ),
               onPressed: _togglePopup,
             ),
@@ -209,7 +209,7 @@ class _ProfileDropdown extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: AppSpacing.panelRadius,
       ),
-      color: AppColors.surface,
+      color: AppColors.deepBlue,
       elevation: 8,
       shadowColor: AppColors.electric.withOpacity(0.12),
       onSelected: (value) {

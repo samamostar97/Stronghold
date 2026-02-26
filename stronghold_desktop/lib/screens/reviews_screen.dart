@@ -87,30 +87,6 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text('Recenzije', style: AppTextStyles.pageTitle),
-              ),
-              if (!state.isLoading)
-                Text(
-                  '${state.totalCount} ukupno',
-                  style: AppTextStyles.caption,
-                ),
-            ],
-          )
-              .animate()
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-              .slideY(
-                begin: 0.06,
-                end: 0,
-                duration: Motion.smooth,
-                curve: Motion.curve,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
         Expanded(
           child: _ReviewsContent(
             state: state,

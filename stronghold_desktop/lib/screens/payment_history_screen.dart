@@ -93,11 +93,6 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        Text(
-                          'Historija uplata',
-                          style: AppTextStyles.pageTitle,
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
                         _UserInfoCard(user: widget.user),
                         const SizedBox(height: AppSpacing.lg),
                         _sortDropdown(),

@@ -47,9 +47,9 @@ class AppSidebar extends StatelessWidget {
       curve: Curves.easeOutCubic,
       width: collapsed ? 72 : 240,
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: const Border(
-          right: BorderSide(color: AppColors.border, width: 1),
+        color: AppColors.deepBlue.withOpacity(0.65),
+        border: Border(
+          right: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
         ),
       ),
       child: Column(
@@ -57,7 +57,7 @@ class AppSidebar extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           _Logo(collapsed: collapsed),
           const SizedBox(height: AppSpacing.lg),
-          Container(height: 1, color: AppColors.borderLight),
+          Container(height: 1, color: Colors.white.withOpacity(0.06)),
           const SizedBox(height: AppSpacing.sm),
           Expanded(
             child: ListView(
@@ -79,10 +79,10 @@ class AppSidebar extends StatelessWidget {
               ],
             ),
           ),
-          Container(height: 1, color: AppColors.borderLight),
+          Container(height: 1, color: Colors.white.withOpacity(0.06)),
           _CollapseButton(collapsed: collapsed, onTap: onToggleCollapse),
           if (bottom != null) ...[
-            Container(height: 1, color: AppColors.borderLight),
+            Container(height: 1, color: Colors.white.withOpacity(0.06)),
             bottom!,
           ],
           const SizedBox(height: AppSpacing.sm),
@@ -133,7 +133,7 @@ class _Logo extends StatelessWidget {
                   'STRONGHOLD',
                   style: AppTextStyles.sectionTitle.copyWith(
                     letterSpacing: 1.5,
-                    color: AppColors.deepBlue,
+                    color: Colors.white,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -156,14 +156,16 @@ class _SectionLabel extends StatelessWidget {
     if (collapsed) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Container(height: 1, color: AppColors.borderLight),
+        child: Container(height: 1, color: Colors.white.withOpacity(0.06)),
       );
     }
     return Padding(
       padding: const EdgeInsets.only(
           left: 14, top: AppSpacing.lg, bottom: AppSpacing.sm),
       child: Text(label,
-          style: AppTextStyles.overline, overflow: TextOverflow.ellipsis),
+          style: AppTextStyles.overline
+              .copyWith(color: Colors.white.withOpacity(0.35)),
+          overflow: TextOverflow.ellipsis),
     );
   }
 }
@@ -207,9 +209,9 @@ class _NavTileState extends State<_NavTile> {
           ),
           decoration: BoxDecoration(
             color: active
-                ? AppColors.electric.withOpacity(0.08)
+                ? AppColors.electric.withOpacity(0.12)
                 : _hover
-                    ? AppColors.surfaceAlt
+                    ? Colors.white.withOpacity(0.06)
                     : Colors.transparent,
             borderRadius: AppSpacing.badgeRadius,
           ),
@@ -232,10 +234,10 @@ class _NavTileState extends State<_NavTile> {
                   Icon(widget.item.icon,
                       size: 20,
                       color: active
-                          ? AppColors.electric
+                          ? AppColors.cyan
                           : _hover
-                              ? AppColors.textSecondary
-                              : AppColors.textMuted),
+                              ? Colors.white.withOpacity(0.85)
+                              : Colors.white.withOpacity(0.45)),
                   if (!compact) ...[
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
@@ -243,11 +245,11 @@ class _NavTileState extends State<_NavTile> {
                         widget.item.label,
                         style: active
                             ? AppTextStyles.bodyMedium
-                                .copyWith(color: AppColors.electric)
+                                .copyWith(color: AppColors.cyan)
                             : AppTextStyles.bodySecondary.copyWith(
                                 color: _hover
-                                    ? AppColors.textPrimary
-                                    : AppColors.textSecondary),
+                                    ? Colors.white.withOpacity(0.9)
+                                    : Colors.white.withOpacity(0.5)),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -279,7 +281,7 @@ class _CollapseButton extends StatelessWidget {
               ? LucideIcons.panelLeftOpen
               : LucideIcons.panelLeftClose,
           size: 18,
-          color: AppColors.textMuted,
+          color: Colors.white.withOpacity(0.4),
         ),
         onPressed: onTap,
       ),

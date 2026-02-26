@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
@@ -104,31 +103,6 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Page header
-        Padding(
-          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text('Clanarine', style: AppTextStyles.pageTitle),
-              ),
-              if (!state.isLoading)
-                Text(
-                  '${state.totalCount} korisnika',
-                  style: AppTextStyles.caption,
-                ),
-            ],
-          )
-              .animate()
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-              .slideY(
-                begin: 0.06,
-                end: 0,
-                duration: Motion.smooth,
-                curve: Motion.curve,
-              ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
         // Content
         Expanded(
           child: _MembershipContent(
