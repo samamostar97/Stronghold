@@ -22,7 +22,7 @@ class FaqScreen extends ConsumerWidget {
     final faqsAsync = ref.watch(allFaqsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -47,7 +47,7 @@ class FaqScreen extends ConsumerWidget {
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child: Text('Cesta pitanja',
-                      style: AppTextStyles.headingMd)),
+                      style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(

@@ -19,9 +19,9 @@ class ShopRecommendations extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
-          child: SectionHeader(title: 'Preporuceno za tebe'),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.screenPadding),
+          child: Text('Preporuceno za tebe', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
         ),
         const SizedBox(height: AppSpacing.md),
         SizedBox(
@@ -44,7 +44,7 @@ class ShopRecommendations extends StatelessWidget {
           child: Text(
             'Svi suplementi',
             style: AppTextStyles.headingSm
-                .copyWith(color: AppColors.textSecondary),
+                .copyWith(color: Colors.white),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -96,7 +96,7 @@ class ShopRecommendations extends StatelessWidget {
                     Text(
                       rec.name,
                       style: AppTextStyles.bodySm
-                          .copyWith(color: AppColors.textPrimary),
+                          .copyWith(color: Colors.white),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -108,7 +108,7 @@ class ShopRecommendations extends StatelessWidget {
                       Text(
                         rec.averageRating.toStringAsFixed(1),
                         style: AppTextStyles.caption
-                            .copyWith(color: AppColors.textSecondary),
+                            .copyWith(color: Colors.white),
                       ),
                       Text(' (${rec.reviewCount})',
                           style: AppTextStyles.caption),
@@ -117,7 +117,7 @@ class ShopRecommendations extends StatelessWidget {
                     Text(
                       '${rec.price.toStringAsFixed(2)} KM',
                       style: AppTextStyles.bodyBold
-                          .copyWith(color: AppColors.primary, fontSize: 13),
+                          .copyWith(color: AppColors.navyBlue, fontSize: 13),
                     ),
                   ],
                 ),

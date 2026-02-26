@@ -24,7 +24,8 @@ class WeeklyActivityChart extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Aktivnost proteklih 7 dana'),
+          Text('Aktivnost proteklih 7 dana',
+              style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
           const SizedBox(height: AppSpacing.xxl),
           SizedBox(
             height: 150,

@@ -123,7 +123,7 @@ class _BookAppointmentScreenState
         : null;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -147,7 +147,7 @@ class _BookAppointmentScreenState
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Text(
-                    'Zakazi termin', style: AppTextStyles.headingMd)),
+                    'Zakazi termin', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(
@@ -198,10 +198,11 @@ class _BookAppointmentScreenState
           decoration: BoxDecoration(
             color: AppColors.primaryDim,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: Icon(
             _isTrainer ? LucideIcons.dumbbell : LucideIcons.apple,
-            color: AppColors.primary,
+            color: Colors.white,
             size: 22,
           ),
         ),
@@ -212,12 +213,12 @@ class _BookAppointmentScreenState
             children: [
               Text(
                 _isTrainer ? 'Trener' : 'Nutricionist',
-                style: AppTextStyles.caption,
+                style: AppTextStyles.caption.copyWith(color: Colors.white),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 widget.staffName,
-                style: AppTextStyles.headingSm,
+                style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -237,30 +238,31 @@ class _BookAppointmentScreenState
           decoration: BoxDecoration(
             color: AppColors.primaryDim,
             borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
           ),
           child: const Icon(LucideIcons.calendar,
-              color: AppColors.primary, size: 20),
+              color: Colors.white, size: 20),
         ),
         const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Odaberi datum', style: AppTextStyles.caption),
+              Text('Odaberi datum', style: AppTextStyles.caption.copyWith(color: Colors.white)),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 _selectedDate != null
                     ? formatDateDDMMYYYY(_selectedDate!)
                     : 'Nije odabran',
                 style: _selectedDate != null
-                    ? AppTextStyles.bodyBold
-                    : AppTextStyles.bodyMd,
+                    ? AppTextStyles.bodyBold.copyWith(color: Colors.white)
+                    : AppTextStyles.bodyMd.copyWith(color: Colors.white),
               ),
             ],
           ),
         ),
         const Icon(LucideIcons.chevronRight,
-            color: AppColors.textDark, size: 18),
+            color: Colors.white, size: 18),
       ]),
     );
   }
@@ -270,7 +272,7 @@ class _BookAppointmentScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SectionHeader(title: 'Odaberi sat'),
+          Text('Odaberi sat', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
           const SizedBox(height: AppSpacing.lg),
           if (hoursAsync != null)
             hoursAsync.when(
@@ -304,12 +306,12 @@ class _BookAppointmentScreenState
     return GlassCard(
       child: Row(children: [
         const Icon(LucideIcons.info,
-            color: AppColors.primary, size: 20),
+            color: Colors.white, size: 20),
         const SizedBox(width: AppSpacing.md),
         Expanded(
           child: Text(
             'Termini traju 1 sat (9:00 - 17:00). Mozete imati samo jedan termin dnevno.',
-            style: AppTextStyles.bodySm,
+            style: AppTextStyles.bodySm.copyWith(color: Colors.white),
           ),
         ),
       ]),

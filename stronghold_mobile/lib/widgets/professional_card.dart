@@ -35,18 +35,19 @@ class ProfessionalCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primaryDim,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 22),
+              child: Icon(icon, color: Colors.white, size: 22),
             ),
             const SizedBox(width: AppSpacing.lg),
             Expanded(
               child: Text(
                 name,
-                style: AppTextStyles.headingSm,
+                style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-            Icon(LucideIcons.chevronRight, color: AppColors.textMuted, size: 20),
+            Icon(LucideIcons.chevronRight, color: Colors.white, size: 20),
           ]),
           const SizedBox(height: AppSpacing.lg),
           _infoRow(LucideIcons.phone, phone),
@@ -59,12 +60,12 @@ class ProfessionalCard extends StatelessWidget {
 
   Widget _infoRow(IconData rowIcon, String text) {
     return Row(children: [
-      Icon(rowIcon, size: 16, color: AppColors.textMuted),
+      Icon(rowIcon, size: 16, color: Colors.white),
       const SizedBox(width: AppSpacing.sm),
       Expanded(
         child: Text(
           text,
-          style: AppTextStyles.bodyMd,
+          style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
           overflow: TextOverflow.ellipsis,
         ),
       ),

@@ -38,7 +38,7 @@ class CartItemCard extends StatelessWidget {
             children: [
               Text(
                 item.supplement.name,
-                style: AppTextStyles.bodyBold,
+                style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -46,7 +46,7 @@ class CartItemCard extends StatelessWidget {
               Text(
                 '${item.supplement.price.toStringAsFixed(2)} KM',
                 style: AppTextStyles.bodyBold
-                    .copyWith(color: AppColors.primary),
+                    .copyWith(color: AppColors.navyBlue),
               ),
             ],
           ),
@@ -70,7 +70,7 @@ class CartItemCard extends StatelessWidget {
         _stepBtn(LucideIcons.minus, () => onQuantityChanged(item.quantity - 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text('${item.quantity}', style: AppTextStyles.bodyBold),
+          child: Text('${item.quantity}', style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
         ),
         _stepBtn(LucideIcons.plus, () => onQuantityChanged(item.quantity + 1)),
       ],

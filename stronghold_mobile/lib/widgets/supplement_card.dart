@@ -43,14 +43,14 @@ class SupplementCard extends StatelessWidget {
               children: [
                 Text(
                   supplement.name,
-                  style: AppTextStyles.bodyBold,
+                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   supplement.supplementCategoryName ?? '',
-                  style: AppTextStyles.caption,
+                  style: AppTextStyles.caption.copyWith(color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -60,7 +60,7 @@ class SupplementCard extends StatelessWidget {
                     child: Text(
                       '${supplement.price.toStringAsFixed(2)} KM',
                       style: AppTextStyles.bodyBold
-                          .copyWith(color: AppColors.primary, fontSize: 13),
+                          .copyWith(color: AppColors.navyBlue, fontSize: 13),
                     ),
                   ),
                   if (onAddToCart != null)
@@ -73,10 +73,11 @@ class SupplementCard extends StatelessWidget {
                           color: AppColors.primaryDim,
                           borderRadius:
                               BorderRadius.circular(AppSpacing.radiusSm),
+                          border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.4), width: 1.5),
                         ),
                         child: const Icon(
                           LucideIcons.plus,
-                          color: AppColors.primary,
+                          color: AppColors.navyBlue,
                           size: 16,
                         ),
                       ),

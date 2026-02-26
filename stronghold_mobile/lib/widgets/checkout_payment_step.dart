@@ -41,7 +41,7 @@ class CheckoutPaymentStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSpacing.lg),
-                const SectionHeader(title: 'Pregled placanja'),
+                Text('Pregled placanja', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
                 const SizedBox(height: AppSpacing.md),
                 // Order summary
                 GlassCard(
@@ -70,7 +70,7 @@ class CheckoutPaymentStep extends StatelessWidget {
                         label: 'Ukupno za placanje',
                         value: '${total.toStringAsFixed(2)} KM',
                         isBold: true,
-                        valueColor: AppColors.primary,
+                        valueColor: AppColors.navyBlue,
                       ),
                     ],
                   ),
@@ -78,7 +78,7 @@ class CheckoutPaymentStep extends StatelessWidget {
                 // Delivery address
                 if (address != null) ...[
                   const SizedBox(height: AppSpacing.xl),
-                  const SectionHeader(title: 'Adresa dostave'),
+                  Text('Adresa dostave', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
                   const SizedBox(height: AppSpacing.md),
                   GlassCard(
                     child: Row(
@@ -90,6 +90,7 @@ class CheckoutPaymentStep extends StatelessWidget {
                             color: AppColors.primaryDim,
                             borderRadius:
                                 BorderRadius.circular(AppSpacing.radiusSm),
+                            border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
                           ),
                           child: const Icon(LucideIcons.mapPin,
                               size: 18, color: AppColors.primary),
@@ -100,11 +101,11 @@ class CheckoutPaymentStep extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(address!.street,
-                                  style: AppTextStyles.bodyBold),
+                                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
                               const SizedBox(height: 2),
                               Text(
                                 '${address!.postalCode} ${address!.city}, ${address!.country}',
-                                style: AppTextStyles.bodySm,
+                                style: AppTextStyles.bodySm.copyWith(color: Colors.white),
                               ),
                             ],
                           ),
@@ -146,9 +147,9 @@ class CheckoutPaymentStep extends StatelessWidget {
   Widget _bottomBar() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [

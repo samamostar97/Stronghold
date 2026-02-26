@@ -107,7 +107,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final errorMessage = authState.error;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
           const Positioned.fill(child: ParticleBackground()),
@@ -126,13 +126,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         onPressed: () => context.pop(),
                         icon: const Icon(
                           LucideIcons.arrowLeft,
-                          color: AppColors.textPrimary,
+                          color: Colors.white,
                         ),
                       ),
                       Expanded(
                         child: Text(
                           'Registracija',
-                          style: AppTextStyles.headingMd,
+                          style: AppTextStyles.headingMd.copyWith(color: Colors.white),
                           textAlign: TextAlign.center,
                         ),
                       ),

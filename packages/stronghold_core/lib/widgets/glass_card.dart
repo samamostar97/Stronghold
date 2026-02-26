@@ -6,7 +6,7 @@ class GlassCard extends StatefulWidget {
     super.key,
     required this.child,
     this.padding = const EdgeInsets.all(24),
-    this.backgroundColor = const Color(0xFFFFFFFF),
+    this.backgroundColor = const Color(0x55FFFFFF),
     this.borderColor = const Color(0x1F4F8EF7),
     this.hoverBorderColor = const Color(0x334F8EF7),
     this.borderRadius = 20.0,

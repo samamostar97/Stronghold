@@ -36,7 +36,7 @@ class CheckoutReviewStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSpacing.lg),
-                const SectionHeader(title: 'Stavke narudzbe'),
+                Text('Stavke narudzbe', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
                 const SizedBox(height: AppSpacing.md),
                 ...items.map(
                   (item) => Padding(
@@ -66,7 +66,7 @@ class CheckoutReviewStep extends StatelessWidget {
                         label: 'Ukupno',
                         value: '${total.toStringAsFixed(2)} KM',
                         isBold: true,
-                        valueColor: AppColors.primary,
+                        valueColor: AppColors.navyBlue,
                       ),
                     ],
                   ),
@@ -84,9 +84,9 @@ class CheckoutReviewStep extends StatelessWidget {
   Widget _bottomBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [

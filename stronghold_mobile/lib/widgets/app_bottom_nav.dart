@@ -24,11 +24,11 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        color: AppColors.deepBlue.withValues(alpha: 0.85),
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
         boxShadow: [
           BoxShadow(
-            color: AppColors.electric.withOpacity(0.06),
+            color: Colors.black.withOpacity(0.2),
             blurRadius: 20,
             offset: const Offset(0, -4),
           ),
@@ -66,15 +66,15 @@ class AppBottomNav extends StatelessWidget {
                         item.icon,
                         size: 22,
                         color: active
-                            ? AppColors.electric
-                            : AppColors.textMuted,
+                            ? AppColors.cyan
+                            : Colors.white54,
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         item.label,
                         style: (active
-                                ? AppTextStyles.tabActive
-                                : AppTextStyles.tabInactive)
+                                ? AppTextStyles.tabActive.copyWith(color: AppColors.cyan)
+                                : AppTextStyles.tabInactive.copyWith(color: Colors.white54))
                             .copyWith(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),

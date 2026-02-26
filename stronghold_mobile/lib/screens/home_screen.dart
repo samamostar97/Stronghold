@@ -37,7 +37,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     _previousIndex = currentIndex;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -52,7 +52,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               const SizedBox(height: AppSpacing.xs),
               Text(
                 name,
-                style: AppTextStyles.headingLg,
+                style: AppTextStyles.headingLg.copyWith(color: Colors.white),
                 overflow: TextOverflow.ellipsis,
               )
                   .animate(delay: 100.ms)

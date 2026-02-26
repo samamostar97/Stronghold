@@ -45,13 +45,13 @@ class TimeSlotGrid extends StatelessWidget {
               color: active ? AppColors.primary : AppColors.primaryDim,
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
               border: Border.all(
-                color: active ? AppColors.primary : AppColors.primaryBorder,
+                color: active ? AppColors.primary : Colors.white.withValues(alpha: 0.3),
               ),
             ),
             child: Text(
               '${hour.toString().padLeft(2, '0')}:00',
               style: AppTextStyles.bodyBold.copyWith(
-                color: active ? AppColors.background : AppColors.primary,
+                color: active ? AppColors.background : Colors.white,
               ),
             ),
           ),

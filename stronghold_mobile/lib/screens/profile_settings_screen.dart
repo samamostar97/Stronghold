@@ -59,7 +59,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     final user = ref.watch(authProvider).user;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
@@ -67,7 +67,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: AppSpacing.sm),
-              Text('Profil', style: AppTextStyles.headingLg),
+              Text('Profil', style: AppTextStyles.headingLg.copyWith(color: Colors.white)),
               const SizedBox(height: AppSpacing.xl),
               // User card - tappable for image change
               _userCard(user),
@@ -75,7 +75,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               // Settings section
               Text('POSTAVKE',
                   style: AppTextStyles.label
-                      .copyWith(color: AppColors.textMuted)),
+                      .copyWith(color: Colors.white70)),
               const SizedBox(height: AppSpacing.md),
               _navOption(
                 icon: LucideIcons.mapPin,
@@ -129,16 +129,16 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: AppTextStyles.headingSm),
+                Text(name, style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
                 const SizedBox(height: 2),
                 Text(email,
                     style: AppTextStyles.bodySm
-                        .copyWith(color: AppColors.textSecondary)),
+                        .copyWith(color: Colors.white)),
               ],
             ),
           ),
           const Icon(LucideIcons.camera,
-              color: AppColors.textDark, size: 18),
+              color: Colors.white, size: 18),
         ],
       ),
     );
@@ -159,26 +159,27 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.6)),
             ),
-            child: Icon(icon, color: color, size: 20),
+            child: Icon(icon, color: AppColors.navyBlue, size: 20),
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTextStyles.bodyBold),
+                Text(title, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
                 const SizedBox(height: 2),
                 Text(subtitle,
                     style: AppTextStyles.bodySm
-                        .copyWith(color: AppColors.textMuted)),
+                        .copyWith(color: Colors.white70)),
               ],
             ),
           ),
           const Icon(LucideIcons.chevronRight,
-              color: AppColors.textDark, size: 18),
+              color: Colors.white, size: 18),
         ],
       ),
     );

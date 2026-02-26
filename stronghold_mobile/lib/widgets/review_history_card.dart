@@ -29,7 +29,7 @@ class ReviewHistoryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(review.supplementName,
-                    style: AppTextStyles.headingSm),
+                    style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
               ),
               const SizedBox(width: AppSpacing.md),
               ReviewCard.starRating(review.rating.toDouble()),
@@ -39,7 +39,7 @@ class ReviewHistoryCard extends StatelessWidget {
               review.comment!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Text(review.comment!,
-                style: AppTextStyles.bodyMd.copyWith(height: 1.4)),
+                style: AppTextStyles.bodyMd.copyWith(height: 1.4, color: Colors.white)),
           ],
           const SizedBox(height: AppSpacing.lg),
           Row(
@@ -51,7 +51,7 @@ class ReviewHistoryCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Text('${review.rating}/5',
                     style: AppTextStyles.bodyBold
-                        .copyWith(color: AppColors.textSecondary)),
+                        .copyWith(color: Colors.white)),
               ]),
               GestureDetector(
                 onTap: isDeleting ? null : onDelete,
@@ -64,7 +64,7 @@ class ReviewHistoryCard extends StatelessWidget {
                     borderRadius:
                         BorderRadius.circular(AppSpacing.radiusSm),
                     border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3)),
+                        color: const Color(0xFFEF4444).withValues(alpha: 0.4)),
                   ),
                   child: isDeleting
                       ? const SizedBox(
@@ -78,11 +78,11 @@ class ReviewHistoryCard extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             const Icon(LucideIcons.trash2,
-                                size: 14, color: AppColors.error),
+                                size: 14, color: Color(0xFFEF4444)),
                             const SizedBox(width: AppSpacing.sm),
                             Text('Obrisi',
                                 style: AppTextStyles.badge
-                                    .copyWith(color: AppColors.error)),
+                                    .copyWith(color: const Color(0xFFEF4444))),
                           ],
                         ),
                 ),

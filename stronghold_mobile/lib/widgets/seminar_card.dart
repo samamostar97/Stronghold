@@ -33,7 +33,7 @@ class SeminarCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text(seminar.topic, style: AppTextStyles.headingSm),
+                child: Text(seminar.topic, style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
               ),
               if (seminar.isCancelled) ...[
                 const SizedBox(width: AppSpacing.sm),
@@ -91,9 +91,9 @@ class SeminarCard extends StatelessWidget {
 
     return Row(
       children: [
-        Icon(LucideIcons.users, size: 16, color: AppColors.textMuted),
+        Icon(LucideIcons.users, size: 16, color: Colors.white),
         const SizedBox(width: AppSpacing.sm),
-        Text('Mjesta:', style: AppTextStyles.bodySm),
+        Text('Mjesta:', style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
         const SizedBox(width: AppSpacing.xs),
         Text(
           '${seminar.currentAttendees}/${seminar.maxCapacity}',
@@ -109,14 +109,14 @@ class SeminarCard extends StatelessWidget {
   Widget _infoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.textMuted),
+        Icon(icon, size: 16, color: Colors.white),
         const SizedBox(width: AppSpacing.sm),
-        Text(label, style: AppTextStyles.bodySm),
+        Text(label, style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
         const SizedBox(width: AppSpacing.xs),
         Expanded(
           child: Text(
             value,
-            style: AppTextStyles.bodyMd,
+            style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
         ),

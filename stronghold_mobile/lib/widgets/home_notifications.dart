@@ -158,7 +158,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Obavijesti', style: AppTextStyles.headingSm),
+            Text('Obavijesti', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
             if (hasUnread)
               GestureDetector(
                 onTap: () =>
@@ -213,14 +213,15 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
             decoration: BoxDecoration(
               color: AppColors.primaryDim,
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.5), width: 0.5),
             ),
             child: const Icon(LucideIcons.bellOff,
-                size: 18, color: AppColors.textMuted),
+                size: 18, color: Colors.white),
           ),
           const SizedBox(width: AppSpacing.lg),
           Text(
             'Nemate novih obavijesti',
-            style: AppTextStyles.bodyMd.copyWith(color: AppColors.textMuted),
+            style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
           ),
         ],
       ),
@@ -245,10 +246,11 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.5), width: 0.5),
             ),
-            child: Icon(icon, size: 18, color: color),
+            child: Icon(icon, size: 18, color: Colors.white),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -261,8 +263,8 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
                       child: Text(
                         item.title,
                         style: item.isRead
-                            ? AppTextStyles.bodyMd
-                            : AppTextStyles.bodyBold,
+                            ? AppTextStyles.bodyMd.copyWith(color: Colors.white)
+                            : AppTextStyles.bodyBold.copyWith(color: Colors.white),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -280,7 +282,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
                 const SizedBox(height: 2),
                 Text(
                   item.message,
-                  style: AppTextStyles.bodySm,
+                  style: AppTextStyles.bodySm.copyWith(color: Colors.white),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -288,7 +290,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
                 Text(
                   timeLabel,
                   style: AppTextStyles.caption
-                      .copyWith(color: AppColors.textDark),
+                      .copyWith(color: Colors.white70),
                 ),
               ],
             ),

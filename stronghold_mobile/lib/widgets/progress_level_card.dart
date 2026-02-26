@@ -34,7 +34,7 @@ class ProgressLevelCard extends StatelessWidget {
               child: Center(
                 child: Text('LVL',
                     style: AppTextStyles.label
-                        .copyWith(color: AppColors.textPrimary)),
+                        .copyWith(color: Colors.white)),
               ),
             ),
             const SizedBox(width: AppSpacing.lg),
@@ -43,7 +43,7 @@ class ProgressLevelCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(progress.fullName,
-                      style: AppTextStyles.headingSm,
+                      style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: AppSpacing.xs),
                   Row(children: [
@@ -75,10 +75,10 @@ class ProgressLevelCard extends StatelessWidget {
 
   Widget _statItem(IconData icon, String value, String label) {
     return Column(children: [
-      Icon(icon, color: AppColors.primary, size: 22),
+      Icon(icon, color: AppColors.navyBlue, size: 22),
       const SizedBox(height: AppSpacing.sm),
-      Text(value, style: AppTextStyles.headingSm),
-      Text(label, style: AppTextStyles.caption),
+      Text(value, style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+      Text(label, style: AppTextStyles.caption.copyWith(color: Colors.white)),
     ]);
   }
 }

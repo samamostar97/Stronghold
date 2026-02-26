@@ -38,8 +38,9 @@ class AppointmentCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primaryDim,
                 borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
               ),
-              child: Icon(icon, color: AppColors.primary, size: 20),
+              child: Icon(icon, color: Colors.white, size: 20),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -48,12 +49,12 @@ class AppointmentCard extends StatelessWidget {
                 children: [
                   Text(
                     isTrainer ? 'Trener' : 'Nutricionist',
-                    style: AppTextStyles.caption,
+                    style: AppTextStyles.caption.copyWith(color: Colors.white),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     name ?? 'Nepoznato',
-                    style: AppTextStyles.headingSm,
+                    style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -63,19 +64,19 @@ class AppointmentCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           Row(children: [
             const Icon(LucideIcons.calendar,
-                color: AppColors.textMuted, size: 16),
+                color: Colors.white, size: 16),
             const SizedBox(width: AppSpacing.sm),
             Text(
               formatDateDDMMYYYY(appointment.appointmentDate),
-              style: AppTextStyles.bodyMd,
+              style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
             ),
             const SizedBox(width: AppSpacing.lg),
             const Icon(LucideIcons.clock,
-                color: AppColors.textMuted, size: 16),
+                color: Colors.white, size: 16),
             const SizedBox(width: AppSpacing.sm),
             Text(
               '${appointment.appointmentDate.hour.toString().padLeft(2, '0')}:00',
-              style: AppTextStyles.bodyMd,
+              style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
             ),
           ]),
           const SizedBox(height: AppSpacing.lg),
@@ -83,7 +84,7 @@ class AppointmentCard extends StatelessWidget {
             width: double.infinity,
             child: OutlineButton(
               label: 'Otkazi termin',
-              color: AppColors.error,
+              color: const Color(0xFFEF4444),
               isLoading: isCanceling,
               onPressed: isCanceling ? null : onCancel,
             ),

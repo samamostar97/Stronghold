@@ -25,7 +25,7 @@ class SupplementDetailScreen extends ConsumerWidget {
     final reviewsAsync = ref.watch(supplementReviewsProvider(supplement.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(

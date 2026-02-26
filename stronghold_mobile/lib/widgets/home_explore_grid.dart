@@ -14,7 +14,7 @@ class HomeExploreGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Istrazi', style: AppTextStyles.headingSm),
+        Text('Istrazi', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
         const SizedBox(height: AppSpacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -71,21 +71,22 @@ class _ExploreCard extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.45),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.5), width: 0.5),
             ),
-            child: Icon(icon, size: 18, color: color),
+            child: Icon(icon, size: 18, color: Colors.white),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
             title,
-            style: AppTextStyles.bodyBold,
+            style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
           Text(
             hint,
-            style: AppTextStyles.caption.copyWith(color: AppColors.textMuted),
+            style: AppTextStyles.caption.copyWith(color: Colors.white),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),

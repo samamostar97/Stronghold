@@ -65,7 +65,7 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
     final recsAsync = ref.watch(defaultRecommendationsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           _appBar(cartCount)
@@ -126,7 +126,7 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
       child: Row(children: [
         _iconBtn(LucideIcons.arrowLeft, () => context.go('/home')),
         const SizedBox(width: AppSpacing.lg),
-        Expanded(child: Text('Prodavnica', style: AppTextStyles.headingMd)),
+        Expanded(child: Text('Prodavnica', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
         GestureDetector(
           onTap: () => context.push('/cart'),
           child: Container(

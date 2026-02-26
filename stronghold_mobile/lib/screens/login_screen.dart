@@ -53,10 +53,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final errorMessage = authState.error;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: [
-          const Positioned.fill(child: ParticleBackground()),
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
@@ -92,7 +91,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     // Title
                     Text(
                       'STRONGHOLD',
-                      style: AppTextStyles.stat.copyWith(letterSpacing: 4),
+                      style: AppTextStyles.stat.copyWith(
+                        letterSpacing: 4,
+                        color: Colors.white,
+                      ),
                     )
                         .animate(delay: 150.ms)
                         .fadeIn(
@@ -101,7 +103,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       'Dobrodosli nazad',
                       style: AppTextStyles.bodyLg.copyWith(
-                        color: AppColors.textSecondary,
+                        color: Colors.white70,
                       ),
                     )
                         .animate(delay: 250.ms)
@@ -139,7 +141,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Text(
                           'Nemate racun? ',
                           style: AppTextStyles.bodyMd.copyWith(
-                            color: AppColors.textSecondary,
+                            color: Colors.white70,
                           ),
                         ),
                         GestureDetector(
@@ -147,7 +149,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           child: Text(
                             'Registrujte se',
                             style: AppTextStyles.bodyBold.copyWith(
-                              color: AppColors.primary,
+                              color: AppColors.cyan,
                             ),
                           ),
                         ),
@@ -264,7 +266,7 @@ class _LoginFormCard extends StatelessWidget {
                   child: Text(
                     'Zaboravili ste lozinku?',
                     style: AppTextStyles.bodySm.copyWith(
-                      color: AppColors.textSecondary,
+                      color: Colors.white,
                     ),
                   ),
                 ),

@@ -22,12 +22,13 @@ class CheckoutSummaryRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: isBold ? AppTextStyles.bodyBold : AppTextStyles.bodyMd,
+          style: (isBold ? AppTextStyles.bodyBold : AppTextStyles.bodyMd)
+              .copyWith(color: Colors.white),
         ),
         Text(
           value,
           style: (isBold ? AppTextStyles.bodyBold : AppTextStyles.bodyMd)
-              .copyWith(color: valueColor),
+              .copyWith(color: valueColor ?? Colors.white),
         ),
       ],
     );

@@ -106,7 +106,7 @@ class _StepCircle extends StatelessWidget {
           label,
           style: AppTextStyles.caption.copyWith(
             color: isActive || isCompleted
-                ? AppColors.textPrimary
+                ? Colors.white
                 : AppColors.textDark,
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
           ),

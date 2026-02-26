@@ -28,12 +28,12 @@ class XpProgressCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text('Napredak do Level $nextLevel',
-                    style: AppTextStyles.headingSm,
+                    style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                     overflow: TextOverflow.ellipsis),
               ),
               Text('${progress.progressPercentage.toStringAsFixed(1)}%',
                   style:
-                      AppTextStyles.bodyBold.copyWith(color: AppColors.primary)),
+                      AppTextStyles.bodyBold.copyWith(color: AppColors.navyBlue)),
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
@@ -75,9 +75,9 @@ class XpProgressCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('${progress.xpProgress} XP',
-                  style: AppTextStyles.bodySm),
+                  style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
               Text('${progress.xpForNextLevel} XP',
-                  style: AppTextStyles.bodySm),
+                  style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
             ],
           ),
         ],

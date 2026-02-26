@@ -57,25 +57,13 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
                   children: [
                     Text(
                       name,
-                      style: AppTextStyles.headingSm,
+                      style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                       overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: AppSpacing.xs),
                     _membershipStatus(membershipAsync),
                   ],
                 ),
-              ),
-              // Settings icon - switches to Profile tab
-              IconButton(
-                onPressed: () => ref.read(bottomNavIndexProvider.notifier).state = 2,
-                icon: const Icon(
-                  LucideIcons.settings,
-                  size: 20,
-                  color: AppColors.textSecondary,
-                ),
-                padding: EdgeInsets.zero,
-                constraints:
-                    const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
             ],
           ),
@@ -199,7 +187,7 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
               const SizedBox(width: AppSpacing.sm),
               Text('Neaktivna clanarina',
                   style: AppTextStyles.bodySm
-                      .copyWith(color: AppColors.textSecondary)),
+                      .copyWith(color: Colors.white)),
             ],
           );
         }
@@ -225,7 +213,7 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
               child: Text(
                 membership.packageName,
                 style: AppTextStyles.bodySm
-                    .copyWith(color: AppColors.textSecondary),
+                    .copyWith(color: Colors.white),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -259,12 +247,12 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
                 Text(
                   '$current / $needed XP',
                   style: AppTextStyles.bodySm
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: Colors.white),
                 ),
                 Text(
                   'do Level $nextLevel',
                   style: AppTextStyles.bodySm
-                      .copyWith(color: AppColors.primary),
+                      .copyWith(color: Colors.white),
                 ),
               ],
             ),

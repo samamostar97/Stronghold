@@ -98,7 +98,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSpacing.lg),
-                const SectionHeader(title: 'Adresa dostave'),
+                Text('Adresa dostave', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
                 const SizedBox(height: AppSpacing.md),
                 addressAsync.when(
                   loading: () => _loadingState(),
@@ -162,6 +162,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                 decoration: BoxDecoration(
                   color: AppColors.primaryDim,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
                 ),
                 child: const Icon(
                   LucideIcons.mapPin,
@@ -174,13 +175,13 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(address.street, style: AppTextStyles.bodyBold),
+                    Text(address.street, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       '${address.postalCode} ${address.city}',
-                      style: AppTextStyles.bodySm,
+                      style: AppTextStyles.bodySm.copyWith(color: Colors.white),
                     ),
-                    Text(address.country, style: AppTextStyles.bodySm),
+                    Text(address.country, style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
                   ],
                 ),
               ),
@@ -194,11 +195,12 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                   decoration: BoxDecoration(
                     color: AppColors.primaryDim,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
                   ),
                   child: const Icon(
                     LucideIcons.pencil,
                     size: 16,
-                    color: AppColors.primary,
+                    color: Colors.white,
                   ),
                 ),
               ),
@@ -384,9 +386,9 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
   Widget _bottomBar() {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      decoration: const BoxDecoration(
-        color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
       ),
       child: Row(
         children: [

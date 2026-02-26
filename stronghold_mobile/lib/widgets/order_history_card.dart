@@ -50,7 +50,7 @@ class OrderHistoryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Narudzba ${formatDateDDMMYYYY(order.purchaseDate)}',
-                      style: AppTextStyles.headingSm,
+                      style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -63,7 +63,7 @@ class OrderHistoryCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 Text('${order.totalAmount.toStringAsFixed(2)} KM',
                     style: AppTextStyles.bodyBold
-                        .copyWith(color: AppColors.primary)),
+                        .copyWith(color: AppColors.navyBlue)),
                 const SizedBox(height: AppSpacing.lg),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,22 +72,22 @@ class OrderHistoryCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Datum narudzbe',
-                            style: AppTextStyles.caption),
+                            style: AppTextStyles.caption.copyWith(color: Colors.white)),
                         const SizedBox(height: AppSpacing.xs),
                         Text(formatDateDDMMYYYY(order.purchaseDate),
-                            style: AppTextStyles.bodyMd),
+                            style: AppTextStyles.bodyMd.copyWith(color: Colors.white)),
                       ],
                     ),
                     Row(children: [
                       Text(
                           '$totalQty artikl${totalQty == 1 ? '' : 'a'}',
-                          style: AppTextStyles.bodySm),
+                          style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
                       const SizedBox(width: AppSpacing.sm),
                       Icon(
                         isExpanded
                             ? LucideIcons.chevronUp
                             : LucideIcons.chevronDown,
-                        color: AppColors.textMuted,
+                        color: Colors.white,
                         size: 18,
                       ),
                     ]),
@@ -126,17 +126,17 @@ class OrderHistoryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(item.supplementName,
-                  style: AppTextStyles.bodyBold,
+                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: AppSpacing.xs),
               Text(
                   '${item.quantity} x ${item.unitPrice.toStringAsFixed(2)} KM',
-                  style: AppTextStyles.bodySm),
+                  style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
             ],
           ),
         ),
         Text('${item.totalPrice.toStringAsFixed(2)} KM',
-            style: AppTextStyles.bodyBold),
+            style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
       ]),
     );
   }

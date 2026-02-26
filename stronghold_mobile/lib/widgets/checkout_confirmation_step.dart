@@ -39,11 +39,11 @@ class CheckoutConfirmationStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xxl),
-          Text('Narudzba uspjesna!', style: AppTextStyles.headingLg),
+          Text('Narudzba uspjesna!', style: AppTextStyles.headingLg.copyWith(color: Colors.white)),
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Vasa narudzba je uspjesno kreirana.',
-            style: AppTextStyles.bodyMd,
+            style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
             textAlign: TextAlign.center,
           ),
           // Delivery address
@@ -59,6 +59,7 @@ class CheckoutConfirmationStep extends StatelessWidget {
                       color: AppColors.primaryDim,
                       borderRadius:
                           BorderRadius.circular(AppSpacing.radiusSm),
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.6)),
                     ),
                     child: const Icon(LucideIcons.truck,
                         size: 18, color: AppColors.primary),
@@ -69,11 +70,11 @@ class CheckoutConfirmationStep extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Dostava na adresu',
-                            style: AppTextStyles.caption),
+                            style: AppTextStyles.caption.copyWith(color: Colors.white)),
                         const SizedBox(height: 2),
                         Text(
                           '${address!.street}, ${address!.postalCode} ${address!.city}',
-                          style: AppTextStyles.bodyBold,
+                          style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                         ),
                       ],
                     ),

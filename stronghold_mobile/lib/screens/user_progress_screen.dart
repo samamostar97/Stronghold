@@ -49,7 +49,7 @@ class _UserProgressScreenState extends ConsumerState<UserProgressScreen>
     final progressAsync = ref.watch(userProgressProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -73,7 +73,7 @@ class _UserProgressScreenState extends ConsumerState<UserProgressScreen>
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child: Text('Personalni napredak',
-                      style: AppTextStyles.headingMd)),
+                      style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(

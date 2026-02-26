@@ -55,7 +55,7 @@ class _OrderHistoryScreenState
     final state = ref.watch(orderListProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -86,7 +86,7 @@ class _OrderHistoryScreenState
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child: Text('Historija narudzbi',
-                      style: AppTextStyles.headingMd)),
+                      style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(child: _body(state))

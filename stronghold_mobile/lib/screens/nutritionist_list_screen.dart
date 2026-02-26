@@ -23,7 +23,7 @@ class NutritionistListScreen extends ConsumerWidget {
     final nutritionistsAsync = ref.watch(nutritionistsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(

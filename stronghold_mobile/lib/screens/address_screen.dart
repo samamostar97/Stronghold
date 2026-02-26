@@ -76,7 +76,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
     final addressAsync = ref.watch(addressProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,

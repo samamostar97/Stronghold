@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../constants/app_colors.dart';
 import '../widgets/app_bottom_nav.dart';
 
 /// Provider to allow child widgets to detect tab switches
@@ -30,7 +29,7 @@ class NavigationShellWrapper extends ConsumerWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         body: navigationShell,
         bottomNavigationBar: AppBottomNav(
           currentIndex: navigationShell.currentIndex,

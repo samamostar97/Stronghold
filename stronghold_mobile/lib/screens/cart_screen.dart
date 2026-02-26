@@ -22,7 +22,7 @@ class CartScreen extends ConsumerWidget {
     final items = cartState.items;
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -45,7 +45,7 @@ class CartScreen extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
-                  child: Text('Korpa', style: AppTextStyles.headingMd)),
+                  child: Text('Korpa', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
               if (items.isNotEmpty)
                 GestureDetector(
                   onTap: () => cartNotifier.clear(),

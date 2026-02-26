@@ -71,7 +71,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
     final state = ref.watch(myAppointmentsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -94,7 +94,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
-                  child: Text('Termini', style: AppTextStyles.headingMd)),
+                  child: Text('Termini', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(

@@ -41,14 +41,14 @@ class CheckoutItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.supplement.name,
-                  style: AppTextStyles.bodyBold,
+                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${item.supplement.price.toStringAsFixed(2)} KM x ${item.quantity}',
-                  style: AppTextStyles.bodySm,
+                  style: AppTextStyles.bodySm.copyWith(color: Colors.white),
                 ),
               ],
             ),
@@ -57,7 +57,7 @@ class CheckoutItemCard extends StatelessWidget {
           // Total
           Text(
             '${item.totalPrice.toStringAsFixed(2)} KM',
-            style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary),
+            style: AppTextStyles.bodyBold.copyWith(color: AppColors.navyBlue),
           ),
         ],
       ),

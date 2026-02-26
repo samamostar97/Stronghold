@@ -123,7 +123,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     final cartState = ref.watch(cartProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
@@ -191,7 +191,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           Expanded(
             child: Text(
               _stepTitles[_currentStep],
-              style: AppTextStyles.headingMd,
+              style: AppTextStyles.headingMd.copyWith(color: Colors.white),
             ),
           ),
         ],

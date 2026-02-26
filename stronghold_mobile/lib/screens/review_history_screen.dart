@@ -130,7 +130,7 @@ class _ReviewHistoryScreenState
     final state = ref.watch(myReviewsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _showCreateSheet,
         backgroundColor: AppColors.primary,
@@ -164,7 +164,7 @@ class _ReviewHistoryScreenState
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child: Text('Moje recenzije',
-                      style: AppTextStyles.headingMd)),
+                      style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(child: _body(state))

@@ -38,9 +38,9 @@ void main() async {
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.dark,
-      systemNavigationBarColor: AppColors.background,
-      systemNavigationBarIconBrightness: Brightness.dark,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: AppColors.deepBlue,
+      systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
 
@@ -58,6 +58,25 @@ class StrongholdApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme(),
       routerConfig: router,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: Container(
+                decoration: const BoxDecoration(gradient: AppColors.heroGradient),
+              ),
+            ),
+            const Positioned.fill(
+              child: ParticleBackground(
+                particleColor: Color(0xFF38BDF8),
+                particleCount: 40,
+                connectDistance: 100,
+              ),
+            ),
+            if (child != null) child,
+          ],
+        );
+      },
     );
   }
 }

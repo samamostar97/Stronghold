@@ -73,7 +73,7 @@ class _SeminarScreenState extends ConsumerState<SeminarScreen> {
     final state = ref.watch(seminarsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -97,7 +97,7 @@ class _SeminarScreenState extends ConsumerState<SeminarScreen> {
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child:
-                      Text('Seminari', style: AppTextStyles.headingMd)),
+                      Text('Seminari', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(child: _body(state))

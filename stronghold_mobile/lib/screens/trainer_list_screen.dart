@@ -23,7 +23,7 @@ class TrainerListScreen extends ConsumerWidget {
     final trainersAsync = ref.watch(trainersProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -46,7 +46,7 @@ class TrainerListScreen extends ConsumerWidget {
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
-                  child: Text('Treneri', style: AppTextStyles.headingMd)),
+                  child: Text('Treneri', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(

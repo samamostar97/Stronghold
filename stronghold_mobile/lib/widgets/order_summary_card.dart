@@ -19,9 +19,9 @@ class OrderSummaryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceLight,
-        border: Border(top: BorderSide(color: AppColors.border)),
+      decoration: BoxDecoration(
+        color: Colors.transparent,
+        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -29,11 +29,11 @@ class OrderSummaryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Ukupno:', style: AppTextStyles.bodyLg),
+              Text('Ukupno:', style: AppTextStyles.bodyLg.copyWith(color: Colors.white)),
               Text(
                 '${totalAmount.toStringAsFixed(2)} KM',
                 style: AppTextStyles.headingMd
-                    .copyWith(color: AppColors.primary),
+                    .copyWith(color: Colors.white),
               ),
             ],
           ),

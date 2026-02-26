@@ -140,7 +140,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
@@ -155,13 +155,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     onPressed: () => context.pop(),
                     icon: const Icon(
                       LucideIcons.arrowLeft,
-                      color: AppColors.textPrimary,
+                      color: Colors.white,
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Zaboravljena lozinka',
-                      style: AppTextStyles.headingMd,
+                      style: AppTextStyles.headingMd.copyWith(color: Colors.white),
                       textAlign: TextAlign.center,
                     ),
                   ),

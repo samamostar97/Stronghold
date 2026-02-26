@@ -49,7 +49,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
     final leaderboardAsync = ref.watch(leaderboardProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(children: [
           Padding(
@@ -72,11 +72,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
               ),
               const SizedBox(width: AppSpacing.lg),
               const Icon(LucideIcons.trophy,
-                  color: AppColors.warning, size: 24),
+                  color: Colors.white, size: 24),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                   child: Text(
-                      'Hall of Fame', style: AppTextStyles.headingMd)),
+                      'Hall of Fame', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
             ]),
           ),
           Expanded(
