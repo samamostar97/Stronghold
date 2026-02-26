@@ -25,16 +25,16 @@ class StatusPill extends StatelessWidget {
       const StatusPill(label: 'Istekao', color: Color(0xFFFB7185));
 
   factory StatusPill.pending() =>
-      const StatusPill(label: 'Na cekanju', color: Color(0xFFFBBF24));
+      const StatusPill(label: 'Na cekanju', color: Color(0xFFB45309));
 
   factory StatusPill.paid() =>
       const StatusPill(label: 'Placeno', color: Color(0xFF22D3A7), glowing: true);
 
   factory StatusPill.delivered() =>
-      const StatusPill(label: 'Dostavljeno', color: Color(0xFF4F8EF7));
+      const StatusPill(label: 'Dostavljeno', color: Color(0xFF1D4ED8));
 
   factory StatusPill.cancelled() =>
-      const StatusPill(label: 'Otkazano', color: Color(0xFFFB7185));
+      const StatusPill(label: 'Otkazano', color: Color(0xFFDC2626));
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +50,7 @@ class StatusPill extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: FittedBox(
         fit: BoxFit.scaleDown,

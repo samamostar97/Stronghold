@@ -51,8 +51,8 @@ class TrainersTable extends StatelessWidget {
                   style: AppTextStyles.bodyBold,
                   overflow: TextOverflow.ellipsis),
             ),
-            TableDataCell(text: t.email, flex: 3, muted: true),
-            TableDataCell(text: t.phoneNumber, flex: 2, muted: true),
+            TableDataCell(text: t.email, flex: 3),
+            TableDataCell(text: t.phoneNumber, flex: 2),
             TableActionCell(flex: 2, children: [
               SmallButton(
                   text: 'Izmijeni', color: AppColors.secondary, onTap: () => onEdit(t)),

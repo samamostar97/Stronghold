@@ -105,7 +105,7 @@ class _ErrorToastState extends State<_ErrorToast>
                       constraints: const BoxConstraints(maxWidth: 400),
                       padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
                       decoration: BoxDecoration(
-                        color: AppColors.card,
+                        color: AppColors.deepBlue,
                         borderRadius: BorderRadius.circular(AppRadius.medium),
                         border: Border.all(
                           color: AppColors.accent.withValues(alpha: 0.4),

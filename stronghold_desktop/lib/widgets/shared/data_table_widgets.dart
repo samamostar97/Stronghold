@@ -24,7 +24,7 @@ class TableHeaderCell extends StatelessWidget {
       child: Text(
         text.toUpperCase(),
         textAlign: alignRight ? TextAlign.right : TextAlign.left,
-        style: AppTextStyles.label,
+        style: AppTextStyles.label.copyWith(color: AppColors.deepBlue),
       ),
     );
   }
@@ -81,7 +81,7 @@ class DataTableContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
       ),
       child: ClipRRect(

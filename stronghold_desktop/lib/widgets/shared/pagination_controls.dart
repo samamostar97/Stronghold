@@ -23,7 +23,7 @@ class PaginationControls extends StatelessWidget {
       children: [
         Text(
           'Ukupno: $totalCount | Stranica $currentPage od $totalPages',
-          style: AppTextStyles.bodySm,
+          style: AppTextStyles.bodySm.copyWith(color: AppColors.deepBlue),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: AppSpacing.md),

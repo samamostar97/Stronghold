@@ -107,7 +107,7 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
           child: Container(
             padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
             decoration: BoxDecoration(
-              color: AppColors.surfaceSolid,
+              color: AppColors.surfaceSolid.withValues(alpha: 0.55),
               borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
               border: Border.all(color: AppColors.border),
               boxShadow: AppColors.cardShadow,

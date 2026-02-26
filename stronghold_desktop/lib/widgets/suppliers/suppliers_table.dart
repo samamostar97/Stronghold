@@ -35,7 +35,7 @@ class SuppliersTable extends StatelessWidget {
           isLast: i == suppliers.length - 1,
           child: Row(children: [
             TableDataCell(text: s.name, flex: 3, bold: true),
-            TableDataCell(text: s.website ?? '-', flex: 3, muted: true),
+            TableDataCell(text: s.website ?? '-', flex: 3),
             TableActionCell(flex: 2, children: [
               SmallButton(
                   text: 'Izmijeni', color: AppColors.secondary, onTap: () => onEdit(s)),

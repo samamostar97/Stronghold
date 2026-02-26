@@ -49,7 +49,7 @@ class FaqTable extends StatelessWidget {
               child: Tooltip(
                 message: f.answer,
                 child: Text(f.answer,
-                    style: AppTextStyles.bodyMd,
+                    style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
                     overflow: TextOverflow.ellipsis, maxLines: 2),
               ),
             ),

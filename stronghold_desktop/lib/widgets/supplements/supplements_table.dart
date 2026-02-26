@@ -50,10 +50,9 @@ class SupplementsTable extends StatelessWidget {
                 text: '${s.price.toStringAsFixed(2)} KM', flex: 1),
             TableDataCell(
                 text: s.supplementCategoryName ?? '-',
-                flex: 2,
-                muted: true),
+                flex: 2),
             TableDataCell(
-                text: s.supplierName ?? '-', flex: 2, muted: true),
+                text: s.supplierName ?? '-', flex: 2),
             TableActionCell(flex: 2, children: [
               SmallButton(
                   text: 'Izmijeni',

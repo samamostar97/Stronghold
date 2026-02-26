@@ -29,9 +29,9 @@ abstract final class AppColors {
   static const borderLight = Color(0x0F4F8EF7);
 
   // Semantic
-  static const success = Color(0xFF22D3A7);
-  static const warning = Color(0xFFFBBF24);
-  static const danger = Color(0xFFFB7185);
+  static const success = Color(0xFF0F9B7A);
+  static const warning = Color(0xFFB45309);
+  static const danger = Color(0xFFDC2626);
   static const purple = Color(0xFF8B5CF6);
   static const orange = Color(0xFFF97316);
 

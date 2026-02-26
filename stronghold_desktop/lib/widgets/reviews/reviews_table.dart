@@ -48,7 +48,7 @@ class ReviewsTable extends StatelessWidget {
                 child: Text(
                   r.comment ?? '-',
                   style: AppTextStyles.bodySm
-                      .copyWith(color: AppColors.textSecondary),
+                      .copyWith(color: AppColors.textPrimary),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                 ),

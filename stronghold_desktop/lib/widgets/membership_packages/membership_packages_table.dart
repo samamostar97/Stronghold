@@ -41,7 +41,7 @@ class MembershipPackagesTable extends StatelessWidget {
                 text: '${p.packagePrice.toStringAsFixed(2)} KM', flex: 2),
             TableDataCell(
                 text: (p.description?.isEmpty ?? true) ? '-' : p.description!,
-                flex: 4, muted: true),
+                flex: 4),
             TableActionCell(flex: 2, children: [
               SmallButton(
                   text: 'Izmijeni', color: AppColors.secondary, onTap: () => onEdit(p)),

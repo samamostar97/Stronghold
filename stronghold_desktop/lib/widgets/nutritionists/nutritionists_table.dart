@@ -51,8 +51,8 @@ class NutritionistsTable extends StatelessWidget {
                   style: AppTextStyles.bodyBold,
                   overflow: TextOverflow.ellipsis),
             ),
-            TableDataCell(text: n.email, flex: 3, muted: true),
-            TableDataCell(text: n.phoneNumber, flex: 2, muted: true),
+            TableDataCell(text: n.email, flex: 3),
+            TableDataCell(text: n.phoneNumber, flex: 2),
             TableActionCell(flex: 2, children: [
               SmallButton(
                   text: 'Izmijeni', color: AppColors.secondary, onTap: () => onEdit(n)),

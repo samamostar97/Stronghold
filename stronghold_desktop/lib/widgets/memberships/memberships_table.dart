@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
@@ -47,7 +48,7 @@ class MembershipsTable extends StatelessWidget {
   }
 }
 
-class _MembershipRow extends ConsumerWidget {
+class _MembershipRow extends ConsumerStatefulWidget {
   const _MembershipRow({
     required this.user,
     required this.index,
@@ -65,64 +66,166 @@ class _MembershipRow extends ConsumerWidget {
   final VoidCallback onRevokeMembership;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_MembershipRow> createState() => _MembershipRowState();
+}
+
+class _MembershipRowState extends ConsumerState<_MembershipRow> {
+  bool _hovered = false;
+
+  @override
+  Widget build(BuildContext context) {
     final membershipAsync =
-        ref.watch(userHasActiveMembershipProvider(user.id));
+        ref.watch(userHasActiveMembershipProvider(widget.user.id));
     final isActive = !membershipAsync.isLoading &&
         (membershipAsync.valueOrNull == true);
 
-    return HoverableTableRow(
-      index: index,
-      isLast: isLast,
-      activeAccentColor: isActive ? AppColors.success : null,
-      child: Row(children: [
-        TableDataCell(text: user.username, flex: 2),
-        Expanded(
-          flex: 2,
-          child: Row(children: [
-            if (isActive)
-              Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.only(right: AppSpacing.sm),
-                decoration: const BoxDecoration(
-                    color: AppColors.success, shape: BoxShape.circle),
-              )
-            else if (membershipAsync.isLoading)
-              Container(
-                width: 8,
-                height: 8,
-                margin: const EdgeInsets.only(right: AppSpacing.sm),
-                child: const CircularProgressIndicator(
-                    strokeWidth: 1.5, color: AppColors.textMuted),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit: (_) => setState(() => _hovered = false),
+      child: HoverableTableRow(
+        index: widget.index,
+        isLast: widget.isLast,
+        activeAccentColor: isActive ? AppColors.success : null,
+        child: Row(children: [
+          TableDataCell(text: widget.user.username, flex: 2),
+          Expanded(
+            flex: 2,
+            child: Row(children: [
+              if (isActive)
+                Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.only(right: AppSpacing.sm),
+                  decoration: const BoxDecoration(
+                      color: AppColors.success, shape: BoxShape.circle),
+                )
+              else if (membershipAsync.isLoading)
+                Container(
+                  width: 8,
+                  height: 8,
+                  margin: const EdgeInsets.only(right: AppSpacing.sm),
+                  child: const CircularProgressIndicator(
+                      strokeWidth: 1.5, color: AppColors.textMuted),
+                ),
+              Flexible(
+                child: Text(widget.user.firstName,
+                    style: AppTextStyles.bodyBold,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1),
               ),
-            Flexible(
-              child: Text(user.firstName,
-                  style: AppTextStyles.bodyBold,
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1),
+            ]),
+          ),
+          TableDataCell(text: widget.user.lastName, flex: 2),
+          TableDataCell(text: widget.user.email, flex: 3),
+          Expanded(
+            flex: 4,
+            child: AnimatedCrossFade(
+              duration: const Duration(milliseconds: 200),
+              crossFadeState: _hovered
+                  ? CrossFadeState.showSecond
+                  : CrossFadeState.showFirst,
+              alignment: Alignment.centerRight,
+              firstChild: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  _ActionCircle(
+                    icon: LucideIcons.eye,
+                    color: AppColors.secondary,
+                    tooltip: 'Pregled uplata',
+                    onTap: widget.onViewPayments,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _ActionCircle(
+                    icon: LucideIcons.plus,
+                    color: AppColors.primary,
+                    tooltip: 'Dodaj uplatu',
+                    onTap: widget.onAddPayment,
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  _ActionCircle(
+                    icon: LucideIcons.ban,
+                    color: AppColors.error,
+                    tooltip: 'Ukini clanarinu',
+                    onTap: widget.onRevokeMembership,
+                  ),
+                ],
+              ),
+              secondChild: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SmallButton(
+                        text: 'Pregled uplata',
+                        color: AppColors.secondary,
+                        onTap: widget.onViewPayments),
+                    const SizedBox(width: AppSpacing.sm),
+                    SmallButton(
+                        text: 'Dodaj uplatu',
+                        color: AppColors.primary,
+                        onTap: widget.onAddPayment),
+                    const SizedBox(width: AppSpacing.sm),
+                    SmallButton(
+                        text: 'Ukini clanarinu',
+                        color: AppColors.error,
+                        onTap: widget.onRevokeMembership),
+                  ],
+                ),
+              ),
             ),
-          ]),
-        ),
-        TableDataCell(text: user.lastName, flex: 2),
-        TableDataCell(text: user.email, flex: 3, muted: true),
-        TableActionCell(flex: 4, children: [
-          SmallButton(
-              text: 'Pregled uplata',
-              color: AppColors.secondary,
-              onTap: onViewPayments),
-          const SizedBox(width: AppSpacing.sm),
-          SmallButton(
-              text: 'Dodaj uplatu',
-              color: AppColors.primary,
-              onTap: onAddPayment),
-          const SizedBox(width: AppSpacing.sm),
-          SmallButton(
-              text: 'Ukini clanarinu',
-              color: AppColors.error,
-              onTap: onRevokeMembership),
+          ),
         ]),
-      ]),
+      ),
+    );
+  }
+}
+
+class _ActionCircle extends StatefulWidget {
+  const _ActionCircle({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+
+  @override
+  State<_ActionCircle> createState() => _ActionCircleState();
+}
+
+class _ActionCircleState extends State<_ActionCircle> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: widget.tooltip,
+      child: MouseRegion(
+        cursor: SystemMouseCursors.click,
+        onEnter: (_) => setState(() => _hover = true),
+        onExit: (_) => setState(() => _hover = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 150),
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: widget.color.withValues(alpha: _hover ? 0.2 : 0.1),
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: widget.color.withValues(alpha: _hover ? 0.5 : 0.25),
+              ),
+            ),
+            child: Icon(widget.icon, size: 14, color: widget.color),
+          ),
+        ),
+      ),
     );
   }
 }

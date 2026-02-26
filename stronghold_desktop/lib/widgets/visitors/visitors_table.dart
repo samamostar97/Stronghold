@@ -36,7 +36,28 @@ class VisitorsTable extends StatelessWidget {
             TableDataCell(text: v.username, flex: 2),
             TableDataCell(text: v.fullName, flex: 3, bold: true),
             TableDataCell(text: v.checkInTimeFormatted, flex: 2),
-            TableDataCell(text: v.durationFormatted, flex: 2),
+            Expanded(
+              flex: 2,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF065F46).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF065F46).withValues(alpha: 0.35)),
+                  ),
+                  child: Text(
+                    v.durationFormatted,
+                    style: const TextStyle(
+                      color: Color(0xFF065F46),
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             TableActionCell(flex: 2, children: [
               SmallButton(
                 text: 'Check-out',

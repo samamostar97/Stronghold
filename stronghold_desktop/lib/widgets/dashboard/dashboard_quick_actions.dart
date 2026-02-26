@@ -5,6 +5,9 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../constants/motion.dart';
+import '../shared/success_animation.dart';
+import '../shared/error_animation.dart';
+import '../visitors/checkin_dialog.dart';
 
 /// Inline quick-action chips for the dashboard header area.
 class DashboardQuickActions extends StatelessWidget {
@@ -13,10 +16,10 @@ class DashboardQuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final actions = [
-      _Action(LucideIcons.logIn, 'Check-in', AppColors.electric, '/visitors'),
-      _Action(LucideIcons.userPlus, 'Novi korisnik', AppColors.purple, '/users'),
-      _Action(LucideIcons.shoppingCart, 'Kupovine', AppColors.success, '/orders'),
-      _Action(LucideIcons.barChart3, 'Izvjestaji', AppColors.warning, '/reports'),
+      _Action(LucideIcons.logIn, 'Check-in', AppColors.electric, onTap: (ctx) => _openCheckIn(ctx)),
+      _Action(LucideIcons.userPlus, 'Novi korisnik', AppColors.purple, route: '/users'),
+      _Action(LucideIcons.shoppingCart, 'Kupovine', AppColors.success, route: '/orders'),
+      _Action(LucideIcons.barChart3, 'Izvjestaji', AppColors.warning, route: '/reports'),
     ];
 
     return Row(
@@ -28,14 +31,29 @@ class DashboardQuickActions extends StatelessWidget {
       ],
     );
   }
+
+  static Future<void> _openCheckIn(BuildContext context) async {
+    final result = await showDialog<Object?>(
+      context: context,
+      builder: (_) => const CheckinDialog(),
+    );
+
+    if (!context.mounted) return;
+    if (result == true) {
+      showSuccessAnimation(context);
+    } else if (result is String) {
+      showErrorAnimation(context, message: result);
+    }
+  }
 }
 
 class _Action {
   final IconData icon;
   final String label;
   final Color color;
-  final String route;
-  const _Action(this.icon, this.label, this.color, this.route);
+  final String? route;
+  final void Function(BuildContext)? onTap;
+  const _Action(this.icon, this.label, this.color, {this.route, this.onTap});
 }
 
 class _QuickActionChip extends StatefulWidget {
@@ -57,7 +75,13 @@ class _QuickActionChipState extends State<_QuickActionChip> {
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
-        onTap: () => context.go(a.route),
+        onTap: () {
+          if (a.onTap != null) {
+            a.onTap!(context);
+          } else if (a.route != null) {
+            context.go(a.route!);
+          }
+        },
         child: AnimatedContainer(
           duration: Motion.fast,
           curve: Curves.easeOut,

@@ -113,8 +113,8 @@ class _UserRow extends StatelessWidget {
             ),
           ),
           TableDataCell(text: user.username, flex: 2),
-          TableDataCell(text: user.email, flex: 3, muted: true),
-          TableDataCell(text: user.phoneNumber, flex: 2, muted: true),
+          TableDataCell(text: user.email, flex: 3),
+          TableDataCell(text: user.phoneNumber, flex: 2),
           TableActionCell(
             flex: 3,
             children: [

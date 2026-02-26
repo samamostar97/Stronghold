@@ -46,15 +46,14 @@ class OrdersTable extends StatelessWidget {
                       style: AppTextStyles.bodyBold,
                       overflow: TextOverflow.ellipsis),
                   Text(o.userEmail,
-                      style: AppTextStyles.bodySm,
+                      style: AppTextStyles.bodySm.copyWith(color: AppColors.textPrimary),
                       overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
             TableDataCell(
                 text: '${o.totalAmount.toStringAsFixed(2)} KM',
-                flex: 2,
-                muted: true),
+                flex: 2),
             TableDataCell(
                 text: DateFormat('dd.MM.yyyy HH:mm').format(o.purchaseDate),
                 flex: 2),

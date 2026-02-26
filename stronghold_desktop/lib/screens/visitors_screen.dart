@@ -127,7 +127,7 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
                 child: Container(
                   padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
                   decoration: BoxDecoration(
-                    color: AppColors.surface,
+                    color: AppColors.surface.withValues(alpha: 0.55),
                     borderRadius: AppSpacing.cardRadius,
                     border: Border.all(color: AppColors.border),
                   ),
@@ -165,14 +165,14 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
           vertical: AppSpacing.sm,
         ),
         decoration: BoxDecoration(
-          color: AppColors.primaryDim,
+          color: AppColors.navyBlue.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
-          border: Border.all(color: AppColors.primaryBorder),
+          border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.3)),
         ),
         child: Text(
           '${state.totalCount} korisnika',
           style:
-              AppTextStyles.bodyMedium.copyWith(color: AppColors.primary),
+              AppTextStyles.bodyMedium.copyWith(color: AppColors.navyBlue),
         ),
       );
 

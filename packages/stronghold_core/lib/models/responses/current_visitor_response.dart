@@ -55,9 +55,9 @@ class CurrentVisitorResponse {
     final minutes = difference.inMinutes.remainder(60);
 
     if (hours > 0) {
-      return '${hours}h ${minutes}m';
+      return '$hours sat${hours == 1 ? '' : 'a'} $minutes min';
     } else {
-      return '${minutes}m';
+      return '$minutes min';
     }
   }
 }
