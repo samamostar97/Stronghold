@@ -86,6 +86,22 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               ),
               const SizedBox(height: AppSpacing.sm),
               _navOption(
+                icon: LucideIcons.package,
+                color: AppColors.primary,
+                title: 'Moje narudzbe',
+                subtitle: 'Historija narudzbi',
+                onTap: () => context.push('/orders'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _navOption(
+                icon: LucideIcons.helpCircle,
+                color: AppColors.textMuted,
+                title: 'FAQ',
+                subtitle: 'Cesta pitanja i odgovori',
+                onTap: () => context.push('/faq'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _navOption(
                 icon: LucideIcons.lock,
                 color: AppColors.accent,
                 title: 'Promijeni lozinku',

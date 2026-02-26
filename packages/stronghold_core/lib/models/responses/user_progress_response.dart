@@ -39,6 +39,10 @@ class UserProgressResponse {
   final double progressPercentage;
   final int totalGymMinutesThisWeek;
   final List<WeeklyVisitResponse> weeklyVisits;
+  final int currentStreakDays;
+  final int longestStreakDays;
+  final int leaderboardRank;
+  final int totalMembers;
 
   const UserProgressResponse({
     required this.userId,
@@ -50,6 +54,10 @@ class UserProgressResponse {
     required this.progressPercentage,
     required this.totalGymMinutesThisWeek,
     required this.weeklyVisits,
+    required this.currentStreakDays,
+    required this.longestStreakDays,
+    required this.leaderboardRank,
+    required this.totalMembers,
   });
 
   factory UserProgressResponse.fromJson(Map<String, dynamic> json) {
@@ -65,6 +73,10 @@ class UserProgressResponse {
       weeklyVisits: (json['weeklyVisits'] as List<dynamic>)
           .map((v) => WeeklyVisitResponse.fromJson(v as Map<String, dynamic>))
           .toList(),
+      currentStreakDays: json['currentStreakDays'] as int? ?? 0,
+      longestStreakDays: json['longestStreakDays'] as int? ?? 0,
+      leaderboardRank: json['leaderboardRank'] as int? ?? 0,
+      totalMembers: json['totalMembers'] as int? ?? 0,
     );
   }
 

@@ -22,6 +22,7 @@ import '../screens/nutritionist_list_screen.dart';
 import '../screens/seminar_screen.dart';
 import '../screens/faq_screen.dart';
 import '../screens/review_history_screen.dart';
+import '../screens/notification_screen.dart';
 import '../screens/leaderboard_screen.dart';
 import '../screens/user_progress_screen.dart';
 
@@ -47,11 +48,17 @@ final routerProvider = Provider<GoRouter>((ref) {
         branches: [
           StatefulShellBranch(routes: [
             GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
-          ]),
-          StatefulShellBranch(routes: [
             GoRoute(
                 path: '/shop',
                 builder: (_, __) => const SupplementShopScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
+          ]),
+          StatefulShellBranch(routes: [
+            GoRoute(
+                path: '/reviews',
+                builder: (_, __) => const ReviewHistoryScreen()),
           ]),
           StatefulShellBranch(routes: [
             GoRoute(
@@ -68,7 +75,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           supplement: state.extra as SupplementResponse,
         ),
       ),
-      GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
       GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
       GoRoute(path: '/orders', builder: (_, __) => const OrderHistoryScreen()),
       GoRoute(path: '/address', builder: (_, __) => const AddressScreen()),
@@ -95,9 +101,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           path: '/nutritionists',
           builder: (_, __) => const NutritionistListScreen()),
       GoRoute(path: '/seminars', builder: (_, __) => const SeminarScreen()),
-      GoRoute(path: '/faq', builder: (_, __) => const FaqScreen()),
       GoRoute(
-          path: '/reviews', builder: (_, __) => const ReviewHistoryScreen()),
+          path: '/notifications',
+          builder: (_, __) => const NotificationScreen()),
+      GoRoute(path: '/faq', builder: (_, __) => const FaqScreen()),
       GoRoute(
           path: '/leaderboard',
           builder: (_, __) => const LeaderboardScreen()),

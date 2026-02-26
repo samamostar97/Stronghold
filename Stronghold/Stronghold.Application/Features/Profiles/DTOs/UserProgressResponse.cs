@@ -17,6 +17,14 @@ public double ProgressPercentage { get; set; }
 public int TotalGymMinutesThisWeek { get; set; }
 
 public List<WeeklyVisitResponse> WeeklyVisits { get; set; } = new();
+
+        // Streak
+        public int CurrentStreakDays { get; set; }
+        public int LongestStreakDays { get; set; }
+
+        // Leaderboard rank
+        public int LeaderboardRank { get; set; }
+        public int TotalMembers { get; set; }
     }
 
 public class WeeklyVisitResponse

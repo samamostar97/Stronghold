@@ -155,6 +155,18 @@ final supplementCategoriesProvider =
   return result.items;
 });
 
+/// Supplements by category (first 6 per category for shop sections)
+final supplementsByCategoryProvider =
+    FutureProvider.family<List<SupplementResponse>, int>((ref, categoryId) async {
+  final client = ref.watch(apiClientProvider);
+  final filter = SupplementQueryFilter()
+    ..supplementCategoryId = categoryId
+    ..pageSize = 6
+    ..pageNumber = 1;
+  final result = await SupplementService(client).getAll(filter);
+  return result.items;
+});
+
 /// Supplement reviews provider
 final supplementReviewsProvider =
     FutureProvider.family<List<SupplementReviewResponse>, int>((ref, supplementId) async {

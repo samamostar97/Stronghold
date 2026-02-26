@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../providers/cart_provider.dart';
 
-class AppBottomNav extends StatelessWidget {
+class AppBottomNav extends ConsumerWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
@@ -16,12 +18,15 @@ class AppBottomNav extends StatelessWidget {
 
   static const _items = [
     _NavItem(icon: LucideIcons.home, label: 'Pocetna'),
-    _NavItem(icon: LucideIcons.shoppingBag, label: 'Prodavnica'),
+    _NavItem(icon: LucideIcons.shoppingCart, label: 'Korpa', hasBadge: true),
+    _NavItem(icon: LucideIcons.star, label: 'Recenzije'),
     _NavItem(icon: LucideIcons.user, label: 'Profil'),
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cartCount = ref.watch(cartProvider).itemCount;
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.deepBlue.withValues(alpha: 0.4),
@@ -42,6 +47,7 @@ class AppBottomNav extends StatelessWidget {
             children: List.generate(_items.length, (i) {
               final item = _items[i];
               final active = i == currentIndex;
+              final badgeCount = item.hasBadge ? cartCount : 0;
               return Expanded(
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
@@ -62,12 +68,49 @@ class AppBottomNav extends StatelessWidget {
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
-                      Icon(
-                        item.icon,
-                        size: 22,
-                        color: active
-                            ? AppColors.cyan
-                            : Colors.white54,
+                      // Icon with optional badge
+                      SizedBox(
+                        width: 30,
+                        height: 22,
+                        child: Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            Center(
+                              child: Icon(
+                                item.icon,
+                                size: 22,
+                                color: active
+                                    ? AppColors.cyan
+                                    : Colors.white54,
+                              ),
+                            ),
+                            if (badgeCount > 0)
+                              Positioned(
+                                right: -6,
+                                top: -6,
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.danger,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  child: Text(
+                                    badgeCount > 9 ? '9+' : '$badgeCount',
+                                    style: AppTextStyles.caption.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 9,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
@@ -93,5 +136,6 @@ class AppBottomNav extends StatelessWidget {
 class _NavItem {
   final IconData icon;
   final String label;
-  const _NavItem({required this.icon, required this.label});
+  final bool hasBadge;
+  const _NavItem({required this.icon, required this.label, this.hasBadge = false});
 }

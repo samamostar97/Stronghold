@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 
-/// Unified notification item for display
 class _NotifItem {
   final String type;
   final String title;
@@ -29,20 +31,15 @@ class _NotifItem {
   });
 }
 
-class HomeNotifications extends ConsumerStatefulWidget {
-  const HomeNotifications({super.key});
+class NotificationScreen extends ConsumerStatefulWidget {
+  const NotificationScreen({super.key});
 
   @override
-  ConsumerState<HomeNotifications> createState() => _HomeNotificationsState();
+  ConsumerState<NotificationScreen> createState() => _NotificationScreenState();
 }
 
-class _HomeNotificationsState extends ConsumerState<HomeNotifications>
+class _NotificationScreenState extends ConsumerState<NotificationScreen>
     with WidgetsBindingObserver {
-  bool _expanded = false;
-
-  /// How many notifications to show when collapsed.
-  static const _collapsedCount = 3;
-
   @override
   void initState() {
     super.initState();
@@ -71,17 +68,16 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
     final now = DateTime.now();
     final sevenDaysFromNow = now.add(const Duration(days: 7));
 
-    // Backend notifications (only unread)
+    // Backend notifications
     final backendState = ref.watch(userNotificationProvider);
     for (final n in backendState.items) {
-      if (n.isRead) continue;
       items.add(_NotifItem(
         type: n.type,
         title: n.title,
         message: n.message,
         date: n.createdAt,
         backendId: n.id,
-        isRead: false,
+        isRead: n.isRead,
       ));
     }
 
@@ -140,10 +136,10 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
       }
     });
 
-    // Sort: unread first, then by date
+    // Sort: unread first, then by date descending
     items.sort((a, b) {
       if (a.isRead != b.isRead) return a.isRead ? 1 : -1;
-      return a.date.compareTo(b.date);
+      return b.date.compareTo(a.date);
     });
 
     return items;
@@ -154,115 +150,117 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
     final backendState = ref.watch(userNotificationProvider);
     final items = _buildNotificationList();
     final hasUnread = items.any((n) => !n.isRead && n.backendId != null);
-    final showToggle = items.length > _collapsedCount;
-    final visibleItems =
-        _expanded ? items : items.take(_collapsedCount).toList();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: SafeArea(
+        child: Column(
           children: [
-            Text('Obavijesti',
-                style:
-                    AppTextStyles.headingSm.copyWith(color: Colors.white)),
-            if (hasUnread)
-              GestureDetector(
-                onTap: () =>
-                    ref.read(userNotificationProvider.notifier).markAllAsRead(),
-                child: Text(
-                  'Oznaci sve',
-                  style:
-                      AppTextStyles.bodySm.copyWith(color: AppColors.primary),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        if (backendState.isLoading && items.isEmpty)
-          _loadingState()
-        else if (items.isEmpty)
-          _emptyState()
-        else ...[
-          ...visibleItems.map((n) => Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: _notificationCard(n),
-              )),
-          if (showToggle)
-            GestureDetector(
-              onTap: () => setState(() => _expanded = !_expanded),
-              child: Padding(
-                padding: const EdgeInsets.only(top: AppSpacing.xs),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      _expanded
-                          ? LucideIcons.chevronUp
-                          : LucideIcons.chevronDown,
-                      color: Colors.white.withValues(alpha: 0.5),
-                      size: 18,
+            // App bar
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.screenPadding),
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: () => context.pop(),
+                    child: Container(
+                      width: AppSpacing.touchTarget,
+                      height: AppSpacing.touchTarget,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.08),
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusMd),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(LucideIcons.arrowLeft,
+                          color: Colors.white, size: 20),
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(
-                      _expanded
-                          ? 'Sakrij'
-                          : 'Pogledaj sve (${items.length})',
-                      style: AppTextStyles.bodySm.copyWith(
-                        color: Colors.white.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Text(
+                      'Obavijesti',
+                      style: AppTextStyles.headingMd
+                          .copyWith(color: Colors.white),
+                    ),
+                  ),
+                  if (hasUnread)
+                    GestureDetector(
+                      onTap: () => ref
+                          .read(userNotificationProvider.notifier)
+                          .markAllAsRead(),
+                      child: Text(
+                        'Oznaci sve',
+                        style: AppTextStyles.bodySm
+                            .copyWith(color: AppColors.primary),
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
             ),
-        ],
-      ],
-    );
-  }
-
-  Widget _loadingState() {
-    return const GlassCard(
-      backgroundColor: Color(0x33FFFFFF),
-      child: SizedBox(
-        height: 48,
-        child: Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: AppColors.primary,
+            // Content
+            Expanded(
+              child: backendState.isLoading && items.isEmpty
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
+                    )
+                  : items.isEmpty
+                      ? _emptyState()
+                      : ListView.separated(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.screenPadding,
+                          ),
+                          itemCount: items.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: AppSpacing.sm),
+                          itemBuilder: (_, i) => _notificationCard(items[i])
+                              .animate(delay: (50 * i).ms)
+                              .fadeIn(
+                                  duration: Motion.smooth, curve: Motion.curve)
+                              .slideY(
+                                begin: 0.04,
+                                end: 0,
+                                duration: Motion.smooth,
+                                curve: Motion.curve,
+                              ),
+                        ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   Widget _emptyState() {
-    return GlassCard(
-      backgroundColor: const Color(0x33FFFFFF),
-      child: Row(
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               color: AppColors.primaryDim,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+              shape: BoxShape.circle,
               border: Border.all(
-                  color: AppColors.navyBlue.withValues(alpha: 0.5),
-                  width: 0.5),
+                  color: AppColors.navyBlue.withValues(alpha: 0.5)),
             ),
-            child: const Icon(LucideIcons.bellOff,
-                size: 18, color: Colors.white),
+            child:
+                const Icon(LucideIcons.bellOff, size: 28, color: Colors.white),
           ),
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(height: AppSpacing.lg),
           Text(
-            'Nemate novih obavijesti',
-            style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
+            'Nemate obavijesti',
+            style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Ovdje cete vidjeti sve obavijesti',
+            style: AppTextStyles.bodySm
+                .copyWith(color: Colors.white.withValues(alpha: 0.5)),
           ),
         ],
       ),
@@ -335,8 +333,8 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   timeLabel,
-                  style: AppTextStyles.caption
-                      .copyWith(color: Colors.white70),
+                  style:
+                      AppTextStyles.caption.copyWith(color: Colors.white70),
                 ),
               ],
             ),

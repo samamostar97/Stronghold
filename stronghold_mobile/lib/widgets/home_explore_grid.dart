@@ -14,7 +14,8 @@ class HomeExploreGrid extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Istrazi', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+        Text('Istrazi',
+            style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
         const SizedBox(height: AppSpacing.md),
         LayoutBuilder(
           builder: (context, constraints) {
@@ -71,7 +72,9 @@ class _ExploreCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.45),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-              border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.5), width: 0.5),
+              border: Border.all(
+                  color: AppColors.navyBlue.withValues(alpha: 0.5),
+                  width: 0.5),
             ),
             child: Icon(icon, size: 18, color: Colors.white),
           ),
@@ -103,63 +106,9 @@ class _ExploreItem {
 
 const _items = <_ExploreItem>[
   _ExploreItem(
-    icon: LucideIcons.trendingUp,
-    color: AppColors.primary,
-    title: 'Moj Napredak',
-    path: '/progress',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.calendar,
-    color: AppColors.secondary,
-    title: 'Termini',
-    path: '/appointments',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.trophy,
-    color: AppColors.warning,
-    title: 'Hall of Fame',
-    path: '/leaderboard',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.dumbbell,
-    color: AppColors.success,
-    title: 'Treneri',
-    path: '/trainers',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.apple,
-    color: AppColors.accent,
-    title: 'Nutricionisti',
-    path: '/nutritionists',
-  ),
-  _ExploreItem(
     icon: LucideIcons.graduationCap,
     color: AppColors.orange,
     title: 'Seminari',
     path: '/seminars',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.package,
-    color: AppColors.primary,
-    title: 'Narudzbe',
-    path: '/orders',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.shoppingCart,
-    color: AppColors.error,
-    title: 'Korpa',
-    path: '/cart',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.star,
-    color: AppColors.warning,
-    title: 'Recenzije',
-    path: '/reviews',
-  ),
-  _ExploreItem(
-    icon: LucideIcons.helpCircle,
-    color: AppColors.textMuted,
-    title: 'FAQ',
-    path: '/faq',
   ),
 ];

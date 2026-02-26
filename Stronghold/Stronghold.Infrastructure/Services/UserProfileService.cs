@@ -188,6 +188,65 @@ public class UserProfileService : IUserProfileService
             });
         }
 
+        // ── Streak calculation ──
+        // Get all distinct visit dates for this user (ordered descending)
+        var allVisitDates = await _context.GymVisits
+            .Where(v => v.UserId == userId && v.CheckOutTime != null)
+            .Select(v => v.CheckInTime.Date)
+            .Distinct()
+            .OrderByDescending(d => d)
+            .ToListAsync();
+
+        var currentStreak = 0;
+        var longestStreak = 0;
+
+        if (allVisitDates.Count > 0)
+        {
+            // Current streak: count consecutive days ending today or yesterday
+            var checkDate = DateTime.UtcNow.Date;
+            // If no visit today, start from yesterday
+            if (!allVisitDates.Contains(checkDate))
+                checkDate = checkDate.AddDays(-1);
+
+            foreach (var date in allVisitDates)
+            {
+                if (date == checkDate)
+                {
+                    currentStreak++;
+                    checkDate = checkDate.AddDays(-1);
+                }
+                else if (date < checkDate)
+                {
+                    break;
+                }
+            }
+
+            // Longest streak: scan all dates
+            var tempStreak = 1;
+            longestStreak = 1;
+            for (var i = 1; i < allVisitDates.Count; i++)
+            {
+                if (allVisitDates[i - 1].AddDays(-1) == allVisitDates[i])
+                {
+                    tempStreak++;
+                    longestStreak = Math.Max(longestStreak, tempStreak);
+                }
+                else
+                {
+                    tempStreak = 1;
+                }
+            }
+        }
+
+        // ── Leaderboard rank ──
+        var allEntries = await GetAllUserProgressAsync();
+        var ranked = allEntries
+            .OrderByDescending(e => e.Level)
+            .ThenByDescending(e => e.CurrentXP)
+            .ToList();
+        var rank = ranked.FindIndex(e => e.UserId == userId) + 1;
+        var totalMembers = ranked.Count;
+
         return new UserProgressResponse
         {
             UserId = userId,
@@ -198,7 +257,11 @@ public class UserProfileService : IUserProfileService
             XPProgress = xpProgress,
             ProgressPercentage = Math.Round(progressPercentage, 1),
             TotalGymMinutesThisWeek = totalMinutesThisWeek,
-            WeeklyVisits = weeklyVisits
+            WeeklyVisits = weeklyVisits,
+            CurrentStreakDays = currentStreak,
+            LongestStreakDays = Math.Max(longestStreak, currentStreak),
+            LeaderboardRank = rank > 0 ? rank : totalMembers,
+            TotalMembers = totalMembers
         };
     }
 
