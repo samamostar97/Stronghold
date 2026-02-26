@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:lucide_icons/lucide_icons.dart';
-import '../constants/app_colors.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/admin_activity_provider.dart';
 import '../providers/dashboard_provider.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/error_handler.dart';
 import '../widgets/dashboard/dashboard_admin_activity_feed.dart';
-import '../widgets/shared/error_animation.dart';
+import '../widgets/dashboard/dashboard_hero_header.dart';
+import '../widgets/dashboard/dashboard_quick_actions.dart';
 import '../widgets/dashboard/dashboard_sales_chart.dart';
+import '../widgets/dashboard/dashboard_stat_cards.dart';
+import '../widgets/dashboard/dashboard_today_sales.dart';
+import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/shimmer_loading.dart';
 import '../widgets/shared/success_animation.dart';
 
@@ -47,11 +50,11 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
+            Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
             const SizedBox(height: AppSpacing.sm),
             Text(
               state.error!,
-              style: AppTextStyles.bodyMd,
+              style: AppTextStyles.bodySecondary,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -66,225 +69,119 @@ class _DashboardHomeScreenState extends ConsumerState<DashboardHomeScreen> {
 
     final report = state.businessReport;
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final pad = w > 1200
-            ? 40.0
-            : w > 800
-            ? 24.0
-            : 16.0;
-        final wide = w >= 900;
+    return SingleChildScrollView(
+      padding: AppSpacing.desktopPage,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Hero header
+          const DashboardHeroHeader()
+              .animate()
+              .fadeIn(duration: Motion.dramatic, curve: Motion.curve)
+              .scale(
+                begin: const Offset(0.98, 0.98),
+                end: const Offset(1, 1),
+                duration: Motion.dramatic,
+                curve: Motion.curve,
+              ),
 
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: pad,
-            vertical: AppSpacing.xl,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Quick actions + gym occupancy
-              _QuickActionsBar(
+          // Stat cards overlapping hero
+          Transform.translate(
+            offset: const Offset(0, -50),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+              child: DashboardStatCards(
+                report: report,
                 visitorCount: state.currentVisitors.length,
               ),
-              const SizedBox(height: AppSpacing.xl),
-
-              // Main: sales chart + right sidebar (today sales + activity)
-              Expanded(
-                child: wide
-                    ? Row(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Expanded(
-                            flex: 3,
-                            child: DashboardSalesChart(
-                              dailySales: report?.dailySales ?? [],
-                              expand: true,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.lg),
-                          Expanded(
-                            flex: 2,
-                            child: Column(
-                              children: [
-                                Flexible(
-                                  child: _TodaySalesCard(
-                                    breakdown: report?.revenueBreakdown,
-                                  ),
-                                ),
-                                const SizedBox(height: AppSpacing.lg),
-                                Expanded(
-                                  flex: 2,
-                                  child: DashboardAdminActivityFeed(
-                                    items: adminActivityState.items,
-                                    isLoading: adminActivityState.isLoading,
-                                    undoInProgressIds:
-                                        adminActivityState.undoInProgressIds,
-                                    error: adminActivityState.error,
-                                    onRetry: () => ref
-                                        .read(adminActivityProvider.notifier)
-                                        .load(),
-                                    onUndo: (id) async {
-                                      try {
-                                        await ref
-                                            .read(
-                                              adminActivityProvider.notifier,
-                                            )
-                                            .undo(id);
-                                        if (context.mounted) {
-                                          showSuccessAnimation(
-                                            context,
-                                            message: 'Undo uspjesno izvrsen.',
-                                          );
-                                        }
-                                      } catch (e) {
-                                        if (context.mounted) {
-                                          showErrorAnimation(
-                                            context,
-                                            message:
-                                                ErrorHandler.getContextualMessage(
-                                                  e,
-                                                  'undo-admin-activity',
-                                                ),
-                                          );
-                                        }
-                                      }
-                                    },
-                                    expand: true,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      )
-                    : Column(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: DashboardSalesChart(
-                              dailySales: report?.dailySales ?? [],
-                              expand: true,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.lg),
-                          _TodaySalesCard(breakdown: report?.revenueBreakdown),
-                          const SizedBox(height: AppSpacing.lg),
-                          Expanded(
-                            child: DashboardAdminActivityFeed(
-                              items: adminActivityState.items,
-                              isLoading: adminActivityState.isLoading,
-                              undoInProgressIds:
-                                  adminActivityState.undoInProgressIds,
-                              error: adminActivityState.error,
-                              onRetry: () => ref
-                                  .read(adminActivityProvider.notifier)
-                                  .load(),
-                              onUndo: (id) async {
-                                try {
-                                  await ref
-                                      .read(adminActivityProvider.notifier)
-                                      .undo(id);
-                                  if (context.mounted) {
-                                    showSuccessAnimation(
-                                      context,
-                                      message: 'Undo uspjesno izvrsen.',
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (context.mounted) {
-                                    showErrorAnimation(
-                                      context,
-                                      message:
-                                          ErrorHandler.getContextualMessage(
-                                            e,
-                                            'undo-admin-activity',
-                                          ),
-                                    );
-                                  }
-                                }
-                              },
-                              expand: true,
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ],
+            ),
           ),
-        );
-      },
+
+          // Quick actions
+          const DashboardQuickActions()
+              .animate(delay: 500.ms)
+              .fadeIn(duration: Motion.normal, curve: Motion.curve),
+
+          const SizedBox(height: AppSpacing.xl),
+
+          // Main content: chart + sidebar
+          _MainContent(
+            report: report,
+            adminActivityState: adminActivityState,
+            ref: ref,
+          )
+              .animate(delay: 600.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ],
+      ),
     );
   }
 }
 
-// ── Quick actions bar ───────────────────────────────────────────────────
-
-class _QuickActionsBar extends StatelessWidget {
-  const _QuickActionsBar({
-    required this.visitorCount,
+/// Chart + today sales + activity feed layout.
+class _MainContent extends StatelessWidget {
+  const _MainContent({
+    required this.report,
+    required this.adminActivityState,
+    required this.ref,
   });
 
-  final int visitorCount;
+  final BusinessReportDTO? report;
+  final AdminActivityState adminActivityState;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 800;
-        final actions = [
-          _ActionCard(
-            icon: LucideIcons.logIn,
-            label: 'Check-in',
-            color: AppColors.primary,
-            onTap: () => context.go('/visitors'),
-          ),
-          _ActionCard(
-            icon: LucideIcons.userPlus,
-            label: 'Novi korisnik',
-            color: AppColors.secondary,
-            onTap: () => context.go('/users'),
-          ),
-          _ActionCard(
-            icon: LucideIcons.shoppingCart,
-            label: 'Kupovine',
-            color: AppColors.success,
-            onTap: () => context.go('/orders'),
-          ),
-        ];
-        final gym = _GymOccupancyCard(
-          count: visitorCount,
-          onTap: () => context.go('/visitors'),
+        final wide = constraints.maxWidth >= 900;
+
+        final chart = DashboardSalesChart(
+          dailySales: report?.dailySales ?? <DailySalesDTO>[],
+          expand: wide,
+        );
+
+        final sidebar = _Sidebar(
+          report: report,
+          adminActivityState: adminActivityState,
+          ref: ref,
         );
 
         if (wide) {
-          return Row(
-            children: [
-              for (int i = 0; i < actions.length; i++) ...[
-                Expanded(child: actions[i]),
-                const SizedBox(width: AppSpacing.lg),
-              ],
-              Expanded(child: gym),
-            ],
-          );
-        }
-        return Column(
-          children: [
-            Row(
+          return SizedBox(
+            height: 420,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                Expanded(child: actions[0]),
+                Expanded(flex: 3, child: chart),
                 const SizedBox(width: AppSpacing.lg),
-                Expanded(child: actions[1]),
+                Expanded(flex: 2, child: sidebar),
               ],
             ),
+          );
+        }
+
+        return Column(
+          children: [
+            SizedBox(height: 300, child: chart),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(child: actions[2]),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(child: gym),
-              ],
+            DashboardTodaySales(breakdown: report?.revenueBreakdown),
+            const SizedBox(height: AppSpacing.lg),
+            DashboardAdminActivityFeed(
+              items: adminActivityState.items,
+              isLoading: adminActivityState.isLoading,
+              undoInProgressIds: adminActivityState.undoInProgressIds,
+              error: adminActivityState.error,
+              onRetry: () =>
+                  ref.read(adminActivityProvider.notifier).load(),
+              onUndo: _buildUndoCallback(context, ref),
+              expand: false,
             ),
           ],
         );
@@ -293,274 +190,58 @@ class _QuickActionsBar extends StatelessWidget {
   }
 }
 
-class _ActionCard extends StatefulWidget {
-  const _ActionCard({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
+Future<void> Function(int) _buildUndoCallback(
+  BuildContext context,
+  WidgetRef ref,
+) {
+  return (id) async {
+    try {
+      await ref.read(adminActivityProvider.notifier).undo(id);
+      if (context.mounted) {
+        showSuccessAnimation(context, message: 'Undo uspjesno izvrsen.');
+      }
+    } catch (e) {
+      if (context.mounted) {
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'undo-admin-activity'),
+        );
+      }
+    }
+  };
+}
+
+/// Right sidebar: today sales + admin activity feed.
+class _Sidebar extends StatelessWidget {
+  const _Sidebar({
+    required this.report,
+    required this.adminActivityState,
+    required this.ref,
   });
 
-  final IconData icon;
-  final String label;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  State<_ActionCard> createState() => _ActionCardState();
-}
-
-class _ActionCardState extends State<_ActionCard> {
-  bool _hover = false;
+  final BusinessReportDTO? report;
+  final AdminActivityState adminActivityState;
+  final WidgetRef ref;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.lg,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            border: Border.all(
-              color: _hover
-                  ? widget.color.withValues(alpha: 0.3)
-                  : AppColors.border,
-            ),
-            boxShadow: _hover
-                ? [
-                    BoxShadow(
-                      color: widget.color.withValues(alpha: 0.08),
-                      blurRadius: 20,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: widget.color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(widget.icon, color: widget.color, size: 20),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  widget.label,
-                  style: AppTextStyles.bodyBold.copyWith(
-                    color: _hover
-                        ? AppColors.textPrimary
-                        : AppColors.textSecondary,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+    return Column(
+      children: [
+        DashboardTodaySales(breakdown: report?.revenueBreakdown),
+        const SizedBox(height: AppSpacing.lg),
+        Expanded(
+          child: DashboardAdminActivityFeed(
+            items: adminActivityState.items,
+            isLoading: adminActivityState.isLoading,
+            undoInProgressIds: adminActivityState.undoInProgressIds,
+            error: adminActivityState.error,
+            onRetry: () =>
+                ref.read(adminActivityProvider.notifier).load(),
+            onUndo: _buildUndoCallback(context, ref),
+            expand: true,
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _GymOccupancyCard extends StatefulWidget {
-  const _GymOccupancyCard({required this.count, required this.onTap});
-
-  final int count;
-  final VoidCallback onTap;
-
-  @override
-  State<_GymOccupancyCard> createState() => _GymOccupancyCardState();
-}
-
-class _GymOccupancyCardState extends State<_GymOccupancyCard> {
-  bool _hover = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
-          transform: Matrix4.translationValues(0, _hover ? -2 : 0, 0),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xl,
-            vertical: AppSpacing.lg,
-          ),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            border: Border.all(
-              color: _hover
-                  ? AppColors.accent.withValues(alpha: 0.3)
-                  : AppColors.border,
-            ),
-            boxShadow: _hover
-                ? [
-                    BoxShadow(
-                      color: AppColors.accent.withValues(alpha: 0.08),
-                      blurRadius: 20,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(
-                  LucideIcons.users,
-                  color: AppColors.accent,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '${widget.count}',
-                      style: AppTextStyles.stat.copyWith(
-                        color: AppColors.accent,
-                      ),
-                    ),
-                    Text(
-                      'u teretani',
-                      style: AppTextStyles.caption,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _TodaySalesCard extends StatelessWidget {
-  const _TodaySalesCard({required this.breakdown});
-
-  final RevenueBreakdownDTO? breakdown;
-
-  @override
-  Widget build(BuildContext context) {
-    final revenue = breakdown?.todayRevenue ?? 0;
-    final orders = breakdown?.todayOrderCount ?? 0;
-    final weekRevenue = breakdown?.thisWeekRevenue ?? 0;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 36,
-                height: 36,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(
-                  LucideIcons.banknote,
-                  color: AppColors.success,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  'Prodaja danas',
-                  style: AppTextStyles.headingSm,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        '${revenue.toStringAsFixed(2)} KM',
-                        style: AppTextStyles.stat.copyWith(
-                          color: AppColors.success,
-                        ),
-                      ),
-                    ),
-                    Text('$orders narudzbi', style: AppTextStyles.caption),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerRight,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.xs,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(
-                      AppSpacing.radiusSm,
-                    ),
-                  ),
-                  child: Text(
-                    'Sedmica: ${weekRevenue.toStringAsFixed(0)} KM',
-                    style: AppTextStyles.caption.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      ],
     );
   }
 }

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/list_state.dart';
 import '../providers/visit_provider.dart';
 import '../utils/debouncer.dart';
@@ -50,7 +52,9 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
   void _onSearchChanged() {
     _debouncer.run(() {
       final q = _searchController.text.trim();
-      ref.read(currentVisitorsProvider.notifier).setSearch(q.isEmpty ? '' : q);
+      ref
+          .read(currentVisitorsProvider.notifier)
+          .setSearch(q.isEmpty ? '' : q);
     });
   }
 
@@ -106,58 +110,95 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
     final state = ref.watch(currentVisitorsProvider);
     final notifier = ref.read(currentVisitorsProvider.notifier);
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final pad = w > 1200
-            ? 40.0
-            : w > 800
-            ? 24.0
-            : 16.0;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Posjetioci', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} trenutno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final w = constraints.maxWidth;
+              final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
 
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: pad,
-            vertical: AppSpacing.xl,
-          ),
-          child: Container(
-            padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceSolid,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _actionBar(constraints, state, notifier),
-                const SizedBox(height: AppSpacing.xxl),
-                Expanded(child: _body(state, notifier)),
-              ],
-            ),
-          ),
-        );
-      },
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: pad,
+                  vertical: AppSpacing.xl,
+                ),
+                child: Container(
+                  padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: AppSpacing.cardRadius,
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _actionBar(constraints, state, notifier),
+                      const SizedBox(height: AppSpacing.xxl),
+                      Expanded(child: _body(state, notifier)),
+                    ],
+                  ),
+                ),
+              );
+            },
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+      ],
     );
   }
 
   Widget _countBadge(
     ListState<CurrentVisitorResponse, VisitQueryFilter> state,
-  ) => Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.lg,
-      vertical: AppSpacing.sm,
-    ),
-    decoration: BoxDecoration(
-      color: AppColors.primaryDim,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
-      border: Border.all(color: AppColors.primaryBorder),
-    ),
-    child: Text(
-      '${state.totalCount} korisnika',
-      style: AppTextStyles.bodyBold.copyWith(color: AppColors.primary),
-    ),
-  );
+  ) =>
+      Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryDim,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusXxl),
+          border: Border.all(color: AppColors.primaryBorder),
+        ),
+        child: Text(
+          '${state.totalCount} korisnika',
+          style:
+              AppTextStyles.bodyMedium.copyWith(color: AppColors.primary),
+        ),
+      );
 
   Widget _actionBar(
     BoxConstraints constraints,
@@ -176,18 +217,16 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             hintText: 'Pretrazi trenutne korisnike...',
           ),
           const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              _countBadge(state),
-            ],
-          ),
+          Row(children: [_countBadge(state)]),
           const SizedBox(height: AppSpacing.md),
           sort,
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
               Expanded(
-                child: GradientButton.text(text: '+ Check-in korisnika', onPressed: _openCheckIn),
+                child: GradientButton.text(
+                    text: '+ Check-in korisnika',
+                    onPressed: _openCheckIn),
               ),
               const SizedBox(width: AppSpacing.md),
               HoverIconButton(
@@ -215,7 +254,8 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             const SizedBox(width: AppSpacing.lg),
             sort,
             const SizedBox(width: AppSpacing.lg),
-            GradientButton.text(text: '+ Check-in korisnika', onPressed: _openCheckIn),
+            GradientButton.text(
+                text: '+ Check-in korisnika', onPressed: _openCheckIn),
             const SizedBox(width: AppSpacing.md),
             HoverIconButton(
               icon: LucideIcons.refreshCw,
@@ -225,54 +265,49 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
           ],
         ),
         const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            _countBadge(state),
-          ],
-        ),
+        Row(children: [_countBadge(state)]),
       ],
     );
   }
 
   Widget _sortDropdown(CurrentVisitorsNotifier notifier) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-    decoration: BoxDecoration(
-      color: AppColors.surfaceSolid,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      border: Border.all(color: AppColors.border),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String?>(
-        value: _selectedOrderBy,
-        hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
-        dropdownColor: AppColors.surfaceSolid,
-        style: AppTextStyles.bodyBold,
-        icon: Icon(
-          LucideIcons.arrowUpDown,
-          color: AppColors.textMuted,
-          size: 16,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppSpacing.smallRadius,
+          border: Border.all(color: AppColors.border),
         ),
-        items: const [
-          DropdownMenuItem(value: null, child: Text('Zadano')),
-          DropdownMenuItem(
-            value: 'checkindesc',
-            child: Text('Najnoviji dolazak'),
+        child: DropdownButtonHideUnderline(
+          child: DropdownButton<String?>(
+            value: _selectedOrderBy,
+            hint: Text('Sortiraj', style: AppTextStyles.bodySecondary),
+            dropdownColor: AppColors.surface,
+            style: AppTextStyles.bodyMedium,
+            icon: Icon(
+              LucideIcons.arrowUpDown,
+              color: AppColors.textMuted,
+              size: 16,
+            ),
+            items: const [
+              DropdownMenuItem(value: null, child: Text('Zadano')),
+              DropdownMenuItem(
+                  value: 'checkindesc', child: Text('Najnoviji dolazak')),
+              DropdownMenuItem(
+                  value: 'checkin', child: Text('Najstariji dolazak')),
+              DropdownMenuItem(
+                  value: 'firstname', child: Text('Ime (A-Z)')),
+              DropdownMenuItem(
+                  value: 'lastname', child: Text('Prezime (A-Z)')),
+              DropdownMenuItem(
+                  value: 'username', child: Text('Korisnicko ime (A-Z)')),
+            ],
+            onChanged: (value) {
+              setState(() => _selectedOrderBy = value);
+              notifier.setOrderBy(value);
+            },
           ),
-          DropdownMenuItem(value: 'checkin', child: Text('Najstariji dolazak')),
-          DropdownMenuItem(value: 'firstname', child: Text('Ime (A-Z)')),
-          DropdownMenuItem(value: 'lastname', child: Text('Prezime (A-Z)')),
-          DropdownMenuItem(
-            value: 'username',
-            child: Text('Korisnicko ime (A-Z)'),
-          ),
-        ],
-        onChanged: (value) {
-          setState(() => _selectedOrderBy = value);
-          notifier.setOrderBy(value);
-        },
-      ),
-    ),
-  );
+        ),
+      );
 
   Widget _body(
     ListState<CurrentVisitorResponse, VisitQueryFilter> state,
@@ -289,15 +324,16 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
+            Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
             const SizedBox(height: AppSpacing.sm),
             Text(
               state.error!,
-              style: AppTextStyles.bodyMd,
+              style: AppTextStyles.bodySecondary,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton.text(text: 'Pokusaj ponovo', onPressed: notifier.refresh),
+            GradientButton.text(
+                text: 'Pokusaj ponovo', onPressed: notifier.refresh),
           ],
         ),
       );
@@ -312,7 +348,7 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
             const SizedBox(height: AppSpacing.lg),
             Text(
               'Nema korisnika u teretani',
-              style: AppTextStyles.bodyMd.copyWith(
+              style: AppTextStyles.bodySecondary.copyWith(
                 color: AppColors.textPrimary,
               ),
             ),
@@ -325,7 +361,8 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: VisitorsTable(visitors: state.items, onCheckOut: _checkOut),
+          child:
+              VisitorsTable(visitors: state.items, onCheckOut: _checkOut),
         ),
         const SizedBox(height: AppSpacing.lg),
         PaginationControls(

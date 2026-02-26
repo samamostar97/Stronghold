@@ -1,10 +1,12 @@
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/reports_provider.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/reports/report_business_tab.dart';
@@ -91,14 +93,43 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, c) {
-      final pad = c.maxWidth > 1200 ? 40.0 : c.maxWidth > 800 ? 24.0 : 16.0;
-      return Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: pad, vertical: AppSpacing.xl),
-        child: _mainContent(),
-      );
-    });
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Text('Izvjestaji', style: AppTextStyles.pageTitle)
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: LayoutBuilder(builder: (context, c) {
+            final pad =
+                c.maxWidth > 1200 ? 40.0 : c.maxWidth > 800 ? 24.0 : 16.0;
+            return Padding(
+              padding: EdgeInsets.symmetric(
+                  horizontal: pad, vertical: AppSpacing.xl),
+              child: _mainContent(),
+            );
+          })
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+      ],
+    );
   }
 
   Widget _mainContent() {
@@ -147,30 +178,73 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
     );
   }
 
-  Widget _tabBar() => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceSolid,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          indicatorColor: AppColors.primary,
-          indicatorWeight: 3,
-          labelColor: AppColors.primary,
-          unselectedLabelColor: AppColors.textMuted,
-          labelStyle: AppTextStyles.bodyBold,
-          unselectedLabelStyle: AppTextStyles.bodyMd,
-          tabs: [
-            Tab(
-                text: 'Prihodi',
-                icon: Icon(LucideIcons.banknote, size: 20)),
-            Tab(
-                text: 'Inventar',
-                icon: Icon(LucideIcons.package, size: 20)),
-            Tab(
-                text: 'Clanarine',
-                icon: Icon(LucideIcons.creditCard, size: 20)),
-          ],
-        ),
-      );
+  Widget _tabBar() {
+    final tabs = [
+      (label: 'Prihodi', icon: LucideIcons.banknote),
+      (label: 'Inventar', icon: LucideIcons.package),
+      (label: 'Clanarine', icon: LucideIcons.creditCard),
+    ];
+
+    return AnimatedBuilder(
+      animation: _tabController,
+      builder: (context, _) {
+        return Container(
+          padding: const EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: AppSpacing.buttonRadius,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.electric.withOpacity(0.06),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: List.generate(tabs.length, (i) {
+              final isActive = _tabController.index == i;
+              return GestureDetector(
+                onTap: () => _tabController.animateTo(i),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  curve: Curves.easeOut,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.lg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isActive ? AppColors.deepBlue : Colors.transparent,
+                    borderRadius: AppSpacing.badgeRadius,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        tabs[i].icon,
+                        size: 18,
+                        color: isActive
+                            ? Colors.white
+                            : AppColors.textSecondary,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(
+                        tabs[i].label,
+                        style: AppTextStyles.bodyMedium.copyWith(
+                          color: isActive
+                              ? Colors.white
+                              : AppColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ),
+        );
+      },
+    );
+  }
 }

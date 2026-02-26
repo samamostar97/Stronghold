@@ -14,7 +14,7 @@ class LoginScreen extends StatelessWidget {
         Expanded(
           flex: 45,
           child: Container(
-              color: AppColors.surfaceSolid, child: const LoginForm()),
+              color: AppColors.surface, child: const LoginForm()),
         ),
       ]),
     );

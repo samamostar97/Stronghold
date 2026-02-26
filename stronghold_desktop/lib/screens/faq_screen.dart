@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/faq_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
@@ -89,27 +93,66 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
     final state = ref.watch(faqListProvider);
     final notifier = ref.read(faqListProvider.notifier);
 
-    return CrudListScaffold<FaqResponse, FaqQueryFilter>(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addFaq,
-      searchHint: 'Pretrazi pitanja...',
-      addButtonText: '+ Dodaj FAQ',
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'question', label: 'Pitanje (A-Z)'),
-        SortOption(value: 'questiondesc', label: 'Pitanje (Z-A)'),
-        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
-        SortOption(value: 'createdat', label: 'Najstarije prvo'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('FAQ', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: CrudListScaffold<FaqResponse, FaqQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addFaq,
+            searchHint: 'Pretrazi pitanja...',
+            addButtonText: '+ Dodaj FAQ',
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'question', label: 'Pitanje (A-Z)'),
+              SortOption(value: 'questiondesc', label: 'Pitanje (Z-A)'),
+              SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+              SortOption(value: 'createdat', label: 'Najstarije prvo'),
+            ],
+            tableBuilder: (items) => FaqTable(
+              faqs: items,
+              onEdit: _editFaq,
+              onDelete: _deleteFaq,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => FaqTable(
-        faqs: items,
-        onEdit: _editFaq,
-        onDelete: _deleteFaq,
-      ),
     );
   }
 }

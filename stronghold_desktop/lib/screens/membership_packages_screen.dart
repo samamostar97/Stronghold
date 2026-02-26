@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/membership_package_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
@@ -77,7 +81,9 @@ class _MembershipPackagesScreenState
     );
     if (confirmed != true) return;
     try {
-      await ref.read(membershipPackageListProvider.notifier).delete(package.id);
+      await ref
+          .read(membershipPackageListProvider.notifier)
+          .delete(package.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
@@ -94,32 +100,69 @@ class _MembershipPackagesScreenState
     final state = ref.watch(membershipPackageListProvider);
     final notifier = ref.read(membershipPackageListProvider.notifier);
 
-    return CrudListScaffold<
-      MembershipPackageResponse,
-      MembershipPackageQueryFilter
-    >(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addPackage,
-      searchHint: 'Pretrazi po nazivu ili opisu...',
-      addButtonText: '+ Dodaj paket',
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'packagename', label: 'Naziv (A-Z)'),
-        SortOption(value: 'packagenamedesc', label: 'Naziv (Z-A)'),
-        SortOption(value: 'priceasc', label: 'Cijena (rastuce)'),
-        SortOption(value: 'pricedesc', label: 'Cijena (opadajuce)'),
-        SortOption(value: 'createdat', label: 'Najstarije prvo'),
-        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Paketi clanarina', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: CrudListScaffold<MembershipPackageResponse,
+              MembershipPackageQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addPackage,
+            searchHint: 'Pretrazi po nazivu ili opisu...',
+            addButtonText: '+ Dodaj paket',
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'packagename', label: 'Naziv (A-Z)'),
+              SortOption(value: 'packagenamedesc', label: 'Naziv (Z-A)'),
+              SortOption(value: 'priceasc', label: 'Cijena (rastuce)'),
+              SortOption(value: 'pricedesc', label: 'Cijena (opadajuce)'),
+              SortOption(value: 'createdat', label: 'Najstarije prvo'),
+              SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+            ],
+            tableBuilder: (items) => MembershipPackagesTable(
+              packages: items,
+              onEdit: _editPackage,
+              onDelete: _deletePackage,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => MembershipPackagesTable(
-        packages: items,
-        onEdit: _editPackage,
-        onDelete: _deletePackage,
-      ),
     );
   }
 }

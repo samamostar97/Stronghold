@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/supplement_category_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
@@ -80,28 +84,67 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
     final state = ref.watch(supplementCategoryListProvider);
     final notifier = ref.read(supplementCategoryListProvider.notifier);
 
-    return CrudListScaffold<SupplementCategoryResponse,
-        SupplementCategoryQueryFilter>(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addCategory,
-      searchHint: 'Pretrazi po nazivu...',
-      addButtonText: '+ Dodaj kategoriju',
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'name', label: 'Naziv (A-Z)'),
-        SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
-        SortOption(value: 'createdat', label: 'Najstarije prvo'),
-        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Kategorije', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: CrudListScaffold<SupplementCategoryResponse,
+              SupplementCategoryQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addCategory,
+            searchHint: 'Pretrazi po nazivu...',
+            addButtonText: '+ Dodaj kategoriju',
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'name', label: 'Naziv (A-Z)'),
+              SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
+              SortOption(value: 'createdat', label: 'Najstarije prvo'),
+              SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+            ],
+            tableBuilder: (items) => CategoriesTable(
+              categories: items,
+              onEdit: _editCategory,
+              onDelete: _deleteCategory,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => CategoriesTable(
-        categories: items,
-        onEdit: _editCategory,
-        onDelete: _deleteCategory,
-      ),
     );
   }
 }

@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'package:stronghold_desktop/constants/app_theme.dart';
 import 'package:stronghold_desktop/routing/app_router.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting();
+
   const baseUrl = String.fromEnvironment(
     'API_BASE_URL',
     defaultValue: 'http://localhost:5034',

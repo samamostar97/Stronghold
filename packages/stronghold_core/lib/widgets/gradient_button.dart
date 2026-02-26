@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Gradient button with loading state and optional icon.
+/// Gradient button with loading state and optional icon — Aether design.
 class GradientButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
@@ -19,21 +19,20 @@ class GradientButton extends StatelessWidget {
     this.icon,
     this.fullWidth = true,
     this.gradient = const LinearGradient(
-      colors: [Color(0xFF22D3EE), Color(0xFF6366F1)],
+      colors: [Color(0xFF4F8EF7), Color(0xFF38BDF8)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ),
-    this.loadingBackgroundColor = const Color(0xFF475569),
+    this.loadingBackgroundColor = const Color(0xFF9AAFC4),
     this.textStyle,
   });
 
-  // Desktop-style constructor with text-only label (no icon, no loading)
   const GradientButton.text({
     super.key,
     required String text,
     this.onPressed,
     this.gradient = const LinearGradient(
-      colors: [Color(0xFF22D3EE), Color(0xFF6366F1)],
+      colors: [Color(0xFF4F8EF7), Color(0xFF38BDF8)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ),
@@ -42,7 +41,7 @@ class GradientButton extends StatelessWidget {
         isLoading = false,
         icon = null,
         fullWidth = false,
-        loadingBackgroundColor = const Color(0xFF475569);
+        loadingBackgroundColor = const Color(0xFF9AAFC4);
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +61,16 @@ class GradientButton extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: isLoading ? null : gradient,
           color: isLoading ? loadingBackgroundColor : null,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: isLoading
+              ? null
+              : [
+                  BoxShadow(
+                    color: const Color(0xFF4F8EF7).withOpacity(0.25),
+                    blurRadius: 16,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
         ),
         child: Row(
           mainAxisSize: fullWidth ? MainAxisSize.max : MainAxisSize.min,

@@ -8,7 +8,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
-import '../../constants/app_theme.dart';
+import '../../constants/motion.dart';
 import '../../providers/command_palette_provider.dart';
 
 /// Shows the command palette dialog overlay.
@@ -117,9 +117,9 @@ class _CommandPaletteOverlayState
       child: GestureDetector(
         onTap: _close,
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
           child: Container(
-            color: Colors.black.withValues(alpha: 0.4),
+            color: AppColors.deepBlue.withOpacity(0.3),
             alignment: const Alignment(0, -0.3),
             child: GestureDetector(
               onTap: () {},
@@ -129,23 +129,21 @@ class _CommandPaletteOverlayState
                   width: 560,
                   constraints: const BoxConstraints(maxHeight: 460),
                   decoration: BoxDecoration(
-                    color: AppColors.surfaceSolid.withValues(alpha: 0.97),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-                    border: Border.all(
-                        color: AppColors.border.withValues(alpha: 0.6)),
-                    boxShadow: AppShadows.elevatedShadow,
+                    color: AppColors.surface,
+                    borderRadius: AppSpacing.cardRadius,
+                    border: Border.all(color: AppColors.border),
+                    boxShadow: AppColors.cardShadowStrong,
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       _searchField(),
-                      Container(height: 1,
-                          color: AppColors.border.withValues(alpha: 0.5)),
+                      Container(height: 1, color: AppColors.borderLight),
                       if (state.filteredResults.isEmpty)
                         Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xxl),
+                          padding: const EdgeInsets.all(AppSpacing.xl),
                           child: Text('Nema rezultata',
-                              style: AppTextStyles.bodyMd.copyWith(
+                              style: AppTextStyles.bodySecondary.copyWith(
                                   color: AppColors.textMuted)),
                         )
                       else
@@ -165,18 +163,21 @@ class _CommandPaletteOverlayState
   Widget _searchField() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.lg, AppSpacing.xl, 0),
+          AppSpacing.xl, AppSpacing.base, AppSpacing.xl, AppSpacing.sm),
       child: TextField(
         controller: _searchController,
         focusNode: _focusNode,
-        style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
+        style: AppTextStyles.body,
         decoration: InputDecoration(
           hintText: 'Pretrazi stranice i akcije...',
-          hintStyle: AppTextStyles.bodyMd.copyWith(
-              color: AppColors.textMuted.withValues(alpha: 0.7)),
-          prefixIcon: Icon(LucideIcons.search,
+          hintStyle: AppTextStyles.bodySecondary.copyWith(
+              color: AppColors.textMuted),
+          prefixIcon: const Icon(LucideIcons.search,
               color: AppColors.textMuted, size: 18),
           border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          filled: false,
           contentPadding: const EdgeInsets.symmetric(vertical: 14),
         ),
       ),
@@ -212,20 +213,18 @@ class _CommandPaletteOverlayState
     return Container(
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-      decoration: BoxDecoration(
-        border: Border(
-            top: BorderSide(
-                color: AppColors.border.withValues(alpha: 0.5))),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.borderLight)),
       ),
       child: Row(
         children: [
           const _KeyHint(label: 'Enter'),
           const SizedBox(width: AppSpacing.xs),
-          Text('otvori', style: AppTextStyles.bodySm),
-          const SizedBox(width: AppSpacing.lg),
+          Text('otvori', style: AppTextStyles.caption),
+          const SizedBox(width: AppSpacing.base),
           const _KeyHint(label: 'Esc'),
           const SizedBox(width: AppSpacing.xs),
-          Text('zatvori', style: AppTextStyles.bodySm),
+          Text('zatvori', style: AppTextStyles.caption),
         ],
       ),
     );
@@ -252,31 +251,33 @@ class _CommandResultItem extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
+          duration: Motion.fast,
           margin: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm, vertical: 1),
           padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+              horizontal: AppSpacing.base, vertical: AppSpacing.md),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.12)
+                ? AppColors.electric.withOpacity(0.08)
                 : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            borderRadius: AppSpacing.badgeRadius,
           ),
           child: Row(
             children: [
               Icon(entry.icon,
-                  color: isSelected ? AppColors.primary : AppColors.textMuted,
+                  color: isSelected
+                      ? AppColors.electric
+                      : AppColors.textMuted,
                   size: 18),
-              const SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: AppSpacing.base),
               Expanded(
                 child: Text(entry.label,
                     style: isSelected
-                        ? AppTextStyles.bodyBold
-                        : AppTextStyles.bodyMd.copyWith(
-                            color: AppColors.textSecondary)),
+                        ? AppTextStyles.bodyMedium
+                            .copyWith(color: AppColors.electric)
+                        : AppTextStyles.bodySecondary),
               ),
-              Text(entry.sublabel, style: AppTextStyles.bodySm),
+              Text(entry.sublabel, style: AppTextStyles.caption),
             ],
           ),
         ),
@@ -296,12 +297,12 @@ class _KeyHint extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sm, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(4),
+        color: AppColors.surfaceAlt,
+        borderRadius: AppSpacing.tinyRadius,
         border: Border.all(color: AppColors.border),
       ),
-      child: Text(label, style: AppTextStyles.badge.copyWith(
-          color: AppColors.textMuted)),
+      child: Text(label,
+          style: AppTextStyles.badge.copyWith(color: AppColors.textMuted)),
     );
   }
 }

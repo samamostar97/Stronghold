@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/nutritionist_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
@@ -74,13 +78,16 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
     );
     if (confirmed != true) return;
     try {
-      await ref.read(nutritionistListProvider.notifier).delete(nutritionist.id);
+      await ref
+          .read(nutritionistListProvider.notifier)
+          .delete(nutritionist.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(
           context,
-          message: ErrorHandler.getContextualMessage(e, 'delete-nutritionist'),
+          message:
+              ErrorHandler.getContextualMessage(e, 'delete-nutritionist'),
         );
       }
     }
@@ -91,29 +98,69 @@ class _NutritionistsScreenState extends ConsumerState<NutritionistsScreen> {
     final state = ref.watch(nutritionistListProvider);
     final notifier = ref.read(nutritionistListProvider.notifier);
 
-    return CrudListScaffold<NutritionistResponse, NutritionistQueryFilter>(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addNutritionist,
-      searchHint: 'Pretrazi po imenu ili prezimenu...',
-      addButtonText: '+ Dodaj nutricionistu',
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'firstname', label: 'Ime (A-Z)'),
-        SortOption(value: 'firstnamedesc', label: 'Ime (Z-A)'),
-        SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
-        SortOption(value: 'lastnamedesc', label: 'Prezime (Z-A)'),
-        SortOption(value: 'createdat', label: 'Najstarije prvo'),
-        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Nutricionisti', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child:
+              CrudListScaffold<NutritionistResponse, NutritionistQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addNutritionist,
+            searchHint: 'Pretrazi po imenu ili prezimenu...',
+            addButtonText: '+ Dodaj nutricionistu',
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'firstname', label: 'Ime (A-Z)'),
+              SortOption(value: 'firstnamedesc', label: 'Ime (Z-A)'),
+              SortOption(value: 'lastname', label: 'Prezime (A-Z)'),
+              SortOption(value: 'lastnamedesc', label: 'Prezime (Z-A)'),
+              SortOption(value: 'createdat', label: 'Najstarije prvo'),
+              SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+            ],
+            tableBuilder: (items) => NutritionistsTable(
+              nutritionists: items,
+              onEdit: _editNutritionist,
+              onDelete: _deleteNutritionist,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => NutritionistsTable(
-        nutritionists: items,
-        onEdit: _editNutritionist,
-        onDelete: _deleteNutritionist,
-      ),
     );
   }
 }

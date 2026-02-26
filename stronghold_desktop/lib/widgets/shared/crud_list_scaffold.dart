@@ -110,6 +110,7 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
               color: AppColors.surfaceSolid,
               borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
               border: Border.all(color: AppColors.border),
+              boxShadow: AppColors.cardShadow,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

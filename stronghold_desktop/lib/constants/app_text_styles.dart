@@ -2,81 +2,143 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'app_colors.dart';
 
-/// Text style tokens using DM Sans via google_fonts.
-abstract class AppTextStyles {
-  static TextStyle get statLg => GoogleFonts.dmSans(
-        fontSize: 32,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.03 * 32,
-        color: AppColors.textPrimary,
-      );
+abstract final class AppTextStyles {
+  // ═══════════════════════════════════════════
+  //  AETHER TYPOGRAPHY — Space Grotesk
+  // ═══════════════════════════════════════════
 
-  static TextStyle get stat => GoogleFonts.dmSans(
-        fontSize: 22,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.02 * 22,
-        color: AppColors.textPrimary,
-      );
-
-  static TextStyle get headingMd => GoogleFonts.dmSans(
-        fontSize: 20,
+  // Display
+  static TextStyle get heroTitle => GoogleFonts.spaceGrotesk(
+        fontSize: 30,
         fontWeight: FontWeight.w700,
-        letterSpacing: -0.02 * 20,
-        color: AppColors.textPrimary,
+        color: Colors.white,
+        letterSpacing: -0.9,
+        height: 1.2,
       );
 
-  static TextStyle get headingSm => GoogleFonts.dmSans(
+  static TextStyle get pageTitle => GoogleFonts.spaceGrotesk(
+        fontSize: 26,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+        letterSpacing: -0.78,
+        height: 1.25,
+      );
+
+  // Headings
+  static TextStyle get cardTitle => GoogleFonts.spaceGrotesk(
         fontSize: 16,
         fontWeight: FontWeight.w700,
         color: AppColors.textPrimary,
+        height: 1.3,
       );
 
-  static TextStyle get bodyMd => GoogleFonts.dmSans(
-        fontSize: 13,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textSecondary,
+  static TextStyle get sectionTitle => GoogleFonts.spaceGrotesk(
+        fontSize: 15,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+        height: 1.3,
       );
 
-  static TextStyle get bodyBold => GoogleFonts.dmSans(
-        fontSize: 13,
+  // Metrics
+  static TextStyle get metricLarge => GoogleFonts.spaceGrotesk(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+        letterSpacing: -0.56,
+        height: 1.1,
+      );
+
+  static TextStyle get metricMedium => GoogleFonts.spaceGrotesk(
+        fontSize: 22,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textPrimary,
+        letterSpacing: -0.44,
+        height: 1.2,
+      );
+
+  // Body
+  static TextStyle get body => GoogleFonts.spaceGrotesk(
+        fontSize: 14,
+        fontWeight: FontWeight.w500,
+        color: AppColors.textPrimary,
+        height: 1.5,
+      );
+
+  static TextStyle get bodyMedium => GoogleFonts.spaceGrotesk(
+        fontSize: 13.5,
         fontWeight: FontWeight.w600,
         color: AppColors.textPrimary,
+        height: 1.4,
       );
 
-  static TextStyle get bodySm => GoogleFonts.dmSans(
-        fontSize: 12,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textMuted,
-      );
-
-  static TextStyle get label => GoogleFonts.dmSans(
-        fontSize: 12,
+  static TextStyle get bodySecondary => GoogleFonts.spaceGrotesk(
+        fontSize: 13,
         fontWeight: FontWeight.w500,
-        letterSpacing: 0.05 * 12,
+        color: AppColors.textSecondary,
+        height: 1.5,
+      );
+
+  // Small
+  static TextStyle get caption => GoogleFonts.spaceGrotesk(
+        fontSize: 12.5,
+        fontWeight: FontWeight.w500,
         color: AppColors.textMuted,
+        height: 1.4,
       );
 
-  static TextStyle get caption => GoogleFonts.dmSans(
-        fontSize: 11,
-        fontWeight: FontWeight.w400,
-        color: AppColors.textDark,
+  static TextStyle get label => GoogleFonts.spaceGrotesk(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.textSecondary,
+        height: 1.3,
       );
 
-  static TextStyle get badge => GoogleFonts.dmSans(
+  static TextStyle get badge => GoogleFonts.spaceGrotesk(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w600,
+        height: 1.2,
+      );
+
+  static TextStyle get overline => GoogleFonts.spaceGrotesk(
         fontSize: 11,
         fontWeight: FontWeight.w600,
-        letterSpacing: 0.03 * 11,
+        color: AppColors.textMuted,
+        letterSpacing: 0.88,
+        height: 1.3,
       );
 
-  static TextStyle get navItem => GoogleFonts.dmSans(
+  static TextStyle get tableHeader => GoogleFonts.spaceGrotesk(
+        fontSize: 10.5,
+        fontWeight: FontWeight.w700,
+        color: AppColors.textMuted,
+        letterSpacing: 0.84,
+        height: 1.2,
+      );
+
+  // ═══════════════════════════════════════════
+  //  BACKWARD COMPATIBILITY
+  // ═══════════════════════════════════════════
+
+  static TextStyle get statLg => metricLarge;
+  static TextStyle get stat => metricMedium;
+  static TextStyle get headingMd => GoogleFonts.spaceGrotesk(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        letterSpacing: -0.4,
+        color: AppColors.textPrimary,
+      );
+  static TextStyle get headingSm => cardTitle;
+  static TextStyle get bodyMd => bodySecondary;
+  static TextStyle get bodyBold => bodyMedium;
+  static TextStyle get bodySm => caption;
+  static TextStyle get navItem => GoogleFonts.spaceGrotesk(
         fontSize: 14,
         fontWeight: FontWeight.w400,
         color: AppColors.textMuted,
       );
-
-  static TextStyle get navItemActive => GoogleFonts.dmSans(
+  static TextStyle get navItemActive => GoogleFonts.spaceGrotesk(
         fontSize: 14,
         fontWeight: FontWeight.w600,
-        color: AppColors.primary,
+        color: AppColors.electric,
       );
 }

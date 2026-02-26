@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -6,6 +7,7 @@ import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/membership_provider.dart';
 import '../widgets/shared/data_table_widgets.dart';
 import '../widgets/shared/pagination_controls.dart';
@@ -76,14 +78,16 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _backButton(),
+                _backButton()
+                    .animate()
+                    .fadeIn(duration: Motion.smooth, curve: Motion.curve),
                 const SizedBox(height: AppSpacing.lg),
                 Expanded(
                   child: Container(
                     padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceSolid,
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+                      color: AppColors.surface,
+                      borderRadius: AppSpacing.cardRadius,
                       border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
@@ -91,7 +95,7 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                       children: [
                         Text(
                           'Historija uplata',
-                          style: AppTextStyles.headingMd,
+                          style: AppTextStyles.pageTitle,
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         _UserInfoCard(user: widget.user),
@@ -111,12 +115,12 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                                 children: [
                                   Text(
                                     'Greska pri ucitavanju',
-                                    style: AppTextStyles.headingSm,
+                                    style: AppTextStyles.cardTitle,
                                   ),
                                   const SizedBox(height: AppSpacing.sm),
                                   Text(
                                     e.toString(),
-                                    style: AppTextStyles.bodyMd,
+                                    style: AppTextStyles.bodySecondary,
                                     textAlign: TextAlign.center,
                                   ),
                                   const SizedBox(height: AppSpacing.lg),
@@ -174,16 +178,16 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSolid,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          color: AppColors.surface,
+          borderRadius: AppSpacing.smallRadius,
           border: Border.all(color: AppColors.border),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String?>(
             value: _selectedOrderBy,
-            hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
-            dropdownColor: AppColors.surfaceSolid,
-            style: AppTextStyles.bodyBold,
+            hint: Text('Sortiraj', style: AppTextStyles.bodySecondary),
+            dropdownColor: AppColors.surface,
+            style: AppTextStyles.bodyMedium,
             icon: Icon(
               LucideIcons.arrowUpDown,
               color: AppColors.textMuted,
@@ -220,7 +224,7 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
         icon: Icon(LucideIcons.arrowLeft, size: 16, color: AppColors.primary),
         label: Text(
           'Nazad na clanarine',
-          style: AppTextStyles.bodyMd.copyWith(color: AppColors.primary),
+          style: AppTextStyles.bodySecondary.copyWith(color: AppColors.primary),
         ),
       ),
     );
@@ -238,7 +242,7 @@ class _UserInfoCard extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        borderRadius: AppSpacing.buttonRadius,
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
@@ -250,7 +254,7 @@ class _UserInfoCard extends StatelessWidget {
             children: [
               Text(
                 '${user.firstName} ${user.lastName}',
-                style: AppTextStyles.bodyBold,
+                style: AppTextStyles.bodyMedium,
               ),
               const SizedBox(height: 2),
               Text('@${user.username}', style: AppTextStyles.bodySm),

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
+import '../../constants/motion.dart';
 
 /// Navigation item model.
 class NavItem {
@@ -19,7 +21,7 @@ class NavGroup {
   final List<NavItem> items;
 }
 
-/// Tier 2 — Collapsible sidebar nav rail for the admin shell.
+/// Aether sidebar — collapsible nav rail for admin shell.
 class AppSidebar extends StatelessWidget {
   const AppSidebar({
     super.key,
@@ -44,15 +46,19 @@ class AppSidebar extends StatelessWidget {
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOutCubic,
       width: collapsed ? 72 : 240,
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceSolid,
-        border: Border(right: BorderSide(color: AppColors.border, width: 1)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: const Border(
+          right: BorderSide(color: AppColors.border, width: 1),
+        ),
       ),
       child: Column(
         children: [
-          const SizedBox(height: AppSpacing.xl),
+          const SizedBox(height: AppSpacing.lg),
           _Logo(collapsed: collapsed),
-          const SizedBox(height: AppSpacing.xxl),
+          const SizedBox(height: AppSpacing.lg),
+          Container(height: 1, color: AppColors.borderLight),
+          const SizedBox(height: AppSpacing.sm),
           Expanded(
             child: ListView(
               padding:
@@ -73,9 +79,10 @@ class AppSidebar extends StatelessWidget {
               ],
             ),
           ),
+          Container(height: 1, color: AppColors.borderLight),
           _CollapseButton(collapsed: collapsed, onTap: onToggleCollapse),
           if (bottom != null) ...[
-            const Divider(color: AppColors.border, height: 1),
+            Container(height: 1, color: AppColors.borderLight),
             bottom!,
           ],
           const SizedBox(height: AppSpacing.sm),
@@ -91,11 +98,22 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logo = ClipRect(
-      child: Image.asset(
-        'assets/images/logo.png',
-        width: 34,
-        height: 34,
+    final logo = Container(
+      width: 36,
+      height: 36,
+      decoration: BoxDecoration(
+        borderRadius: AppSpacing.avatarRadius,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.electric.withOpacity(0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: AppSpacing.avatarRadius,
+        child: Image.asset('assets/images/logo.png', width: 36, height: 36),
       ),
     );
 
@@ -111,9 +129,14 @@ class _Logo extends StatelessWidget {
               logo,
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: Text('STRONGHOLD',
-                    style: AppTextStyles.headingSm,
-                    overflow: TextOverflow.ellipsis),
+                child: Text(
+                  'STRONGHOLD',
+                  style: AppTextStyles.sectionTitle.copyWith(
+                    letterSpacing: 1.5,
+                    color: AppColors.deepBlue,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           );
@@ -131,16 +154,16 @@ class _SectionLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (collapsed) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Divider(color: AppColors.border, height: 1),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        child: Container(height: 1, color: AppColors.borderLight),
       );
     }
     return Padding(
       padding: const EdgeInsets.only(
-          left: 14, top: AppSpacing.xl, bottom: AppSpacing.sm),
-      child: Text(label, style: AppTextStyles.label,
-          overflow: TextOverflow.ellipsis),
+          left: 14, top: AppSpacing.lg, bottom: AppSpacing.sm),
+      child: Text(label,
+          style: AppTextStyles.overline, overflow: TextOverflow.ellipsis),
     );
   }
 }
@@ -176,7 +199,7 @@ class _NavTileState extends State<_NavTile> {
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: Motion.fast,
           margin: const EdgeInsets.only(bottom: 2),
           padding: EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
@@ -184,11 +207,11 @@ class _NavTileState extends State<_NavTile> {
           ),
           decoration: BoxDecoration(
             color: active
-                ? AppColors.primaryDim
+                ? AppColors.electric.withOpacity(0.08)
                 : _hover
-                    ? AppColors.surfaceHover
+                    ? AppColors.surfaceAlt
                     : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            borderRadius: AppSpacing.badgeRadius,
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -202,22 +225,29 @@ class _NavTileState extends State<_NavTile> {
                       height: 20,
                       margin: const EdgeInsets.only(right: AppSpacing.sm),
                       decoration: BoxDecoration(
-                        color: AppColors.primary,
+                        gradient: AppColors.accentGradient,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
-                  Icon(widget.item.icon, size: 20,
+                  Icon(widget.item.icon,
+                      size: 20,
                       color: active
-                          ? AppColors.primary
-                          : AppColors.textMuted),
+                          ? AppColors.electric
+                          : _hover
+                              ? AppColors.textSecondary
+                              : AppColors.textMuted),
                   if (!compact) ...[
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Text(
                         widget.item.label,
                         style: active
-                            ? AppTextStyles.navItemActive
-                            : AppTextStyles.navItem,
+                            ? AppTextStyles.bodyMedium
+                                .copyWith(color: AppColors.electric)
+                            : AppTextStyles.bodySecondary.copyWith(
+                                color: _hover
+                                    ? AppColors.textPrimary
+                                    : AppColors.textSecondary),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -241,7 +271,8 @@ class _CollapseButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
       child: IconButton(
         icon: Icon(
           collapsed

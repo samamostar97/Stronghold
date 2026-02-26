@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +8,7 @@ import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/address_provider.dart';
 import '../providers/cart_provider.dart';
 import '../providers/checkout_provider.dart';
@@ -129,10 +131,22 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
             _appBar(),
             const SizedBox(height: AppSpacing.md),
             // Step indicator
-            CheckoutStepIndicator(currentStep: _currentStep),
+            CheckoutStepIndicator(currentStep: _currentStep)
+                .animate()
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve),
             const SizedBox(height: AppSpacing.lg),
             // Step content
-            Expanded(child: _buildStep(cartState)),
+            Expanded(
+              child: _buildStep(cartState)
+                  .animate(delay: 150.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.04,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
+            ),
           ],
         ),
       ),

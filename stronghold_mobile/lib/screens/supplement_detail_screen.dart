@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/cart_provider.dart';
 import '../providers/supplement_provider.dart';
@@ -62,9 +64,25 @@ class SupplementDetailScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  SupplementDetailHeader(supplement: supplement),
+                  SupplementDetailHeader(supplement: supplement)
+                      .animate()
+                      .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                      .slideY(
+                        begin: 0.04,
+                        end: 0,
+                        duration: Motion.smooth,
+                        curve: Motion.curve,
+                      ),
                   const SizedBox(height: AppSpacing.xxl),
-                  _reviewsSection(reviewsAsync),
+                  _reviewsSection(reviewsAsync)
+                      .animate(delay: 200.ms)
+                      .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                      .slideY(
+                        begin: 0.04,
+                        end: 0,
+                        duration: Motion.smooth,
+                        curve: Motion.curve,
+                      ),
                   const SizedBox(height: AppSpacing.xxl),
                 ],
               ),
@@ -81,7 +99,15 @@ class SupplementDetailScreen extends ConsumerWidget {
                     context, '${supplement.name} dodano u korpu');
               },
             ),
-          ),
+          )
+              .animate(delay: 300.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.1,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
         ]),
       ),
     );

@@ -146,7 +146,9 @@ public class MembershipRepository : IMembershipRepository
             .Include(x => x.MembershipPackage)
             .Where(x => !x.IsDeleted &&
                         x.EndDate > nowUtc &&
-                        !x.User.IsDeleted)
+                        !x.User.IsDeleted &&
+                        !_context.GymVisits.Any(v =>
+                            !v.IsDeleted && v.UserId == x.UserId && v.CheckOutTime == null))
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(filter.Name))

@@ -1,4 +1,6 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
@@ -6,6 +8,7 @@ import '../../providers/api_providers.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
+import '../../constants/motion.dart';
 
 class UserDetailDrawer extends ConsumerStatefulWidget {
   const UserDetailDrawer({
@@ -55,134 +58,111 @@ class _UserDetailDrawerState extends ConsumerState<UserDetailDrawer> {
       color: Colors.transparent,
       child: Stack(
         children: [
+          // Backdrop
           GestureDetector(
             onTap: widget.onClose,
-            child: Container(color: Colors.black54),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                color: AppColors.deepBlue.withValues(alpha: 0.3),
+              ),
+            ),
           ),
+          // Drawer panel
           Align(
             alignment: Alignment.centerRight,
-            child: _body(),
+            child: _DrawerPanel(
+              user: widget.user,
+              address: _address,
+              loadingAddress: _loadingAddress,
+              onClose: widget.onClose,
+              onEdit: widget.onEdit,
+            )
+                .animate()
+                .fadeIn(duration: Motion.normal, curve: Motion.curve)
+                .slideX(
+                  begin: 0.1,
+                  end: 0,
+                  duration: Motion.normal,
+                  curve: Motion.curve,
+                ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _body() {
-    final user = widget.user;
+class _DrawerPanel extends StatelessWidget {
+  const _DrawerPanel({
+    required this.user,
+    required this.address,
+    required this.loadingAddress,
+    required this.onClose,
+    this.onEdit,
+  });
+
+  final UserResponse user;
+  final AddressResponse? address;
+  final bool loadingAddress;
+  final VoidCallback onClose;
+  final VoidCallback? onEdit;
+
+  @override
+  Widget build(BuildContext context) {
     final initials = _initials(user.firstName, user.lastName);
 
     return Container(
       width: 400,
-      color: AppColors.surfaceSolid,
-      padding: EdgeInsets.fromLTRB(
-          AppSpacing.xxl, AppSpacing.md, AppSpacing.xxl, AppSpacing.xxl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        boxShadow: AppColors.cardShadowStrong,
+      ),
+      padding: const EdgeInsets.fromLTRB(28, 16, 28, 28),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Close button
             Align(
               alignment: Alignment.topRight,
               child: IconButton(
                 icon: const Icon(LucideIcons.x,
                     color: AppColors.textMuted, size: 20),
-                onPressed: widget.onClose,
+                onPressed: onClose,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            // Scrollable content
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Avatar + name + email
-                    Center(
-                      child: user.profileImageUrl != null
-                          ? ClipRRect(
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.radiusMd),
-                              child: Image.network(
-                                ApiConfig.imageUrl(user.profileImageUrl!),
-                                width: 72,
-                                height: 72,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    AvatarWidget(initials: initials, size: 72),
-                              ),
-                            )
-                          : AvatarWidget(initials: initials, size: 72),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    Center(
-                      child: Text(user.fullName,
-                          style: AppTextStyles.headingMd,
-                          textAlign: TextAlign.center),
-                    ),
-                    const SizedBox(height: 4),
-                    Center(
-                      child: Text(user.email,
-                          style: AppTextStyles.bodySm,
-                          textAlign: TextAlign.center),
+                    _AvatarHeader(user: user, initials: initials),
+                    const SizedBox(height: AppSpacing.xxl),
+                    _InfoSection(
+                      label: 'LICNI PODACI',
+                      rows: [
+                        _InfoData(LucideIcons.user, 'Korisnicko ime', user.username),
+                        _InfoData(LucideIcons.phone, 'Telefon', user.phoneNumber),
+                        _InfoData(LucideIcons.users, 'Spol', user.genderDisplay),
+                      ],
                     ),
                     const SizedBox(height: AppSpacing.xxl),
-
-                    // Personal info section
-                    _sectionLabel('LICNI PODACI'),
-                    const SizedBox(height: AppSpacing.md),
-                    _infoRow(LucideIcons.user, 'Korisnicko ime', user.username),
-                    _infoRow(LucideIcons.phone, 'Telefon', user.phoneNumber),
-                    _infoRow(LucideIcons.users, 'Spol', user.genderDisplay),
-                    const SizedBox(height: AppSpacing.xxl),
-
-                    // Address section
-                    _sectionLabel('ADRESA ZA DOSTAVU'),
-                    const SizedBox(height: AppSpacing.md),
-                    if (_loadingAddress)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        child: Center(
-                          child: SizedBox(
-                            width: 18,
-                            height: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: AppColors.primary,
-                            ),
-                          ),
-                        ),
-                      )
-                    else if (_address != null) ...[
-                      _infoRow(LucideIcons.mapPin, 'Ulica', _address!.street),
-                      _infoRow(LucideIcons.building2, 'Grad', _address!.city),
-                      _infoRow(LucideIcons.hash, 'Postanski broj', _address!.postalCode),
-                      _infoRow(LucideIcons.globe, 'Drzava', _address!.country),
-                    ] else
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                        child: Row(
-                          children: [
-                            Icon(LucideIcons.mapPinOff,
-                                size: 16, color: AppColors.textMuted),
-                            const SizedBox(width: AppSpacing.md),
-                            Text('Nema sacuvane adrese',
-                                style: AppTextStyles.bodyMd
-                                    .copyWith(color: AppColors.textMuted)),
-                          ],
-                        ),
-                      ),
+                    _AddressSection(
+                      address: address,
+                      loading: loadingAddress,
+                    ),
                   ],
                 ),
               ),
             ),
-            if (widget.onEdit != null) ...[
+            if (onEdit != null) ...[
               const SizedBox(height: AppSpacing.lg),
               SizedBox(
                 width: double.infinity,
-                child: GradientButton.text(text: 'Uredi', onPressed: widget.onEdit!),
+                child: GradientButton.text(text: 'Uredi', onPressed: onEdit!),
               ),
             ],
           ],
@@ -191,35 +171,106 @@ class _UserDetailDrawerState extends ConsumerState<UserDetailDrawer> {
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Text(
-      text,
-      style: AppTextStyles.badge.copyWith(
-        color: AppColors.textMuted,
-        letterSpacing: 1.2,
+  static String _initials(String first, String last) {
+    final f = first.isNotEmpty ? first[0] : '';
+    final l = last.isNotEmpty ? last[0] : '';
+    return '$f$l'.toUpperCase();
+  }
+}
+
+class _AvatarHeader extends StatelessWidget {
+  const _AvatarHeader({required this.user, required this.initials});
+  final UserResponse user;
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        children: [
+          user.profileImageUrl != null
+              ? ClipRRect(
+                  borderRadius: AppSpacing.avatarRadius,
+                  child: Image.network(
+                    ApiConfig.imageUrl(user.profileImageUrl!),
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, e, st) =>
+                        AvatarWidget(initials: initials, size: 72),
+                  ),
+                )
+              : AvatarWidget(initials: initials, size: 72),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            user.fullName,
+            style: AppTextStyles.headingMd,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            user.email,
+            style: AppTextStyles.caption,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _infoRow(IconData icon, String label, String value) {
+class _InfoSection extends StatelessWidget {
+  const _InfoSection({required this.label, required this.rows});
+  final String label;
+  final List<_InfoData> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.overline,
+        ),
+        const SizedBox(height: AppSpacing.md),
+        for (final row in rows) _InfoRow(data: row),
+      ],
+    );
+  }
+}
+
+class _InfoData {
+  final IconData icon;
+  final String label;
+  final String value;
+  const _InfoData(this.icon, this.label, this.value);
+}
+
+class _InfoRow extends StatelessWidget {
+  const _InfoRow({required this.data});
+  final _InfoData data;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: AppColors.textMuted),
+          Icon(data.icon, size: 16, color: AppColors.textMuted),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.textMuted)),
+                Text(data.label, style: AppTextStyles.caption),
                 const SizedBox(height: 2),
-                Text(value,
-                    style: AppTextStyles.bodyMd,
-                    overflow: TextOverflow.ellipsis),
+                Text(
+                  data.value,
+                  style: AppTextStyles.bodySecondary,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -227,10 +278,57 @@ class _UserDetailDrawerState extends ConsumerState<UserDetailDrawer> {
       ),
     );
   }
+}
 
-  static String _initials(String first, String last) {
-    final f = first.isNotEmpty ? first[0] : '';
-    final l = last.isNotEmpty ? last[0] : '';
-    return '$f$l'.toUpperCase();
+class _AddressSection extends StatelessWidget {
+  const _AddressSection({required this.address, required this.loading});
+  final AddressResponse? address;
+  final bool loading;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('ADRESA ZA DOSTAVU', style: AppTextStyles.overline),
+        const SizedBox(height: AppSpacing.md),
+        if (loading)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(
+              child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.electric,
+                ),
+              ),
+            ),
+          )
+        else if (address != null) ...[
+          _InfoRow(data: _InfoData(LucideIcons.mapPin, 'Ulica', address!.street)),
+          _InfoRow(data: _InfoData(LucideIcons.building2, 'Grad', address!.city)),
+          _InfoRow(data: _InfoData(
+              LucideIcons.hash, 'Postanski broj', address!.postalCode)),
+          _InfoRow(data: _InfoData(
+              LucideIcons.globe, 'Drzava', address!.country)),
+        ] else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                const Icon(LucideIcons.mapPinOff,
+                    size: 16, color: AppColors.textMuted),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  'Nema sacuvane adrese',
+                  style: AppTextStyles.caption,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
   }
 }

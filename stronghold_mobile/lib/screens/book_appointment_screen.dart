@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/appointment_provider.dart';
 import '../utils/date_format_utils.dart';
 import '../utils/error_handler.dart';
@@ -155,7 +157,10 @@ class _BookAppointmentScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _staffCard(),
+                  _staffCard()
+                      .animate()
+                      .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                      .slideY(begin: 0.04, end: 0, duration: Motion.smooth, curve: Motion.curve),
                   const SizedBox(height: AppSpacing.xxl),
                   _datePicker(),
                   const SizedBox(height: AppSpacing.lg),

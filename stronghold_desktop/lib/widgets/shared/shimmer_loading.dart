@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../constants/app_colors.dart';
+import '../../constants/app_spacing.dart';
 
 /// Animated shimmer effect for skeleton loading placeholders.
 /// Hand-rolled using AnimationController + ShaderMask — no external dependency.
@@ -173,7 +174,7 @@ class ShimmerStatCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppSpacing.panelRadius,
       ),
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -191,29 +192,54 @@ class ShimmerStatCard extends StatelessWidget {
   }
 }
 
-/// Full dashboard skeleton: 4 stat cards + 2 chart areas.
+/// Full dashboard skeleton: hero header + stat cards + chart areas.
 class ShimmerDashboard extends StatelessWidget {
   const ShimmerDashboard({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(36, 28, 36, 60),
       child: Column(
         children: [
-          // Stat cards row
-          const Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            children: [
-              SizedBox(width: 260, child: ShimmerStatCard()),
-              SizedBox(width: 260, child: ShimmerStatCard()),
-              SizedBox(width: 260, child: ShimmerStatCard()),
-              SizedBox(width: 260, child: ShimmerStatCard()),
-            ],
+          // Hero header skeleton
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              color: AppColors.panel,
+              borderRadius: AppSpacing.heroRadius,
+            ),
+            padding: const EdgeInsets.all(32),
+            child: const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ShimmerBox(width: 200, height: 24),
+                SizedBox(height: 12),
+                ShimmerBox(width: 160, height: 14),
+              ],
+            ),
           ),
-          const SizedBox(height: 24),
-          // Chart areas
+          // Stat cards overlapping hero
+          Transform.translate(
+            offset: const Offset(0, -30),
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  Expanded(child: ShimmerStatCard()),
+                  SizedBox(width: 20),
+                  Expanded(child: ShimmerStatCard()),
+                  SizedBox(width: 20),
+                  Expanded(child: ShimmerStatCard()),
+                  SizedBox(width: 20),
+                  Expanded(child: ShimmerStatCard()),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Chart + sidebar
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -223,9 +249,9 @@ class ShimmerDashboard extends StatelessWidget {
                   height: 300,
                   decoration: BoxDecoration(
                     color: AppColors.card,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: AppSpacing.cardRadius,
                   ),
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(24),
                   child: const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -236,30 +262,47 @@ class ShimmerDashboard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 20),
               Expanded(
                 flex: 2,
-                child: Container(
-                  height: 310,
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  padding: const EdgeInsets.all(20),
-                  child: const Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ShimmerBox(width: 140, height: 20),
-                      SizedBox(height: 20),
-                      ShimmerBox(height: 48, borderRadius: 12),
-                      SizedBox(height: 12),
-                      ShimmerBox(height: 48, borderRadius: 12),
-                      SizedBox(height: 12),
-                      ShimmerBox(height: 48, borderRadius: 12),
-                      SizedBox(height: 12),
-                      ShimmerBox(height: 48, borderRadius: 12),
-                    ],
-                  ),
+                child: Column(
+                  children: [
+                    Container(
+                      height: 120,
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: AppSpacing.cardRadius,
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerBox(width: 120, height: 16),
+                          Spacer(),
+                          ShimmerBox(width: 160, height: 28),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    Container(
+                      height: 160,
+                      decoration: BoxDecoration(
+                        color: AppColors.card,
+                        borderRadius: AppSpacing.cardRadius,
+                      ),
+                      padding: const EdgeInsets.all(24),
+                      child: const Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerBox(width: 140, height: 16),
+                          SizedBox(height: 16),
+                          ShimmerBox(height: 36, borderRadius: 10),
+                          SizedBox(height: 10),
+                          ShimmerBox(height: 36, borderRadius: 10),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],

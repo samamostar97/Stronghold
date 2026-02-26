@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/supplier_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
@@ -50,9 +54,7 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
       builder: (_) => SupplierDialog(
         initial: supplier,
         onSave: (name, website) async {
-          await ref
-              .read(supplierListProvider.notifier)
-              .update(
+          await ref.read(supplierListProvider.notifier).update(
                 supplier.id,
                 UpdateSupplierRequest(name: name, website: website),
               );
@@ -94,27 +96,66 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
     final state = ref.watch(supplierListProvider);
     final notifier = ref.read(supplierListProvider.notifier);
 
-    return CrudListScaffold<SupplierResponse, SupplierQueryFilter>(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addSupplier,
-      searchHint: 'Pretrazi po nazivu...',
-      addButtonText: '+ Dodaj dobavljaca',
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'name', label: 'Naziv (A-Z)'),
-        SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
-        SortOption(value: 'createdat', label: 'Najstarije prvo'),
-        SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Dobavljaci', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: CrudListScaffold<SupplierResponse, SupplierQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addSupplier,
+            searchHint: 'Pretrazi po nazivu...',
+            addButtonText: '+ Dodaj dobavljaca',
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'name', label: 'Naziv (A-Z)'),
+              SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
+              SortOption(value: 'createdat', label: 'Najstarije prvo'),
+              SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+            ],
+            tableBuilder: (items) => SuppliersTable(
+              suppliers: items,
+              onEdit: _editSupplier,
+              onDelete: _deleteSupplier,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => SuppliersTable(
-        suppliers: items,
-        onEdit: _editSupplier,
-        onDelete: _deleteSupplier,
-      ),
     );
   }
 }

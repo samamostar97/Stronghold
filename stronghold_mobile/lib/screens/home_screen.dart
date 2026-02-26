@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/home_explore_grid.dart';
@@ -44,22 +46,56 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             children: [
               const SizedBox(height: AppSpacing.sm),
               // Greeting
-              Text(_greeting(), style: AppTextStyles.bodyMd),
+              Text(_greeting(), style: AppTextStyles.bodyMd)
+                  .animate()
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve),
               const SizedBox(height: AppSpacing.xs),
               Text(
                 name,
                 style: AppTextStyles.headingLg,
                 overflow: TextOverflow.ellipsis,
-              ),
+              )
+                  .animate(delay: 100.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideX(
+                    begin: -0.03,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
               const SizedBox(height: AppSpacing.xl),
               // Warrior Banner
-              const WarriorBanner(),
+              const WarriorBanner()
+                  .animate(delay: 200.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.06,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
               const SizedBox(height: AppSpacing.xxl),
               // Notifications
-              const HomeNotifications(),
+              const HomeNotifications()
+                  .animate(delay: 350.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.04,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
               const SizedBox(height: AppSpacing.xxl),
               // Explore grid
-              const HomeExploreGrid(),
+              const HomeExploreGrid()
+                  .animate(delay: 500.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.04,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
               const SizedBox(height: AppSpacing.xxl),
             ],
           ),

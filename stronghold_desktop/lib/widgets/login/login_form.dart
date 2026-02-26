@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
+import '../../constants/motion.dart';
 
-/// Right-panel login form with email/password, error banner, submit button.
+/// Right-panel login form with Aether styling.
 class LoginForm extends StatefulWidget {
   const LoginForm({super.key});
 
@@ -23,7 +25,6 @@ class _LoginFormState extends State<LoginForm>
   bool _loading = false;
   String? _error;
 
-  // Shake animation for error
   late final AnimationController _shakeCtl;
   late final Animation<double> _shakeAnim;
 
@@ -95,8 +96,7 @@ class _LoginFormState extends State<LoginForm>
   Widget build(BuildContext context) {
     return Center(
       child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.xxxl + 16, vertical: AppSpacing.xxl),
+        padding: const EdgeInsets.symmetric(horizontal: 48, vertical: 32),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 380),
           child: Form(
@@ -105,25 +105,30 @@ class _LoginFormState extends State<LoginForm>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('Dobrodosli nazad', style: AppTextStyles.statLg),
+                Text('Dobrodosli nazad', style: AppTextStyles.pageTitle)
+                    .animate()
+                    .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                    .slideY(begin: 0.1, end: 0, duration: Motion.smooth),
                 const SizedBox(height: AppSpacing.sm),
                 Text('Prijavite se na administratorski panel',
-                    style: AppTextStyles.bodyMd),
-                const SizedBox(height: AppSpacing.xxxl + 8),
+                    style: AppTextStyles.bodySecondary)
+                    .animate(delay: 100.ms)
+                    .fadeIn(duration: Motion.smooth, curve: Motion.curve),
+                const SizedBox(height: AppSpacing.huge),
                 _label('KORISNICKO IME'),
                 const SizedBox(height: AppSpacing.sm),
                 _emailField(),
-                const SizedBox(height: AppSpacing.xl),
+                const SizedBox(height: AppSpacing.lg),
                 _label('LOZINKA'),
                 const SizedBox(height: AppSpacing.sm),
                 _passwordField(),
-                const SizedBox(height: AppSpacing.xxl),
+                const SizedBox(height: AppSpacing.xl),
                 if (_error != null) ...[
                   _errorBanner(),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.base),
                 ],
                 _submitButton(),
-                const SizedBox(height: AppSpacing.xxxl + 16),
+                const SizedBox(height: AppSpacing.huge),
                 Center(
                   child: Text('TheStronghold Admin v1.0.0',
                       style: AppTextStyles.caption),
@@ -136,7 +141,7 @@ class _LoginFormState extends State<LoginForm>
     );
   }
 
-  Widget _label(String text) => Text(text, style: AppTextStyles.label);
+  Widget _label(String text) => Text(text, style: AppTextStyles.overline);
 
   Widget _emailField() => _FocusGlowField(
         controller: _emailCtl,
@@ -166,21 +171,23 @@ class _LoginFormState extends State<LoginForm>
 
   Widget _errorBanner() => AnimatedBuilder(
         animation: _shakeAnim,
-        builder: (context, child) =>
-            Transform.translate(offset: Offset(_shakeAnim.value, 0), child: child),
+        builder: (context, child) => Transform.translate(
+            offset: Offset(_shakeAnim.value, 0), child: child),
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.errorDim,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+            color: AppColors.danger.withOpacity(0.08),
+            borderRadius: AppSpacing.badgeRadius,
+            border: Border.all(color: AppColors.danger.withOpacity(0.3)),
           ),
           child: Row(children: [
-            Icon(LucideIcons.alertCircle, color: AppColors.error, size: 18),
+            const Icon(LucideIcons.alertCircle,
+                color: AppColors.danger, size: 18),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Text(_error!,
-                  style: AppTextStyles.bodySm.copyWith(color: AppColors.error)),
+                  style:
+                      AppTextStyles.caption.copyWith(color: AppColors.danger)),
             ),
           ]),
         ),
@@ -191,8 +198,6 @@ class _LoginFormState extends State<LoginForm>
         onTap: _submit,
       );
 }
-
-// ── Focus glow input ────────────────────────────────────────────────────
 
 class _FocusGlowField extends StatefulWidget {
   const _FocusGlowField({
@@ -223,14 +228,14 @@ class _FocusGlowFieldState extends State<_FocusGlowField> {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
+      duration: Motion.fast,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        borderRadius: AppSpacing.smallRadius,
         boxShadow: _focused
             ? [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 12,
+                  color: AppColors.electric.withOpacity(0.15),
+                  blurRadius: 16,
                 ),
               ]
             : [],
@@ -241,35 +246,35 @@ class _FocusGlowFieldState extends State<_FocusGlowField> {
           controller: widget.controller,
           obscureText: widget.obscure,
           onFieldSubmitted: widget.onSubmitted,
-          style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.body,
           validator: widget.validator,
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle:
-                AppTextStyles.bodyMd.copyWith(color: AppColors.textMuted),
+            hintStyle: AppTextStyles.bodySecondary
+                .copyWith(color: AppColors.textMuted),
             filled: true,
-            fillColor: AppColors.surfaceLight,
+            fillColor: AppColors.surfaceAlt,
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.lg, vertical: AppSpacing.lg),
+                horizontal: AppSpacing.base, vertical: AppSpacing.base),
             prefixIcon:
                 Icon(widget.prefix, color: AppColors.textMuted, size: 18),
             suffixIcon: widget.suffix,
             enabledBorder: OutlineInputBorder(
               borderSide: const BorderSide(color: AppColors.border),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              borderRadius: AppSpacing.smallRadius,
             ),
             focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.primaryBorder),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              borderSide: const BorderSide(color: AppColors.electric),
+              borderRadius: AppSpacing.smallRadius,
             ),
             errorBorder: OutlineInputBorder(
               borderSide: BorderSide(
-                  color: AppColors.error.withValues(alpha: 0.5)),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                  color: AppColors.danger.withOpacity(0.5)),
+              borderRadius: AppSpacing.smallRadius,
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.error),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              borderSide: const BorderSide(color: AppColors.danger),
+              borderRadius: AppSpacing.smallRadius,
             ),
           ),
         ),
@@ -277,8 +282,6 @@ class _FocusGlowFieldState extends State<_FocusGlowField> {
     );
   }
 }
-
-// ── Hover-lift gradient button ──────────────────────────────────────────
 
 class _HoverLiftButton extends StatefulWidget {
   const _HoverLiftButton({required this.loading, required this.onTap});
@@ -301,26 +304,26 @@ class _HoverLiftButtonState extends State<_HoverLiftButton> {
       child: GestureDetector(
         onTap: widget.loading ? null : widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: Motion.fast,
           curve: Curves.easeOutCubic,
           transform: Matrix4.translationValues(
               0, _hover && !widget.loading ? -1 : 0, 0),
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.base),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            borderRadius: AppSpacing.buttonRadius,
             gradient: LinearGradient(
               colors: widget.loading
                   ? [
-                      AppColors.primary.withValues(alpha: 0.6),
-                      AppColors.secondary.withValues(alpha: 0.6),
+                      AppColors.electric.withOpacity(0.6),
+                      AppColors.cyan.withOpacity(0.6),
                     ]
-                  : [AppColors.primary, AppColors.secondary],
+                  : [AppColors.electric, AppColors.cyan],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(
-                    alpha: _hover && !widget.loading ? 0.4 : 0.25),
-                blurRadius: _hover && !widget.loading ? 20 : 12,
+                color: AppColors.electric.withOpacity(
+                    _hover && !widget.loading ? 0.35 : 0.25),
+                blurRadius: _hover && !widget.loading ? 24 : 16,
                 offset: const Offset(0, 4),
               ),
             ],
@@ -336,12 +339,12 @@ class _HoverLiftButtonState extends State<_HoverLiftButton> {
                     ),
                     const SizedBox(width: AppSpacing.md),
                     Text('Prijavljivanje...',
-                        style: AppTextStyles.bodyBold
+                        style: AppTextStyles.bodyMedium
                             .copyWith(color: Colors.white)),
                   ])
                 : Row(mainAxisSize: MainAxisSize.min, children: [
-                    Text('Sign In',
-                        style: AppTextStyles.bodyBold
+                    Text('Prijavi se',
+                        style: AppTextStyles.bodyMedium
                             .copyWith(color: Colors.white, fontSize: 15)),
                     const SizedBox(width: AppSpacing.sm),
                     const Icon(LucideIcons.arrowRight,

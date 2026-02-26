@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/cart_provider.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/cart_item_card.dart';
@@ -56,7 +58,7 @@ class CartScreen extends ConsumerWidget {
             ]),
           ),
           Expanded(
-            child: items.isEmpty
+            child: (items.isEmpty
                 ? AppEmptyState(
                     icon: LucideIcons.shoppingCart,
                     title: 'Korpa je prazna',
@@ -85,13 +87,29 @@ class CartScreen extends ConsumerWidget {
                         ),
                       );
                     },
-                  ),
+                  ))
+                .animate(delay: 100.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.04,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
           ),
           if (items.isNotEmpty)
             OrderSummaryCard(
               totalAmount: cartState.totalAmount,
               onCheckout: () => context.push('/checkout'),
-            ),
+            )
+                .animate(delay: 200.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.1,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
         ]),
       ),
     );

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/seminar_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
@@ -95,7 +97,6 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
       ),
     );
     if (confirmed != true) return;
-
     try {
       await ref.read(seminarListProvider.notifier).delete(seminar.id);
       if (mounted) showSuccessAnimation(context);
@@ -119,7 +120,6 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
       ),
     );
     if (confirmed != true) return;
-
     try {
       await ref.read(seminarListProvider.notifier).cancelSeminar(seminar.id);
       if (mounted) showSuccessAnimation(context);
@@ -133,72 +133,117 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     }
   }
 
-  Widget _buildStatusFilter(SeminarListNotifier notifier) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          value: _selectedStatus,
-          hint: Text('Status', style: AppTextStyles.bodyMd),
-          dropdownColor: AppColors.surfaceSolid,
-          style: AppTextStyles.bodyBold,
-          icon: Icon(LucideIcons.filter, color: AppColors.textMuted, size: 16),
-          items: const [
-            DropdownMenuItem<String?>(value: null, child: Text('Svi')),
-            DropdownMenuItem<String?>(value: 'active', child: Text('Aktivni')),
-            DropdownMenuItem<String?>(
-              value: 'cancelled',
-              child: Text('Otkazani'),
-            ),
-            DropdownMenuItem<String?>(
-              value: 'finished',
-              child: Text('Zavrseni'),
-            ),
-          ],
-          onChanged: (value) {
-            setState(() => _selectedStatus = value);
-            notifier.setStatus(value);
-          },
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(seminarListProvider);
     final notifier = ref.read(seminarListProvider.notifier);
 
-    return CrudListScaffold<SeminarResponse, SeminarQueryFilter>(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addSeminar,
-      searchHint: 'Pretrazi po temi ili voditelju...',
-      addButtonText: '+ Dodaj seminar',
-      extraFilter: _buildStatusFilter(notifier),
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'topic', label: 'Tema (A-Z)'),
-        SortOption(value: 'topicdesc', label: 'Tema (Z-A)'),
-        SortOption(value: 'speakername', label: 'Voditelj (A-Z)'),
-        SortOption(value: 'speakernamedesc', label: 'Voditelj (Z-A)'),
-        SortOption(value: 'eventdate', label: 'Najstarije prvo'),
-        SortOption(value: 'eventdatedesc', label: 'Najnovije prvo'),
-        SortOption(value: 'maxcapacity', label: 'Kapacitet (manji)'),
-        SortOption(value: 'maxcapacitydesc', label: 'Kapacitet (veci)'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Seminari', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: CrudListScaffold<SeminarResponse, SeminarQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addSeminar,
+            searchHint: 'Pretrazi po temi ili voditelju...',
+            addButtonText: '+ Dodaj seminar',
+            extraFilter: _StatusFilter(
+              value: _selectedStatus,
+              onChanged: (v) {
+                setState(() => _selectedStatus = v);
+                notifier.setStatus(v);
+              },
+            ),
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'topic', label: 'Tema (A-Z)'),
+              SortOption(value: 'topicdesc', label: 'Tema (Z-A)'),
+              SortOption(value: 'speakername', label: 'Voditelj (A-Z)'),
+              SortOption(value: 'speakernamedesc', label: 'Voditelj (Z-A)'),
+              SortOption(value: 'eventdate', label: 'Najstarije prvo'),
+              SortOption(value: 'eventdatedesc', label: 'Najnovije prvo'),
+              SortOption(value: 'maxcapacity', label: 'Kapacitet (manji)'),
+              SortOption(value: 'maxcapacitydesc', label: 'Kapacitet (veci)'),
+            ],
+            tableBuilder: (items) => SeminarsTable(
+              seminars: items,
+              onViewDetails: _viewDetails,
+              onDelete: _deleteSeminar,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => SeminarsTable(
-        seminars: items,
-        onViewDetails: _viewDetails,
-        onDelete: _deleteSeminar,
+    );
+  }
+}
+
+class _StatusFilter extends StatelessWidget {
+  const _StatusFilter({required this.value, required this.onChanged});
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.smallRadius,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: value,
+          hint: Text('Status', style: AppTextStyles.bodySecondary),
+          dropdownColor: AppColors.surface,
+          style: AppTextStyles.bodyMedium,
+          icon: Icon(LucideIcons.filter, color: AppColors.textMuted, size: 16),
+          items: const [
+            DropdownMenuItem<String?>(value: null, child: Text('Svi')),
+            DropdownMenuItem<String?>(value: 'active', child: Text('Aktivni')),
+            DropdownMenuItem<String?>(
+                value: 'cancelled', child: Text('Otkazani')),
+            DropdownMenuItem<String?>(
+                value: 'finished', child: Text('Zavrseni')),
+          ],
+          onChanged: onChanged,
+        ),
       ),
     );
   }

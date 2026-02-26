@@ -4,134 +4,84 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
-import 'package:stronghold_core/stronghold_core.dart';
+import '../../constants/motion.dart';
 
-/// Quick actions panel with icon buttons for common operations.
+/// Inline quick-action chips for the dashboard header area.
 class DashboardQuickActions extends StatelessWidget {
   const DashboardQuickActions({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Brze akcije', style: AppTextStyles.headingSm),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: _ActionBtn(
-                  icon: LucideIcons.logIn,
-                  label: 'Check-in',
-                  color: AppColors.primary,
-                  onTap: () => context.go('/visitors'),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: _ActionBtn(
-                  icon: LucideIcons.userPlus,
-                  label: 'Novi korisnik',
-                  color: AppColors.secondary,
-                  onTap: () => context.go('/users'),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Expanded(
-                child: _ActionBtn(
-                  icon: LucideIcons.shoppingCart,
-                  label: 'Kupovine',
-                  color: AppColors.success,
-                  onTap: () => context.go('/orders'),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: _ActionBtn(
-                  icon: LucideIcons.barChart3,
-                  label: 'Izvjestaji',
-                  color: AppColors.warning,
-                  onTap: () => context.go('/reports'),
-                ),
-              ),
-            ],
-          ),
+    final actions = [
+      _Action(LucideIcons.logIn, 'Check-in', AppColors.electric, '/visitors'),
+      _Action(LucideIcons.userPlus, 'Novi korisnik', AppColors.purple, '/users'),
+      _Action(LucideIcons.shoppingCart, 'Kupovine', AppColors.success, '/orders'),
+      _Action(LucideIcons.barChart3, 'Izvjestaji', AppColors.warning, '/reports'),
+    ];
+
+    return Row(
+      children: [
+        for (int i = 0; i < actions.length; i++) ...[
+          if (i > 0) const SizedBox(width: AppSpacing.sm),
+          _QuickActionChip(action: actions[i]),
         ],
-      ),
+      ],
     );
   }
 }
 
-class _ActionBtn extends StatefulWidget {
-  const _ActionBtn({
-    required this.icon,
-    required this.label,
-    required this.color,
-    required this.onTap,
-  });
-
+class _Action {
   final IconData icon;
   final String label;
   final Color color;
-  final VoidCallback onTap;
-
-  @override
-  State<_ActionBtn> createState() => _ActionBtnState();
+  final String route;
+  const _Action(this.icon, this.label, this.color, this.route);
 }
 
-class _ActionBtnState extends State<_ActionBtn> {
+class _QuickActionChip extends StatefulWidget {
+  const _QuickActionChip({required this.action});
+  final _Action action;
+
+  @override
+  State<_QuickActionChip> createState() => _QuickActionChipState();
+}
+
+class _QuickActionChipState extends State<_QuickActionChip> {
   bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
+    final a = widget.action;
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
-        onTap: widget.onTap,
+        onTap: () => context.go(a.route),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: Motion.fast,
+          curve: Curves.easeOut,
           padding: const EdgeInsets.symmetric(
-            vertical: AppSpacing.lg,
-            horizontal: AppSpacing.md,
+            horizontal: AppSpacing.base,
+            vertical: AppSpacing.sm,
           ),
           decoration: BoxDecoration(
-            color: _hover
-                ? widget.color.withValues(alpha: 0.12)
-                : AppColors.surfaceHover,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+            color: _hover ? a.color.withValues(alpha: 0.08) : AppColors.surface,
+            borderRadius: AppSpacing.buttonRadius,
             border: Border.all(
-              color: _hover
-                  ? widget.color.withValues(alpha: 0.25)
-                  : AppColors.border,
+              color: _hover ? a.color.withValues(alpha: 0.3) : AppColors.border,
             ),
           ),
-          child: Column(
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: widget.color.withValues(alpha: 0.10),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: Icon(widget.icon, color: widget.color, size: 22),
-              ),
-              const SizedBox(height: AppSpacing.sm),
+              Icon(a.icon, size: 16, color: a.color),
+              const SizedBox(width: AppSpacing.sm),
               Text(
-                widget.label,
-                style: AppTextStyles.bodySm.copyWith(
-                  color: _hover ? AppColors.textPrimary : AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
+                a.label,
+                style: AppTextStyles.label.copyWith(
+                  color: _hover ? a.color : AppColors.textSecondary,
                 ),
-                textAlign: TextAlign.center,
               ),
             ],
           ),

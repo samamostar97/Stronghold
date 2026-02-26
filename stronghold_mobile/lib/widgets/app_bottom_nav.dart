@@ -23,9 +23,16 @@ class AppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
-        border: Border(top: BorderSide(color: AppColors.divider)),
+        border: const Border(top: BorderSide(color: AppColors.border)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.electric.withOpacity(0.06),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -42,19 +49,33 @@ class AppBottomNav extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // Active indicator bar
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        height: 3,
+                        width: active ? 20 : 0,
+                        margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        decoration: BoxDecoration(
+                          gradient: active
+                              ? AppColors.accentGradient
+                              : null,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
                       Icon(
                         item.icon,
                         size: 22,
                         color: active
-                            ? AppColors.primary
+                            ? AppColors.electric
                             : AppColors.textMuted,
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         item.label,
-                        style: active
-                            ? AppTextStyles.tabActive
-                            : AppTextStyles.tabInactive,
+                        style: (active
+                                ? AppTextStyles.tabActive
+                                : AppTextStyles.tabInactive)
+                            .copyWith(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],

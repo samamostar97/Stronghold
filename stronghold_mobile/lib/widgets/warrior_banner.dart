@@ -152,10 +152,28 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
   }
 
   Widget _placeholderAvatar() {
+    final user = ref.read(authProvider).user;
+    final name = user?.displayName ?? '';
+    final parts = name.trim().split(RegExp(r'\s+'));
+    final initials = parts.length >= 2
+        ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
+        : (parts.isNotEmpty && parts.first.isNotEmpty
+            ? parts.first[0].toUpperCase()
+            : '?');
+
     return Container(
-      color: AppColors.surfaceElevated,
+      decoration: const BoxDecoration(
+        gradient: AppGradients.primaryGradient,
+      ),
       alignment: Alignment.center,
-      child: const Icon(LucideIcons.user, size: 24, color: AppColors.textMuted),
+      child: Text(
+        initials,
+        style: AppTextStyles.headingSm.copyWith(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 
@@ -191,9 +209,15 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
             Container(
               width: 8,
               height: 8,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.success,
                 shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.success.withOpacity(0.4),
+                    blurRadius: 12,
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: AppSpacing.sm),

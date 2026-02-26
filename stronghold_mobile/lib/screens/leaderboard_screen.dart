@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/profile_provider.dart';
 import '../utils/error_handler.dart';
 import '../widgets/app_empty_state.dart';
@@ -101,12 +103,28 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen>
                     child: Column(children: [
                       const SizedBox(height: AppSpacing.xl),
                       LeaderboardPodium(
-                          top3: entries.take(3).toList()),
+                          top3: entries.take(3).toList())
+                          .animate()
+                          .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                          .scale(
+                            begin: const Offset(0.95, 0.95),
+                            end: const Offset(1, 1),
+                            duration: Motion.smooth,
+                            curve: Motion.curve,
+                          ),
                       const SizedBox(height: AppSpacing.xxxl),
-                      ...entries.skip(3).map((e) => Padding(
+                      ...entries.skip(3).toList().asMap().entries.map((e) => Padding(
                             padding: const EdgeInsets.only(
                                 bottom: AppSpacing.md),
-                            child: LeaderboardRow(entry: e),
+                            child: LeaderboardRow(entry: e.value)
+                                .animate(delay: Duration(milliseconds: 200 + e.key * 50))
+                                .fadeIn(duration: Motion.normal, curve: Motion.curve)
+                                .slideX(
+                                  begin: 0.05,
+                                  end: 0,
+                                  duration: Motion.normal,
+                                  curve: Motion.curve,
+                                ),
                           )),
                       const SizedBox(height: AppSpacing.xl),
                     ]),

@@ -9,10 +9,7 @@ import '../../constants/app_text_styles.dart';
 import '../../providers/notification_provider.dart';
 import 'notification_popup.dart';
 
-/// Persistent top bar for the admin dashboard shell.
-///
-/// Displays the current page title, notification bell with badge,
-/// and the admin profile dropdown.
+/// Aether top bar for admin dashboard shell.
 class AdminTopBar extends ConsumerWidget {
   const AdminTopBar({
     super.key,
@@ -27,16 +24,22 @@ class AdminTopBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
-      decoration: const BoxDecoration(
-        color: AppColors.surfaceSolid,
-        border: Border(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: const Border(
           bottom: BorderSide(color: AppColors.border, width: 1),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.electric.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          // Page title
           Text(
             title,
             style: AppTextStyles.headingMd,
@@ -44,12 +47,8 @@ class AdminTopBar extends ConsumerWidget {
             maxLines: 1,
           ),
           const Spacer(),
-
-          // Notification bell
           _NotificationBell(onNavigateToOrders: onNavigateToOrders),
           const SizedBox(width: AppSpacing.sm),
-
-          // Profile dropdown
           _ProfileDropdown(onLogout: () => _logout(context)),
         ],
       ),
@@ -86,7 +85,6 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
   }
 
   void _openPopup() {
-    // Fetch latest notifications when opening
     ref.read(notificationProvider.notifier).fetchRecent();
 
     _overlayEntry = OverlayEntry(
@@ -95,9 +93,7 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
         onTap: _closePopup,
         child: Stack(
           children: [
-            // Invisible barrier to catch taps outside
             Positioned.fill(child: Container(color: Colors.transparent)),
-            // Popup positioned below bell
             Positioned(
               width: 380,
               child: CompositedTransformFollower(
@@ -116,7 +112,6 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
                           ref.read(notificationProvider.notifier).markAllAsRead(),
                       onTapNotification: (n) {
                         _closePopup();
-                        // Navigate to orders if it's an order notification
                         if ((n.type == 'new_order' ||
                                 n.type == 'order_cancelled') &&
                             widget.onNavigateToOrders != null) {
@@ -157,24 +152,32 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
       link: _layerLink,
       child: Stack(
         children: [
-          IconButton(
-            icon: const Icon(
-              LucideIcons.bell,
-              size: 20,
-              color: AppColors.textSecondary,
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: AppSpacing.smallRadius,
+              color: Colors.transparent,
             ),
-            onPressed: _togglePopup,
+            child: IconButton(
+              icon: const Icon(
+                LucideIcons.bell,
+                size: 20,
+                color: AppColors.textSecondary,
+              ),
+              onPressed: _togglePopup,
+            ),
           ),
           if (unreadCount > 0)
             Positioned(
               right: 6,
               top: 6,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                constraints:
+                    const BoxConstraints(minWidth: 16, minHeight: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.error,
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.danger,
+                  borderRadius: AppSpacing.badgeRadius,
                 ),
                 child: Center(
                   child: Text(
@@ -204,9 +207,11 @@ class _ProfileDropdown extends StatelessWidget {
     return PopupMenuButton<String>(
       offset: const Offset(0, 50),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+        borderRadius: AppSpacing.panelRadius,
       ),
-      color: AppColors.surfaceSolid,
+      color: AppColors.surface,
+      elevation: 8,
+      shadowColor: AppColors.electric.withOpacity(0.12),
       onSelected: (value) {
         if (value == 'logout') onLogout();
       },
@@ -216,11 +221,11 @@ class _ProfileDropdown extends StatelessWidget {
           child: Row(
             children: [
               const Icon(LucideIcons.logOut,
-                  color: AppColors.error, size: 18),
+                  color: AppColors.danger, size: 18),
               const SizedBox(width: AppSpacing.md),
               Text('Odjavi se',
-                  style: AppTextStyles.bodyMd
-                      .copyWith(color: AppColors.error)),
+                  style: AppTextStyles.bodyMedium
+                      .copyWith(color: AppColors.danger)),
             ],
           ),
         ),

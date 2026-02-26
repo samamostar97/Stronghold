@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-/// Avatar with optional network image and initials fallback.
+/// Avatar with optional network image and initials fallback — Aether design.
 class AvatarWidget extends StatelessWidget {
   final String initials;
   final double size;
@@ -16,12 +16,12 @@ class AvatarWidget extends StatelessWidget {
     this.size = 40,
     this.imageUrl,
     this.gradient = const LinearGradient(
-      colors: [Color(0xFF22D3EE), Color(0xFF6366F1)],
+      colors: [Color(0xFF4F8EF7), Color(0xFF38BDF8)],
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
     ),
-    this.textColor = const Color(0xFFF1F5F9),
-    this.borderRadius = 10.0,
+    this.textColor = Colors.white,
+    this.borderRadius = 14.0,
   });
 
   @override

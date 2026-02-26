@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/order_provider.dart';
 import '../widgets/app_empty_state.dart';
 import '../widgets/app_error_state.dart';
@@ -87,7 +89,10 @@ class _OrderHistoryScreenState
                       style: AppTextStyles.headingMd)),
             ]),
           ),
-          Expanded(child: _body(state)),
+          Expanded(child: _body(state))
+              .animate(delay: 100.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(begin: 0.04, end: 0, duration: Motion.smooth, curve: Motion.curve),
         ]),
       ),
     );

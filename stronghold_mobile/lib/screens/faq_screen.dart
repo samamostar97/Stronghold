@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/faq_provider.dart';
 import '../utils/error_handler.dart';
 import '../widgets/app_empty_state.dart';
@@ -70,8 +72,15 @@ class FaqScreen extends ConsumerWidget {
                   itemBuilder: (_, i) => Padding(
                     padding: const EdgeInsets.only(
                         bottom: AppSpacing.md),
-                    child:
-                        FaqAccordionItem(faq: faqs[i]),
+                    child: FaqAccordionItem(faq: faqs[i])
+                        .animate(delay: Duration(milliseconds: 50 * i))
+                        .fadeIn(duration: Motion.normal, curve: Motion.curve)
+                        .slideY(
+                          begin: 0.05,
+                          end: 0,
+                          duration: Motion.normal,
+                          curve: Motion.curve,
+                        ),
                   ),
                 );
               },

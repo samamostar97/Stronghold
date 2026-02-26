@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/user_provider.dart';
 import '../providers/membership_provider.dart';
 import '../utils/error_handler.dart';
@@ -97,17 +100,102 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(userListProvider);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Page header
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Clanarine', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} korisnika',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        // Content
+        Expanded(
+          child: _MembershipContent(
+            state: state,
+            searchController: _searchController,
+            onSearch: (q) =>
+                ref.read(userListProvider.notifier).setSearch(q),
+            onSort: (v) =>
+                ref.read(userListProvider.notifier).setOrderBy(v),
+            onPage: (p) =>
+                ref.read(userListProvider.notifier).goToPage(p),
+            onLoad: () => ref.read(userListProvider.notifier).load(),
+            onViewPayments: _viewPayments,
+            onAddPayment: _addPayment,
+            onRevoke: _revokeMembership,
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _MembershipContent extends StatelessWidget {
+  const _MembershipContent({
+    required this.state,
+    required this.searchController,
+    required this.onSearch,
+    required this.onSort,
+    required this.onPage,
+    required this.onLoad,
+    required this.onViewPayments,
+    required this.onAddPayment,
+    required this.onRevoke,
+  });
+
+  final dynamic state;
+  final TextEditingController searchController;
+  final ValueChanged<String?> onSearch;
+  final ValueChanged<String?> onSort;
+  final ValueChanged<int> onPage;
+  final VoidCallback onLoad;
+  final ValueChanged<UserResponse> onViewPayments;
+  final ValueChanged<UserResponse> onAddPayment;
+  final ValueChanged<UserResponse> onRevoke;
+
+  @override
+  Widget build(BuildContext context) {
     return LayoutBuilder(builder: (context, constraints) {
       final w = constraints.maxWidth;
       final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
+
       return Padding(
-        padding:
-            EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
+        padding: EdgeInsets.symmetric(
+            horizontal: pad, vertical: AppSpacing.xl),
         child: Container(
           padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
           decoration: BoxDecoration(
-            color: AppColors.surfaceSolid,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+            color: AppColors.surface,
+            borderRadius: AppSpacing.cardRadius,
             border: Border.all(color: AppColors.border),
           ),
           child: Column(
@@ -117,9 +205,8 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
                 children: [
                   Expanded(
                     child: SearchInput(
-                      controller: _searchController,
-                      onSubmitted: (q) =>
-                          ref.read(userListProvider.notifier).setSearch(q),
+                      controller: searchController,
+                      onSubmitted: onSearch,
                       hintText:
                           'Pretrazi po imenu, prezimenu ili korisnickom imenu...',
                     ),
@@ -127,13 +214,12 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
                   const SizedBox(width: AppSpacing.lg),
                   _SortDropdown(
                     value: state.filter.orderBy,
-                    onChanged: (v) =>
-                        ref.read(userListProvider.notifier).setOrderBy(v),
+                    onChanged: onSort,
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.xxl),
-              Expanded(child: _buildContent(state)),
+              Expanded(child: _buildBody()),
             ],
           ),
         ),
@@ -141,53 +227,53 @@ class _MembershipsScreenState extends ConsumerState<MembershipsScreen> {
     });
   }
 
-  Widget _buildContent(dynamic userState) {
-    if (userState.isLoading) {
+  Widget _buildBody() {
+    if (state.isLoading) {
       return const ShimmerTable(columnFlex: [2, 2, 2, 3, 4]);
     }
-    if (userState.error != null) {
+    if (state.error != null) {
       return Center(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
+          Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
           const SizedBox(height: AppSpacing.sm),
-          Text(userState.error!,
-              style: AppTextStyles.bodyMd, textAlign: TextAlign.center),
+          Text(state.error!,
+              style: AppTextStyles.bodySecondary,
+              textAlign: TextAlign.center),
           const SizedBox(height: AppSpacing.lg),
-          GradientButton.text(
-            text: 'Pokusaj ponovo',
-            onPressed: () => ref.read(userListProvider.notifier).load(),
-          ),
+          GradientButton.text(text: 'Pokusaj ponovo', onPressed: onLoad),
         ]),
       );
     }
-    final users = userState.data?.items ?? <UserResponse>[];
+    final users = state.data?.items ?? <UserResponse>[];
     final totalPages =
-        userState.data?.totalPages(userState.filter.pageSize) ?? 1;
-    final totalCount = userState.data?.totalCount ?? 0;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Expanded(
-        child: MembershipsTable(
-          users: users,
-          onViewPayments: _viewPayments,
-          onAddPayment: _addPayment,
-          onRevokeMembership: _revokeMembership,
+        state.data?.totalPages(state.filter.pageSize) ?? 1;
+    final totalCount = state.data?.totalCount ?? 0;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: MembershipsTable(
+            users: users,
+            onViewPayments: onViewPayments,
+            onAddPayment: onAddPayment,
+            onRevokeMembership: onRevoke,
+          ),
         ),
-      ),
-      const SizedBox(height: AppSpacing.lg),
-      PaginationControls(
-        currentPage: userState.filter.pageNumber,
-        totalPages: totalPages,
-        totalCount: totalCount,
-        onPageChanged: (p) =>
-            ref.read(userListProvider.notifier).goToPage(p),
-      ),
-    ]);
+        const SizedBox(height: AppSpacing.lg),
+        PaginationControls(
+          currentPage: state.filter.pageNumber,
+          totalPages: totalPages,
+          totalCount: totalCount,
+          onPageChanged: onPage,
+        ),
+      ],
+    );
   }
 }
 
 class _SortDropdown extends StatelessWidget {
   const _SortDropdown({required this.value, required this.onChanged});
-
   final String? value;
   final ValueChanged<String?> onChanged;
 
@@ -208,20 +294,21 @@ class _SortDropdown extends StatelessWidget {
         vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        color: AppColors.surface,
+        borderRadius: AppSpacing.smallRadius,
         border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: _options.any((o) => o.value == value) ? value : null,
           icon: const Icon(Icons.sort, color: AppColors.textMuted, size: 18),
-          dropdownColor: AppColors.surfaceSolid,
-          style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
+          dropdownColor: AppColors.surface,
+          style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.textPrimary),
           items: _options
               .map((o) => DropdownMenuItem<String?>(
                     value: o.value,
-                    child: Text(o.label, style: AppTextStyles.bodyMd),
+                    child: Text(o.label, style: AppTextStyles.bodySecondary),
                   ))
               .toList(),
           onChanged: onChanged,

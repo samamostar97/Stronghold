@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-/// Animated ring progress indicator using CustomPainter.
+/// Animated ring progress indicator — Aether design.
 class RingProgress extends StatefulWidget {
   const RingProgress({
     super.key,
     required this.percentage,
-    this.color = const Color(0xFF22D3EE),
+    this.color = const Color(0xFF4F8EF7),
+    this.trackColor = const Color(0x1F4F8EF7),
     this.size = 48,
     this.strokeWidth = 4,
     this.child,
@@ -14,6 +15,7 @@ class RingProgress extends StatefulWidget {
 
   final double percentage;
   final Color color;
+  final Color trackColor;
   final double size;
   final double strokeWidth;
   final Widget? child;
@@ -72,6 +74,7 @@ class _RingProgressState extends State<RingProgress>
             painter: _RingPainter(
               progress: _animation.value / 100,
               color: widget.color,
+              trackColor: widget.trackColor,
               strokeWidth: widget.strokeWidth,
             ),
             child: child,
@@ -89,11 +92,13 @@ class _RingPainter extends CustomPainter {
   _RingPainter({
     required this.progress,
     required this.color,
+    required this.trackColor,
     required this.strokeWidth,
   });
 
   final double progress;
   final Color color;
+  final Color trackColor;
   final double strokeWidth;
 
   @override
@@ -106,7 +111,7 @@ class _RingPainter extends CustomPainter {
       center,
       radius,
       Paint()
-        ..color = const Color(0x0FFFFFFF)
+        ..color = trackColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeWidth,
     );

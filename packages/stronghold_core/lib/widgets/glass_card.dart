@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
-/// Glass-morphism card with optional hover effects.
+/// Floating card with border and glow shadow — Aether design system.
 class GlassCard extends StatefulWidget {
   const GlassCard({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
-    this.backgroundColor = const Color(0xFF131D32),
-    this.borderColor = const Color(0x0DFFFFFF),
-    this.hoverBorderColor = const Color(0x14FFFFFF),
-    this.borderRadius = 16.0,
+    this.padding = const EdgeInsets.all(24),
+    this.backgroundColor = const Color(0xFFFFFFFF),
+    this.borderColor = const Color(0x1F4F8EF7),
+    this.hoverBorderColor = const Color(0x334F8EF7),
+    this.borderRadius = 20.0,
     this.onTap,
     this.margin,
+    this.showShadow = true,
   });
 
   final Widget child;
@@ -22,6 +23,7 @@ class GlassCard extends StatefulWidget {
   final double borderRadius;
   final VoidCallback? onTap;
   final EdgeInsetsGeometry? margin;
+  final bool showShadow;
 
   @override
   State<GlassCard> createState() => _GlassCardState();
@@ -46,6 +48,17 @@ class _GlassCardState extends State<GlassCard> {
               ? widget.hoverBorderColor
               : widget.borderColor,
         ),
+        boxShadow: widget.showShadow
+            ? [
+                BoxShadow(
+                  color: const Color(0xFF4F8EF7).withOpacity(
+                    _hover && interactive ? 0.18 : 0.12,
+                  ),
+                  blurRadius: _hover && interactive ? 48 : 40,
+                  offset: Offset(0, _hover && interactive ? 12 : 8),
+                ),
+              ]
+            : null,
       ),
       child: widget.child,
     );

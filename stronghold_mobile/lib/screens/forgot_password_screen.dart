@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../utils/input_decoration_utils.dart';
@@ -201,7 +203,15 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     GlassCard(
                       padding: const EdgeInsets.all(AppSpacing.xl),
                       child: !_codeSent ? _buildEmailStep() : _buildResetStep(),
-                    ),
+                    )
+                        .animate(delay: 200.ms)
+                        .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                        .slideY(
+                          begin: 0.06,
+                          end: 0,
+                          duration: Motion.smooth,
+                          curve: Motion.curve,
+                        ),
                     const SizedBox(height: AppSpacing.xxl),
                   ],
                 ),

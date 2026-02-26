@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
@@ -115,7 +117,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                child: _success ? _buildSuccessView() : _buildFormView(),
+                child: (_success ? _buildSuccessView() : _buildFormView())
+                    .animate()
+                    .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                    .slideY(
+                      begin: 0.04,
+                      end: 0,
+                      duration: Motion.smooth,
+                      curve: Motion.curve,
+                    ),
               ),
             ),
           ],

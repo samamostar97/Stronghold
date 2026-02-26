@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/cart_provider.dart';
 import '../providers/recommendation_provider.dart';
@@ -66,7 +68,9 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(children: [
-          _appBar(cartCount),
+          _appBar(cartCount)
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve),
           Padding(
             padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenPadding),
@@ -92,11 +96,25 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
                     )
                   : null,
             ),
+          )
+              .animate(delay: 100.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve),
+          const SizedBox(height: AppSpacing.md),
+          _categoryBar(catsAsync)
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve),
+          const SizedBox(height: AppSpacing.md),
+          Expanded(
+            child: _body(state, recsAsync)
+                .animate(delay: 300.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.04,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
           ),
-          const SizedBox(height: AppSpacing.md),
-          _categoryBar(catsAsync),
-          const SizedBox(height: AppSpacing.md),
-          Expanded(child: _body(state, recsAsync)),
         ]),
       ),
     );

@@ -35,12 +35,12 @@ class NotificationPopup extends StatelessWidget {
         width: 380,
         constraints: const BoxConstraints(maxHeight: 460),
         decoration: BoxDecoration(
-          color: AppColors.surfaceSolid,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           border: Border.all(color: AppColors.border),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: AppColors.electric.withOpacity(0.15),
               blurRadius: 20,
               offset: const Offset(0, 8),
             ),
@@ -197,7 +197,7 @@ class _NotificationTile extends StatelessWidget {
               height: 32,
               decoration: BoxDecoration(
                 color: typeColor.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppSpacing.badgeRadius,
               ),
               child: Icon(_iconForType(notification.type),
                   size: 16, color: typeColor),

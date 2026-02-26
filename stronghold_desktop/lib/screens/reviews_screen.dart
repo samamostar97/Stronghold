@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/list_state.dart';
 import '../providers/review_provider.dart';
 import '../utils/debouncer.dart';
@@ -49,7 +51,9 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
   void _onSearchChanged() {
     _debouncer.run(() {
       final text = _searchController.text.trim();
-      ref.read(reviewListProvider.notifier).setSearch(text.isEmpty ? '' : text);
+      ref
+          .read(reviewListProvider.notifier)
+          .setSearch(text.isEmpty ? '' : text);
     });
   }
 
@@ -79,49 +83,120 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(reviewListProvider);
-    final notifier = ref.read(reviewListProvider.notifier);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final pad = w > 1200
-            ? 40.0
-            : w > 800
-            ? 24.0
-            : 16.0;
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: pad,
-            vertical: AppSpacing.xl,
-          ),
-          child: Container(
-            padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: AppColors.surfaceSolid,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _searchBar(constraints),
-                const SizedBox(height: AppSpacing.xxl),
-                Expanded(child: _content(state, notifier)),
-              ],
-            ),
-          ),
-        );
-      },
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Recenzije', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: _ReviewsContent(
+            state: state,
+            searchController: _searchController,
+            selectedOrderBy: _selectedOrderBy,
+            onSortChanged: (v) {
+              setState(() => _selectedOrderBy = v);
+              ref.read(reviewListProvider.notifier).setOrderBy(v);
+            },
+            onRefresh: ref.read(reviewListProvider.notifier).refresh,
+            onPageChanged: ref.read(reviewListProvider.notifier).goToPage,
+            onDelete: _deleteReview,
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+      ],
     );
   }
+}
 
-  Widget _searchBar(BoxConstraints c) {
-    final sort = _sortDropdown();
-    if (c.maxWidth < 600) {
+class _ReviewsContent extends StatelessWidget {
+  const _ReviewsContent({
+    required this.state,
+    required this.searchController,
+    required this.selectedOrderBy,
+    required this.onSortChanged,
+    required this.onRefresh,
+    required this.onPageChanged,
+    required this.onDelete,
+  });
+
+  final ListState<ReviewResponse, ReviewQueryFilter> state;
+  final TextEditingController searchController;
+  final String? selectedOrderBy;
+  final ValueChanged<String?> onSortChanged;
+  final VoidCallback onRefresh;
+  final ValueChanged<int> onPageChanged;
+  final ValueChanged<ReviewResponse> onDelete;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(builder: (context, constraints) {
+      final w = constraints.maxWidth;
+      final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
+
+      return Padding(
+        padding:
+            EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
+        child: Container(
+          padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: AppSpacing.cardRadius,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildSearchBar(w),
+              const SizedBox(height: AppSpacing.xxl),
+              Expanded(child: _buildBody()),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildSearchBar(double width) {
+    final sort = _SortDropdown(
+      value: selectedOrderBy,
+      onChanged: onSortChanged,
+    );
+    if (width < 600) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           SearchInput(
-            controller: _searchController,
+            controller: searchController,
             onSubmitted: (_) {},
             hintText: 'Pretrazi po korisniku ili proizvodu...',
           ),
@@ -134,7 +209,7 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
       children: [
         Expanded(
           child: SearchInput(
-            controller: _searchController,
+            controller: searchController,
             onSubmitted: (_) {},
             hintText: 'Pretrazi po korisniku ili proizvodu...',
           ),
@@ -145,56 +220,7 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
     );
   }
 
-  Widget _sortDropdown() => Container(
-    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-    decoration: BoxDecoration(
-      color: AppColors.surfaceSolid,
-      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      border: Border.all(color: AppColors.border),
-    ),
-    child: DropdownButtonHideUnderline(
-      child: DropdownButton<String?>(
-        value: _selectedOrderBy,
-        hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
-        dropdownColor: AppColors.surfaceSolid,
-        style: AppTextStyles.bodyBold,
-        icon: Icon(
-          LucideIcons.arrowUpDown,
-          color: AppColors.textMuted,
-          size: 16,
-        ),
-        items: const [
-          DropdownMenuItem(value: null, child: Text('Zadano')),
-          DropdownMenuItem(value: 'firstname', child: Text('Korisnik (A-Z)')),
-          DropdownMenuItem(
-            value: 'firstnamedesc',
-            child: Text('Korisnik (Z-A)'),
-          ),
-          DropdownMenuItem(value: 'supplement', child: Text('Proizvod (A-Z)')),
-          DropdownMenuItem(
-            value: 'supplementdesc',
-            child: Text('Proizvod (Z-A)'),
-          ),
-          DropdownMenuItem(value: 'ratingdesc', child: Text('Ocjena (visa)')),
-          DropdownMenuItem(value: 'rating', child: Text('Ocjena (niza)')),
-          DropdownMenuItem(value: 'createdat', child: Text('Najstarije prvo')),
-          DropdownMenuItem(
-            value: 'createdatdesc',
-            child: Text('Najnovije prvo'),
-          ),
-        ],
-        onChanged: (v) {
-          setState(() => _selectedOrderBy = v);
-          ref.read(reviewListProvider.notifier).setOrderBy(v);
-        },
-      ),
-    ),
-  );
-
-  Widget _content(
-    ListState<ReviewResponse, ReviewQueryFilter> state,
-    ReviewListNotifier notifier,
-  ) {
+  Widget _buildBody() {
     if (state.isLoading) {
       return const ShimmerTable(columnFlex: [2, 3, 2, 4, 1]);
     }
@@ -203,15 +229,16 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
+            Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
             const SizedBox(height: AppSpacing.sm),
             Text(
               state.error!,
-              style: AppTextStyles.bodyMd,
+              style: AppTextStyles.bodySecondary,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton.text(text: 'Pokusaj ponovo', onPressed: notifier.refresh),
+            GradientButton.text(
+                text: 'Pokusaj ponovo', onPressed: onRefresh),
           ],
         ),
       );
@@ -220,16 +247,66 @@ class _ReviewsScreenState extends ConsumerState<ReviewsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: ReviewsTable(reviews: state.items, onDelete: _deleteReview),
+          child: ReviewsTable(reviews: state.items, onDelete: onDelete),
         ),
         const SizedBox(height: AppSpacing.lg),
         PaginationControls(
           currentPage: state.currentPage,
           totalPages: state.totalPages,
           totalCount: state.totalCount,
-          onPageChanged: notifier.goToPage,
+          onPageChanged: onPageChanged,
         ),
       ],
+    );
+  }
+}
+
+class _SortDropdown extends StatelessWidget {
+  const _SortDropdown({required this.value, required this.onChanged});
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.smallRadius,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: value,
+          hint: Text('Sortiraj', style: AppTextStyles.bodySecondary),
+          dropdownColor: AppColors.surface,
+          style: AppTextStyles.bodyMedium,
+          icon: Icon(
+            LucideIcons.arrowUpDown,
+            color: AppColors.textMuted,
+            size: 16,
+          ),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('Zadano')),
+            DropdownMenuItem(
+                value: 'firstname', child: Text('Korisnik (A-Z)')),
+            DropdownMenuItem(
+                value: 'firstnamedesc', child: Text('Korisnik (Z-A)')),
+            DropdownMenuItem(
+                value: 'supplement', child: Text('Proizvod (A-Z)')),
+            DropdownMenuItem(
+                value: 'supplementdesc', child: Text('Proizvod (Z-A)')),
+            DropdownMenuItem(
+                value: 'ratingdesc', child: Text('Ocjena (visa)')),
+            DropdownMenuItem(value: 'rating', child: Text('Ocjena (niza)')),
+            DropdownMenuItem(
+                value: 'createdat', child: Text('Najstarije prvo')),
+            DropdownMenuItem(
+                value: 'createdatdesc', child: Text('Najnovije prvo')),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
     );
   }
 }

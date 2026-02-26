@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
+import '../constants/motion.dart';
 import '../providers/appointment_provider.dart';
 import '../utils/error_handler.dart';
 import '../widgets/appointments/appointment_add_dialog.dart';
@@ -89,28 +93,68 @@ class _AppointmentsScreenState extends ConsumerState<AppointmentsScreen> {
     final state = ref.watch(appointmentListProvider);
     final notifier = ref.read(appointmentListProvider.notifier);
 
-    return CrudListScaffold<AdminAppointmentResponse, AppointmentQueryFilter>(
-      state: state,
-      onRefresh: notifier.refresh,
-      onSearch: notifier.setSearch,
-      onSort: notifier.setOrderBy,
-      onPageChanged: notifier.goToPage,
-      onAdd: _addAppointment,
-      searchHint: 'Pretrazi po korisniku, treneru...',
-      addButtonText: '+ Dodaj termin',
-      loadingColumnFlex: const [3, 2, 3, 2, 1, 2],
-      sortOptions: const [
-        SortOption(value: null, label: 'Zadano'),
-        SortOption(value: 'datedesc', label: 'Najnovije'),
-        SortOption(value: 'date', label: 'Najstarije'),
-        SortOption(value: 'user', label: 'Korisnik (A-Z)'),
-        SortOption(value: 'userdesc', label: 'Korisnik (Z-A)'),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(40, 28, 40, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text('Termini', style: AppTextStyles.pageTitle),
+              ),
+              if (!state.isLoading)
+                Text(
+                  '${state.totalCount} ukupno',
+                  style: AppTextStyles.caption,
+                ),
+            ],
+          )
+              .animate()
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.06,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Expanded(
+          child: CrudListScaffold<AdminAppointmentResponse,
+              AppointmentQueryFilter>(
+            state: state,
+            onRefresh: notifier.refresh,
+            onSearch: notifier.setSearch,
+            onSort: notifier.setOrderBy,
+            onPageChanged: notifier.goToPage,
+            onAdd: _addAppointment,
+            searchHint: 'Pretrazi po korisniku, treneru...',
+            addButtonText: '+ Dodaj termin',
+            loadingColumnFlex: const [3, 2, 3, 2, 1, 2],
+            sortOptions: const [
+              SortOption(value: null, label: 'Zadano'),
+              SortOption(value: 'datedesc', label: 'Najnovije'),
+              SortOption(value: 'date', label: 'Najstarije'),
+              SortOption(value: 'user', label: 'Korisnik (A-Z)'),
+              SortOption(value: 'userdesc', label: 'Korisnik (Z-A)'),
+            ],
+            tableBuilder: (items) => AppointmentsTable(
+              appointments: items,
+              onEdit: _editAppointment,
+              onDelete: _deleteAppointment,
+            ),
+          )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
+              ),
+        ),
       ],
-      tableBuilder: (items) => AppointmentsTable(
-        appointments: items,
-        onEdit: _editAppointment,
-        onDelete: _deleteAppointment,
-      ),
     );
   }
 }
