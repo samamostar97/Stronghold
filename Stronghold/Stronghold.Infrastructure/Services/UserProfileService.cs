@@ -128,10 +128,12 @@ public class UserProfileService : IUserProfileService
             .FirstOrDefaultAsync(u => u.Id == userId)
             ?? throw new KeyNotFoundException("Korisnik nije pronađen");
 
-        // Calculate total minutes in database (not in memory)
-        var totalMinutes = await _context.GymVisits
+        // Calculate total minutes (load visit pairs, compute in C# for DB-provider portability)
+        var userVisits = await _context.GymVisits
             .Where(v => v.UserId == userId && v.CheckOutTime != null)
-            .SumAsync(v => (int)EF.Functions.DateDiffMinute(v.CheckInTime, v.CheckOutTime!.Value));
+            .Select(v => new { v.CheckInTime, CheckOutTime = v.CheckOutTime!.Value })
+            .ToListAsync();
+        var totalMinutes = userVisits.Sum(v => (int)(v.CheckOutTime - v.CheckInTime).TotalMinutes);
 
         var totalXPFromVisits = (int)(totalMinutes / 60.0 * XP_PER_HOUR);
 
@@ -160,13 +162,15 @@ public class UserProfileService : IUserProfileService
         var xpProgress = currentXP % XP_PER_LEVEL;
         var progressPercentage = level >= MAX_LEVEL ? 100.0 : (xpProgress / (double)XP_PER_LEVEL) * 100;
 
-        // Get weekly visit minutes grouped by date in database
+        // Get weekly visit minutes grouped by date
         var sevenDaysAgo = DateTime.UtcNow.Date.AddDays(-6);
-        var weeklyMinutesByDate = await _context.GymVisits
+        var weeklyVisitPairs = await _context.GymVisits
             .Where(v => v.UserId == userId && v.CheckOutTime != null && v.CheckInTime.Date >= sevenDaysAgo)
-            .GroupBy(v => v.CheckInTime.Date)
-            .Select(g => new { Date = g.Key, Minutes = g.Sum(v => (int)EF.Functions.DateDiffMinute(v.CheckInTime, v.CheckOutTime!.Value)) })
-            .ToDictionaryAsync(x => x.Date, x => x.Minutes);
+            .Select(v => new { Date = v.CheckInTime.Date, v.CheckInTime, CheckOutTime = v.CheckOutTime!.Value })
+            .ToListAsync();
+        var weeklyMinutesByDate = weeklyVisitPairs
+            .GroupBy(v => v.Date)
+            .ToDictionary(g => g.Key, g => g.Sum(v => (int)(v.CheckOutTime - v.CheckInTime).TotalMinutes));
 
         var weeklyVisits = new List<WeeklyVisitResponse>();
         var totalMinutesThisWeek = 0;
@@ -242,12 +246,14 @@ public class UserProfileService : IUserProfileService
             .Select(u => new { u.Id, u.FirstName, u.LastName, u.ProfileImageUrl })
             .ToListAsync();
 
-        // Get total minutes per user in database (not loading all visit rows)
-        var totalMinutesByUser = await _context.GymVisits
+        // Get total minutes per user (load visit pairs, compute in C# for DB-provider portability)
+        var allVisits = await _context.GymVisits
             .Where(v => v.CheckOutTime != null)
+            .Select(v => new { v.UserId, v.CheckInTime, CheckOutTime = v.CheckOutTime!.Value })
+            .ToListAsync();
+        var totalMinutesByUser = allVisits
             .GroupBy(v => v.UserId)
-            .Select(g => new { UserId = g.Key, TotalMinutes = g.Sum(v => (int)EF.Functions.DateDiffMinute(v.CheckInTime, v.CheckOutTime!.Value)) })
-            .ToDictionaryAsync(x => x.UserId, x => x.TotalMinutes);
+            .ToDictionary(g => g.Key, g => g.Sum(v => (int)(v.CheckOutTime - v.CheckInTime).TotalMinutes));
 
         // Get distinct visit dates per user for last 30 days (just userId + date pairs, not full rows)
         var thirtyDaysAgo = DateTime.UtcNow.Date.AddDays(-DECAY_PERIOD_DAYS);

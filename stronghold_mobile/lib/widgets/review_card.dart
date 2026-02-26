@@ -20,13 +20,13 @@ class ReviewCard extends StatelessWidget {
             Expanded(
               child: Text(
                 review.userName,
-                style: AppTextStyles.bodyBold,
+                style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Text(
               '${review.createdAt.day}.${review.createdAt.month}.${review.createdAt.year}.',
-              style: AppTextStyles.caption,
+              style: AppTextStyles.caption.copyWith(color: Colors.white70),
             ),
           ]),
           const SizedBox(height: AppSpacing.sm),
@@ -35,7 +35,7 @@ class ReviewCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               review.comment!,
-              style: AppTextStyles.bodyMd.copyWith(height: 1.4),
+              style: AppTextStyles.bodyMd.copyWith(height: 1.4, color: Colors.white),
             ),
           ],
         ],

@@ -7,7 +7,7 @@ import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../providers/reports_provider.dart';
 import '../shared/data_table_widgets.dart';
-import 'report_export_button.dart';
+import 'report_date_range_bar.dart';
 import '../shared/shimmer_loading.dart';
 
 /// Membership popularity tab content for the report screen.
@@ -17,11 +17,19 @@ class ReportMembershipTab extends ConsumerWidget {
     required this.onExportExcel,
     required this.onExportPdf,
     required this.isExporting,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.onDateFromChanged,
+    required this.onDateToChanged,
   });
 
   final VoidCallback onExportExcel;
   final VoidCallback onExportPdf;
   final bool isExporting;
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+  final ValueChanged<DateTime?> onDateFromChanged;
+  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -40,6 +48,10 @@ class ReportMembershipTab extends ConsumerWidget {
             ref.read(membershipRevenuePeriodProvider.notifier).state = days,
         onExportExcel: isExporting ? null : onExportExcel,
         onExportPdf: isExporting ? null : onExportPdf,
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        onDateFromChanged: onDateFromChanged,
+        onDateToChanged: onDateToChanged,
       ),
     );
   }
@@ -52,6 +64,10 @@ class _Body extends StatelessWidget {
     required this.onDaysChanged,
     required this.onExportExcel,
     required this.onExportPdf,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.onDateFromChanged,
+    required this.onDateToChanged,
   });
 
   final MembershipPopularityReportDTO report;
@@ -59,6 +75,10 @@ class _Body extends StatelessWidget {
   final ValueChanged<int> onDaysChanged;
   final VoidCallback? onExportExcel;
   final VoidCallback? onExportPdf;
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+  final ValueChanged<DateTime?> onDateFromChanged;
+  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -83,13 +103,13 @@ class _Body extends StatelessWidget {
     );
   }
 
-  Widget _exportRow() => Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          ReportExportButton.excel(onPressed: onExportExcel),
-          const SizedBox(width: AppSpacing.md),
-          ReportExportButton.pdf(onPressed: onExportPdf),
-        ],
+  Widget _exportRow() => ReportDateRangeBar(
+        dateFrom: dateFrom,
+        dateTo: dateTo,
+        onDateFromChanged: onDateFromChanged,
+        onDateToChanged: onDateToChanged,
+        onExportExcel: onExportExcel,
+        onExportPdf: onExportPdf,
       );
 
   Widget _summaryCards() => Row(children: [

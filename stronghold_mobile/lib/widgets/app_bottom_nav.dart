@@ -24,7 +24,7 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.deepBlue.withValues(alpha: 0.85),
+        color: AppColors.deepBlue.withValues(alpha: 0.4),
         border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
         boxShadow: [
           BoxShadow(

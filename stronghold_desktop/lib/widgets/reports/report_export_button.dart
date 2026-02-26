@@ -11,45 +11,55 @@ class ReportExportButton extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.onPressed,
+    this.color,
   });
 
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final accent = color ?? AppColors.textPrimary;
+
     return ElevatedButton.icon(
       onPressed: onPressed,
       icon: Icon(icon, size: 18),
       label: Text(label, style: AppTextStyles.bodyBold),
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.surfaceSolid,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: accent,
         disabledBackgroundColor: AppColors.surfaceSolid.withValues(alpha: 0.5),
-        disabledForegroundColor: AppColors.textPrimary.withValues(alpha: 0.5),
+        disabledForegroundColor: accent.withValues(alpha: 0.5),
         padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.lg, vertical: AppSpacing.md),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          side: BorderSide(color: AppColors.accent.withValues(alpha: 0.3)),
+          side: BorderSide(color: accent.withValues(alpha: 0.4)),
         ),
       ),
     );
   }
 
+  static const _excelGreen = Color(0xFF217346);
+  static const _pdfRed = Color(0xFFB30B00);
+
   /// Convenience constructor for Excel export.
-  static Widget excel({required VoidCallback? onPressed}) =>
+  static Widget excel({required VoidCallback? onPressed, String label = 'Excel'}) =>
       ReportExportButton(
         icon: LucideIcons.fileSpreadsheet,
-        label: 'Excel',
+        label: label,
         onPressed: onPressed,
+        color: _excelGreen,
       );
 
   /// Convenience constructor for PDF export.
-  static Widget pdf({required VoidCallback? onPressed}) => ReportExportButton(
+  static Widget pdf({required VoidCallback? onPressed, String label = 'PDF'}) =>
+      ReportExportButton(
         icon: LucideIcons.fileText,
-        label: 'PDF',
+        label: label,
         onPressed: onPressed,
+        color: _pdfRed,
       );
 }

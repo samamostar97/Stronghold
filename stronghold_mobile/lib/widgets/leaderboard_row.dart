@@ -20,11 +20,12 @@ class LeaderboardRow extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.primaryDim,
             borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(color: AppColors.navyBlue, width: 1.5),
           ),
           child: Center(
             child: Text('#${entry.rank}',
                 style:
-                    AppTextStyles.bodyBold.copyWith(color: AppColors.primary)),
+                    AppTextStyles.bodyBold.copyWith(color: AppColors.navyBlue)),
           ),
         ),
         const SizedBox(width: AppSpacing.md),
@@ -33,7 +34,7 @@ class LeaderboardRow extends StatelessWidget {
           height: 44,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primaryBorder, width: 2),
+            border: Border.all(color: AppColors.navyBlue, width: 2),
           ),
           child: ClipOval(
             child: entry.profileImageUrl != null &&
@@ -53,13 +54,28 @@ class LeaderboardRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(entry.fullName,
-                  style: AppTextStyles.bodyBold,
+                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                   overflow: TextOverflow.ellipsis),
               Text('${entry.currentXP} XP', style: AppTextStyles.bodySm),
             ],
           ),
         ),
-        StatusPill(label: 'LVL ${entry.level}', color: AppColors.primary),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: AppColors.navyBlue.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.navyBlue),
+          ),
+          child: Text(
+            'LVL ${entry.level}',
+            style: AppTextStyles.bodySm.copyWith(
+              color: AppColors.navyBlue,
+              fontWeight: FontWeight.w600,
+              fontSize: 11.5,
+            ),
+          ),
+        ),
       ]),
     );
   }

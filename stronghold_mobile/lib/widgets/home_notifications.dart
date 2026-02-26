@@ -187,6 +187,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
 
   Widget _loadingState() {
     return const GlassCard(
+      backgroundColor: Color(0x33FFFFFF),
       child: SizedBox(
         height: 48,
         child: Center(
@@ -205,6 +206,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
 
   Widget _emptyState() {
     return GlassCard(
+      backgroundColor: const Color(0x33FFFFFF),
       child: Row(
         children: [
           Container(
@@ -234,6 +236,7 @@ class _HomeNotificationsState extends ConsumerState<HomeNotifications>
     final timeLabel = _formatTimeLabel(item);
 
     return GlassCard(
+      backgroundColor: const Color(0x33FFFFFF),
       onTap: (!item.isRead && item.backendId != null)
           ? () => ref
               .read(userNotificationProvider.notifier)

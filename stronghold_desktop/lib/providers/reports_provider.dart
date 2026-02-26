@@ -163,10 +163,10 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
 
   bool get isExporting => state.isLoading;
 
-  Future<void> exportBusinessToExcel(String savePath) async {
+  Future<void> exportBusinessToExcel(String savePath, {DateTime? from, DateTime? to}) async {
     state = const AsyncValue.loading();
     try {
-      await _service.exportBusinessToExcel(savePath);
+      await _service.exportBusinessToExcel(savePath, from: from, to: to);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -174,10 +174,10 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> exportBusinessToPdf(String savePath) async {
+  Future<void> exportBusinessToPdf(String savePath, {DateTime? from, DateTime? to}) async {
     state = const AsyncValue.loading();
     try {
-      await _service.exportBusinessToPdf(savePath);
+      await _service.exportBusinessToPdf(savePath, from: from, to: to);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -188,12 +188,16 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> exportInventoryToExcel(
     String savePath, {
     int daysToAnalyze = 30,
+    DateTime? from,
+    DateTime? to,
   }) async {
     state = const AsyncValue.loading();
     try {
       await _service.exportInventoryToExcel(
         savePath,
         daysToAnalyze: daysToAnalyze,
+        from: from,
+        to: to,
       );
       state = const AsyncValue.data(null);
     } catch (e, st) {
@@ -205,12 +209,16 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
   Future<void> exportInventoryToPdf(
     String savePath, {
     int daysToAnalyze = 30,
+    DateTime? from,
+    DateTime? to,
   }) async {
     state = const AsyncValue.loading();
     try {
       await _service.exportInventoryToPdf(
         savePath,
         daysToAnalyze: daysToAnalyze,
+        from: from,
+        to: to,
       );
       state = const AsyncValue.data(null);
     } catch (e, st) {
@@ -219,10 +227,10 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> exportMembershipToExcel(String savePath) async {
+  Future<void> exportMembershipToExcel(String savePath, {DateTime? from, DateTime? to}) async {
     state = const AsyncValue.loading();
     try {
-      await _service.exportMembershipToExcel(savePath);
+      await _service.exportMembershipToExcel(savePath, from: from, to: to);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -230,10 +238,10 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
     }
   }
 
-  Future<void> exportMembershipToPdf(String savePath) async {
+  Future<void> exportMembershipToPdf(String savePath, {DateTime? from, DateTime? to}) async {
     state = const AsyncValue.loading();
     try {
-      await _service.exportMembershipToPdf(savePath);
+      await _service.exportMembershipToPdf(savePath, from: from, to: to);
       state = const AsyncValue.data(null);
     } catch (e, st) {
       state = AsyncValue.error(e, st);

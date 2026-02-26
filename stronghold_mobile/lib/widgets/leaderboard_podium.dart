@@ -69,7 +69,7 @@ class LeaderboardPodium extends StatelessWidget {
           entry.fullName,
           style: AppTextStyles.bodySm.copyWith(
             fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: Colors.white,
           ),
           textAlign: TextAlign.center,
           maxLines: 2,

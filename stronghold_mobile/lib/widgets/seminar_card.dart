@@ -40,7 +40,34 @@ class SeminarCard extends StatelessWidget {
                 StatusPill(label: 'Otkazan', color: AppColors.error),
               ] else if (seminar.isAttending) ...[
                 const SizedBox(width: AppSpacing.sm),
-                StatusPill(label: 'Prijavljen', color: AppColors.success),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF158C6E).withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFF158C6E).withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: const Color(0xFF158C6E),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Text('Prijavljen', style: const TextStyle(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.33,
+                        color: Color(0xFF22D3A7),
+                      )),
+                    ],
+                  ),
+                ),
               ],
             ],
           ),

@@ -107,7 +107,7 @@ class _SuccessToastState extends State<_SuccessToast>
               constraints: const BoxConstraints(maxWidth: 340),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               decoration: BoxDecoration(
-                color: AppColors.deepBlue,
+                color: AppColors.midBlue.withValues(alpha: 0.85),
                 borderRadius: BorderRadius.circular(AppRadius.medium),
                 border: Border.all(
                   color: AppColors.success.withValues(alpha: 0.4),

@@ -618,6 +618,37 @@ namespace Stronghold.Infrastructure.Services
             return Math.Round(((current - previous) / previous) * 100m, 2);
         }
 
+        private static (int days, DateTime resolvedFrom, DateTime resolvedTo) ResolveDateRange(DateTime? from, DateTime? to, int defaultDays)
+        {
+            var now = DateTime.UtcNow;
+            if (from.HasValue && to.HasValue)
+            {
+                var days = Math.Max(1, (int)(to.Value.Date - from.Value.Date).TotalDays);
+                return (days, from.Value, to.Value);
+            }
+            if (from.HasValue)
+            {
+                var days = Math.Max(1, (int)(now.Date - from.Value.Date).TotalDays);
+                return (days, from.Value, now);
+            }
+            if (to.HasValue)
+            {
+                var days = Math.Max(1, (int)(to.Value.Date - now.Date).TotalDays);
+                return (days, now, to.Value);
+            }
+            return (defaultDays, now.AddDays(-defaultDays), now);
+        }
+
+        private static string GetPeriodLabel(DateTime? from, DateTime? to, int days)
+        {
+            if (from.HasValue || to.HasValue)
+            {
+                var resolved = ResolveDateRange(from, to, days);
+                return $"{resolved.resolvedFrom:dd.MM.yyyy} - {resolved.resolvedTo:dd.MM.yyyy}";
+            }
+            return $"posljednjih {days} dana";
+        }
+
         private static List<WeekdayVisitsResponse> BuildWeekdayVisits(List<WeekdayVisitsResponse> raw)
         {
             // ensure Monday..Sunday always exists (even if count=0)
@@ -645,9 +676,11 @@ namespace Stronghold.Infrastructure.Services
             return result;
         }
 
-        public async Task<byte[]> ExportToExcelAsync()
+        public async Task<byte[]> ExportToExcelAsync(DateTime? from = null, DateTime? to = null)
         {
-            var report = await GetBusinessReportAsync();
+            var range = ResolveDateRange(from, to, 30);
+            var periodLabel = GetPeriodLabel(from, to, range.days);
+            var report = await GetBusinessReportAsync(range.days);
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Biznis Izvještaj");
@@ -697,7 +730,7 @@ namespace Stronghold.Infrastructure.Services
             }
 
             // Bestseller
-            worksheet.Cell("A16").Value = "BESTSELLER (POSLJEDNJIH 30 DANA)";
+            worksheet.Cell("A16").Value = $"BESTSELLER ({periodLabel.ToUpper()})";
             worksheet.Cell("A16").Style.Font.Bold = true;
 
             if (report.BestsellerLast30Days != null)
@@ -715,7 +748,7 @@ namespace Stronghold.Infrastructure.Services
 
             // Daily sales breakdown
             var row = 20;
-            worksheet.Cell($"A{row}").Value = "DNEVNA PRODAJA (POSLJEDNJIH 30 DANA)";
+            worksheet.Cell($"A{row}").Value = $"DNEVNA PRODAJA ({periodLabel.ToUpper()})";
             worksheet.Cell($"A{row}").Style.Font.Bold = true;
 
             if (report.DailySales != null && report.DailySales.Any())
@@ -745,9 +778,11 @@ namespace Stronghold.Infrastructure.Services
             return stream.ToArray();
         }
 
-        public async Task<byte[]> ExportToPdfAsync()
+        public async Task<byte[]> ExportToPdfAsync(DateTime? from = null, DateTime? to = null)
         {
-            var report = await GetBusinessReportAsync();
+            var range = ResolveDateRange(from, to, 30);
+            var periodLabel = GetPeriodLabel(from, to, range.days);
+            var report = await GetBusinessReportAsync(range.days);
 
             var document = Document.Create(container =>
             {
@@ -819,7 +854,7 @@ namespace Stronghold.Infrastructure.Services
                         }
 
                         // Bestseller
-                        col.Item().PaddingTop(20).Text("Bestseller (posljednjih 30 dana)").Bold().FontSize(14);
+                        col.Item().PaddingTop(20).Text($"Bestseller ({periodLabel})").Bold().FontSize(14);
                         if (report.BestsellerLast30Days != null)
                         {
                             col.Item().PaddingTop(10).Row(row =>
@@ -839,7 +874,7 @@ namespace Stronghold.Infrastructure.Services
                         // Daily sales table
                         if (report.DailySales != null && report.DailySales.Any())
                         {
-                            col.Item().PaddingTop(20).Text("Dnevna prodaja (posljednjih 30 dana)").Bold().FontSize(14);
+                            col.Item().PaddingTop(20).Text($"Dnevna prodaja ({periodLabel})").Bold().FontSize(14);
                             col.Item().PaddingTop(10).Table(table =>
                             {
                                 table.ColumnsDefinition(columns =>
@@ -877,9 +912,11 @@ namespace Stronghold.Infrastructure.Services
             return document.GeneratePdf();
         }
 
-        public async Task<byte[]> ExportInventoryReportToExcelAsync(int daysToAnalyze = 30)
+        public async Task<byte[]> ExportInventoryReportToExcelAsync(int daysToAnalyze = 30, DateTime? from = null, DateTime? to = null)
         {
-            var report = await GetInventoryReportAsync(daysToAnalyze);
+            var range = ResolveDateRange(from, to, daysToAnalyze);
+            var periodLabel = GetPeriodLabel(from, to, range.days);
+            var report = await GetInventoryReportAsync(range.days);
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Inventar Izvještaj");
@@ -892,7 +929,7 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("A2").Value = $"Datum generisanja: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
             worksheet.Range("A2:E2").Merge();
 
-            worksheet.Cell("A3").Value = $"Period analize: posljednjih {report.DaysAnalyzed} dana";
+            worksheet.Cell("A3").Value = $"Period analize: {periodLabel}";
             worksheet.Range("A3:E3").Merge();
 
             worksheet.Cell("A5").Value = "SAŽETAK";
@@ -936,9 +973,11 @@ namespace Stronghold.Infrastructure.Services
             return stream.ToArray();
         }
 
-        public async Task<byte[]> ExportInventoryReportToPdfAsync(int daysToAnalyze = 30)
+        public async Task<byte[]> ExportInventoryReportToPdfAsync(int daysToAnalyze = 30, DateTime? from = null, DateTime? to = null)
         {
-            var report = await GetInventoryReportAsync(daysToAnalyze);
+            var range = ResolveDateRange(from, to, daysToAnalyze);
+            var periodLabel = GetPeriodLabel(from, to, range.days);
+            var report = await GetInventoryReportAsync(range.days);
 
             var document = Document.Create(container =>
             {
@@ -953,7 +992,7 @@ namespace Stronghold.Infrastructure.Services
                         col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
                         col.Item().Text("Izvještaj o Sporoj Prodaji").FontSize(16).FontColor(Colors.Grey.Darken2);
                         col.Item().PaddingTop(5).Text($"Datum: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}").FontSize(10).FontColor(Colors.Grey.Medium);
-                        col.Item().Text($"Period: posljednjih {report.DaysAnalyzed} dana").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().Text($"Period: {periodLabel}").FontSize(10).FontColor(Colors.Grey.Medium);
                         col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
                     });
 
@@ -1023,9 +1062,11 @@ namespace Stronghold.Infrastructure.Services
             return document.GeneratePdf();
         }
 
-        public async Task<byte[]> ExportMembershipPopularityToExcelAsync()
+        public async Task<byte[]> ExportMembershipPopularityToExcelAsync(DateTime? from = null, DateTime? to = null)
         {
-            var report = await GetMembershipPopularityReportAsync();
+            var range = ResolveDateRange(from, to, 90);
+            var periodLabel = GetPeriodLabel(from, to, range.days);
+            var report = await GetMembershipPopularityReportAsync(range.days);
 
             using var workbook = new XLWorkbook();
             var worksheet = workbook.Worksheets.Add("Popularnost Članarina");
@@ -1045,7 +1086,7 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("A5").Value = "Ukupno aktivnih članarina:";
             worksheet.Cell("B5").Value = report.TotalActiveMemberships;
 
-            worksheet.Cell("A6").Value = "Prihod (90 dana):";
+            worksheet.Cell("A6").Value = $"Prihod ({periodLabel}):";
             worksheet.Cell("B6").Value = $"{report.TotalRevenueLast90Days:F2} KM";
 
             worksheet.Cell("A8").Value = "STATISTIKA PO PAKETIMA";
@@ -1056,7 +1097,7 @@ namespace Stronghold.Infrastructure.Services
             worksheet.Cell("B9").Value = "Cijena (KM)";
             worksheet.Cell("C9").Value = "Aktivne";
             worksheet.Cell("D9").Value = "Novih (30 dana)";
-            worksheet.Cell("E9").Value = "Prihod (90 dana)";
+            worksheet.Cell("E9").Value = $"Prihod ({periodLabel})";
             worksheet.Cell("F9").Value = "Popularnost (%)";
 
             var headerRange = worksheet.Range("A9:F9");
@@ -1082,9 +1123,11 @@ namespace Stronghold.Infrastructure.Services
             return stream.ToArray();
         }
 
-        public async Task<byte[]> ExportMembershipPopularityToPdfAsync()
+        public async Task<byte[]> ExportMembershipPopularityToPdfAsync(DateTime? from = null, DateTime? to = null)
         {
-            var report = await GetMembershipPopularityReportAsync();
+            var range = ResolveDateRange(from, to, 90);
+            var periodLabel = GetPeriodLabel(from, to, range.days);
+            var report = await GetMembershipPopularityReportAsync(range.days);
 
             var document = Document.Create(container =>
             {
@@ -1116,7 +1159,7 @@ namespace Stronghold.Infrastructure.Services
                             table.Cell().Text("Ukupno aktivnih članarina:");
                             table.Cell().Text($"{report.TotalActiveMemberships}").Bold().FontColor(Colors.Red.Darken2);
 
-                            table.Cell().Text("Prihod (posljednjih 90 dana):");
+                            table.Cell().Text($"Prihod ({periodLabel}):");
                             table.Cell().Text($"{report.TotalRevenueLast90Days:F2} KM").Bold();
                         });
 
@@ -1166,7 +1209,7 @@ namespace Stronghold.Infrastructure.Services
                                     {
                                         innerCol.Item().Text(topPlan.PackageName).Bold().FontSize(18).FontColor(Colors.Red.Darken2);
                                         innerCol.Item().Text($"Aktivnih: {topPlan.ActiveSubscriptions} | Popularnost: {topPlan.PopularityPercentage:F1}%").FontColor(Colors.Grey.Darken1);
-                                        innerCol.Item().Text($"Prihod (90 dana): {topPlan.RevenueLast90Days:F2} KM").FontColor(Colors.Grey.Darken1);
+                                        innerCol.Item().Text($"Prihod ({periodLabel}): {topPlan.RevenueLast90Days:F2} KM").FontColor(Colors.Grey.Darken1);
                                     });
                                 });
                             }

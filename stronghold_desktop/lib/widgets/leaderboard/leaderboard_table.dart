@@ -70,12 +70,7 @@ class _LeaderboardRowState extends State<_LeaderboardRow>
     super.dispose();
   }
 
-  Color _rankColor(int rank) => switch (rank) {
-        1 => AppColors.warning,
-        2 => AppColors.textSecondary,
-        3 => AppColors.orange,
-        _ => AppColors.textMuted,
-      };
+  Color _rankColor(int rank) => AppColors.navyBlue;
 
   @override
   Widget build(BuildContext context) {
@@ -159,7 +154,7 @@ class _Avatar extends StatelessWidget {
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         border: Border.all(
-          color: entry.rank <= 3 ? rankColor : AppColors.border,
+          color: AppColors.navyBlue,
           width: 2,
         ),
       ),

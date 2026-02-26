@@ -31,7 +31,6 @@ class HomeExploreGrid extends StatelessWidget {
                     icon: item.icon,
                     color: item.color,
                     title: item.title,
-                    hint: item.hint,
                     onTap: () => context.push(item.path),
                   ),
                 );
@@ -48,14 +47,12 @@ class _ExploreCard extends StatelessWidget {
   final IconData icon;
   final Color color;
   final String title;
-  final String hint;
   final VoidCallback onTap;
 
   const _ExploreCard({
     required this.icon,
     required this.color,
     required this.title,
-    required this.hint,
     required this.onTap,
   });
 
@@ -63,6 +60,7 @@ class _ExploreCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassCard(
       onTap: onTap,
+      backgroundColor: const Color(0x33FFFFFF),
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,13 +81,6 @@ class _ExploreCard extends StatelessWidget {
             style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 2),
-          Text(
-            hint,
-            style: AppTextStyles.caption.copyWith(color: Colors.white),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
         ],
       ),
     );
@@ -100,14 +91,12 @@ class _ExploreItem {
   final IconData icon;
   final Color color;
   final String title;
-  final String hint;
   final String path;
 
   const _ExploreItem({
     required this.icon,
     required this.color,
     required this.title,
-    required this.hint,
     required this.path,
   });
 }
@@ -117,70 +106,60 @@ const _items = <_ExploreItem>[
     icon: LucideIcons.trendingUp,
     color: AppColors.primary,
     title: 'Moj Napredak',
-    hint: 'Level, XP, statistika',
     path: '/progress',
   ),
   _ExploreItem(
     icon: LucideIcons.calendar,
     color: AppColors.secondary,
     title: 'Termini',
-    hint: 'Raspored i rezervacije',
     path: '/appointments',
   ),
   _ExploreItem(
     icon: LucideIcons.trophy,
     color: AppColors.warning,
     title: 'Hall of Fame',
-    hint: 'Rang lista clanova',
     path: '/leaderboard',
   ),
   _ExploreItem(
     icon: LucideIcons.dumbbell,
     color: AppColors.success,
     title: 'Treneri',
-    hint: 'Pregled trenera',
     path: '/trainers',
   ),
   _ExploreItem(
     icon: LucideIcons.apple,
     color: AppColors.accent,
     title: 'Nutricionisti',
-    hint: 'Savjeti za ishranu',
     path: '/nutritionists',
   ),
   _ExploreItem(
     icon: LucideIcons.graduationCap,
     color: AppColors.orange,
     title: 'Seminari',
-    hint: 'Edukacije i radionice',
     path: '/seminars',
   ),
   _ExploreItem(
     icon: LucideIcons.package,
     color: AppColors.primary,
     title: 'Narudzbe',
-    hint: 'Historija narudzbi',
     path: '/orders',
   ),
   _ExploreItem(
     icon: LucideIcons.shoppingCart,
     color: AppColors.error,
     title: 'Korpa',
-    hint: 'Trenutna korpa',
     path: '/cart',
   ),
   _ExploreItem(
     icon: LucideIcons.star,
     color: AppColors.warning,
     title: 'Recenzije',
-    hint: 'Moje recenzije',
     path: '/reviews',
   ),
   _ExploreItem(
     icon: LucideIcons.helpCircle,
     color: AppColors.textMuted,
     title: 'FAQ',
-    hint: 'Cesta pitanja',
     path: '/faq',
   ),
 ];

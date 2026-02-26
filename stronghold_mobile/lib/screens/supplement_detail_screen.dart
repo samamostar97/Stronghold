@@ -50,7 +50,7 @@ class SupplementDetailScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   supplement.name,
-                  style: AppTextStyles.headingMd,
+                  style: AppTextStyles.headingMd.copyWith(color: Colors.white),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -161,14 +161,14 @@ class SupplementDetailScreen extends ConsumerWidget {
   Widget _ratingSummary(double avg, int count) {
     return GlassCard(
       child: Row(children: [
-        Text(avg.toStringAsFixed(1), style: AppTextStyles.stat),
+        Text(avg.toStringAsFixed(1), style: AppTextStyles.stat.copyWith(color: Colors.white)),
         const SizedBox(width: AppSpacing.md),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ReviewCard.starRating(avg, size: 18),
             const SizedBox(height: AppSpacing.xs),
-            Text('$count recenzija', style: AppTextStyles.bodySm),
+            Text('$count recenzija', style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
           ],
         ),
       ]),

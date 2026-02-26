@@ -28,7 +28,7 @@ class LeaderboardScreen extends ConsumerWidget {
             final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
             return Padding(
               padding: EdgeInsets.symmetric(
-                  horizontal: pad, vertical: AppSpacing.xl),
+                  horizontal: pad, vertical: AppSpacing.sm),
               child: Container(
                 padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
                 decoration: BoxDecoration(
@@ -39,17 +39,6 @@ class LeaderboardScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        HoverIconButton(
-                          icon: LucideIcons.refreshCw,
-                          onTap: () => ref.invalidate(leaderboardProvider),
-                          tooltip: 'Osvjezi',
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
                     Expanded(
                       child: leaderboardAsync.when(
                         loading: () => const ShimmerTable(

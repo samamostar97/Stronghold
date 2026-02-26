@@ -25,7 +25,7 @@ class SupplementDetailHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
-        Text(supplement.name, style: AppTextStyles.headingLg),
+        Text(supplement.name, style: AppTextStyles.headingLg.copyWith(color: Colors.white)),
         const SizedBox(height: AppSpacing.sm),
         StatusPill(label: supplement.supplementCategoryName ?? '', color: AppColors.primary),
         const SizedBox(height: AppSpacing.lg),
@@ -36,12 +36,12 @@ class SupplementDetailHeader extends StatelessWidget {
         if (supplement.description != null &&
             supplement.description!.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xxl),
-          Text('Opis', style: AppTextStyles.headingSm),
+          Text('Opis', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
           const SizedBox(height: AppSpacing.sm),
           GlassCard(
             child: Text(
               supplement.description!,
-              style: AppTextStyles.bodyMd.copyWith(height: 1.5),
+              style: AppTextStyles.bodyMd.copyWith(height: 1.5, color: Colors.white),
             ),
           ),
         ],

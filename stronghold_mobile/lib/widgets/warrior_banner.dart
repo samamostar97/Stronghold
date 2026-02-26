@@ -37,6 +37,7 @@ class _WarriorBannerState extends ConsumerState<WarriorBanner> {
         : (rawImageUrl != null ? getFullImageUrl(rawImageUrl) : null);
 
     return GlassCard(
+      backgroundColor: const Color(0x33FFFFFF),
       child: Column(
         children: [
           Row(

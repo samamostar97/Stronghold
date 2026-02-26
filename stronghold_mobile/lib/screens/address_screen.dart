@@ -81,10 +81,10 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textPrimary),
+          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
           onPressed: () => context.pop(),
         ),
-        title: Text('Adresa za dostavu', style: AppTextStyles.headingSm),
+        title: Text('Adresa za dostavu', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
         centerTitle: false,
       ),
       body: addressAsync.when(
@@ -170,11 +170,12 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                             borderRadius: BorderRadius.circular(
                               AppSpacing.radiusMd,
                             ),
+                            border: Border.all(color: AppColors.navyBlue, width: 1.5),
                           ),
                           child: const Icon(
                             LucideIcons.globe,
                             size: 18,
-                            color: AppColors.primary,
+                            color: AppColors.navyBlue,
                           ),
                         ),
                         const SizedBox(width: AppSpacing.lg),
@@ -191,7 +192,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 'Bosna i Hercegovina',
-                                style: AppTextStyles.bodyBold,
+                                style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
                               ),
                             ],
                           ),

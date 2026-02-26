@@ -66,7 +66,9 @@ class _ErrorToastState extends State<_ErrorToast>
       curve: const Interval(0.35, 1.0, curve: Curves.linear),
     );
 
-    _controller.forward();
+    _controller.forward().then((_) {
+      if (mounted) Navigator.of(context).pop();
+    });
   }
 
   @override
@@ -105,7 +107,7 @@ class _ErrorToastState extends State<_ErrorToast>
                       constraints: const BoxConstraints(maxWidth: 400),
                       padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
                       decoration: BoxDecoration(
-                        color: AppColors.deepBlue,
+                        color: AppColors.midBlue.withValues(alpha: 0.85),
                         borderRadius: BorderRadius.circular(AppRadius.medium),
                         border: Border.all(
                           color: AppColors.accent.withValues(alpha: 0.4),

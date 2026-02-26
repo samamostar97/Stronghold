@@ -102,13 +102,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     onPressed: () => context.pop(),
                     icon: const Icon(
                       LucideIcons.arrowLeft,
-                      color: AppColors.textPrimary,
+                      color: Colors.white,
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Promijeni lozinku',
-                      style: AppTextStyles.headingMd,
+                      style: AppTextStyles.headingMd.copyWith(color: Colors.white),
                     ),
                   ),
                 ],
@@ -174,14 +174,15 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(AppSpacing.lg),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   color: AppColors.primaryDim,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.navyBlue, width: 1),
                 ),
                 child: const Icon(
                   LucideIcons.lock,
                   size: 40,
-                  color: AppColors.primary,
+                  color: AppColors.navyBlue,
                 ),
               ),
             ),

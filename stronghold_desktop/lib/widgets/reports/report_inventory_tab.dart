@@ -12,7 +12,7 @@ import '../shared/bar_chart.dart';
 import '../shared/data_table_widgets.dart';
 import '../shared/horizontal_bar_chart.dart';
 import '../shared/pagination_controls.dart';
-import 'report_export_button.dart';
+import 'report_date_range_bar.dart';
 import '../shared/search_input.dart';
 
 /// Inventory tab content for the report screen.
@@ -23,12 +23,20 @@ class ReportInventoryTab extends ConsumerStatefulWidget {
     required this.onExportExcel,
     required this.onExportPdf,
     required this.isExporting,
+    required this.dateFrom,
+    required this.dateTo,
+    required this.onDateFromChanged,
+    required this.onDateToChanged,
   });
 
   final int daysToAnalyze;
   final VoidCallback onExportExcel;
   final VoidCallback onExportPdf;
   final bool isExporting;
+  final DateTime? dateFrom;
+  final DateTime? dateTo;
+  final ValueChanged<DateTime?> onDateFromChanged;
+  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   ConsumerState<ReportInventoryTab> createState() => _ReportInventoryTabState();
@@ -96,17 +104,13 @@ class _ReportInventoryTabState extends ConsumerState<ReportInventoryTab> {
     );
   }
 
-  Widget _exportRow() => Row(
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: [
-      ReportExportButton.excel(
-        onPressed: widget.isExporting ? null : widget.onExportExcel,
-      ),
-      const SizedBox(width: AppSpacing.md),
-      ReportExportButton.pdf(
-        onPressed: widget.isExporting ? null : widget.onExportPdf,
-      ),
-    ],
+  Widget _exportRow() => ReportDateRangeBar(
+    dateFrom: widget.dateFrom,
+    dateTo: widget.dateTo,
+    onDateFromChanged: widget.onDateFromChanged,
+    onDateToChanged: widget.onDateToChanged,
+    onExportExcel: widget.isExporting ? null : widget.onExportExcel,
+    onExportPdf: widget.isExporting ? null : widget.onExportPdf,
   );
 
   Widget _summaryCards(AsyncValue<InventorySummaryDTO> async) => async.when(
