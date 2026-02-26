@@ -47,6 +47,18 @@ abstract class AppTheme {
           borderRadius: AppSpacing.smallRadius,
           borderSide: const BorderSide(color: AppColors.electric),
         ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: AppSpacing.smallRadius,
+          borderSide: const BorderSide(color: AppColors.danger),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: AppSpacing.smallRadius,
+          borderSide: const BorderSide(color: AppColors.danger),
+        ),
+        errorStyle: const TextStyle(
+          color: AppColors.danger,
+          fontSize: 12,
+        ),
         hintStyle: const TextStyle(color: AppColors.textMuted),
       ),
     );
