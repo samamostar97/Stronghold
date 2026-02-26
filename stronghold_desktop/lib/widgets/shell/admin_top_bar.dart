@@ -26,7 +26,7 @@ class AdminTopBar extends ConsumerWidget {
       height: 64,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
       decoration: BoxDecoration(
-        color: AppColors.deepBlue.withOpacity(0.65),
+        color: Colors.transparent,
         border: Border(
           bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
         ),

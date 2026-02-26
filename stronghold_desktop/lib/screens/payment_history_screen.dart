@@ -86,7 +86,7 @@ class _PaymentHistoryScreenState extends ConsumerState<PaymentHistoryScreen> {
                   child: Container(
                     padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
                     decoration: BoxDecoration(
-                      color: AppColors.surface.withValues(alpha: 0.55),
+                      color: Colors.white,
                       borderRadius: AppSpacing.cardRadius,
                       border: Border.all(color: AppColors.border),
                     ),

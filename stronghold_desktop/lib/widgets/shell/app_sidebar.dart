@@ -209,7 +209,7 @@ class _NavTileState extends State<_NavTile> {
           ),
           decoration: BoxDecoration(
             color: active
-                ? AppColors.electric.withOpacity(0.12)
+                ? Colors.white
                 : _hover
                     ? Colors.white.withOpacity(0.06)
                     : Colors.transparent,
@@ -227,14 +227,14 @@ class _NavTileState extends State<_NavTile> {
                       height: 20,
                       margin: const EdgeInsets.only(right: AppSpacing.sm),
                       decoration: BoxDecoration(
-                        gradient: AppColors.accentGradient,
+                        color: AppColors.deepBlue,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   Icon(widget.item.icon,
                       size: 20,
                       color: active
-                          ? AppColors.cyan
+                          ? AppColors.deepBlue
                           : _hover
                               ? Colors.white.withOpacity(0.85)
                               : Colors.white.withOpacity(0.45)),
@@ -245,7 +245,7 @@ class _NavTileState extends State<_NavTile> {
                         widget.item.label,
                         style: active
                             ? AppTextStyles.bodyMedium
-                                .copyWith(color: AppColors.cyan)
+                                .copyWith(color: AppColors.deepBlue)
                             : AppTextStyles.bodySecondary.copyWith(
                                 color: _hover
                                     ? Colors.white.withOpacity(0.9)
