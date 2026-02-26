@@ -1,3 +1,5 @@
+using MediatR;
+using Stronghold.Application.Common.Behaviors;
 using Stronghold.Application.Features.Auth.Commands;
 using Stronghold.Application.Tests.TestDoubles;
 
@@ -61,13 +63,18 @@ public class AuthCommandTests
             userId: null,
             username: null,
             isAuthenticated: false);
-        var handler = new ChangePasswordCommandHandler(jwtService, currentUser);
-
-        var act = () => handler.Handle(new ChangePasswordCommand
+        var command = new ChangePasswordCommand
         {
             CurrentPassword = "oldpass123",
             NewPassword = "newpass123"
-        }, CancellationToken.None);
+        };
+        var handler = new ChangePasswordCommandHandler(jwtService, currentUser);
+        var behavior = new AuthorizationBehavior<ChangePasswordCommand, Unit>(currentUser);
+
+        var act = () => behavior.Handle(
+            command,
+            () => handler.Handle(command, CancellationToken.None),
+            CancellationToken.None);
 
         await Assert.ThrowsAsync<UnauthorizedAccessException>(act);
         Assert.Null(jwtService.LastChangePasswordUserId);

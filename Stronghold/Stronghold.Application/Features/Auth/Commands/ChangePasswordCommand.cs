@@ -25,7 +25,8 @@ public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordComman
 
 public async Task<Unit> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
     {
-        var userId = _currentUserService.UserId!.Value;
+        var userId = _currentUserService.UserId
+            ?? throw new UnauthorizedAccessException("Korisnik nije prijavljen.");
         await _jwtService.ChangePasswordAsync(userId, new ChangePasswordRequest
         {
             CurrentPassword = request.CurrentPassword,
