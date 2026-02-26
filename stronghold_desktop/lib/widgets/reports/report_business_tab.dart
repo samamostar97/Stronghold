@@ -151,13 +151,21 @@ class _Body extends StatelessWidget {
   }
 
   Widget _bottomSection(int cols, double maxWidth) {
+    final rightColumn = Column(
+      children: [
+        _BestSellerCard(bestseller: report.bestsellerLast30Days),
+        const SizedBox(height: AppSpacing.lg),
+        _SlowestMovingCard(product: report.slowestMovingLast30Days),
+      ],
+    );
+
     if (cols == 1) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DashboardRevenueSummary(breakdown: report.revenueBreakdown),
           const SizedBox(height: AppSpacing.xxl),
-          _BestSellerCard(bestseller: report.bestsellerLast30Days),
+          rightColumn,
         ],
       );
     }
@@ -176,7 +184,7 @@ class _Body extends StatelessWidget {
           const SizedBox(width: gap),
           SizedBox(
             width: cardW,
-            child: _BestSellerCard(bestseller: report.bestsellerLast30Days),
+            child: rightColumn,
           ),
         ],
       ),
@@ -193,7 +201,7 @@ class _BestSellerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
@@ -203,82 +211,111 @@ class _BestSellerCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Bestseller suplement', style: AppTextStyles.headingSm),
-          const SizedBox(height: AppSpacing.xl),
+          Row(
+            children: [
+              Icon(LucideIcons.trendingUp, size: 16, color: AppColors.success),
+              const SizedBox(width: AppSpacing.sm),
+              Text('Bestseller (30d)', style: AppTextStyles.headingSm),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
           if (bestseller == null)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxl),
-              child: Center(
-                child: Text('Nema podataka', style: AppTextStyles.bodyMd),
-              ),
-            )
+            Center(child: Text('Nema podataka', style: AppTextStyles.bodyMd))
           else
-            _BestSellerContent(
-                name: bestseller!.name, units: bestseller!.quantitySold),
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(LucideIcons.pill, color: AppColors.success, size: 22),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(bestseller!.name,
+                          style: AppTextStyles.bodyBold,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 2),
+                      Text('${bestseller!.quantitySold} prodatih',
+                          style: AppTextStyles.caption),
+                    ],
+                  ),
+                ),
+              ],
+            ),
         ],
       ),
     );
   }
 }
 
-class _BestSellerContent extends StatelessWidget {
-  const _BestSellerContent({required this.name, required this.units});
-  final String name;
-  final int units;
+class _SlowestMovingCard extends StatelessWidget {
+  const _SlowestMovingCard({required this.product});
+  final SlowestMovingDTO? product;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-            border: Border.all(color: AppColors.border, width: 2),
-          ),
-          alignment: Alignment.center,
-          child: Icon(LucideIcons.pill, color: AppColors.accent, size: 40),
-        ),
-        const SizedBox(width: AppSpacing.xl),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
             children: [
-              Text(name,
-                  style: AppTextStyles.headingMd,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis),
-              const SizedBox(height: AppSpacing.xs),
-              Text('Suplement',
-                  style: AppTextStyles.bodyMd,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('$units',
-                      style: AppTextStyles.statLg
-                          .copyWith(color: AppColors.accent)),
-                  const SizedBox(width: AppSpacing.sm),
-                  Flexible(
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 6),
-                      child: Text('prodatih (30d)',
-                          style: AppTextStyles.bodyMd,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
-                    ),
-                  ),
-                ],
-              ),
+              Icon(LucideIcons.trendingDown, size: 16, color: AppColors.orange),
+              const SizedBox(width: AppSpacing.sm),
+              Text('Najsporiji (30d)', style: AppTextStyles.headingSm),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: AppSpacing.md),
+          if (product == null)
+            Center(child: Text('Nema podataka', style: AppTextStyles.bodyMd))
+          else
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: AppColors.orange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(LucideIcons.pill, color: AppColors.orange, size: 22),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(product!.name,
+                          style: AppTextStyles.bodyBold,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis),
+                      const SizedBox(height: 2),
+                      Text('${product!.quantitySold} prodatih, ${product!.daysSinceLastSale}d od zadnje',
+                          style: AppTextStyles.caption),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }

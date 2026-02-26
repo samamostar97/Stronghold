@@ -20,6 +20,29 @@ class BestSellerDTO {
   }
 }
 
+class SlowestMovingDTO {
+  final int supplementId;
+  final String name;
+  final int quantitySold;
+  final int daysSinceLastSale;
+
+  SlowestMovingDTO({
+    required this.supplementId,
+    required this.name,
+    required this.quantitySold,
+    required this.daysSinceLastSale,
+  });
+
+  factory SlowestMovingDTO.fromJson(Map<String, dynamic> json) {
+    return SlowestMovingDTO(
+      supplementId: (json['supplementId'] ?? 0) as int,
+      name: (json['name'] ?? '') as String,
+      quantitySold: (json['quantitySold'] ?? 0) as int,
+      daysSinceLastSale: (json['daysSinceLastSale'] ?? 0) as int,
+    );
+  }
+}
+
 class WeekdayVisitsDTO {
   /// Backend šalje DayOfWeek kao int (0..6) ili string, zavisi od JSON options.
   /// Ovo je "safe" parsing za oba.
@@ -127,6 +150,35 @@ class ActivityFeedItemDTO {
   }
 }
 
+class HeatmapCellDTO {
+  final int day;  // 0..6 (Sunday=0 in .NET DayOfWeek)
+  final int hour; // 0..23
+  final int count;
+
+  HeatmapCellDTO({required this.day, required this.hour, required this.count});
+
+  factory HeatmapCellDTO.fromJson(Map<String, dynamic> json) {
+    final rawDay = json['day'];
+    int parsedDay;
+    if (rawDay is int) {
+      parsedDay = rawDay;
+    } else if (rawDay is String) {
+      const map = {
+        'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
+        'thursday': 4, 'friday': 5, 'saturday': 6,
+      };
+      parsedDay = map[rawDay.toLowerCase()] ?? int.tryParse(rawDay) ?? 0;
+    } else {
+      parsedDay = 0;
+    }
+    return HeatmapCellDTO(
+      day: parsedDay,
+      hour: (json['hour'] ?? 0) as int,
+      count: (json['count'] ?? 0) as int,
+    );
+  }
+}
+
 class BusinessReportDTO {
   final int thisWeekVisits;
   final int lastWeekVisits;
@@ -135,10 +187,16 @@ class BusinessReportDTO {
   final num lastMonthRevenue;
   final num monthChangePct;
   final int activeMemberships;
+  final int expiringThisWeekCount;
+  final int todayCheckIns;
+  final int last30DaysCheckIns;
+  final num avgDailyCheckIns;
   final List<WeekdayVisitsDTO> visitsByWeekday;
   final BestSellerDTO? bestsellerLast30Days;
+  final SlowestMovingDTO? slowestMovingLast30Days;
   final List<DailySalesDTO> dailySales;
   final RevenueBreakdownDTO? revenueBreakdown;
+  final List<HeatmapCellDTO> checkInHeatmap;
 
   BusinessReportDTO({
     required this.thisWeekVisits,
@@ -148,10 +206,16 @@ class BusinessReportDTO {
     required this.lastMonthRevenue,
     required this.monthChangePct,
     required this.activeMemberships,
+    required this.expiringThisWeekCount,
+    required this.todayCheckIns,
+    required this.last30DaysCheckIns,
+    required this.avgDailyCheckIns,
     required this.visitsByWeekday,
     required this.bestsellerLast30Days,
+    this.slowestMovingLast30Days,
     required this.dailySales,
     this.revenueBreakdown,
+    required this.checkInHeatmap,
   });
 
   factory BusinessReportDTO.fromJson(Map<String, dynamic> json) {
@@ -161,6 +225,7 @@ class BusinessReportDTO {
         <WeekdayVisitsDTO>[];
 
     final bs = json['bestsellerLast30Days'];
+    final sm = json['slowestMovingLast30Days'];
 
     final sales = (json['dailySales'] as List<dynamic>?)
             ?.map((e) => DailySalesDTO.fromJson(e as Map<String, dynamic>))
@@ -168,6 +233,11 @@ class BusinessReportDTO {
         <DailySalesDTO>[];
 
     final rb = json['revenueBreakdown'];
+
+    final heatmap = (json['checkInHeatmap'] as List<dynamic>?)
+            ?.map((e) => HeatmapCellDTO.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <HeatmapCellDTO>[];
 
     return BusinessReportDTO(
       thisWeekVisits: (json['thisWeekVisits'] ?? 0) as int,
@@ -177,12 +247,19 @@ class BusinessReportDTO {
       lastMonthRevenue: (json['lastMonthRevenue'] ?? 0) as num,
       monthChangePct: (json['monthChangePct'] ?? 0) as num,
       activeMemberships: (json['activeMemberships'] ?? 0) as int,
+      expiringThisWeekCount: (json['expiringThisWeekCount'] ?? 0) as int,
+      todayCheckIns: (json['todayCheckIns'] ?? 0) as int,
+      last30DaysCheckIns: (json['last30DaysCheckIns'] ?? 0) as int,
+      avgDailyCheckIns: (json['avgDailyCheckIns'] ?? 0) as num,
       visitsByWeekday: visits,
       bestsellerLast30Days:
           bs == null ? null : BestSellerDTO.fromJson(bs as Map<String, dynamic>),
+      slowestMovingLast30Days:
+          sm == null ? null : SlowestMovingDTO.fromJson(sm as Map<String, dynamic>),
       dailySales: sales,
       revenueBreakdown:
           rb == null ? null : RevenueBreakdownDTO.fromJson(rb as Map<String, dynamic>),
+      checkInHeatmap: heatmap,
     );
   }
 }

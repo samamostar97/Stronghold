@@ -56,7 +56,7 @@ class DashboardAdminActivityFeed extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text('Pokusajte ponovo.', style: AppTextStyles.caption),
             const SizedBox(height: AppSpacing.md),
-            TextButton(onPressed: onRetry, child: const Text('Retry')),
+            TextButton(onPressed: onRetry, child: const Text('Pokusaj ponovo')),
           ],
         ),
       );

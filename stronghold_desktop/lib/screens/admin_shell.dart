@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart' show ParticleBackground;
+import 'package:stronghold_core/stronghold_core.dart'
+    show ParticleBackground, TokenStorage;
 import '../constants/app_colors.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/shell/admin_top_bar.dart';
@@ -146,6 +147,13 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     });
   }
 
+  Future<void> _logout(BuildContext context) async {
+    await TokenStorage.clear();
+    if (context.mounted) {
+      context.go('/login');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
@@ -205,6 +213,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                           },
                           collapsed: collapsed,
                           onToggleCollapse: _toggleCollapse,
+                          onLogout: () => _logout(context),
                         ),
                         Expanded(
                           child: Column(

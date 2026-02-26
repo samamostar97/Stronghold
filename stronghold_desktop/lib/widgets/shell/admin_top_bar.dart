@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
@@ -28,11 +26,11 @@ class AdminTopBar extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.transparent,
         border: Border(
-          bottom: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
+          bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -48,18 +46,9 @@ class AdminTopBar extends ConsumerWidget {
           ),
           const Spacer(),
           _NotificationBell(onNavigateToOrders: onNavigateToOrders),
-          const SizedBox(width: AppSpacing.sm),
-          _ProfileDropdown(onLogout: () => _logout(context)),
         ],
       ),
     );
-  }
-
-  Future<void> _logout(BuildContext context) async {
-    await TokenStorage.clear();
-    if (context.mounted) {
-      context.go('/login');
-    }
   }
 }
 
@@ -161,7 +150,7 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
               icon: Icon(
                 LucideIcons.bell,
                 size: 20,
-                color: Colors.white.withOpacity(0.7),
+                color: Colors.white.withValues(alpha: 0.7),
               ),
               onPressed: _togglePopup,
             ),
@@ -197,40 +186,3 @@ class _NotificationBellState extends ConsumerState<_NotificationBell> {
   }
 }
 
-class _ProfileDropdown extends StatelessWidget {
-  const _ProfileDropdown({required this.onLogout});
-
-  final VoidCallback onLogout;
-
-  @override
-  Widget build(BuildContext context) {
-    return PopupMenuButton<String>(
-      offset: const Offset(0, 50),
-      shape: RoundedRectangleBorder(
-        borderRadius: AppSpacing.panelRadius,
-      ),
-      color: AppColors.deepBlue,
-      elevation: 8,
-      shadowColor: AppColors.electric.withOpacity(0.12),
-      onSelected: (value) {
-        if (value == 'logout') onLogout();
-      },
-      itemBuilder: (_) => [
-        PopupMenuItem(
-          value: 'logout',
-          child: Row(
-            children: [
-              const Icon(LucideIcons.logOut,
-                  color: AppColors.danger, size: 18),
-              const SizedBox(width: AppSpacing.md),
-              Text('Odjavi se',
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(color: AppColors.danger)),
-            ],
-          ),
-        ),
-      ],
-      child: const AvatarWidget(initials: 'AD', size: 36),
-    );
-  }
-}

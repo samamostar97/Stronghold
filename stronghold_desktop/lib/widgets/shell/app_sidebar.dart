@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
@@ -30,6 +29,7 @@ class AppSidebar extends StatelessWidget {
     required this.onSelect,
     required this.collapsed,
     required this.onToggleCollapse,
+    required this.onLogout,
     this.bottom,
   });
 
@@ -38,6 +38,7 @@ class AppSidebar extends StatelessWidget {
   final ValueChanged<String> onSelect;
   final bool collapsed;
   final VoidCallback onToggleCollapse;
+  final VoidCallback onLogout;
   final Widget? bottom;
 
   @override
@@ -47,17 +48,17 @@ class AppSidebar extends StatelessWidget {
       curve: Curves.easeOutCubic,
       width: collapsed ? 72 : 240,
       decoration: BoxDecoration(
-        color: AppColors.deepBlue.withOpacity(0.65),
+        color: AppColors.deepBlue.withValues(alpha: 0.65),
         border: Border(
-          right: BorderSide(color: Colors.white.withOpacity(0.08), width: 1),
+          right: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
         ),
       ),
       child: Column(
         children: [
           const SizedBox(height: AppSpacing.lg),
-          _Logo(collapsed: collapsed),
+          _Logo(collapsed: collapsed, onLogout: onLogout),
           const SizedBox(height: AppSpacing.lg),
-          Container(height: 1, color: Colors.white.withOpacity(0.06)),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
           const SizedBox(height: AppSpacing.sm),
           Expanded(
             child: ListView(
@@ -79,10 +80,10 @@ class AppSidebar extends StatelessWidget {
               ],
             ),
           ),
-          Container(height: 1, color: Colors.white.withOpacity(0.06)),
+          Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
           _CollapseButton(collapsed: collapsed, onTap: onToggleCollapse),
           if (bottom != null) ...[
-            Container(height: 1, color: Colors.white.withOpacity(0.06)),
+            Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
             bottom!,
           ],
           const SizedBox(height: AppSpacing.sm),
@@ -93,19 +94,20 @@ class AppSidebar extends StatelessWidget {
 }
 
 class _Logo extends StatelessWidget {
-  const _Logo({required this.collapsed});
+  const _Logo({required this.collapsed, required this.onLogout});
   final bool collapsed;
+  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
-    final logo = Container(
+    final logoImage = Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
         borderRadius: AppSpacing.avatarRadius,
         boxShadow: [
           BoxShadow(
-            color: AppColors.electric.withOpacity(0.15),
+            color: AppColors.electric.withValues(alpha: 0.15),
             blurRadius: 12,
             offset: const Offset(0, 2),
           ),
@@ -121,24 +123,57 @@ class _Logo extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          if (collapsed || constraints.maxWidth < 80) {
-            return Center(child: logo);
-          }
-          return Row(
-            children: [
-              logo,
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Text(
-                  'STRONGHOLD',
-                  style: AppTextStyles.sectionTitle.copyWith(
-                    letterSpacing: 1.5,
-                    color: Colors.white,
+          final compact = collapsed || constraints.maxWidth < 80;
+
+          Widget content;
+          if (compact) {
+            content = Center(child: logoImage);
+          } else {
+            content = Row(
+              children: [
+                logoImage,
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    'STRONGHOLD',
+                    style: AppTextStyles.sectionTitle.copyWith(
+                      letterSpacing: 1.5,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            );
+          }
+
+          return PopupMenuButton<String>(
+            offset: Offset(compact ? 56 : 200, 0),
+            shape: RoundedRectangleBorder(
+              borderRadius: AppSpacing.panelRadius,
+            ),
+            color: AppColors.deepBlue,
+            elevation: 8,
+            shadowColor: AppColors.electric.withValues(alpha: 0.12),
+            onSelected: (value) {
+              if (value == 'logout') onLogout();
+            },
+            itemBuilder: (_) => [
+              PopupMenuItem(
+                value: 'logout',
+                child: Row(
+                  children: [
+                    const Icon(LucideIcons.logOut,
+                        color: AppColors.danger, size: 18),
+                    const SizedBox(width: AppSpacing.md),
+                    Text('Odjavi se',
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: AppColors.danger)),
+                  ],
                 ),
               ),
             ],
+            child: content,
           );
         },
       ),
@@ -156,7 +191,7 @@ class _SectionLabel extends StatelessWidget {
     if (collapsed) {
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Container(height: 1, color: Colors.white.withOpacity(0.06)),
+        child: Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
       );
     }
     return Padding(
@@ -164,7 +199,7 @@ class _SectionLabel extends StatelessWidget {
           left: 14, top: AppSpacing.lg, bottom: AppSpacing.sm),
       child: Text(label,
           style: AppTextStyles.overline
-              .copyWith(color: Colors.white.withOpacity(0.35)),
+              .copyWith(color: Colors.white.withValues(alpha: 0.35)),
           overflow: TextOverflow.ellipsis),
     );
   }
@@ -211,7 +246,7 @@ class _NavTileState extends State<_NavTile> {
             color: active
                 ? Colors.white
                 : _hover
-                    ? Colors.white.withOpacity(0.06)
+                    ? Colors.white.withValues(alpha: 0.06)
                     : Colors.transparent,
             borderRadius: AppSpacing.badgeRadius,
           ),
@@ -236,8 +271,8 @@ class _NavTileState extends State<_NavTile> {
                       color: active
                           ? AppColors.deepBlue
                           : _hover
-                              ? Colors.white.withOpacity(0.85)
-                              : Colors.white.withOpacity(0.45)),
+                              ? Colors.white.withValues(alpha: 0.85)
+                              : Colors.white.withValues(alpha: 0.45)),
                   if (!compact) ...[
                     const SizedBox(width: AppSpacing.md),
                     Expanded(
@@ -248,8 +283,8 @@ class _NavTileState extends State<_NavTile> {
                                 .copyWith(color: AppColors.deepBlue)
                             : AppTextStyles.bodySecondary.copyWith(
                                 color: _hover
-                                    ? Colors.white.withOpacity(0.9)
-                                    : Colors.white.withOpacity(0.5)),
+                                    ? Colors.white.withValues(alpha: 0.9)
+                                    : Colors.white.withValues(alpha: 0.5)),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
@@ -281,7 +316,7 @@ class _CollapseButton extends StatelessWidget {
               ? LucideIcons.panelLeftOpen
               : LucideIcons.panelLeftClose,
           size: 18,
-          color: Colors.white.withOpacity(0.4),
+          color: Colors.white.withValues(alpha: 0.4),
         ),
         onPressed: onTap,
       ),

@@ -73,6 +73,29 @@ namespace Stronghold.Infrastructure.Services
                 .Where(m => !m.IsDeleted && m.StartDate <= now && m.EndDate >= now)
                 .CountAsync();
 
+            // Memberships expiring this week
+            var oneWeekFromNow = now.AddDays(7);
+            var expiringThisWeekCount = await _context.Memberships
+                .AsNoTracking()
+                .Where(m => !m.IsDeleted && m.StartDate <= now && m.EndDate >= now && m.EndDate < oneWeekFromNow)
+                .CountAsync();
+
+            // Today's check-ins
+            var todayStart = now.Date;
+            var todayEnd = todayStart.AddDays(1);
+            var todayCheckIns = await _context.GymVisits
+                .AsNoTracking()
+                .Where(v => !v.IsDeleted && v.CheckInTime >= todayStart && v.CheckInTime < todayEnd)
+                .CountAsync();
+
+            // Average daily check-ins (last 30 days)
+            var thirtyDaysAgo = now.AddDays(-30);
+            var last30DaysCheckIns = await _context.GymVisits
+                .AsNoTracking()
+                .Where(v => !v.IsDeleted && v.CheckInTime >= thirtyDaysAgo && v.CheckInTime < todayEnd)
+                .CountAsync();
+            var avgDailyCheckIns = Math.Round(last30DaysCheckIns / 30m, 1);
+
             // Visits by weekday (current week)
             var visitTimes = await _context.GymVisits
                 .AsNoTracking()
@@ -91,6 +114,33 @@ namespace Stronghold.Infrastructure.Services
 
             var visitsByWeekday = BuildWeekdayVisits(rawByDay);
 
+            // Check-in heatmap (day × hour)
+            var heatmapRaw = visitTimes
+                .GroupBy(d => (d.DayOfWeek, d.Hour))
+                .Select(g => new HeatmapCellResponse
+                {
+                    Day = g.Key.DayOfWeek,
+                    Hour = g.Key.Hour,
+                    Count = g.Count()
+                })
+                .ToDictionary(c => (c.Day, c.Hour), c => c.Count);
+
+            var orderedDaysForHeatmap = new[]
+            {
+                DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday,
+                DayOfWeek.Thursday, DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday
+            };
+
+            var checkInHeatmap = new List<HeatmapCellResponse>();
+            foreach (var day in orderedDaysForHeatmap)
+            {
+                for (var hour = 0; hour < 24; hour++)
+                {
+                    heatmapRaw.TryGetValue((day, hour), out var count);
+                    checkInHeatmap.Add(new HeatmapCellResponse { Day = day, Hour = hour, Count = count });
+                }
+            }
+
             // Bestseller & daily sales (configurable period)
             var since = now.AddDays(-days);
 
@@ -108,6 +158,24 @@ namespace Stronghold.Infrastructure.Services
                     Quantity = g.Sum(x => x.Quantity)
                 })
                 .OrderByDescending(x => x.Quantity)
+                .FirstOrDefaultAsync();
+
+            // Slowest-moving supplement (fewest sales in period, at least 1 sale)
+            var worstSeller = await _context.OrderItems
+                .AsNoTracking()
+                .Where(oi => !oi.IsDeleted &&
+                             !oi.Order.IsDeleted &&
+                             oi.Order.PurchaseDate >= since &&
+                             oi.Order.PurchaseDate <= now)
+                .GroupBy(oi => new { oi.SupplementId, oi.Supplement.Name })
+                .Select(g => new
+                {
+                    g.Key.SupplementId,
+                    g.Key.Name,
+                    Quantity = g.Sum(x => x.Quantity),
+                    LastSaleDate = g.Max(x => x.Order.PurchaseDate)
+                })
+                .OrderBy(x => x.Quantity)
                 .FirstOrDefaultAsync();
 
             // Daily sales breakdown (last 30 days)
@@ -136,9 +204,6 @@ namespace Stronghold.Infrastructure.Services
             }
 
             // Revenue breakdown (today / this week / this month)
-            var todayStart = now.Date;
-            var todayEnd = todayStart.AddDays(1);
-
             var todayOrderRevenue = await _context.Orders
                 .AsNoTracking()
                 .Where(o => !o.IsDeleted && o.PurchaseDate >= todayStart && o.PurchaseDate < todayEnd)
@@ -198,6 +263,10 @@ namespace Stronghold.Infrastructure.Services
                 MonthChangePct = CalculateChangePct(monthOrderRevenue + thisMonthRevenue, lastMonthOrderRevenue + lastMonthMembershipRevenue),
 
                 ActiveMemberships = activeMemberships,
+                ExpiringThisWeekCount = expiringThisWeekCount,
+                TodayCheckIns = todayCheckIns,
+                Last30DaysCheckIns = last30DaysCheckIns,
+                AvgDailyCheckIns = avgDailyCheckIns,
                 VisitsByWeekday = visitsByWeekday,
 
                 BestsellerLast30Days = bestseller == null
@@ -209,8 +278,19 @@ namespace Stronghold.Infrastructure.Services
                         QuantitySold = bestseller.Quantity
                     },
 
+                SlowestMovingLast30Days = worstSeller == null
+                    ? null
+                    : new SlowestMovingResponse
+                    {
+                        SupplementId = worstSeller.SupplementId,
+                        Name = worstSeller.Name,
+                        QuantitySold = worstSeller.Quantity,
+                        DaysSinceLastSale = (int)(now - worstSeller.LastSaleDate).TotalDays
+                    },
+
                 DailySales = dailySales,
-                RevenueBreakdown = revenueBreakdown
+                RevenueBreakdown = revenueBreakdown,
+                CheckInHeatmap = checkInHeatmap
             };
         }
 
