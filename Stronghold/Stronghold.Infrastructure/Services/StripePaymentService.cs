@@ -50,6 +50,20 @@ public class StripePaymentService : IStripePaymentService
         }
     }
 
+    public async Task<StripePaymentIntentResult> VerifyPaymentAsync(string paymentIntentId, int userId)
+    {
+        var result = await GetPaymentIntentAsync(paymentIntentId);
+
+        if (!string.Equals(result.Status, "succeeded", StringComparison.OrdinalIgnoreCase))
+            throw new InvalidOperationException("Uplata nije uspjela.");
+
+        if (!result.Metadata.TryGetValue("userId", out var metadataUserId)
+            || metadataUserId != userId.ToString())
+            throw new InvalidOperationException("Neovlasteni pristup uplati.");
+
+        return result;
+    }
+
     public async Task RefundPaymentIntentAsync(string paymentIntentId)
     {
         try
