@@ -7,6 +7,7 @@ public interface IStripePaymentService
         string currency,
         IDictionary<string, string> metadata);
     Task<StripePaymentIntentResult> GetPaymentIntentAsync(string paymentIntentId);
+    Task<StripePaymentIntentResult> VerifyPaymentAsync(string paymentIntentId, int userId);
     Task RefundPaymentIntentAsync(string paymentIntentId);
 }
 

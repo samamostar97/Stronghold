@@ -65,6 +65,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserProfileService, UserProfileService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<IStripePaymentService, StripePaymentService>();
+        services.AddScoped<IOrderEmailService, OrderEmailService>();
         services.AddScoped<IRecommendationService, RecommendationService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IAdminActivityService, AdminActivityService>();

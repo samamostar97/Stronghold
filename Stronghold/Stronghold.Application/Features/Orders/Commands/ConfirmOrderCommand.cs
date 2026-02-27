@@ -1,5 +1,6 @@
 using FluentValidation;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Stronghold.Application.Features.Orders.DTOs;
 using Stronghold.Application.IRepositories;
 using Stronghold.Application.IServices;
@@ -21,72 +22,68 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
     private readonly IOrderRepository _orderRepository;
     private readonly ICurrentUserService _currentUserService;
     private readonly IStripePaymentService _stripePaymentService;
-    private readonly IEmailService _emailService;
+    private readonly IOrderEmailService _orderEmailService;
     private readonly INotificationService _notificationService;
+    private readonly ILogger<ConfirmOrderCommandHandler> _logger;
 
     public ConfirmOrderCommandHandler(
         IOrderRepository orderRepository,
         ICurrentUserService currentUserService,
         IStripePaymentService stripePaymentService,
-        IEmailService emailService,
-        INotificationService notificationService)
+        IOrderEmailService orderEmailService,
+        INotificationService notificationService,
+        ILogger<ConfirmOrderCommandHandler> logger)
     {
         _orderRepository = orderRepository;
         _currentUserService = currentUserService;
         _stripePaymentService = stripePaymentService;
-        _emailService = emailService;
+        _orderEmailService = orderEmailService;
         _notificationService = notificationService;
+        _logger = logger;
     }
 
-public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
+    public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!.Value;
-        if (request.Items.Count == 0)
-        {
-            throw new InvalidOperationException("Stavke narudzbe su obavezne.");
-        }
 
-        var supplementIds = request.Items.Select(x => x.SupplementId).ToList();
-        if (supplementIds.Count != supplementIds.Distinct().Count())
-        {
-            throw new InvalidOperationException("Duplicirane stavke nisu dozvoljene.");
-        }
+        // 1. Verify Stripe payment
+        var paymentIntent = await _stripePaymentService.VerifyPaymentAsync(request.PaymentIntentId, userId);
 
-        foreach (var item in request.Items)
-        {
-            if (item.Quantity <= 0 || item.Quantity > 99)
-            {
-                throw new InvalidOperationException("Kolicina mora biti izmedju 1 i 99.");
-            }
-            }
-        var paymentIntent = await _stripePaymentService.GetPaymentIntentAsync(request.PaymentIntentId);
-        if (!string.Equals(paymentIntent.Status, "succeeded", StringComparison.OrdinalIgnoreCase))
-        {
-            throw new InvalidOperationException("Uplata nije uspjela.");
-        }
-
-        if (!paymentIntent.Metadata.TryGetValue("userId", out var metadataUserId)
-            || metadataUserId != userId.ToString())
-        {
-            throw new InvalidOperationException("Neovlasteni pristup uplati.");
-        }
-
-        var existingOrder = await _orderRepository.GetByStripePaymentIdAsync(request.PaymentIntentId, cancellationToken);
-        if (existingOrder is not null)
-        {
+        // 2. Idempotency check
+        if (await _orderRepository.GetByStripePaymentIdAsync(request.PaymentIntentId, cancellationToken) is not null)
             throw new InvalidOperationException("Narudzba za ovu uplatu vec postoji.");
-        }
 
+        // 3. Load & validate supplements
+        var supplementIds = request.Items.Select(x => x.SupplementId).ToList();
         var supplements = await _orderRepository.GetSupplementsByIdsAsync(supplementIds, cancellationToken);
         if (supplements.Count != supplementIds.Count)
-        {
             throw new InvalidOperationException("Jedan ili vise suplementa ne postoji.");
-        }
 
+        // 4. Build & save order
+        var order = BuildOrder(userId, request.Items, supplements, paymentIntent);
+        if (!await _orderRepository.TryAddAsync(order, cancellationToken))
+            throw new InvalidOperationException("Narudzba za ovu uplatu vec postoji.");
+
+        // 5. Side effects (non-critical)
+        var user = await _orderRepository.GetUserByIdAsync(userId, cancellationToken);
+        await SendNotificationsAsync(userId, user, order);
+        if (user is not null)
+            await _orderEmailService.SendOrderConfirmationAsync(user, order, order.OrderItems.ToList(), supplements);
+
+        // 6. Map response
+        return MapToResponse(order, supplements);
+    }
+
+    private static Order BuildOrder(
+        int userId,
+        List<CheckoutItem> items,
+        IReadOnlyList<Supplement> supplements,
+        StripePaymentIntentResult paymentIntent)
+    {
         var orderItems = new List<OrderItem>();
         decimal totalAmount = 0m;
 
-        foreach (var item in request.Items)
+        foreach (var item in items)
         {
             var supplement = supplements.First(x => x.Id == item.SupplementId);
             totalAmount += supplement.Price * item.Quantity;
@@ -101,60 +98,21 @@ public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, Cancell
 
         var totalMinorUnits = ToMinorUnits(totalAmount);
         if (paymentIntent.Amount != totalMinorUnits)
-        {
             throw new InvalidOperationException("Iznos narudzbe ne odgovara uplati.");
-        }
 
-        var order = new Order
+        return new Order
         {
             UserId = userId,
             TotalAmount = ToMajorUnits(totalMinorUnits),
             PurchaseDate = StrongholdTimeUtils.UtcNow,
             Status = OrderStatus.Processing,
-            StripePaymentId = request.PaymentIntentId,
+            StripePaymentId = paymentIntent.Id,
             OrderItems = orderItems
         };
+    }
 
-        var saved = await _orderRepository.TryAddAsync(order, cancellationToken);
-        if (!saved)
-        {
-            throw new InvalidOperationException("Narudzba za ovu uplatu vec postoji.");
-        }
-
-        var user = await _orderRepository.GetUserByIdAsync(userId, cancellationToken);
-        if (user is not null)
-        {
-            await SendPaymentConfirmationEmailAsync(user, order, orderItems, supplements);
-        }
-
-        try
-        {
-            var userName = user is null ? "Korisnik" : $"{user.FirstName} {user.LastName}";
-            await _notificationService.CreateAsync(
-                "new_order",
-                "Nova narudzba",
-                $"{userName} je narucio/la za {order.TotalAmount:F2} KM",
-                order.Id,
-                "Order");
-        }
-        catch
-        {
-        }
-
-        try
-        {
-            await _notificationService.CreateForUserAsync(
-                userId,
-                "order_confirmed",
-                "Narudzba zaprimljena",
-                $"Vasa narudzba #{order.Id} ({order.TotalAmount:F2} KM) je zaprimljena i priprema se.",
-                order.Id,
-                "Order");
-        }
-        catch
-        {
-        }
-
+    private static UserOrderResponse MapToResponse(Order order, IReadOnlyList<Supplement> supplements)
+    {
         return new UserOrderResponse
         {
             Id = order.Id,
@@ -173,63 +131,49 @@ public async Task<UserOrderResponse> Handle(ConfirmOrderCommand request, Cancell
         };
     }
 
-private static long ToMinorUnits(decimal amount)
+    private async Task SendNotificationsAsync(int userId, User? user, Order order)
+    {
+        try
+        {
+            var userName = user is null ? "Korisnik" : $"{user.FirstName} {user.LastName}";
+            await _notificationService.CreateAsync(
+                "new_order",
+                "Nova narudzba",
+                $"{userName} je narucio/la za {order.TotalAmount:F2} KM",
+                order.Id,
+                "Order");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Slanje admin notifikacije za narudzbu {OrderId} nije uspjelo", order.Id);
+        }
+
+        try
+        {
+            await _notificationService.CreateForUserAsync(
+                userId,
+                "order_confirmed",
+                "Narudzba zaprimljena",
+                $"Vasa narudzba #{order.Id} ({order.TotalAmount:F2} KM) je zaprimljena i priprema se.",
+                order.Id,
+                "Order");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Slanje korisnicke notifikacije za narudzbu {OrderId} nije uspjelo", order.Id);
+        }
+    }
+
+    private static long ToMinorUnits(decimal amount)
     {
         return (long)Math.Round(amount * 100m, MidpointRounding.AwayFromZero);
     }
 
-private static decimal ToMajorUnits(long amountMinorUnits)
+    private static decimal ToMajorUnits(long amountMinorUnits)
     {
         return amountMinorUnits / 100m;
     }
-
-private async Task SendPaymentConfirmationEmailAsync(
-        User user,
-        Order order,
-        IReadOnlyList<OrderItem> orderItems,
-        IReadOnlyList<Supplement> supplements)
-    {
-        var itemsList = string.Join(
-            "",
-            orderItems.Select(x =>
-            {
-                var supplement = supplements.First(s => s.Id == x.SupplementId);
-                return $"<li>{supplement.Name} x{x.Quantity} - {x.UnitPrice:F2} KM</li>";
-            }));
-
-        var emailBody = $@"
-                <html>
-                <body style='font-family: Arial, sans-serif; line-height: 1.6; color: #333;'>
-                    <h2 style='color: #e63946;'>Potvrda narudzbe #{order.Id}</h2>
-                    <p>Postovani/a {user.FirstName},</p>
-                    <p>Vasa uplata je uspjesno primljena. Hvala Vam na povjerenju.</p>
-
-                    <div style='background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin: 20px 0;'>
-                        <p style='margin: 0; font-size: 16px;'>
-                            <strong>Skladiste je zaprimilo Vasu narudzbu.</strong><br/>
-                            Paket se priprema za dostavu.
-                        </p>
-                    </div>
-
-                    <h3>Detalji narudzbe:</h3>
-                    <ul>{itemsList}</ul>
-                    <p><strong>Ukupan iznos: {order.TotalAmount:F2} KM</strong></p>
-                    <p><strong>Datum narudzbe:</strong> {order.PurchaseDate:dd.MM.yyyy HH:mm}</p>
-
-                    <hr style='border: none; border-top: 1px solid #ddd; margin: 20px 0;'/>
-                    <p style='color: #666; font-size: 14px;'>
-                        Obavijesticemo Vas kada narudzba bude poslana.
-                    </p>
-                    <p>Srdacan pozdrav,<br/><strong>Stronghold Tim</strong></p>
-                </body>
-                </html>";
-
-        await _emailService.SendEmailAsync(
-            user.Email,
-            $"Potvrda narudzbe #{order.Id} - uplata primljena",
-            emailBody);
-    }
-    }
+}
 
 public class ConfirmOrderCommandValidator : AbstractValidator<ConfirmOrderCommand>
 {
@@ -253,4 +197,4 @@ public class ConfirmOrderCommandValidator : AbstractValidator<ConfirmOrderComman
             .SetValidator(new CheckoutItemValidator())
             .WithMessage("Stavke narudzbe sadrze neispravne podatke.");
     }
-    }
+}
