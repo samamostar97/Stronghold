@@ -42,6 +42,22 @@ class MembershipService {
     );
   }
 
+  /// Get global membership payment history (admin audit view)
+  Future<PagedResult<AdminMembershipPaymentResponse>> getAllPayments(
+    MembershipQueryFilter filter,
+  ) async {
+    final queryParams = filter.toQueryParameters();
+
+    return _client.get<PagedResult<AdminMembershipPaymentResponse>>(
+      '$_path/payments',
+      queryParameters: queryParams,
+      parser: (json) => PagedResult.fromJson(
+        json,
+        (item) => AdminMembershipPaymentResponse.fromJson(item),
+      ),
+    );
+  }
+
   /// Get paged list of users with active memberships
   Future<PagedResult<ActiveMemberResponse>> getActiveMembers(
     ActiveMemberQueryFilter filter,

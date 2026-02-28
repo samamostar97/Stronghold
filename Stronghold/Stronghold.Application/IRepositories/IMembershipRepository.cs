@@ -26,6 +26,9 @@ public interface IMembershipRepository
         int userId,
         MembershipPaymentFilter filter,
         CancellationToken cancellationToken = default);
+    Task<PagedResult<MembershipPaymentHistory>> GetAllPaymentsPagedAsync(
+        AdminMembershipPaymentsFilter filter,
+        CancellationToken cancellationToken = default);
     Task<IReadOnlyList<MembershipPaymentHistory>> GetPaymentsByUserAsync(
         int userId,
         CancellationToken cancellationToken = default);

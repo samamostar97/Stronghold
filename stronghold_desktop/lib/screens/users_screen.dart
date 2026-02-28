@@ -14,6 +14,7 @@ import '../widgets/leaderboard/leaderboard_table.dart';
 import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/screen_intro_banner.dart';
 import '../widgets/shared/shimmer_loading.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/users/user_add_dialog.dart';
@@ -72,51 +73,81 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
   Widget build(BuildContext context) {
     return Padding(
       padding: AppSpacing.desktopPage,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            top: chromeTabBarHeight - 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-                border: Border.all(color: AppColors.border),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
+      child:
+          Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildUsersTab(),
-                  _buildLeaderboardTab(),
+                  ScreenIntroBanner(
+                    icon: LucideIcons.users,
+                    title: 'Korisnicki centar',
+                    subtitle: 'Upravljanje clanovima i pregled rang liste',
+                    trailing: Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        SmallButton(
+                          text: 'Dodaj korisnika',
+                          color: AppColors.primary,
+                          onTap: _addUser,
+                        ),
+                        SmallButton(
+                          text: 'Rang lista',
+                          color: AppColors.secondary,
+                          onTap: () => _tabController.animateTo(1),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          top: chromeTabBarHeight - 1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(16),
+                                bottomLeft: Radius.circular(16),
+                                bottomRight: Radius.circular(16),
+                              ),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: TabBarView(
+                              controller: _tabController,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                _buildUsersTab(),
+                                _buildLeaderboardTab(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: chromeTabBarHeight,
+                          child: ChromeTabBar(
+                            controller: _tabController,
+                            tabs: _tabs,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
+              )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
               ),
-            ),
-          ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: chromeTabBarHeight,
-            child: ChromeTabBar(
-              controller: _tabController,
-              tabs: _tabs,
-            ),
-          ),
-        ],
-      )
-          .animate(delay: 200.ms)
-          .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-          .slideY(
-            begin: 0.04,
-            end: 0,
-            duration: Motion.smooth,
-            curve: Motion.curve,
-          ),
     );
   }
 
@@ -144,7 +175,8 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
         items: items,
         columns: [
           ColumnDef<UserResponse>(
-            label: '', flex: 1,
+            label: '',
+            flex: 1,
             cellBuilder: (u) {
               final initials = _initials(u.firstName, u.lastName);
               return Align(
@@ -154,17 +186,22 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                           border: Border.all(color: AppColors.border),
                         ),
                         child: ClipRRect(
-                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
                           child: Image.network(
                             ApiConfig.imageUrl(u.profileImageUrl!),
                             fit: BoxFit.cover,
                             width: 32,
                             height: 32,
-                            errorBuilder: (_, _, _) => AvatarWidget(initials: initials, size: 32),
+                            errorBuilder: (_, _, _) =>
+                                AvatarWidget(initials: initials, size: 32),
                           ),
                         ),
                       )
@@ -172,13 +209,33 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
               );
             },
           ),
-          ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (u) => '${u.firstName} ${u.lastName}', bold: true),
-          ColumnDef.text(label: 'Korisnicko ime', flex: 2, value: (u) => u.username),
+          ColumnDef.text(
+            label: 'Ime i prezime',
+            flex: 3,
+            value: (u) => '${u.firstName} ${u.lastName}',
+            bold: true,
+          ),
+          ColumnDef.text(
+            label: 'Korisnicko ime',
+            flex: 2,
+            value: (u) => u.username,
+          ),
           ColumnDef.text(label: 'Email', flex: 3, value: (u) => u.email),
-          ColumnDef.text(label: 'Telefon', flex: 2, value: (u) => u.phoneNumber),
-          ColumnDef.actions(flex: 2, builder: (u) => [
-            SmallButton(text: 'Informacije', color: AppColors.primary, onTap: () => _openProfile(u)),
-          ]),
+          ColumnDef.text(
+            label: 'Telefon',
+            flex: 2,
+            value: (u) => u.phoneNumber,
+          ),
+          ColumnDef.actions(
+            flex: 2,
+            builder: (u) => [
+              SmallButton(
+                text: 'Informacije',
+                color: AppColors.primary,
+                onTap: () => _openProfile(u),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -193,18 +250,23 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
         loading: () =>
             const ShimmerTable(columnFlex: [1, 4, 2, 2], rowCount: 10),
         error: (error, _) => Center(
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
-            const SizedBox(height: AppSpacing.sm),
-            Text(error.toString(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                error.toString(),
                 style: AppTextStyles.bodySecondary,
-                textAlign: TextAlign.center),
-            const SizedBox(height: AppSpacing.lg),
-            GradientButton.text(
-              text: 'Pokusaj ponovo',
-              onPressed: () => ref.invalidate(leaderboardProvider),
-            ),
-          ]),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              GradientButton.text(
+                text: 'Pokusaj ponovo',
+                onPressed: () => ref.invalidate(leaderboardProvider),
+              ),
+            ],
+          ),
         ),
         data: (entries) => LeaderboardTable(entries: entries),
       ),

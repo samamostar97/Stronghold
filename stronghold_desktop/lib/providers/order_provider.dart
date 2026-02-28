@@ -56,8 +56,6 @@ class OrderListNotifier
         pageSize: state.filter.pageSize,
         orderBy: state.filter.orderBy,
         status: state.filter.status,
-        dateFrom: state.filter.dateFrom,
-        dateTo: state.filter.dateTo,
         descending: state.filter.descending,
         // search is null (cleared)
       );
@@ -89,8 +87,6 @@ class OrderListNotifier
         pageSize: state.filter.pageSize,
         search: state.filter.search,
         orderBy: state.filter.orderBy,
-        dateFrom: state.filter.dateFrom,
-        dateTo: state.filter.dateTo,
         descending: state.filter.descending,
       );
     } else {

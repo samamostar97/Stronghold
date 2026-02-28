@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../screens/admin_shell.dart';
 import '../screens/business_report_screen.dart';
 import '../screens/dashboard_home_screen.dart';
+import '../screens/audit_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/orders_screen.dart';
 import '../screens/reviews_screen.dart';
@@ -51,6 +52,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/dashboard',
             pageBuilder: (context, state) =>
                 _fadeSlidePage(const DashboardHomeScreen(), state),
+          ),
+          GoRoute(
+            path: '/audit',
+            pageBuilder: (context, state) =>
+                _fadeSlidePage(const AuditScreen(), state),
           ),
           GoRoute(
             path: '/visitors',

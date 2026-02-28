@@ -26,7 +26,7 @@ public class GetMyOrdersQueryHandler : IRequestHandler<GetMyOrdersQuery, PagedRe
         _currentUserService = currentUserService;
     }
 
-public async Task<PagedResult<UserOrderResponse>> Handle(GetMyOrdersQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResult<UserOrderResponse>> Handle(GetMyOrdersQuery request, CancellationToken cancellationToken)
     {
         var userId = _currentUserService.UserId!.Value;
         var filter = request.Filter ?? new OrderFilter();
@@ -40,7 +40,7 @@ public async Task<PagedResult<UserOrderResponse>> Handle(GetMyOrdersQuery reques
         };
     }
 
-private static UserOrderResponse MapToUserOrderResponse(Order order)
+    private static UserOrderResponse MapToUserOrderResponse(Order order)
     {
         return new UserOrderResponse
         {
@@ -59,7 +59,7 @@ private static UserOrderResponse MapToUserOrderResponse(Order order)
             }).ToList()
         };
     }
-    }
+}
 
 public class GetMyOrdersQueryValidator : AbstractValidator<GetMyOrdersQuery>
 {
@@ -91,27 +91,16 @@ public class GetMyOrdersQueryValidator : AbstractValidator<GetMyOrdersQuery>
             .Must(BeValidStatus)
             .When(x => x.Filter.Status.HasValue)
             .WithMessage("Neispravna vrijednost statusa.");
-
-        RuleFor(x => x.Filter)
-            .Must(HaveValidDateRange)
-            .WithMessage("DateFrom mora biti manji ili jednak DateTo.");
     }
 
-private static bool BeValidOrderBy(string? orderBy)
+    private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLowerInvariant();
         return normalized is "date" or "amount" or "status";
     }
 
-private static bool BeValidStatus(OrderStatus? status)
+    private static bool BeValidStatus(OrderStatus? status)
     {
         return !status.HasValue || Enum.IsDefined(typeof(OrderStatus), status.Value);
     }
-
-private static bool HaveValidDateRange(OrderFilter filter)
-    {
-        return !filter.DateFrom.HasValue ||
-               !filter.DateTo.HasValue ||
-               filter.DateFrom.Value <= filter.DateTo.Value;
-    }
-    }
+}

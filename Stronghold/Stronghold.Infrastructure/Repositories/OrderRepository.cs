@@ -195,16 +195,6 @@ public class OrderRepository : IOrderRepository
             query = query.Where(x => x.Status == filter.Status.Value);
         }
 
-        if (filter.DateFrom.HasValue)
-        {
-            query = query.Where(x => x.PurchaseDate >= filter.DateFrom.Value);
-        }
-
-        if (filter.DateTo.HasValue)
-        {
-            query = query.Where(x => x.PurchaseDate <= filter.DateTo.Value);
-        }
-
         if (!string.IsNullOrWhiteSpace(filter.OrderBy))
         {
             query = filter.OrderBy.Trim().ToLowerInvariant() switch
@@ -257,16 +247,6 @@ public class OrderRepository : IOrderRepository
         if (filter.Status.HasValue)
         {
             query = query.Where(x => x.Status == filter.Status.Value);
-        }
-
-        if (filter.DateFrom.HasValue)
-        {
-            query = query.Where(x => x.PurchaseDate >= filter.DateFrom.Value);
-        }
-
-        if (filter.DateTo.HasValue)
-        {
-            query = query.Where(x => x.PurchaseDate <= filter.DateTo.Value);
         }
 
         if (!string.IsNullOrWhiteSpace(filter.OrderBy))

@@ -195,6 +195,38 @@ public class ProtectedEndpointsSmokeTests : IClassFixture<StrongholdApiFactory>,
     }
 
     [Fact]
+    public async Task GetMembershipPaymentsAudit_ShouldReturnForbidden_ForMemberToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.MemberUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/memberships/payments?pageNumber=1&pageSize=10");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetMembershipPaymentsAudit_ShouldReturnOk_ForAdminToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.AdminUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/memberships/payments?pageNumber=1&pageSize=10");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetMyAppointments_ShouldReturnValidationContract_WhenPageSizeIsInvalid()
     {
         var client = _factory.CreateApiClient();

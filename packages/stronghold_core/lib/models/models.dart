@@ -52,6 +52,7 @@ export 'requests/register_request.dart';
 // Responses
 export 'responses/active_member_response.dart';
 export 'responses/admin_activity_response.dart';
+export 'responses/admin_membership_payment_response.dart';
 export 'responses/address_response.dart';
 export 'responses/business_report_dto.dart';
 export 'responses/current_visitor_response.dart';

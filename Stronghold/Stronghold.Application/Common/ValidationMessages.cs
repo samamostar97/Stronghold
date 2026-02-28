@@ -21,7 +21,6 @@ public static class ValidationMessages
     // ── Filter / sorting ──────────────────────────────────────────────────
     public const string InvalidSortValue = "Neispravna vrijednost za sortiranje.";
     public const string InvalidStatusValue = "Neispravna vrijednost statusa.";
-    public const string DateFromMustBeBeforeDateTo = "DateFrom mora biti manji ili jednak DateTo.";
 
     // ── Domain-specific ───────────────────────────────────────────────────
     public const string InvalidUrl = "Unesite ispravnu web adresu.";

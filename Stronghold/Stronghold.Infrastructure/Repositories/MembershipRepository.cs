@@ -120,6 +120,67 @@ public class MembershipRepository : IMembershipRepository
         };
     }
 
+    public async Task<PagedResult<MembershipPaymentHistory>> GetAllPaymentsPagedAsync(
+        AdminMembershipPaymentsFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        filter ??= new AdminMembershipPaymentsFilter();
+
+        var baseQuery = _context.MembershipPaymentHistory
+            .AsNoTracking()
+            .Include(x => x.User)
+            .Include(x => x.MembershipPackage)
+            .Where(x => !x.IsDeleted)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = filter.Search.Trim().ToLowerInvariant();
+            baseQuery = baseQuery.Where(x =>
+                x.User.FirstName.ToLower().Contains(search) ||
+                x.User.LastName.ToLower().Contains(search) ||
+                x.User.Username.ToLower().Contains(search) ||
+                x.User.Email.ToLower().Contains(search) ||
+                x.MembershipPackage.PackageName.ToLower().Contains(search));
+        }
+
+        var query = filter.OrderBy?.Trim().ToLowerInvariant() switch
+        {
+            "date" => baseQuery.OrderBy(x => x.PaymentDate).ThenBy(x => x.Id),
+            "datedesc" => baseQuery.OrderByDescending(x => x.PaymentDate).ThenByDescending(x => x.Id),
+            "amount" => baseQuery.OrderBy(x => x.AmountPaid).ThenBy(x => x.Id),
+            "amountdesc" => baseQuery.OrderByDescending(x => x.AmountPaid).ThenByDescending(x => x.Id),
+            "user" => baseQuery
+                .OrderBy(x => x.User.FirstName)
+                .ThenBy(x => x.User.LastName)
+                .ThenBy(x => x.Id),
+            "userdesc" => baseQuery
+                .OrderByDescending(x => x.User.FirstName)
+                .ThenByDescending(x => x.User.LastName)
+                .ThenByDescending(x => x.Id),
+            "packagename" or "package" => baseQuery
+                .OrderBy(x => x.MembershipPackage.PackageName)
+                .ThenBy(x => x.Id),
+            "packagenamedesc" or "packagedesc" => baseQuery
+                .OrderByDescending(x => x.MembershipPackage.PackageName)
+                .ThenByDescending(x => x.Id),
+            _ => baseQuery.OrderByDescending(x => x.PaymentDate).ThenByDescending(x => x.Id)
+        };
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToListAsync(cancellationToken);
+
+        return new PagedResult<MembershipPaymentHistory>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = filter.PageNumber
+        };
+    }
+
     public async Task<IReadOnlyList<MembershipPaymentHistory>> GetPaymentsByUserAsync(
         int userId,
         CancellationToken cancellationToken = default)

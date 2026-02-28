@@ -21,6 +21,7 @@ import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/confirm_dialog.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/error_animation.dart';
+import '../widgets/shared/screen_intro_banner.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/trainers/trainer_add_dialog.dart';
 import '../widgets/trainers/trainer_edit_dialog.dart';
@@ -59,8 +60,6 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     _tabController.dispose();
     super.dispose();
   }
-
-  // ── Trainer CRUD ────────────────────────────────
 
   Future<void> _addTrainer() async {
     final result = await showDialog<Object?>(
@@ -120,8 +119,6 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     }
   }
 
-  // ── Nutritionist CRUD ───────────────────────────
-
   Future<void> _addNutritionist() async {
     final result = await showDialog<Object?>(
       context: context,
@@ -168,22 +165,17 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(nutritionistListProvider.notifier)
-          .delete(nutritionist.id);
+      await ref.read(nutritionistListProvider.notifier).delete(nutritionist.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
         showErrorAnimation(
           context,
-          message:
-              ErrorHandler.getContextualMessage(e, 'delete-nutritionist'),
+          message: ErrorHandler.getContextualMessage(e, 'delete-nutritionist'),
         );
       }
     }
   }
-
-  // ── Appointment CRUD ────────────────────────────
 
   Future<void> _addAppointment() async {
     final result = await showDialog<Object?>(
@@ -220,8 +212,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     }
   }
 
-  Future<void> _deleteAppointment(
-      AdminAppointmentResponse appointment) async {
+  Future<void> _deleteAppointment(AdminAppointmentResponse appointment) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => ConfirmDialog(
@@ -232,73 +223,102 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(appointmentListProvider.notifier)
-          .delete(appointment.id);
+      await ref.read(appointmentListProvider.notifier).delete(appointment.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message:
-                ErrorHandler.getContextualMessage(e, 'delete-appointment'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-appointment'),
+        );
       }
     }
   }
-
-  // ── Build ───────────────────────────────────────
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: AppSpacing.desktopPage,
-      child: Stack(
-        children: [
-          // Content panel — starts 1px above tab bar bottom so active tab overlaps the top border
-          Positioned.fill(
-            top: chromeTabBarHeight - 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-                border: Border.all(color: AppColors.border),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: TabBarView(
-                controller: _tabController,
-                physics: const NeverScrollableScrollPhysics(),
+      child:
+          Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildTrainersTab(),
-                  _buildNutritionistsTab(),
-                  _buildAppointmentsTab(),
+                  ScreenIntroBanner(
+                    icon: LucideIcons.briefcase,
+                    title: 'Operativni centar osoblja',
+                    subtitle:
+                        'Brzi pristup trenerima, nutricionistima i terminima',
+                    trailing: Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.sm,
+                      children: [
+                        SmallButton(
+                          text: 'Dodaj trenera',
+                          color: AppColors.primary,
+                          onTap: _addTrainer,
+                        ),
+                        SmallButton(
+                          text: 'Dodaj termin',
+                          color: AppColors.secondary,
+                          onTap: () {
+                            _tabController.animateTo(2);
+                            _addAppointment();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          top: chromeTabBarHeight - 1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(16),
+                                bottomLeft: Radius.circular(16),
+                                bottomRight: Radius.circular(16),
+                              ),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: TabBarView(
+                              controller: _tabController,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                _buildTrainersTab(),
+                                _buildNutritionistsTab(),
+                                _buildAppointmentsTab(),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: chromeTabBarHeight,
+                          child: ChromeTabBar(
+                            controller: _tabController,
+                            tabs: _tabs,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
+              )
+              .animate(delay: 200.ms)
+              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+              .slideY(
+                begin: 0.04,
+                end: 0,
+                duration: Motion.smooth,
+                curve: Motion.curve,
               ),
-            ),
-          ),
-          // Tab bar — paints on top, active tab covers content's top border
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            height: chromeTabBarHeight,
-            child: ChromeTabBar(
-              controller: _tabController,
-              tabs: _tabs,
-            ),
-          ),
-        ],
-      )
-          .animate(delay: 200.ms)
-          .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-          .slideY(
-            begin: 0.04,
-            end: 0,
-            duration: Motion.smooth,
-            curve: Motion.curve,
-          ),
     );
   }
 
@@ -328,20 +348,44 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
         items: items,
         columns: [
           ColumnDef<TrainerResponse>(
-            label: '', flex: 1,
+            label: '',
+            flex: 1,
             cellBuilder: (t) => Align(
               alignment: Alignment.centerLeft,
-              child: AvatarWidget(initials: _initials(t.firstName, t.lastName), size: 32),
+              child: AvatarWidget(
+                initials: _initials(t.firstName, t.lastName),
+                size: 32,
+              ),
             ),
           ),
-          ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (t) => t.fullName, bold: true),
+          ColumnDef.text(
+            label: 'Ime i prezime',
+            flex: 3,
+            value: (t) => t.fullName,
+            bold: true,
+          ),
           ColumnDef.text(label: 'Email', flex: 3, value: (t) => t.email),
-          ColumnDef.text(label: 'Telefon', flex: 2, value: (t) => t.phoneNumber),
-          ColumnDef.actions(flex: 2, builder: (t) => [
-            SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editTrainer(t)),
-            const SizedBox(width: AppSpacing.sm),
-            SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteTrainer(t)),
-          ]),
+          ColumnDef.text(
+            label: 'Telefon',
+            flex: 2,
+            value: (t) => t.phoneNumber,
+          ),
+          ColumnDef.actions(
+            flex: 2,
+            builder: (t) => [
+              SmallButton(
+                text: 'Izmijeni',
+                color: AppColors.secondary,
+                onTap: () => _editTrainer(t),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SmallButton(
+                text: 'Obrisi',
+                color: AppColors.error,
+                onTap: () => _deleteTrainer(t),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -373,20 +417,44 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
         items: items,
         columns: [
           ColumnDef<NutritionistResponse>(
-            label: '', flex: 1,
+            label: '',
+            flex: 1,
             cellBuilder: (n) => Align(
               alignment: Alignment.centerLeft,
-              child: AvatarWidget(initials: _initials(n.firstName, n.lastName), size: 32),
+              child: AvatarWidget(
+                initials: _initials(n.firstName, n.lastName),
+                size: 32,
+              ),
             ),
           ),
-          ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (n) => n.fullName, bold: true),
+          ColumnDef.text(
+            label: 'Ime i prezime',
+            flex: 3,
+            value: (n) => n.fullName,
+            bold: true,
+          ),
           ColumnDef.text(label: 'Email', flex: 3, value: (n) => n.email),
-          ColumnDef.text(label: 'Telefon', flex: 2, value: (n) => n.phoneNumber),
-          ColumnDef.actions(flex: 2, builder: (n) => [
-            SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editNutritionist(n)),
-            const SizedBox(width: AppSpacing.sm),
-            SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteNutritionist(n)),
-          ]),
+          ColumnDef.text(
+            label: 'Telefon',
+            flex: 2,
+            value: (n) => n.phoneNumber,
+          ),
+          ColumnDef.actions(
+            flex: 2,
+            builder: (n) => [
+              SmallButton(
+                text: 'Izmijeni',
+                color: AppColors.secondary,
+                onTap: () => _editNutritionist(n),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SmallButton(
+                text: 'Obrisi',
+                color: AppColors.error,
+                onTap: () => _deleteNutritionist(n),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -416,19 +484,50 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
       tableBuilder: (items) => GenericDataTable<AdminAppointmentResponse>(
         items: items,
         columns: [
-          ColumnDef.text(label: 'Korisnik', flex: 3, value: (a) => a.userName, bold: true),
+          ColumnDef.text(
+            label: 'Korisnik',
+            flex: 3,
+            value: (a) => a.userName,
+            bold: true,
+          ),
           ColumnDef<AdminAppointmentResponse>(
-            label: 'Tip', flex: 2,
+            label: 'Tip',
+            flex: 2,
             cellBuilder: (a) => _TypeChip(type: a.type),
           ),
-          ColumnDef.text(label: 'Osoblje', flex: 3, value: (a) => a.trainerName ?? a.nutritionistName ?? '-'),
-          ColumnDef.text(label: 'Datum', flex: 2, value: (a) => DateFormat('dd.MM.yyyy').format(a.appointmentDate), muted: (a) => a.appointmentDate.isBefore(DateTime.now())),
-          ColumnDef.text(label: 'Satnica', flex: 1, value: (a) => DateFormat('HH:mm').format(a.appointmentDate), muted: (a) => a.appointmentDate.isBefore(DateTime.now())),
-          ColumnDef.actions(flex: 2, builder: (a) => [
-            SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editAppointment(a)),
-            const SizedBox(width: AppSpacing.sm),
-            SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteAppointment(a)),
-          ]),
+          ColumnDef.text(
+            label: 'Osoblje',
+            flex: 3,
+            value: (a) => a.trainerName ?? a.nutritionistName ?? '-',
+          ),
+          ColumnDef.text(
+            label: 'Datum',
+            flex: 2,
+            value: (a) => DateFormat('dd.MM.yyyy').format(a.appointmentDate),
+            muted: (a) => a.appointmentDate.isBefore(DateTime.now()),
+          ),
+          ColumnDef.text(
+            label: 'Satnica',
+            flex: 1,
+            value: (a) => DateFormat('HH:mm').format(a.appointmentDate),
+            muted: (a) => a.appointmentDate.isBefore(DateTime.now()),
+          ),
+          ColumnDef.actions(
+            flex: 2,
+            builder: (a) => [
+              SmallButton(
+                text: 'Izmijeni',
+                color: AppColors.secondary,
+                onTap: () => _editAppointment(a),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              SmallButton(
+                text: 'Obrisi',
+                color: AppColors.error,
+                onTap: () => _deleteAppointment(a),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -453,8 +552,9 @@ class _TypeChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: (isTrainer ? AppColors.primary : AppColors.accent)
-              .withValues(alpha: 0.15),
+          color: (isTrainer ? AppColors.primary : AppColors.accent).withValues(
+            alpha: 0.15,
+          ),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Text(
@@ -469,4 +569,3 @@ class _TypeChip extends StatelessWidget {
     );
   }
 }
-

@@ -31,6 +31,13 @@ const List<CommandEntry> _allCommands = [
     keywords: ['dashboard', 'pocetna', 'home'],
   ),
   CommandEntry(
+    label: 'Audit centar',
+    sublabel: 'Kontrola',
+    icon: LucideIcons.shieldCheck,
+    path: '/audit',
+    keywords: ['audit', 'uplate', 'clanarina', 'aktivnosti', 'log'],
+  ),
+  CommandEntry(
     label: 'Korisnici',
     sublabel: 'Upravljanje',
     icon: LucideIcons.users,
@@ -87,7 +94,7 @@ const List<CommandEntry> _allCommands = [
     keywords: ['leaderboard', 'rang', 'top'],
   ),
   CommandEntry(
-    label: 'Postavke',
+    label: 'Sistem i katalog',
     sublabel: 'Konfiguracija',
     icon: LucideIcons.settings,
     path: '/settings',

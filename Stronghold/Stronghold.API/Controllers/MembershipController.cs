@@ -47,6 +47,17 @@ namespace Stronghold.API.Controllers
             });
             return Ok(result);
         }
+
+        [HttpGet("payments")]
+        public async Task<ActionResult<PagedResult<AdminMembershipPaymentResponse>>> GetAllPayments([FromQuery] AdminMembershipPaymentsFilter filter)
+        {
+            var result = await _mediator.Send(new GetAllMembershipPaymentsQuery
+            {
+                Filter = filter
+            });
+            return Ok(result);
+        }
+
         [HttpGet("active-members")]
         public async Task<ActionResult<PagedResult<ActiveMemberResponse>>> GetActiveMembers([FromQuery] ActiveMemberFilter filter)
         {

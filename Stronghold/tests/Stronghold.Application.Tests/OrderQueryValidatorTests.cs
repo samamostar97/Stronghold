@@ -39,23 +39,6 @@ public class OrderQueryValidatorTests
     }
 
     [Fact]
-    public void GetPagedOrdersValidator_ShouldFail_WhenDateRangeIsInvalid()
-    {
-        var validator = new GetPagedOrdersQueryValidator();
-
-        var result = validator.Validate(new GetPagedOrdersQuery
-        {
-            Filter = new OrderFilter
-            {
-                DateFrom = DateTime.UtcNow.Date,
-                DateTo = DateTime.UtcNow.Date.AddDays(-1)
-            }
-        });
-
-        Assert.False(result.IsValid);
-    }
-
-    [Fact]
     public void GetPagedOrdersValidator_ShouldPass_WhenFilterIsValid()
     {
         var validator = new GetPagedOrdersQueryValidator();
