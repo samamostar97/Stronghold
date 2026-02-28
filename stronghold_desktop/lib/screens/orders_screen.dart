@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
@@ -13,8 +14,9 @@ import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/orders/order_details_dialog.dart';
-import '../widgets/orders/orders_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
 import '../widgets/shared/pagination_controls.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/shared/search_input.dart';
 import '../widgets/shared/shimmer_loading.dart';
 import '../widgets/shared/success_animation.dart';
@@ -288,8 +290,38 @@ class _OrdersContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child:
-              OrdersTable(orders: state.items, onViewDetails: onViewDetails),
+          child: GenericDataTable<OrderResponse>(
+            items: state.items,
+            columns: [
+              ColumnDef.text(label: 'Narudzba #', flex: 1, value: (o) => '#${o.id}'),
+              ColumnDef<OrderResponse>(
+                label: 'Korisnik', flex: 3,
+                cellBuilder: (o) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(o.userFullName, style: AppTextStyles.bodyBold, overflow: TextOverflow.ellipsis),
+                    Text(o.userEmail, style: AppTextStyles.bodySm.copyWith(color: AppColors.textPrimary), overflow: TextOverflow.ellipsis),
+                  ],
+                ),
+              ),
+              ColumnDef.text(label: 'Ukupno', flex: 2, value: (o) => '${o.totalAmount.toStringAsFixed(2)} KM'),
+              ColumnDef.text(label: 'Datum', flex: 2, value: (o) => DateFormat('dd.MM.yyyy HH:mm').format(o.purchaseDate)),
+              ColumnDef<OrderResponse>(
+                label: 'Status', flex: 2,
+                cellBuilder: (o) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: switch (o.status) {
+                    OrderStatus.delivered => StatusPill.delivered(),
+                    OrderStatus.cancelled => StatusPill.cancelled(),
+                    _ => StatusPill.pending(),
+                  },
+                ),
+              ),
+              ColumnDef.actions(flex: 2, builder: (o) => [
+                SmallButton(text: 'Detalji', color: AppColors.secondary, onTap: () => onViewDetails(o)),
+              ]),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         PaginationControls(

@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
 import '../constants/motion.dart';
 import '../providers/membership_package_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/confirm_dialog.dart';
-import '../widgets/membership_packages/membership_packages_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/membership_packages/membership_package_add_dialog.dart';
 import '../widgets/membership_packages/membership_package_edit_dialog.dart';
 import '../utils/error_handler.dart';
@@ -121,10 +124,18 @@ class _MembershipPackagesScreenState
               SortOption(value: 'createdat', label: 'Najstarije prvo'),
               SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
             ],
-            tableBuilder: (items) => MembershipPackagesTable(
-              packages: items,
-              onEdit: _editPackage,
-              onDelete: _deletePackage,
+            tableBuilder: (items) => GenericDataTable<MembershipPackageResponse>(
+              items: items,
+              columns: [
+                ColumnDef.text(label: 'Naziv paketa', flex: 3, value: (p) => p.packageName ?? '-', bold: true),
+                ColumnDef.text(label: 'Cijena', flex: 2, value: (p) => '${p.packagePrice.toStringAsFixed(2)} KM'),
+                ColumnDef.text(label: 'Opis', flex: 4, value: (p) => (p.description?.isEmpty ?? true) ? '-' : p.description!),
+                ColumnDef.actions(flex: 2, builder: (p) => [
+                  SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editPackage(p)),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deletePackage(p)),
+                ]),
+              ],
             ),
           )
               .animate(delay: 200.ms)

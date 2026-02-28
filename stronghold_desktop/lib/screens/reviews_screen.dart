@@ -14,8 +14,10 @@ import '../utils/error_handler.dart';
 import '../widgets/shared/confirm_dialog.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/pagination_controls.dart';
-import '../widgets/reviews/reviews_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
 import '../widgets/shared/search_input.dart';
+import '../widgets/shared/small_button.dart';
+import '../widgets/shared/star_rating.dart';
 import '../widgets/shared/shimmer_loading.dart';
 import '../widgets/shared/success_animation.dart';
 
@@ -223,7 +225,32 @@ class _ReviewsContent extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: ReviewsTable(reviews: state.items, onDelete: onDelete),
+          child: GenericDataTable<ReviewResponse>(
+            items: state.items,
+            columns: [
+              ColumnDef.text(label: 'Korisnik', flex: 2, value: (r) => r.userName ?? '-'),
+              ColumnDef.text(label: 'Proizvod', flex: 3, value: (r) => r.supplementName ?? '-'),
+              ColumnDef<ReviewResponse>(
+                label: 'Ocjena', flex: 2,
+                cellBuilder: (r) => StarRating(rating: r.rating),
+              ),
+              ColumnDef<ReviewResponse>(
+                label: 'Komentar', flex: 4,
+                cellBuilder: (r) => Tooltip(
+                  message: r.comment ?? '',
+                  child: Text(
+                    r.comment ?? '-',
+                    style: AppTextStyles.bodySm.copyWith(color: AppColors.textPrimary),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
+                  ),
+                ),
+              ),
+              ColumnDef.actions(flex: 1, builder: (r) => [
+                SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => onDelete(r)),
+              ]),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         PaginationControls(

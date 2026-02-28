@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/motion.dart';
 import '../providers/supplement_provider.dart';
@@ -8,7 +9,10 @@ import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/confirm_dialog.dart';
-import '../widgets/supplements/supplements_table.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/supplements/supplement_add_dialog.dart';
 import '../widgets/supplements/supplement_edit_dialog.dart';
 import '../utils/error_handler.dart';
@@ -107,10 +111,26 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
               SortOption(value: 'createdat', label: 'Najstarije prvo'),
               SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
             ],
-            tableBuilder: (items) => SupplementsTable(
-              supplements: items,
-              onEdit: _editSupplement,
-              onDelete: _deleteSupplement,
+            tableBuilder: (items) => GenericDataTable<SupplementResponse>(
+              items: items,
+              columns: [
+                ColumnDef<SupplementResponse>(
+                  label: 'Slika', flex: 1,
+                  cellBuilder: (s) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: _SupplementImage(imageUrl: s.imageUrl),
+                  ),
+                ),
+                ColumnDef.text(label: 'Naziv', flex: 2, value: (s) => s.name, bold: true),
+                ColumnDef.text(label: 'Cijena', flex: 1, value: (s) => '${s.price.toStringAsFixed(2)} KM'),
+                ColumnDef.text(label: 'Kategorija', flex: 2, value: (s) => s.supplementCategoryName ?? '-'),
+                ColumnDef.text(label: 'Dobavljac', flex: 2, value: (s) => s.supplierName ?? '-'),
+                ColumnDef.actions(flex: 2, builder: (s) => [
+                  SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editSupplement(s)),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteSupplement(s)),
+                ]),
+              ],
             ),
           )
               .animate(delay: 200.ms)
@@ -123,6 +143,36 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
               ),
         ),
       ],
+    );
+  }
+}
+
+class _SupplementImage extends StatelessWidget {
+  const _SupplementImage({required this.imageUrl});
+  final String? imageUrl;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      ),
+      child: imageUrl != null
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              child: Image.network(
+                '${ApiConfig.baseUrl}$imageUrl',
+                fit: BoxFit.cover,
+                errorBuilder: (_, e, s) => Icon(
+                    LucideIcons.image,
+                    color: AppColors.textMuted,
+                    size: 20),
+              ),
+            )
+          : Icon(LucideIcons.image, color: AppColors.textMuted, size: 20),
     );
   }
 }

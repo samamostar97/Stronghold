@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
@@ -12,10 +13,10 @@ import '../providers/trainer_provider.dart';
 import '../utils/error_handler.dart';
 import '../widgets/appointments/appointment_add_dialog.dart';
 import '../widgets/appointments/appointment_edit_dialog.dart';
-import '../widgets/appointments/appointments_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/nutritionists/nutritionist_add_dialog.dart';
 import '../widgets/nutritionists/nutritionist_edit_dialog.dart';
-import '../widgets/nutritionists/nutritionists_table.dart';
 import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/confirm_dialog.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
@@ -23,7 +24,6 @@ import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/trainers/trainer_add_dialog.dart';
 import '../widgets/trainers/trainer_edit_dialog.dart';
-import '../widgets/trainers/trainers_table.dart';
 
 class StaffScreen extends ConsumerStatefulWidget {
   const StaffScreen({super.key});
@@ -324,10 +324,25 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
         SortOption(value: 'createdat', label: 'Najstarije prvo'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
-      tableBuilder: (items) => TrainersTable(
-        trainers: items,
-        onEdit: _editTrainer,
-        onDelete: _deleteTrainer,
+      tableBuilder: (items) => GenericDataTable<TrainerResponse>(
+        items: items,
+        columns: [
+          ColumnDef<TrainerResponse>(
+            label: '', flex: 1,
+            cellBuilder: (t) => Align(
+              alignment: Alignment.centerLeft,
+              child: AvatarWidget(initials: _initials(t.firstName, t.lastName), size: 32),
+            ),
+          ),
+          ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (t) => t.fullName, bold: true),
+          ColumnDef.text(label: 'Email', flex: 3, value: (t) => t.email),
+          ColumnDef.text(label: 'Telefon', flex: 2, value: (t) => t.phoneNumber),
+          ColumnDef.actions(flex: 2, builder: (t) => [
+            SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editTrainer(t)),
+            const SizedBox(width: AppSpacing.sm),
+            SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteTrainer(t)),
+          ]),
+        ],
       ),
     );
   }
@@ -354,10 +369,25 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
         SortOption(value: 'createdat', label: 'Najstarije prvo'),
         SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
       ],
-      tableBuilder: (items) => NutritionistsTable(
-        nutritionists: items,
-        onEdit: _editNutritionist,
-        onDelete: _deleteNutritionist,
+      tableBuilder: (items) => GenericDataTable<NutritionistResponse>(
+        items: items,
+        columns: [
+          ColumnDef<NutritionistResponse>(
+            label: '', flex: 1,
+            cellBuilder: (n) => Align(
+              alignment: Alignment.centerLeft,
+              child: AvatarWidget(initials: _initials(n.firstName, n.lastName), size: 32),
+            ),
+          ),
+          ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (n) => n.fullName, bold: true),
+          ColumnDef.text(label: 'Email', flex: 3, value: (n) => n.email),
+          ColumnDef.text(label: 'Telefon', flex: 2, value: (n) => n.phoneNumber),
+          ColumnDef.actions(flex: 2, builder: (n) => [
+            SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editNutritionist(n)),
+            const SizedBox(width: AppSpacing.sm),
+            SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteNutritionist(n)),
+          ]),
+        ],
       ),
     );
   }
@@ -383,10 +413,58 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
         SortOption(value: 'user', label: 'Korisnik (A-Z)'),
         SortOption(value: 'userdesc', label: 'Korisnik (Z-A)'),
       ],
-      tableBuilder: (items) => AppointmentsTable(
-        appointments: items,
-        onEdit: _editAppointment,
-        onDelete: _deleteAppointment,
+      tableBuilder: (items) => GenericDataTable<AdminAppointmentResponse>(
+        items: items,
+        columns: [
+          ColumnDef.text(label: 'Korisnik', flex: 3, value: (a) => a.userName, bold: true),
+          ColumnDef<AdminAppointmentResponse>(
+            label: 'Tip', flex: 2,
+            cellBuilder: (a) => _TypeChip(type: a.type),
+          ),
+          ColumnDef.text(label: 'Osoblje', flex: 3, value: (a) => a.trainerName ?? a.nutritionistName ?? '-'),
+          ColumnDef.text(label: 'Datum', flex: 2, value: (a) => DateFormat('dd.MM.yyyy').format(a.appointmentDate), muted: (a) => a.appointmentDate.isBefore(DateTime.now())),
+          ColumnDef.text(label: 'Satnica', flex: 1, value: (a) => DateFormat('HH:mm').format(a.appointmentDate), muted: (a) => a.appointmentDate.isBefore(DateTime.now())),
+          ColumnDef.actions(flex: 2, builder: (a) => [
+            SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editAppointment(a)),
+            const SizedBox(width: AppSpacing.sm),
+            SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteAppointment(a)),
+          ]),
+        ],
+      ),
+    );
+  }
+
+  static String _initials(String first, String last) {
+    final f = first.isNotEmpty ? first[0] : '';
+    final l = last.isNotEmpty ? last[0] : '';
+    return '$f$l'.toUpperCase();
+  }
+}
+
+class _TypeChip extends StatelessWidget {
+  const _TypeChip({required this.type});
+  final String type;
+
+  @override
+  Widget build(BuildContext context) {
+    final isTrainer = type == 'Trener';
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: (isTrainer ? AppColors.primary : AppColors.accent)
+              .withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          type,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: isTrainer ? AppColors.primary : AppColors.accent,
+          ),
+        ),
       ),
     );
   }

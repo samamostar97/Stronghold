@@ -18,7 +18,8 @@ import '../widgets/shared/hover_icon_button.dart';
 import '../widgets/shared/pagination_controls.dart';
 import '../widgets/shared/search_input.dart';
 import '../widgets/shared/success_animation.dart';
-import '../widgets/visitors/visitors_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 
 class VisitorsScreen extends ConsumerStatefulWidget {
   const VisitorsScreen({super.key});
@@ -344,8 +345,39 @@ class _VisitorsScreenState extends ConsumerState<VisitorsScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child:
-              VisitorsTable(visitors: state.items, onCheckOut: _checkOut),
+          child: GenericDataTable<CurrentVisitorResponse>(
+            items: state.items,
+            columns: [
+              ColumnDef.text(label: 'Korisnicko ime', flex: 2, value: (v) => v.username),
+              ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (v) => v.fullName, bold: true),
+              ColumnDef.text(label: 'Vrijeme dolaska', flex: 2, value: (v) => v.checkInTimeFormatted),
+              ColumnDef<CurrentVisitorResponse>(
+                label: 'Trajanje', flex: 2,
+                cellBuilder: (v) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF065F46).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFF065F46).withValues(alpha: 0.35)),
+                    ),
+                    child: Text(
+                      v.durationFormatted,
+                      style: const TextStyle(
+                        color: Color(0xFF065F46),
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              ColumnDef.actions(flex: 2, builder: (v) => [
+                SmallButton(text: 'Check-out', color: AppColors.error, onTap: () => _checkOut(v)),
+              ]),
+            ],
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         PaginationControls(

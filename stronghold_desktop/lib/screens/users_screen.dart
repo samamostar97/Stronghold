@@ -17,7 +17,8 @@ import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/shimmer_loading.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/users/user_add_dialog.dart';
-import '../widgets/users/users_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 
 class UsersScreen extends ConsumerStatefulWidget {
   const UsersScreen({super.key});
@@ -139,9 +140,46 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
         SortOption(value: 'datedesc', label: 'Najnovije prvo'),
         SortOption(value: 'date', label: 'Najstarije prvo'),
       ],
-      tableBuilder: (items) => UsersTable(
-        users: items,
-        onViewProfile: _openProfile,
+      tableBuilder: (items) => GenericDataTable<UserResponse>(
+        items: items,
+        columns: [
+          ColumnDef<UserResponse>(
+            label: '', flex: 1,
+            cellBuilder: (u) {
+              final initials = _initials(u.firstName, u.lastName);
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: u.profileImageUrl != null
+                    ? Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                          child: Image.network(
+                            ApiConfig.imageUrl(u.profileImageUrl!),
+                            fit: BoxFit.cover,
+                            width: 32,
+                            height: 32,
+                            errorBuilder: (_, _, _) => AvatarWidget(initials: initials, size: 32),
+                          ),
+                        ),
+                      )
+                    : AvatarWidget(initials: initials, size: 32),
+              );
+            },
+          ),
+          ColumnDef.text(label: 'Ime i prezime', flex: 3, value: (u) => '${u.firstName} ${u.lastName}', bold: true),
+          ColumnDef.text(label: 'Korisnicko ime', flex: 2, value: (u) => u.username),
+          ColumnDef.text(label: 'Email', flex: 3, value: (u) => u.email),
+          ColumnDef.text(label: 'Telefon', flex: 2, value: (u) => u.phoneNumber),
+          ColumnDef.actions(flex: 2, builder: (u) => [
+            SmallButton(text: 'Informacije', color: AppColors.primary, onTap: () => _openProfile(u)),
+          ]),
+        ],
       ),
     );
   }
@@ -171,5 +209,11 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
         data: (entries) => LeaderboardTable(entries: entries),
       ),
     );
+  }
+
+  static String _initials(String first, String last) {
+    final f = first.isNotEmpty ? first[0] : '';
+    final l = last.isNotEmpty ? last[0] : '';
+    return '$f$l'.toUpperCase();
   }
 }

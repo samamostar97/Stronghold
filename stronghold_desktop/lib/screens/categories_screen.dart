@@ -8,8 +8,11 @@ import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/confirm_dialog.dart';
-import '../widgets/categories/categories_table.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
 import '../widgets/categories/category_dialog.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../utils/error_handler.dart';
 
 class CategoriesScreen extends ConsumerStatefulWidget {
@@ -103,10 +106,16 @@ class _CategoriesScreenState extends ConsumerState<CategoriesScreen> {
               SortOption(value: 'createdat', label: 'Najstarije prvo'),
               SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
             ],
-            tableBuilder: (items) => CategoriesTable(
-              categories: items,
-              onEdit: _editCategory,
-              onDelete: _deleteCategory,
+            tableBuilder: (items) => GenericDataTable<SupplementCategoryResponse>(
+              items: items,
+              columns: [
+                ColumnDef.text(label: 'Naziv', flex: 3, value: (c) => c.name, bold: true),
+                ColumnDef.actions(flex: 2, builder: (c) => [
+                  SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editCategory(c)),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteCategory(c)),
+                ]),
+              ],
             ),
           )
               .animate(delay: 200.ms)

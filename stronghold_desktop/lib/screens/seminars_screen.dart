@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
@@ -12,7 +13,8 @@ import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/confirm_dialog.dart';
-import '../widgets/seminars/seminars_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/seminars/seminar_add_dialog.dart';
 import '../widgets/seminars/seminar_edit_dialog.dart';
 import '../widgets/seminars/seminar_attendees_dialog.dart';
@@ -169,10 +171,34 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
               SortOption(value: 'maxcapacity', label: 'Kapacitet (manji)'),
               SortOption(value: 'maxcapacitydesc', label: 'Kapacitet (veci)'),
             ],
-            tableBuilder: (items) => SeminarsTable(
-              seminars: items,
-              onViewDetails: _viewDetails,
-              onDelete: _deleteSeminar,
+            tableBuilder: (items) => GenericDataTable<SeminarResponse>(
+              items: items,
+              columns: [
+                ColumnDef.text(label: 'Naziv teme', flex: 3, value: (s) => s.topic, bold: true),
+                ColumnDef.text(label: 'Voditelj', flex: 2, value: (s) => s.speakerName),
+                ColumnDef<SeminarResponse>(
+                  label: 'Popunjenost', flex: 2,
+                  cellBuilder: (s) => _CapacityIndicator(current: s.currentAttendees, max: s.maxCapacity),
+                ),
+                ColumnDef.text(label: 'Datum', flex: 2, value: (s) => DateFormat('dd.MM.yyyy').format(s.eventDate)),
+                ColumnDef.text(label: 'Satnica', flex: 1, value: (s) => DateFormat('HH:mm').format(s.eventDate)),
+                ColumnDef<SeminarResponse>(
+                  label: 'Status', flex: 2,
+                  cellBuilder: (s) => Align(
+                    alignment: Alignment.centerLeft,
+                    child: switch (s.status.toLowerCase()) {
+                      'cancelled' => const StatusPill(label: 'Otkazan', color: AppColors.error),
+                      'finished' => const StatusPill(label: 'Zavrsen', color: AppColors.textMuted),
+                      _ => const StatusPill(label: 'Aktivan', color: AppColors.success),
+                    },
+                  ),
+                ),
+                ColumnDef.actions(flex: 2, builder: (s) => [
+                  SmallButton(text: 'Detalji', color: AppColors.primary, onTap: () => _viewDetails(s)),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteSeminar(s)),
+                ]),
+              ],
             ),
           )
               .animate(delay: 200.ms)
@@ -220,6 +246,31 @@ class _StatusFilter extends StatelessWidget {
           ],
           onChanged: onChanged,
         ),
+      ),
+    );
+  }
+}
+
+class _CapacityIndicator extends StatelessWidget {
+  const _CapacityIndicator({required this.current, required this.max});
+  final int current;
+  final int max;
+
+  @override
+  Widget build(BuildContext context) {
+    final ratio = max > 0 ? (current / max).clamp(0.0, 1.0) : 0.0;
+    final isFull = current >= max;
+    final color = isFull
+        ? AppColors.error
+        : ratio > 0.8
+            ? AppColors.warning
+            : AppColors.success;
+
+    return Text(
+      '$current/$max',
+      style: AppTextStyles.bodySm.copyWith(
+        color: color,
+        fontWeight: FontWeight.w600,
       ),
     );
   }

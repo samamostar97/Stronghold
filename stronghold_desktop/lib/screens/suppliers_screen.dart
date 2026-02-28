@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
 import '../constants/motion.dart';
 import '../providers/supplier_provider.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/confirm_dialog.dart';
-import '../widgets/suppliers/suppliers_table.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/suppliers/supplier_dialog.dart';
 import '../utils/error_handler.dart';
 
@@ -114,10 +117,17 @@ class _SuppliersScreenState extends ConsumerState<SuppliersScreen> {
               SortOption(value: 'createdat', label: 'Najstarije prvo'),
               SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
             ],
-            tableBuilder: (items) => SuppliersTable(
-              suppliers: items,
-              onEdit: _editSupplier,
-              onDelete: _deleteSupplier,
+            tableBuilder: (items) => GenericDataTable<SupplierResponse>(
+              items: items,
+              columns: [
+                ColumnDef.text(label: 'Naziv', flex: 3, value: (s) => s.name, bold: true),
+                ColumnDef.text(label: 'Web stranica', flex: 3, value: (s) => s.website ?? '-'),
+                ColumnDef.actions(flex: 2, builder: (s) => [
+                  SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editSupplier(s)),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteSupplier(s)),
+                ]),
+              ],
             ),
           )
               .animate(delay: 200.ms)

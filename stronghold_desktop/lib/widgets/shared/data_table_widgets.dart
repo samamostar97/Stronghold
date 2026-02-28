@@ -274,3 +274,118 @@ class TableActionCell extends StatelessWidget {
     );
   }
 }
+
+/// Column definition for [GenericDataTable].
+class ColumnDef<T> {
+  final String label;
+  final int flex;
+  final bool alignRight;
+  final Widget Function(T item) cellBuilder;
+
+  const ColumnDef({
+    required this.label,
+    required this.flex,
+    required this.cellBuilder,
+    this.alignRight = false,
+  });
+
+  /// Simple text column.
+  static ColumnDef<T> text<T>({
+    required String label,
+    required int flex,
+    required String Function(T item) value,
+    bool bold = false,
+    bool Function(T item)? muted,
+  }) {
+    return ColumnDef<T>(
+      label: label,
+      flex: flex,
+      cellBuilder: (item) {
+        final isMuted = muted?.call(item) ?? false;
+        return Text(
+          value(item),
+          style: bold
+              ? AppTextStyles.bodyBold
+              : (isMuted
+                  ? AppTextStyles.bodySm
+                      .copyWith(color: AppColors.textSecondary)
+                  : AppTextStyles.bodyMd
+                      .copyWith(color: AppColors.textPrimary)),
+          overflow: TextOverflow.ellipsis,
+        );
+      },
+    );
+  }
+
+  /// Actions column with responsive button scaling.
+  static ColumnDef<T> actions<T>({
+    int flex = 2,
+    required List<Widget> Function(T item) builder,
+  }) {
+    return ColumnDef<T>(
+      label: 'Akcije',
+      flex: flex,
+      alignRight: true,
+      cellBuilder: (item) => FittedBox(
+        fit: BoxFit.scaleDown,
+        alignment: Alignment.centerRight,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: builder(item),
+        ),
+      ),
+    );
+  }
+}
+
+/// Generic data table driven by [ColumnDef] list.
+class GenericDataTable<T> extends StatelessWidget {
+  const GenericDataTable({
+    super.key,
+    required this.items,
+    required this.columns,
+    this.emptyMessage = 'Nema rezultata.',
+    this.onRowTap,
+  });
+
+  final List<T> items;
+  final List<ColumnDef<T>> columns;
+  final String emptyMessage;
+  final void Function(T item)? onRowTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return DataTableContainer(
+      header: TableHeader(
+        child: Row(
+          children: columns
+              .map((col) => TableHeaderCell(
+                    text: col.label,
+                    flex: col.flex,
+                    alignRight: col.alignRight,
+                  ))
+              .toList(),
+        ),
+      ),
+      emptyMessage: emptyMessage,
+      itemCount: items.length,
+      itemBuilder: (context, i) {
+        final item = items[i];
+        return HoverableTableRow(
+          index: i,
+          isLast: i == items.length - 1,
+          onTap: onRowTap != null ? () => onRowTap!(item) : null,
+          child: Row(
+            children: columns
+                .map((col) => Expanded(
+                      flex: col.flex,
+                      child: col.cellBuilder(item),
+                    ))
+                .toList(),
+          ),
+        );
+      },
+    );
+  }
+}

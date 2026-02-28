@@ -8,8 +8,12 @@ import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/confirm_dialog.dart';
-import '../widgets/faq/faq_table.dart';
+import '../constants/app_colors.dart';
+import '../constants/app_spacing.dart';
+import '../constants/app_text_styles.dart';
 import '../widgets/faq/faq_dialog.dart';
+import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/small_button.dart';
 import '../utils/error_handler.dart';
 
 class FaqScreen extends ConsumerStatefulWidget {
@@ -111,10 +115,29 @@ class _FaqScreenState extends ConsumerState<FaqScreen> {
               SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
               SortOption(value: 'createdat', label: 'Najstarije prvo'),
             ],
-            tableBuilder: (items) => FaqTable(
-              faqs: items,
-              onEdit: _editFaq,
-              onDelete: _deleteFaq,
+            tableBuilder: (items) => GenericDataTable<FaqResponse>(
+              items: items,
+              columns: [
+                ColumnDef<FaqResponse>(
+                  label: 'Pitanje', flex: 4,
+                  cellBuilder: (f) => Tooltip(
+                    message: f.question,
+                    child: Text(f.question, style: AppTextStyles.bodyBold, overflow: TextOverflow.ellipsis, maxLines: 2),
+                  ),
+                ),
+                ColumnDef<FaqResponse>(
+                  label: 'Odgovor', flex: 5,
+                  cellBuilder: (f) => Tooltip(
+                    message: f.answer,
+                    child: Text(f.answer, style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary), overflow: TextOverflow.ellipsis, maxLines: 2),
+                  ),
+                ),
+                ColumnDef.actions(flex: 2, builder: (f) => [
+                  SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editFaq(f)),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteFaq(f)),
+                ]),
+              ],
             ),
           )
               .animate(delay: 200.ms)
