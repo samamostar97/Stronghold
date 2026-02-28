@@ -712,6 +712,7 @@ namespace Stronghold.Infrastructure.Services
             var staffRanking = trainerRanking
                 .Concat(nutritionistRanking)
                 .OrderByDescending(x => x.AppointmentCount)
+                .Take(10)
                 .ToList();
 
             return new StaffReportResponse
