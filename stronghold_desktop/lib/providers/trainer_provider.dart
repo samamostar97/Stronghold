@@ -19,6 +19,13 @@ final trainerListProvider =
       return TrainerListNotifier(service);
     });
 
+/// Total trainer count (lightweight, fetches 1 item for totalCount).
+final trainerCountProvider = FutureProvider<int>((ref) async {
+  final service = ref.watch(trainerServiceProvider);
+  final result = await service.getAll(TrainerQueryFilter(pageSize: 1));
+  return result.totalCount;
+});
+
 /// Trainer list notifier implementation
 class TrainerListNotifier
     extends

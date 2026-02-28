@@ -13,20 +13,19 @@ public class GetActivityFeedQuery : IRequest<IReadOnlyList<ActivityFeedItemRespo
 
 public class GetActivityFeedQueryHandler : IRequestHandler<GetActivityFeedQuery, IReadOnlyList<ActivityFeedItemResponse>>
 {
-    private readonly IReportService _reportService;
+    private readonly IReportReadService _reportService;
 
-    public GetActivityFeedQueryHandler(
-        IReportService reportService)
+    public GetActivityFeedQueryHandler(IReportReadService reportService)
     {
         _reportService = reportService;
     }
 
-public async Task<IReadOnlyList<ActivityFeedItemResponse>> Handle(GetActivityFeedQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<ActivityFeedItemResponse>> Handle(GetActivityFeedQuery request, CancellationToken cancellationToken)
     {
         var feed = await _reportService.GetActivityFeedAsync(request.Count);
         return feed;
     }
-    }
+}
 
 public class GetActivityFeedQueryValidator : AbstractValidator<GetActivityFeedQuery>
 {
@@ -35,4 +34,4 @@ public class GetActivityFeedQueryValidator : AbstractValidator<GetActivityFeedQu
         RuleFor(x => x.Count)
             .InclusiveBetween(1, 100).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-    }
+}

@@ -55,50 +55,73 @@ namespace Stronghold.API.Controllers
         }
 
         [HttpGet("export/excel")]
-        public async Task<IActionResult> ExportToExcel([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        public async Task<IActionResult> ExportToExcel()
         {
-            var fileBytes = await _mediator.Send(new ExportBusinessReportExcelQuery { From = from, To = to });
+            var fileBytes = await _mediator.Send(new ExportBusinessReportExcelQuery());
             var fileName = $"Stronghold_Izvjestaj_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         [HttpGet("export/pdf")]
-        public async Task<IActionResult> ExportToPdf([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        public async Task<IActionResult> ExportToPdf()
         {
-            var fileBytes = await _mediator.Send(new ExportBusinessReportPdfQuery { From = from, To = to });
+            var fileBytes = await _mediator.Send(new ExportBusinessReportPdfQuery());
             var fileName = $"Stronghold_Izvjestaj_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
             return File(fileBytes, "application/pdf", fileName);
         }
 
-        [HttpGet("inventory/export/excel")]
-        public async Task<IActionResult> ExportInventoryToExcel([FromQuery] int daysToAnalyze = 30, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
-        {
-            var fileBytes = await _mediator.Send(new ExportInventoryReportExcelQuery { DaysToAnalyze = daysToAnalyze, From = from, To = to });
-            var fileName = $"Stronghold_Inventar_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
-        }
-
-        [HttpGet("inventory/export/pdf")]
-        public async Task<IActionResult> ExportInventoryToPdf([FromQuery] int daysToAnalyze = 30, [FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
-        {
-            var fileBytes = await _mediator.Send(new ExportInventoryReportPdfQuery { DaysToAnalyze = daysToAnalyze, From = from, To = to });
-            var fileName = $"Stronghold_Inventar_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
-            return File(fileBytes, "application/pdf", fileName);
-        }
-
         [HttpGet("membership-popularity/export/excel")]
-        public async Task<IActionResult> ExportMembershipPopularityToExcel([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        public async Task<IActionResult> ExportMembershipPopularityToExcel()
         {
-            var fileBytes = await _mediator.Send(new ExportMembershipPopularityExcelQuery { From = from, To = to });
+            var fileBytes = await _mediator.Send(new ExportMembershipPopularityExcelQuery());
             var fileName = $"Stronghold_Clanarine_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
             return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         [HttpGet("membership-popularity/export/pdf")]
-        public async Task<IActionResult> ExportMembershipPopularityToPdf([FromQuery] DateTime? from = null, [FromQuery] DateTime? to = null)
+        public async Task<IActionResult> ExportMembershipPopularityToPdf()
         {
-            var fileBytes = await _mediator.Send(new ExportMembershipPopularityPdfQuery { From = from, To = to });
+            var fileBytes = await _mediator.Send(new ExportMembershipPopularityPdfQuery());
             var fileName = $"Stronghold_Clanarine_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
+            return File(fileBytes, "application/pdf", fileName);
+        }
+
+        [HttpGet("visits/export/excel")]
+        public async Task<IActionResult> ExportVisitsToExcel()
+        {
+            var fileBytes = await _mediator.Send(new ExportVisitsExcelQuery());
+            var fileName = $"Stronghold_Posjete_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpGet("visits/export/pdf")]
+        public async Task<IActionResult> ExportVisitsToPdf()
+        {
+            var fileBytes = await _mediator.Send(new ExportVisitsPdfQuery());
+            var fileName = $"Stronghold_Posjete_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
+            return File(fileBytes, "application/pdf", fileName);
+        }
+
+        [HttpGet("staff")]
+        public async Task<ActionResult<StaffReportResponse>> GetStaffReport([FromQuery] int days = 30)
+        {
+            var report = await _mediator.Send(new GetStaffReportQuery { Days = days });
+            return Ok(report);
+        }
+
+        [HttpGet("staff/export/excel")]
+        public async Task<IActionResult> ExportStaffToExcel()
+        {
+            var fileBytes = await _mediator.Send(new ExportStaffExcelQuery());
+            var fileName = $"Stronghold_Osoblje_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpGet("staff/export/pdf")]
+        public async Task<IActionResult> ExportStaffToPdf()
+        {
+            var fileBytes = await _mediator.Send(new ExportStaffPdfQuery());
+            var fileName = $"Stronghold_Osoblje_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
             return File(fileBytes, "application/pdf", fileName);
         }
 

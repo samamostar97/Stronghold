@@ -80,16 +80,4 @@ public class ReportQueryValidatorTests
         Assert.False(result.IsValid);
     }
 
-    [Fact]
-    public void ExportInventoryReportPdfValidator_ShouldPass_WhenDaysInRange()
-    {
-        var validator = new ExportInventoryReportPdfQueryValidator();
-
-        var result = validator.Validate(new ExportInventoryReportPdfQuery
-        {
-            DaysToAnalyze = 90
-        });
-
-        Assert.True(result.IsValid);
-    }
 }

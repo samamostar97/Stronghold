@@ -7,33 +7,22 @@ namespace Stronghold.Application.Features.Reports.Queries;
 
 public class ExportBusinessReportPdfQuery : IRequest<byte[]>, IAuthorizeAdminRequest
 {
-    public DateTime? From { get; set; }
-    public DateTime? To { get; set; }
 }
 
 public class ExportBusinessReportPdfQueryHandler : IRequestHandler<ExportBusinessReportPdfQuery, byte[]>
 {
-    private readonly IReportService _reportService;
+    private readonly IReportExportService _reportService;
 
     public ExportBusinessReportPdfQueryHandler(
-        IReportService reportService)
+        IReportExportService reportService)
     {
         _reportService = reportService;
     }
 
     public async Task<byte[]> Handle(ExportBusinessReportPdfQuery request, CancellationToken cancellationToken)
     {
-        return await _reportService.ExportToPdfAsync(request.From, request.To);
+        return await _reportService.ExportToPdfAsync();
     }
 }
 
-public class ExportBusinessReportPdfQueryValidator : AbstractValidator<ExportBusinessReportPdfQuery>
-{
-    public ExportBusinessReportPdfQueryValidator()
-    {
-        RuleFor(x => x.From)
-            .LessThanOrEqualTo(x => x.To)
-            .When(x => x.From.HasValue && x.To.HasValue)
-            .WithMessage("Datum 'Od' mora biti prije datuma 'Do'.");
-    }
-}
+public class ExportBusinessReportPdfQueryValidator : AbstractValidator<ExportBusinessReportPdfQuery> { }

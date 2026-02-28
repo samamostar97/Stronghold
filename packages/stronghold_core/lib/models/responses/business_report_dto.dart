@@ -20,6 +20,40 @@ class BestSellerDTO {
   }
 }
 
+class BusiestDayDTO {
+  final DateTime date;
+  final int visitCount;
+
+  BusiestDayDTO({required this.date, required this.visitCount});
+
+  factory BusiestDayDTO.fromJson(Map<String, dynamic> json) {
+    return BusiestDayDTO(
+      date: DateTimeUtils.parseApiDateTime(json['date'] as String),
+      visitCount: (json['visitCount'] ?? 0) as int,
+    );
+  }
+}
+
+class PopularMembershipDTO {
+  final int membershipPackageId;
+  final String packageName;
+  final int purchaseCount;
+
+  PopularMembershipDTO({
+    required this.membershipPackageId,
+    required this.packageName,
+    required this.purchaseCount,
+  });
+
+  factory PopularMembershipDTO.fromJson(Map<String, dynamic> json) {
+    return PopularMembershipDTO(
+      membershipPackageId: (json['membershipPackageId'] ?? 0) as int,
+      packageName: (json['packageName'] ?? '') as String,
+      purchaseCount: (json['purchaseCount'] ?? 0) as int,
+    );
+  }
+}
+
 class SlowestMovingDTO {
   final int supplementId;
   final String name;
@@ -107,6 +141,7 @@ class RevenueBreakdownDTO {
   final num thisMonthRevenue;
   final num averageOrderValue;
   final int todayOrderCount;
+  final num monthOrderRevenue;
 
   RevenueBreakdownDTO({
     required this.todayRevenue,
@@ -114,6 +149,7 @@ class RevenueBreakdownDTO {
     required this.thisMonthRevenue,
     required this.averageOrderValue,
     required this.todayOrderCount,
+    required this.monthOrderRevenue,
   });
 
   factory RevenueBreakdownDTO.fromJson(Map<String, dynamic> json) {
@@ -123,6 +159,7 @@ class RevenueBreakdownDTO {
       thisMonthRevenue: (json['thisMonthRevenue'] ?? 0) as num,
       averageOrderValue: (json['averageOrderValue'] ?? 0) as num,
       todayOrderCount: (json['todayOrderCount'] ?? 0) as int,
+      monthOrderRevenue: (json['monthOrderRevenue'] ?? 0) as num,
     );
   }
 }
@@ -179,6 +216,48 @@ class HeatmapCellDTO {
   }
 }
 
+class DailyVisitsDTO {
+  final DateTime date;
+  final int visitCount;
+
+  DailyVisitsDTO({required this.date, required this.visitCount});
+
+  factory DailyVisitsDTO.fromJson(Map<String, dynamic> json) {
+    return DailyVisitsDTO(
+      date: DateTimeUtils.parseApiDateTime(json['date'] as String),
+      visitCount: (json['visitCount'] ?? 0) as int,
+    );
+  }
+}
+
+class MostActivePackageDTO {
+  final String packageName;
+  final int visitCount;
+
+  MostActivePackageDTO({required this.packageName, required this.visitCount});
+
+  factory MostActivePackageDTO.fromJson(Map<String, dynamic> json) {
+    return MostActivePackageDTO(
+      packageName: (json['packageName'] ?? '') as String,
+      visitCount: (json['visitCount'] ?? 0) as int,
+    );
+  }
+}
+
+class GrowthRateDTO {
+  final num growthPct;
+  final int periodDays;
+
+  GrowthRateDTO({required this.growthPct, required this.periodDays});
+
+  factory GrowthRateDTO.fromJson(Map<String, dynamic> json) {
+    return GrowthRateDTO(
+      growthPct: (json['growthPct'] ?? 0) as num,
+      periodDays: (json['periodDays'] ?? 30) as int,
+    );
+  }
+}
+
 class BusinessReportDTO {
   final int thisWeekVisits;
   final int lastWeekVisits;
@@ -194,9 +273,15 @@ class BusinessReportDTO {
   final List<WeekdayVisitsDTO> visitsByWeekday;
   final BestSellerDTO? bestsellerLast30Days;
   final SlowestMovingDTO? slowestMovingLast30Days;
+  final PopularMembershipDTO? popularMembership;
+  final int thisMonthVisits;
+  final BusiestDayDTO? busiestDay;
   final List<DailySalesDTO> dailySales;
   final RevenueBreakdownDTO? revenueBreakdown;
   final List<HeatmapCellDTO> checkInHeatmap;
+  final List<DailyVisitsDTO> dailyVisits;
+  final MostActivePackageDTO? mostActivePackage;
+  final GrowthRateDTO? growthRate;
 
   BusinessReportDTO({
     required this.thisWeekVisits,
@@ -213,9 +298,15 @@ class BusinessReportDTO {
     required this.visitsByWeekday,
     required this.bestsellerLast30Days,
     this.slowestMovingLast30Days,
+    this.popularMembership,
+    required this.thisMonthVisits,
+    this.busiestDay,
     required this.dailySales,
     this.revenueBreakdown,
     required this.checkInHeatmap,
+    required this.dailyVisits,
+    this.mostActivePackage,
+    this.growthRate,
   });
 
   factory BusinessReportDTO.fromJson(Map<String, dynamic> json) {
@@ -226,6 +317,8 @@ class BusinessReportDTO {
 
     final bs = json['bestsellerLast30Days'];
     final sm = json['slowestMovingLast30Days'];
+    final pm = json['popularMembership'];
+    final bd = json['busiestDay'];
 
     final sales = (json['dailySales'] as List<dynamic>?)
             ?.map((e) => DailySalesDTO.fromJson(e as Map<String, dynamic>))
@@ -238,6 +331,14 @@ class BusinessReportDTO {
             ?.map((e) => HeatmapCellDTO.fromJson(e as Map<String, dynamic>))
             .toList() ??
         <HeatmapCellDTO>[];
+
+    final dv = (json['dailyVisits'] as List<dynamic>?)
+            ?.map((e) => DailyVisitsDTO.fromJson(e as Map<String, dynamic>))
+            .toList() ??
+        <DailyVisitsDTO>[];
+
+    final map = json['mostActivePackage'];
+    final gr = json['growthRate'];
 
     return BusinessReportDTO(
       thisWeekVisits: (json['thisWeekVisits'] ?? 0) as int,
@@ -256,10 +357,22 @@ class BusinessReportDTO {
           bs == null ? null : BestSellerDTO.fromJson(bs as Map<String, dynamic>),
       slowestMovingLast30Days:
           sm == null ? null : SlowestMovingDTO.fromJson(sm as Map<String, dynamic>),
+      popularMembership:
+          pm == null ? null : PopularMembershipDTO.fromJson(pm as Map<String, dynamic>),
+      thisMonthVisits: (json['thisMonthVisits'] ?? 0) as int,
+      busiestDay:
+          bd == null ? null : BusiestDayDTO.fromJson(bd as Map<String, dynamic>),
       dailySales: sales,
       revenueBreakdown:
           rb == null ? null : RevenueBreakdownDTO.fromJson(rb as Map<String, dynamic>),
       checkInHeatmap: heatmap,
+      dailyVisits: dv,
+      mostActivePackage: map == null
+          ? null
+          : MostActivePackageDTO.fromJson(map as Map<String, dynamic>),
+      growthRate: gr == null
+          ? null
+          : GrowthRateDTO.fromJson(gr as Map<String, dynamic>),
     );
   }
 }

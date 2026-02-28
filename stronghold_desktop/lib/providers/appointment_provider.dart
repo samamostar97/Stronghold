@@ -18,6 +18,30 @@ final appointmentListProvider =
       return AppointmentListNotifier(service);
     });
 
+/// Total appointment count.
+final appointmentCountProvider = FutureProvider<int>((ref) async {
+  final service = ref.watch(appointmentServiceProvider);
+  final result = await service.getAll(AppointmentQueryFilter(pageSize: 1));
+  return result.totalCount;
+});
+
+/// Appointments this week count.
+final appointmentThisWeekCountProvider = FutureProvider<int>((ref) async {
+  final service = ref.watch(appointmentServiceProvider);
+  final result = await service.getAll(
+    AppointmentQueryFilter(pageSize: 9999, orderBy: 'datedesc'),
+  );
+  final now = DateTime.now();
+  final weekStart = now.subtract(Duration(days: now.weekday - 1));
+  final startOfWeek = DateTime(weekStart.year, weekStart.month, weekStart.day);
+  final endOfWeek = startOfWeek.add(const Duration(days: 7));
+  return result.items
+      .where((a) =>
+          !a.appointmentDate.isBefore(startOfWeek) &&
+          a.appointmentDate.isBefore(endOfWeek))
+      .length;
+});
+
 /// Custom list notifier for appointments (read-only, no CrudService)
 class AppointmentListNotifier
     extends

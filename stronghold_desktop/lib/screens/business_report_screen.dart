@@ -25,22 +25,11 @@ class BusinessReportScreen extends ConsumerStatefulWidget {
 class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  static const int _daysToAnalyze = 30;
-
-  // Date range state per tab
-  DateTime? _businessFrom;
-  DateTime? _businessTo;
-  DateTime? _inventoryFrom;
-  DateTime? _inventoryTo;
-  DateTime? _membershipFrom;
-  DateTime? _membershipTo;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    Future.microtask(
-        () => ref.read(slowMovingProductsProvider.notifier).load());
   }
 
   @override
@@ -74,32 +63,32 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
   void _exportBusinessExcel() => _export(
       'Sacuvaj Excel izvjestaj', 'Stronghold_Izvjestaj', 'xlsx',
       (p) => ref.read(exportOperationsProvider.notifier)
-          .exportBusinessToExcel(p, from: _businessFrom, to: _businessTo));
+          .exportBusinessToExcel(p));
 
   void _exportBusinessPdf() => _export(
       'Sacuvaj PDF izvjestaj', 'Stronghold_Izvjestaj', 'pdf',
       (p) => ref.read(exportOperationsProvider.notifier)
-          .exportBusinessToPdf(p, from: _businessFrom, to: _businessTo));
+          .exportBusinessToPdf(p));
 
-  void _exportInventoryExcel() => _export(
-      'Sacuvaj Excel izvjestaj', 'Stronghold_Inventar', 'xlsx',
+  void _exportStaffExcel() => _export(
+      'Sacuvaj Excel izvjestaj', 'Stronghold_Osoblje', 'xlsx',
       (p) => ref.read(exportOperationsProvider.notifier)
-          .exportInventoryToExcel(p, daysToAnalyze: _daysToAnalyze, from: _inventoryFrom, to: _inventoryTo));
+          .exportStaffToExcel(p));
 
-  void _exportInventoryPdf() => _export(
-      'Sacuvaj PDF izvjestaj', 'Stronghold_Inventar', 'pdf',
+  void _exportStaffPdf() => _export(
+      'Sacuvaj PDF izvjestaj', 'Stronghold_Osoblje', 'pdf',
       (p) => ref.read(exportOperationsProvider.notifier)
-          .exportInventoryToPdf(p, daysToAnalyze: _daysToAnalyze, from: _inventoryFrom, to: _inventoryTo));
+          .exportStaffToPdf(p));
 
-  void _exportMembershipExcel() => _export(
-      'Sacuvaj Excel izvjestaj', 'Stronghold_Clanarine', 'xlsx',
+  void _exportVisitsExcel() => _export(
+      'Sacuvaj Excel izvjestaj', 'Stronghold_Posjete', 'xlsx',
       (p) => ref.read(exportOperationsProvider.notifier)
-          .exportMembershipToExcel(p, from: _membershipFrom, to: _membershipTo));
+          .exportVisitsToExcel(p));
 
-  void _exportMembershipPdf() => _export(
-      'Sacuvaj PDF izvjestaj', 'Stronghold_Clanarine', 'pdf',
+  void _exportVisitsPdf() => _export(
+      'Sacuvaj PDF izvjestaj', 'Stronghold_Posjete', 'pdf',
       (p) => ref.read(exportOperationsProvider.notifier)
-          .exportMembershipToPdf(p, from: _membershipFrom, to: _membershipTo));
+          .exportVisitsToPdf(p));
 
   // ── Build ─────────────────────────────────────────────────────────────
 
@@ -158,29 +147,16 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
                 onExportExcel: _exportBusinessExcel,
                 onExportPdf: _exportBusinessPdf,
                 isExporting: isExporting,
-                dateFrom: _businessFrom,
-                dateTo: _businessTo,
-                onDateFromChanged: (v) => setState(() => _businessFrom = v),
-                onDateToChanged: (v) => setState(() => _businessTo = v),
               ),
-              ReportInventoryTab(
-                daysToAnalyze: _daysToAnalyze,
-                onExportExcel: _exportInventoryExcel,
-                onExportPdf: _exportInventoryPdf,
+              ReportStaffTab(
+                onExportExcel: _exportStaffExcel,
+                onExportPdf: _exportStaffPdf,
                 isExporting: isExporting,
-                dateFrom: _inventoryFrom,
-                dateTo: _inventoryTo,
-                onDateFromChanged: (v) => setState(() => _inventoryFrom = v),
-                onDateToChanged: (v) => setState(() => _inventoryTo = v),
               ),
-              ReportMembershipTab(
-                onExportExcel: _exportMembershipExcel,
-                onExportPdf: _exportMembershipPdf,
+              ReportVisitsTab(
+                onExportExcel: _exportVisitsExcel,
+                onExportPdf: _exportVisitsPdf,
                 isExporting: isExporting,
-                dateFrom: _membershipFrom,
-                dateTo: _membershipTo,
-                onDateFromChanged: (v) => setState(() => _membershipFrom = v),
-                onDateToChanged: (v) => setState(() => _membershipTo = v),
               ),
             ],
           ),
@@ -192,8 +168,8 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
   Widget _tabBar() {
     final tabs = [
       (label: 'Prihodi', icon: LucideIcons.banknote),
-      (label: 'Inventar', icon: LucideIcons.package),
-      (label: 'Clanarine', icon: LucideIcons.creditCard),
+      (label: 'Osoblje', icon: LucideIcons.users),
+      (label: 'Posjete', icon: LucideIcons.footprints),
     ];
 
     return AnimatedBuilder(
@@ -206,7 +182,7 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
             borderRadius: AppSpacing.buttonRadius,
             boxShadow: [
               BoxShadow(
-                color: AppColors.electric.withOpacity(0.06),
+                color: AppColors.electric.withValues(alpha: 0.06),
                 blurRadius: 8,
                 offset: const Offset(0, 2),
               ),

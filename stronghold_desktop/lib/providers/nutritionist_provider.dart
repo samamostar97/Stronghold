@@ -19,6 +19,13 @@ final nutritionistListProvider =
       return NutritionistListNotifier(service);
     });
 
+/// Total nutritionist count (lightweight, fetches 1 item for totalCount).
+final nutritionistCountProvider = FutureProvider<int>((ref) async {
+  final service = ref.watch(nutritionistServiceProvider);
+  final result = await service.getAll(NutritionistQueryFilter(pageSize: 1));
+  return result.totalCount;
+});
+
 /// Nutritionist list notifier implementation
 class NutritionistListNotifier
     extends

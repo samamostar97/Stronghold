@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Reviews.Commands;
 using Stronghold.Application.Features.Reviews.DTOs;
 using Stronghold.Application.Features.Reviews.Queries;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.API.Controllers;
@@ -16,17 +16,10 @@ namespace Stronghold.API.Controllers;
 public class ReviewController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAdminActivityService _activityService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public ReviewController(
-        IMediator mediator,
-        IAdminActivityService activityService,
-        ICurrentUserService currentUserService)
+    public ReviewController(IMediator mediator)
     {
         _mediator = mediator;
-        _activityService = activityService;
-        _currentUserService = currentUserService;
     }
 
     [HttpGet("my")]
@@ -83,12 +76,12 @@ public class ReviewController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteReviewCommand { Id = id });
-
-        if (_currentUserService.UserId.HasValue && _currentUserService.IsInRole("Admin"))
+        await _mediator.Send(new LogAdminActivityCommand
         {
-            var adminUsername = _currentUserService.Username ?? "admin";
-            await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(Review), id);
-        }
+            Action = AdminActivityLogAction.Delete,
+            EntityType = nameof(Review),
+            EntityId = id
+        });
 
         return NoContent();
     }

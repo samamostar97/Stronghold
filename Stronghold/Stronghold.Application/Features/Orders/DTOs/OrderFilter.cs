@@ -7,6 +7,8 @@ public class OrderFilter : PaginationRequest
 {
     public string? Search { get; set; }
 
+public int? UserId { get; set; }
+
 public OrderStatus? Status { get; set; }
 
 public DateTime? DateFrom { get; set; }

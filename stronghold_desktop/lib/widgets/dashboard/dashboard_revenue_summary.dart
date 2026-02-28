@@ -6,10 +6,12 @@ import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 
 /// Revenue breakdown card showing today / this week / this month stats.
+/// In range mode, repurposes fields: today=orders, week=memberships, month=combined.
 class DashboardRevenueSummary extends StatelessWidget {
-  const DashboardRevenueSummary({super.key, this.breakdown});
+  const DashboardRevenueSummary({super.key, this.breakdown, this.isRangeMode = false});
 
   final RevenueBreakdownDTO? breakdown;
+  final bool isRangeMode;
 
   @override
   Widget build(BuildContext context) {
@@ -24,23 +26,23 @@ class DashboardRevenueSummary extends StatelessWidget {
           Text('Pregled prihoda', style: AppTextStyles.headingSm),
           const SizedBox(height: AppSpacing.xl),
           _RevenueRow(
-            icon: LucideIcons.calendar,
-            label: 'Danas',
+            icon: isRangeMode ? LucideIcons.shoppingCart : LucideIcons.calendar,
+            label: isRangeMode ? 'Prihod od narudzbi' : 'Danas',
             value: '${data?.todayRevenue.toStringAsFixed(2) ?? '0.00'} KM',
             subtext: '${data?.todayOrderCount ?? 0} narudzbi',
             color: AppColors.primary,
           ),
           const Divider(color: AppColors.border, height: AppSpacing.xl),
           _RevenueRow(
-            icon: LucideIcons.calendarDays,
-            label: 'Ova sedmica',
+            icon: isRangeMode ? LucideIcons.creditCard : LucideIcons.calendarDays,
+            label: isRangeMode ? 'Prihod od clanarina' : 'Ova sedmica',
             value: '${data?.thisWeekRevenue.toStringAsFixed(2) ?? '0.00'} KM',
             color: AppColors.success,
           ),
           const Divider(color: AppColors.border, height: AppSpacing.xl),
           _RevenueRow(
-            icon: LucideIcons.calendarRange,
-            label: 'Ovaj mjesec',
+            icon: isRangeMode ? LucideIcons.wallet : LucideIcons.calendarRange,
+            label: isRangeMode ? 'Ukupan prihod' : 'Ovaj mjesec',
             value: '${data?.thisMonthRevenue.toStringAsFixed(2) ?? '0.00'} KM',
             color: AppColors.warning,
           ),

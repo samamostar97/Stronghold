@@ -13,19 +13,18 @@ public class GetInventorySummaryQuery : IRequest<InventorySummaryResponse>, IAut
 
 public class GetInventorySummaryQueryHandler : IRequestHandler<GetInventorySummaryQuery, InventorySummaryResponse>
 {
-    private readonly IReportService _reportService;
+    private readonly IReportReadService _reportService;
 
-    public GetInventorySummaryQueryHandler(
-        IReportService reportService)
+    public GetInventorySummaryQueryHandler(IReportReadService reportService)
     {
         _reportService = reportService;
     }
 
-public async Task<InventorySummaryResponse> Handle(GetInventorySummaryQuery request, CancellationToken cancellationToken)
+    public async Task<InventorySummaryResponse> Handle(GetInventorySummaryQuery request, CancellationToken cancellationToken)
     {
         return await _reportService.GetInventorySummaryAsync(request.DaysToAnalyze);
     }
-    }
+}
 
 public class GetInventorySummaryQueryValidator : AbstractValidator<GetInventorySummaryQuery>
 {
@@ -34,4 +33,4 @@ public class GetInventorySummaryQueryValidator : AbstractValidator<GetInventoryS
         RuleFor(x => x.DaysToAnalyze)
             .InclusiveBetween(1, 365).WithMessage("{PropertyName} mora biti u dozvoljenom opsegu.");
     }
-    }
+}

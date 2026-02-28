@@ -12,20 +12,17 @@ class DashboardKpiRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final report = state.businessReport;
-    final rb = report?.revenueBreakdown;
+    final overview = state.overview;
 
     final cards = [
       StatCard(
-        title: 'PRIHOD DANAS',
-        value: '${rb?.todayRevenue.toStringAsFixed(2) ?? '0.00'} KM',
-        trendValue: rb != null ? '${rb.todayOrderCount} narudzbi' : null,
-        isPositive: (rb?.todayOrderCount ?? 0) > 0,
+        title: 'POSJETE DANAS',
+        value: '${overview?.todayCheckIns ?? 0}',
         accentColor: AppColors.success,
       ),
       StatCard(
         title: 'AKTIVNE CLANARINE',
-        value: '${report?.activeMemberships ?? 0}',
+        value: '${overview?.activeMemberships ?? 0}',
         accentColor: AppColors.warning,
       ),
       StatCard(
@@ -40,11 +37,13 @@ class DashboardKpiRow extends StatelessWidget {
         final width = constraints.maxWidth;
         if (width >= 900) return _row(cards, 3);
         if (width >= 600) {
-          return Column(children: [
-            _row([cards[0], cards[1]], 2),
-            const SizedBox(height: AppSpacing.lg),
-            cards[2],
-          ]);
+          return Column(
+            children: [
+              _row([cards[0], cards[1]], 2),
+              const SizedBox(height: AppSpacing.lg),
+              cards[2],
+            ],
+          );
         }
         return _column(cards);
       },

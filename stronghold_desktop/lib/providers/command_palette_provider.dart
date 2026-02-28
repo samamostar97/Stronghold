@@ -31,20 +31,6 @@ const List<CommandEntry> _allCommands = [
     keywords: ['dashboard', 'pocetna', 'home'],
   ),
   CommandEntry(
-    label: 'Trenutno u teretani',
-    sublabel: 'Upravljanje',
-    icon: LucideIcons.activity,
-    path: '/visitors',
-    keywords: ['visitors', 'check-in', 'prijava', 'posjetioci'],
-  ),
-  CommandEntry(
-    label: 'Clanarine',
-    sublabel: 'Upravljanje',
-    icon: LucideIcons.creditCard,
-    path: '/memberships',
-    keywords: ['membership', 'pretplata', 'clanarina'],
-  ),
-  CommandEntry(
     label: 'Paketi clanarina',
     sublabel: 'Upravljanje',
     icon: LucideIcons.package2,
@@ -59,18 +45,11 @@ const List<CommandEntry> _allCommands = [
     keywords: ['users', 'clanovi', 'members', 'korisnik'],
   ),
   CommandEntry(
-    label: 'Treneri',
+    label: 'Osoblje',
     sublabel: 'Osoblje',
-    icon: LucideIcons.dumbbell,
-    path: '/trainers',
-    keywords: ['trainer', 'trener', 'coach'],
-  ),
-  CommandEntry(
-    label: 'Nutricionisti',
-    sublabel: 'Osoblje',
-    icon: LucideIcons.apple,
-    path: '/nutritionists',
-    keywords: ['nutritionist', 'nutricionista', 'ishrana'],
+    icon: LucideIcons.users,
+    path: '/staff',
+    keywords: ['trainer', 'trener', 'coach', 'nutritionist', 'nutricionista', 'ishrana', 'termin', 'appointment'],
   ),
   CommandEntry(
     label: 'Suplementi',
@@ -130,9 +109,9 @@ const List<CommandEntry> _allCommands = [
   ),
   CommandEntry(
     label: 'Rang lista',
-    sublabel: 'Analitika',
+    sublabel: 'Korisnici',
     icon: LucideIcons.trophy,
-    path: '/leaderboard',
+    path: '/users',
     keywords: ['leaderboard', 'rang', 'top'],
   ),
 ];

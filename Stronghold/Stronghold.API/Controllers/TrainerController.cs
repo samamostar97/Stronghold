@@ -2,12 +2,12 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Appointments.DTOs;
 
 using Stronghold.Application.Features.Trainers.Commands;
 using Stronghold.Application.Features.Trainers.DTOs;
 using Stronghold.Application.Features.Trainers.Queries;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.API.Controllers;
@@ -18,17 +18,10 @@ namespace Stronghold.API.Controllers;
 public class TrainerController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAdminActivityService _activityService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public TrainerController(
-        IMediator mediator,
-        IAdminActivityService activityService,
-        ICurrentUserService currentUserService)
+    public TrainerController(IMediator mediator)
     {
         _mediator = mediator;
-        _activityService = activityService;
-        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -56,7 +49,12 @@ public class TrainerController : ControllerBase
     public async Task<ActionResult<TrainerResponse>> Create([FromBody] CreateTrainerCommand command)
     {
         var result = await _mediator.Send(command);
-        await LogAddActivityAsync(result.Id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Add,
+            EntityType = nameof(Trainer),
+            EntityId = result.Id
+        });
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -72,7 +70,12 @@ public class TrainerController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteTrainerCommand { Id = id });
-        await LogDeleteActivityAsync(id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Delete,
+            EntityType = nameof(Trainer),
+            EntityId = id
+        });
         return NoContent();
     }
 
@@ -100,25 +103,4 @@ public class TrainerController : ControllerBase
         return Ok(result);
     }
 
-    private async Task LogAddActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogAddAsync(_currentUserService.UserId.Value, adminUsername, nameof(Trainer), id);
-    }
-
-    private async Task LogDeleteActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(Trainer), id);
-    }
 }

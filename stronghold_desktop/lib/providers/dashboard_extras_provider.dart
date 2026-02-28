@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'appointment_provider.dart';
 import 'seminar_provider.dart';
-import 'membership_provider.dart';
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // UPCOMING APPOINTMENTS
@@ -121,68 +121,4 @@ class DashboardSeminarsNotifier
 final dashboardSeminarsProvider = StateNotifierProvider<
     DashboardSeminarsNotifier, DashboardSeminarsState>((ref) {
   return DashboardSeminarsNotifier(ref.watch(seminarServiceProvider));
-});
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EXPIRING MEMBERSHIPS
-// ─────────────────────────────────────────────────────────────────────────────
-
-class DashboardExpiringMembershipsState {
-  final List<ActiveMemberResponse> items;
-  final bool isLoading;
-  final String? error;
-
-  const DashboardExpiringMembershipsState({
-    this.items = const [],
-    this.isLoading = false,
-    this.error,
-  });
-
-  DashboardExpiringMembershipsState copyWith({
-    List<ActiveMemberResponse>? items,
-    bool? isLoading,
-    String? error,
-  }) {
-    return DashboardExpiringMembershipsState(
-      items: items ?? this.items,
-      isLoading: isLoading ?? this.isLoading,
-      error: error,
-    );
-  }
-}
-
-class DashboardExpiringMembershipsNotifier
-    extends StateNotifier<DashboardExpiringMembershipsState> {
-  final MembershipService _service;
-
-  DashboardExpiringMembershipsNotifier(this._service)
-      : super(const DashboardExpiringMembershipsState());
-
-  Future<void> load() async {
-    state = state.copyWith(isLoading: true, error: null);
-    try {
-      final result = await _service.getActiveMembers(
-        ActiveMemberQueryFilter(pageSize: 100),
-      );
-      final cutoff = DateTime.now().add(const Duration(days: 7));
-      final expiring = result.items
-          .where((m) => m.membershipEndDate.isBefore(cutoff))
-          .toList()
-        ..sort((a, b) => a.membershipEndDate.compareTo(b.membershipEndDate));
-      if (mounted) {
-        state = state.copyWith(items: expiring, isLoading: false);
-      }
-    } catch (e) {
-      if (mounted) {
-        state = state.copyWith(isLoading: false, error: e.toString());
-      }
-    }
-  }
-}
-
-final dashboardExpiringMembershipsProvider = StateNotifierProvider<
-    DashboardExpiringMembershipsNotifier,
-    DashboardExpiringMembershipsState>((ref) {
-  return DashboardExpiringMembershipsNotifier(
-      ref.watch(membershipServiceProvider));
 });

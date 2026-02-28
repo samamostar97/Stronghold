@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Seminars.Commands;
 using Stronghold.Application.Features.Seminars.DTOs;
 using Stronghold.Application.Features.Seminars.Queries;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.API.Controllers;
@@ -16,17 +16,10 @@ namespace Stronghold.API.Controllers;
 public class SeminarController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAdminActivityService _activityService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public SeminarController(
-        IMediator mediator,
-        IAdminActivityService activityService,
-        ICurrentUserService currentUserService)
+    public SeminarController(IMediator mediator)
     {
         _mediator = mediator;
-        _activityService = activityService;
-        _currentUserService = currentUserService;
     }
 
     [HttpGet("upcoming")]
@@ -75,7 +68,12 @@ public class SeminarController : ControllerBase
     public async Task<ActionResult<SeminarResponse>> Create([FromBody] CreateSeminarCommand command)
     {
         var result = await _mediator.Send(command);
-        await LogAddActivityAsync(result.Id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Add,
+            EntityType = nameof(Seminar),
+            EntityId = result.Id
+        });
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -98,7 +96,12 @@ public class SeminarController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteSeminarCommand { Id = id });
-        await LogDeleteActivityAsync(id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Delete,
+            EntityType = nameof(Seminar),
+            EntityId = id
+        });
         return NoContent();
     }
 
@@ -109,25 +112,4 @@ public class SeminarController : ControllerBase
         return Ok(result);
     }
 
-    private async Task LogAddActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogAddAsync(_currentUserService.UserId.Value, adminUsername, nameof(Seminar), id);
-    }
-
-    private async Task LogDeleteActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(Seminar), id);
-    }
 }

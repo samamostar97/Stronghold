@@ -6,20 +6,16 @@ import '../../constants/app_text_styles.dart';
 import '../shared/data_table_widgets.dart';
 import '../shared/small_button.dart';
 
-/// Users data table with avatar, name, email, phone, and actions.
+/// Users data table with avatar, name, email, phone, and profile action.
 class UsersTable extends StatelessWidget {
   const UsersTable({
     super.key,
     required this.users,
-    required this.onEdit,
-    required this.onDelete,
-    this.onDetails,
+    required this.onViewProfile,
   });
 
   final List<UserResponse> users;
-  final ValueChanged<UserResponse> onEdit;
-  final ValueChanged<UserResponse> onDelete;
-  final ValueChanged<UserResponse>? onDetails;
+  final ValueChanged<UserResponse> onViewProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +28,7 @@ class UsersTable extends StatelessWidget {
             TableHeaderCell(text: 'Korisnicko ime', flex: 2),
             TableHeaderCell(text: 'Email', flex: 3),
             TableHeaderCell(text: 'Telefon', flex: 2),
-            TableHeaderCell(text: 'Akcije', flex: 3, alignRight: true),
+            TableHeaderCell(text: 'Akcije', flex: 2, alignRight: true),
           ],
         ),
       ),
@@ -41,9 +37,7 @@ class UsersTable extends StatelessWidget {
         user: users[i],
         index: i,
         isLast: i == users.length - 1,
-        onEdit: () => onEdit(users[i]),
-        onDelete: () => onDelete(users[i]),
-        onDetails: onDetails != null ? () => onDetails!(users[i]) : null,
+        onViewProfile: () => onViewProfile(users[i]),
       ),
     );
   }
@@ -54,17 +48,13 @@ class _UserRow extends StatelessWidget {
     required this.user,
     required this.index,
     required this.isLast,
-    required this.onEdit,
-    required this.onDelete,
-    this.onDetails,
+    required this.onViewProfile,
   });
 
   final UserResponse user;
   final int index;
   final bool isLast;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-  final VoidCallback? onDetails;
+  final VoidCallback onViewProfile;
 
   @override
   Widget build(BuildContext context) {
@@ -116,24 +106,13 @@ class _UserRow extends StatelessWidget {
           TableDataCell(text: user.email, flex: 3),
           TableDataCell(text: user.phoneNumber, flex: 2),
           TableActionCell(
-            flex: 3,
+            flex: 2,
             children: [
-              if (onDetails != null)
-                SmallButton(
-                    text: 'Detalji',
-                    color: AppColors.primary,
-                    onTap: onDetails!),
-              if (onDetails != null)
-                const SizedBox(width: AppSpacing.sm),
               SmallButton(
-                  text: 'Izmijeni',
-                  color: AppColors.secondary,
-                  onTap: onEdit),
-              const SizedBox(width: AppSpacing.sm),
-              SmallButton(
-                  text: 'Obrisi',
-                  color: AppColors.error,
-                  onTap: onDelete),
+                text: 'Informacije',
+                color: AppColors.primary,
+                onTap: onViewProfile,
+              ),
             ],
           ),
         ],

@@ -2,23 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/admin_shell.dart';
-import '../screens/appointments_screen.dart';
 import '../screens/business_report_screen.dart';
 import '../screens/categories_screen.dart';
 import '../screens/dashboard_home_screen.dart';
 import '../screens/faq_screen.dart';
-import '../screens/leaderboard_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/membership_packages_screen.dart';
-import '../screens/memberships_screen.dart';
-import '../screens/nutritionists_screen.dart';
 import '../screens/orders_screen.dart';
 import '../screens/reviews_screen.dart';
 import '../screens/seminars_screen.dart';
+import '../screens/staff_screen.dart';
 import '../screens/supplements_screen.dart';
 import '../screens/suppliers_screen.dart';
-import '../screens/trainers_screen.dart';
 import '../screens/users_screen.dart';
+import '../screens/user_profile_screen.dart';
 import '../screens/visitors_screen.dart';
 
 Page<void> _fadeSlidePage(Widget child, GoRouterState state) {
@@ -64,11 +61,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _fadeSlidePage(const VisitorsScreen(), state),
           ),
           GoRoute(
-            path: '/memberships',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const MembershipsScreen(), state),
-          ),
-          GoRoute(
             path: '/membership-packages',
             pageBuilder: (context, state) =>
                 _fadeSlidePage(const MembershipPackagesScreen(), state),
@@ -79,19 +71,19 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _fadeSlidePage(const UsersScreen(), state),
           ),
           GoRoute(
-            path: '/trainers',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const TrainersScreen(), state),
+            path: '/users/:id',
+            pageBuilder: (context, state) {
+              final userId = int.parse(state.pathParameters['id']!);
+              return _fadeSlidePage(
+                UserProfileScreen(userId: userId),
+                state,
+              );
+            },
           ),
           GoRoute(
-            path: '/nutritionists',
+            path: '/staff',
             pageBuilder: (context, state) =>
-                _fadeSlidePage(const NutritionistsScreen(), state),
-          ),
-          GoRoute(
-            path: '/appointments',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const AppointmentsScreen(), state),
+                _fadeSlidePage(const StaffScreen(), state),
           ),
           GoRoute(
             path: '/supplements',
@@ -132,11 +124,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reports',
             pageBuilder: (context, state) =>
                 _fadeSlidePage(const BusinessReportScreen(), state),
-          ),
-          GoRoute(
-            path: '/leaderboard',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const LeaderboardScreen(), state),
           ),
         ],
       ),

@@ -23,10 +23,16 @@ public int ActiveMemberships { get; set; }
 public List<WeekdayVisitsResponse> VisitsByWeekday { get; set; } = new();
         public BestSellerResponse? BestsellerLast30Days { get; set; }
         public SlowestMovingResponse? SlowestMovingLast30Days { get; set; }
+        public PopularMembershipResponse? PopularMembership { get; set; }
+        public int ThisMonthVisits { get; set; }
+        public BusiestDayResponse? BusiestDay { get; set; }
 
 public List<DailySalesResponse> DailySales { get; set; } = new();
         public RevenueBreakdownResponse RevenueBreakdown { get; set; } = new();
         public List<HeatmapCellResponse> CheckInHeatmap { get; set; } = new();
+        public List<DailyVisitsResponse> DailyVisits { get; set; } = new();
+        public MostActivePackageResponse? MostActivePackage { get; set; }
+        public GrowthRateResponse GrowthRate { get; set; } = new();
     }
 
 public class WeekdayVisitsResponse
@@ -52,6 +58,19 @@ public class SlowestMovingResponse
         public int DaysSinceLastSale { get; set; }
     }
 
+public class BusiestDayResponse
+    {
+        public DateTime Date { get; set; }
+        public int VisitCount { get; set; }
+    }
+
+public class PopularMembershipResponse
+    {
+        public int MembershipPackageId { get; set; }
+        public string PackageName { get; set; } = string.Empty;
+        public int PurchaseCount { get; set; }
+    }
+
 public class DailySalesResponse
     {
         public DateTime Date { get; set; }
@@ -72,6 +91,8 @@ public decimal ThisMonthRevenue { get; set; }
 public decimal AverageOrderValue { get; set; }
 
 public int TodayOrderCount { get; set; }
+
+public decimal MonthOrderRevenue { get; set; }
     }
 
 public class HeatmapCellResponse
@@ -79,6 +100,24 @@ public class HeatmapCellResponse
         public DayOfWeek Day { get; set; }
         public int Hour { get; set; }
         public int Count { get; set; }
+    }
+
+public class DailyVisitsResponse
+    {
+        public DateTime Date { get; set; }
+        public int VisitCount { get; set; }
+    }
+
+public class MostActivePackageResponse
+    {
+        public string PackageName { get; set; } = string.Empty;
+        public int VisitCount { get; set; }
+    }
+
+    public class GrowthRateResponse
+    {
+        public decimal GrowthPct { get; set; }
+        public int PeriodDays { get; set; }
     }
 
 public class ActivityFeedItemResponse

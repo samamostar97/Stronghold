@@ -7,8 +7,8 @@ import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../providers/reports_provider.dart';
 import '../dashboard/dashboard_revenue_summary.dart';
-import '../dashboard/dashboard_sales_chart.dart';
 import 'report_date_range_bar.dart';
+import 'report_sales_chart.dart';
 import '../shared/shimmer_loading.dart';
 import '../shared/stat_card.dart';
 
@@ -19,19 +19,11 @@ class ReportBusinessTab extends ConsumerWidget {
     required this.onExportExcel,
     required this.onExportPdf,
     required this.isExporting,
-    required this.dateFrom,
-    required this.dateTo,
-    required this.onDateFromChanged,
-    required this.onDateToChanged,
   });
 
   final VoidCallback onExportExcel;
   final VoidCallback onExportPdf;
   final bool isExporting;
-  final DateTime? dateFrom;
-  final DateTime? dateTo;
-  final ValueChanged<DateTime?> onDateFromChanged;
-  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,10 +38,6 @@ class ReportBusinessTab extends ConsumerWidget {
         report: report,
         onExportExcel: isExporting ? null : onExportExcel,
         onExportPdf: isExporting ? null : onExportPdf,
-        dateFrom: dateFrom,
-        dateTo: dateTo,
-        onDateFromChanged: onDateFromChanged,
-        onDateToChanged: onDateToChanged,
       ),
     );
   }
@@ -60,19 +48,11 @@ class _Body extends StatelessWidget {
     required this.report,
     required this.onExportExcel,
     required this.onExportPdf,
-    required this.dateFrom,
-    required this.dateTo,
-    required this.onDateFromChanged,
-    required this.onDateToChanged,
   });
 
   final BusinessReportDTO report;
   final VoidCallback? onExportExcel;
   final VoidCallback? onExportPdf;
-  final DateTime? dateFrom;
-  final DateTime? dateTo;
-  final ValueChanged<DateTime?> onDateFromChanged;
-  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -89,7 +69,7 @@ class _Body extends StatelessWidget {
             const SizedBox(height: AppSpacing.xl),
             _statsGrid(statsCols, w),
             const SizedBox(height: AppSpacing.xxl),
-            const DashboardSalesChart(),
+            ReportSalesChart(data: report.dailySales),
             const SizedBox(height: AppSpacing.xxl),
             _bottomSection(bottomCols, w),
           ],
@@ -99,10 +79,6 @@ class _Body extends StatelessWidget {
   }
 
   Widget _exportRow() => ReportDateRangeBar(
-        dateFrom: dateFrom,
-        dateTo: dateTo,
-        onDateFromChanged: onDateFromChanged,
-        onDateToChanged: onDateToChanged,
         onExportExcel: onExportExcel,
         onExportPdf: onExportPdf,
       );
@@ -121,28 +97,22 @@ class _Body extends StatelessWidget {
           child: StatCard(
             title: 'PRODAJA OVOG MJESECA',
             value: '${report.thisMonthRevenue.toStringAsFixed(2)} KM',
-            trendValue:
-                '${report.monthChangePct.toStringAsFixed(1)}% vs proslog mjeseca',
-            isPositive: report.monthChangePct >= 0,
             accentColor: AppColors.success,
           ),
         ),
         SizedBox(
           width: cardW,
           child: StatCard(
-            title: 'PRODAJA DANAS',
-            value: '${rb?.todayRevenue.toStringAsFixed(2) ?? '0.00'} KM',
-            trendValue: '${rb?.todayOrderCount ?? 0} narudzbi danas',
-            isPositive: (rb?.todayOrderCount ?? 0) > 0,
+            title: 'PRIHOD OD NARUDZBI OVAJ MJESEC',
+            value: '${rb?.monthOrderRevenue.toStringAsFixed(2) ?? '0.00'} KM',
             accentColor: AppColors.primary,
           ),
         ),
         SizedBox(
           width: cardW,
           child: StatCard(
-            title: 'PROSJECNA NARUDZBA',
+            title: 'PROSJECNA NARUDZBA OVAJ MJESEC',
             value: '${rb?.averageOrderValue.toStringAsFixed(2) ?? '0.00'} KM',
-            trendValue: 'Prosjek zadnjih 30 dana',
             accentColor: AppColors.warning,
           ),
         ),
@@ -151,21 +121,15 @@ class _Body extends StatelessWidget {
   }
 
   Widget _bottomSection(int cols, double maxWidth) {
-    final rightColumn = Column(
-      children: [
-        _BestSellerCard(bestseller: report.bestsellerLast30Days),
-        const SizedBox(height: AppSpacing.lg),
-        _SlowestMovingCard(product: report.slowestMovingLast30Days),
-      ],
-    );
-
     if (cols == 1) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DashboardRevenueSummary(breakdown: report.revenueBreakdown),
           const SizedBox(height: AppSpacing.xxl),
-          rightColumn,
+          _BestSellerCard(bestseller: report.bestsellerLast30Days),
+          const SizedBox(height: AppSpacing.lg),
+          _PopularMembershipCard(membership: report.popularMembership),
         ],
       );
     }
@@ -184,7 +148,13 @@ class _Body extends StatelessWidget {
           const SizedBox(width: gap),
           SizedBox(
             width: cardW,
-            child: rightColumn,
+            child: Column(
+              children: [
+                Expanded(child: _BestSellerCard(bestseller: report.bestsellerLast30Days)),
+                const SizedBox(height: AppSpacing.lg),
+                Expanded(child: _PopularMembershipCard(membership: report.popularMembership)),
+              ],
+            ),
           ),
         ],
       ),
@@ -257,9 +227,9 @@ class _BestSellerCard extends StatelessWidget {
   }
 }
 
-class _SlowestMovingCard extends StatelessWidget {
-  const _SlowestMovingCard({required this.product});
-  final SlowestMovingDTO? product;
+class _PopularMembershipCard extends StatelessWidget {
+  const _PopularMembershipCard({required this.membership});
+  final PopularMembershipDTO? membership;
 
   @override
   Widget build(BuildContext context) {
@@ -276,13 +246,13 @@ class _SlowestMovingCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.trendingDown, size: 16, color: AppColors.orange),
+              Icon(LucideIcons.crown, size: 16, color: AppColors.warning),
               const SizedBox(width: AppSpacing.sm),
-              Text('Najsporiji (30d)', style: AppTextStyles.headingSm),
+              Text('Najpopularnija clanarina (zadnjih 30 dana)', style: AppTextStyles.headingSm),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
-          if (product == null)
+          if (membership == null)
             Center(child: Text('Nema podataka', style: AppTextStyles.bodyMd))
           else
             Row(
@@ -291,23 +261,23 @@ class _SlowestMovingCard extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: AppColors.orange.withValues(alpha: 0.12),
+                    color: AppColors.warning.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
                   ),
                   alignment: Alignment.center,
-                  child: const Icon(LucideIcons.pill, color: AppColors.orange, size: 22),
+                  child: const Icon(LucideIcons.creditCard, color: AppColors.warning, size: 22),
                 ),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(product!.name,
+                      Text(membership!.packageName,
                           style: AppTextStyles.bodyBold,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis),
                       const SizedBox(height: 2),
-                      Text('${product!.quantitySold} prodatih, ${product!.daysSinceLastSale}d od zadnje',
+                      Text('${membership!.purchaseCount} kupljenih',
                           style: AppTextStyles.caption),
                     ],
                   ),

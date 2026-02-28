@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Faqs.Commands;
 using Stronghold.Application.Features.Faqs.DTOs;
 using Stronghold.Application.Features.Faqs.Queries;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.API.Controllers;
@@ -16,17 +16,10 @@ namespace Stronghold.API.Controllers;
 public class FaqController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAdminActivityService _activityService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public FaqController(
-        IMediator mediator,
-        IAdminActivityService activityService,
-        ICurrentUserService currentUserService)
+    public FaqController(IMediator mediator)
     {
         _mediator = mediator;
-        _activityService = activityService;
-        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -54,7 +47,12 @@ public class FaqController : ControllerBase
     public async Task<ActionResult<FaqResponse>> Create([FromBody] CreateFaqCommand command)
     {
         var result = await _mediator.Send(command);
-        await LogAddActivityAsync(result.Id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Add,
+            EntityType = nameof(FAQ),
+            EntityId = result.Id
+        });
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -70,29 +68,12 @@ public class FaqController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteFaqCommand { Id = id });
-        await LogDeleteActivityAsync(id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Delete,
+            EntityType = nameof(FAQ),
+            EntityId = id
+        });
         return NoContent();
-    }
-
-    private async Task LogAddActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogAddAsync(_currentUserService.UserId.Value, adminUsername, nameof(FAQ), id);
-    }
-
-    private async Task LogDeleteActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(FAQ), id);
     }
 }

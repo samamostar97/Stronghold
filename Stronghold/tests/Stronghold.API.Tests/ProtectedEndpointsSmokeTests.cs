@@ -115,6 +115,86 @@ public class ProtectedEndpointsSmokeTests : IClassFixture<StrongholdApiFactory>,
     }
 
     [Fact]
+    public async Task GetDashboardOverview_ShouldReturnForbidden_ForMemberToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.MemberUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/dashboard/overview?days=30");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetDashboardOverview_ShouldReturnOk_ForAdminToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.AdminUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/dashboard/overview?days=30");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetDashboardSales_ShouldReturnOk_ForAdminToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.AdminUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/dashboard/sales");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetDashboardAttention_ShouldReturnForbidden_ForMemberToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.MemberUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/dashboard/attention?days=7");
+
+        Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GetDashboardAttention_ShouldReturnOk_ForAdminToken()
+    {
+        var client = _factory.CreateApiClient();
+        var token = await _factory.LoginAndGetTokenAsync(
+            client,
+            StrongholdApiFactory.AdminUsername,
+            StrongholdApiFactory.Password);
+
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await client.GetAsync("/api/dashboard/attention?days=7");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
     public async Task GetMyAppointments_ShouldReturnValidationContract_WhenPageSizeIsInvalid()
     {
         var client = _factory.CreateApiClient();

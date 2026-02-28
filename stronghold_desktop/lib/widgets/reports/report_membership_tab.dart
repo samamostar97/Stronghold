@@ -6,52 +6,37 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../providers/reports_provider.dart';
-import '../shared/data_table_widgets.dart';
 import 'report_date_range_bar.dart';
+import 'visits_trend_chart.dart';
 import '../shared/shimmer_loading.dart';
 
-/// Membership popularity tab content for the report screen.
-class ReportMembershipTab extends ConsumerWidget {
-  const ReportMembershipTab({
+/// Visits (Posjete) tab content for the report screen.
+class ReportVisitsTab extends ConsumerWidget {
+  const ReportVisitsTab({
     super.key,
     required this.onExportExcel,
     required this.onExportPdf,
     required this.isExporting,
-    required this.dateFrom,
-    required this.dateTo,
-    required this.onDateFromChanged,
-    required this.onDateToChanged,
   });
 
   final VoidCallback onExportExcel;
   final VoidCallback onExportPdf;
   final bool isExporting;
-  final DateTime? dateFrom;
-  final DateTime? dateTo;
-  final ValueChanged<DateTime?> onDateFromChanged;
-  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final async = ref.watch(membershipPopularityReportProvider);
-    final selectedDays = ref.watch(membershipRevenuePeriodProvider);
+    final async = ref.watch(businessReportProvider);
+
     return async.when(
       loading: () => const ShimmerDashboard(),
       error: (error, _) => _ErrorState(
         message: error.toString().replaceFirst('Exception: ', ''),
-        onRetry: () => ref.invalidate(membershipPopularityReportProvider),
+        onRetry: () => ref.invalidate(businessReportProvider),
       ),
       data: (report) => _Body(
         report: report,
-        selectedDays: selectedDays,
-        onDaysChanged: (days) =>
-            ref.read(membershipRevenuePeriodProvider.notifier).state = days,
         onExportExcel: isExporting ? null : onExportExcel,
         onExportPdf: isExporting ? null : onExportPdf,
-        dateFrom: dateFrom,
-        dateTo: dateTo,
-        onDateFromChanged: onDateFromChanged,
-        onDateToChanged: onDateToChanged,
       ),
     );
   }
@@ -60,31 +45,16 @@ class ReportMembershipTab extends ConsumerWidget {
 class _Body extends StatelessWidget {
   const _Body({
     required this.report,
-    required this.selectedDays,
-    required this.onDaysChanged,
     required this.onExportExcel,
     required this.onExportPdf,
-    required this.dateFrom,
-    required this.dateTo,
-    required this.onDateFromChanged,
-    required this.onDateToChanged,
   });
 
-  final MembershipPopularityReportDTO report;
-  final int selectedDays;
-  final ValueChanged<int> onDaysChanged;
+  final BusinessReportDTO report;
   final VoidCallback? onExportExcel;
   final VoidCallback? onExportPdf;
-  final DateTime? dateFrom;
-  final DateTime? dateTo;
-  final ValueChanged<DateTime?> onDateFromChanged;
-  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
   Widget build(BuildContext context) {
-    final topPlan =
-        report.planStats.isNotEmpty ? report.planStats.first : null;
-
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -92,69 +62,56 @@ class _Body extends StatelessWidget {
           _exportRow(),
           const SizedBox(height: AppSpacing.xl),
           _summaryCards(),
-          const SizedBox(height: AppSpacing.xxl),
-          if (topPlan != null) ...[
-            _TopPlanCard(plan: topPlan),
-            const SizedBox(height: AppSpacing.xxl),
-          ],
-          _plansTable(),
+          const SizedBox(height: AppSpacing.xl),
+          SizedBox(
+            height: 300,
+            child: VisitsTrendChart(data: report.dailyVisits),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          _DailyVisitsBarChart(data: report.dailyVisits),
+          const SizedBox(height: AppSpacing.xl),
+          _bottomRow(),
         ],
       ),
     );
   }
 
   Widget _exportRow() => ReportDateRangeBar(
-        dateFrom: dateFrom,
-        dateTo: dateTo,
-        onDateFromChanged: onDateFromChanged,
-        onDateToChanged: onDateToChanged,
         onExportExcel: onExportExcel,
         onExportPdf: onExportPdf,
       );
 
-  Widget _summaryCards() => Row(children: [
-        Expanded(
-          child: _SummaryCard(
-            icon: LucideIcons.users,
-            label: 'Aktivnih clanarina',
-            value: '${report.totalActiveMemberships}',
-            color: AppColors.accent,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        Expanded(
-          child: _RevenueSummaryCard(
-            revenue: report.totalRevenueLast90Days,
-            selectedDays: selectedDays,
-            onDaysChanged: onDaysChanged,
-          ),
-        ),
-      ]);
-
-  Widget _plansTable() => Container(
-        decoration: BoxDecoration(
-          color: AppColors.surfaceSolid,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
+  Widget _bottomRow() => IntrinsicHeight(
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Text('Statistika po paketima',
-                  style: AppTextStyles.headingSm),
+            Expanded(
+              child: _ActivePackageCard(data: report.mostActivePackage),
             ),
-            if (report.planStats.isEmpty)
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.xxxl),
-                child: Center(
-                  child: Text('Nema aktivnih paketa',
-                      style: AppTextStyles.bodyMd),
-                ),
-              )
-            else
-              _MembershipStatsTable(plans: report.planStats, revenueDays: selectedDays),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: _GrowthRateCard(growthRate: report.growthRate),
+            ),
+          ],
+        ),
+      );
+
+  Widget _summaryCards() => IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              child: _SummaryCard(
+                icon: LucideIcons.footprints,
+                label: 'Posjete u ovom mjesecu',
+                value: '${report.thisMonthVisits}',
+                color: AppColors.accent,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(
+              child: _BusiestDayCard(busiestDay: report.busiestDay),
+            ),
           ],
         ),
       );
@@ -211,214 +168,25 @@ class _SummaryCard extends StatelessWidget {
   }
 }
 
-class _TopPlanCard extends StatelessWidget {
-  const _TopPlanCard({required this.plan});
-  final MembershipPlanStatsDTO plan;
+class _BusiestDayCard extends StatelessWidget {
+  const _BusiestDayCard({required this.busiestDay});
+
+  final BusiestDayDTO? busiestDay;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xxl),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.accent.withValues(alpha: 0.2),
-            AppColors.accentLight.withValues(alpha: 0.1),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: AppColors.accent.withValues(alpha: 0.3)),
-      ),
-      child: Row(children: [
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: AppColors.accent.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          ),
-          child: Icon(LucideIcons.trophy, color: AppColors.accent, size: 32),
-        ),
-        const SizedBox(width: AppSpacing.xl),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('NAJPOPULARNIJI PAKET', style: AppTextStyles.label),
-              const SizedBox(height: AppSpacing.xs),
-              Text(plan.packageName,
-                  style: AppTextStyles.statLg.copyWith(fontSize: 24, color: Colors.white),
-                  overflow: TextOverflow.ellipsis),
-              const SizedBox(height: AppSpacing.sm),
-              Wrap(
-                spacing: AppSpacing.xxl,
-                runSpacing: AppSpacing.sm,
-                children: [
-                  _MiniStat(
-                      label: 'Aktivnih',
-                      value: '${plan.activeSubscriptions}'),
-                  _MiniStat(
-                      label: 'Popularnost',
-                      value:
-                          '${plan.popularityPercentage.toStringAsFixed(1)}%'),
-                  _MiniStat(
-                      label: 'Prihod',
-                      value:
-                          '${plan.revenueLast90Days.toStringAsFixed(0)} KM'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ]),
-    );
-  }
-}
+    const title = 'Najprometniji dan ovaj mjesec';
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat({required this.label, required this.value});
-  final String label;
-  final String value;
+    String? dateStr;
+    String description;
+    if (busiestDay != null) {
+      final d = busiestDay!.date;
+      dateStr = '${d.day.toString().padLeft(2, '0')}.${d.month.toString().padLeft(2, '0')}.${d.year}';
+      description = 'Taj dan je bilo ${busiestDay!.visitCount} posjeta';
+    } else {
+      description = 'Nema podataka';
+    }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: AppTextStyles.bodySm),
-        Text(value, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
-      ],
-    );
-  }
-}
-
-class _MembershipStatsTable extends StatelessWidget {
-  const _MembershipStatsTable({required this.plans, required this.revenueDays});
-  final List<MembershipPlanStatsDTO> plans;
-  final int revenueDays;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: AppSpacing.xl),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          child: Column(children: [
-            TableHeader(
-              child: Row(children: [
-                TableHeaderCell(text: 'Paket', flex: 3),
-                TableHeaderCell(text: 'Cijena', flex: 2),
-                TableHeaderCell(text: 'Aktivnih', flex: 1),
-                TableHeaderCell(text: 'Novih', flex: 1),
-                TableHeaderCell(
-                    text: 'Prihod (${revenueDays}d)', flex: 2, alignRight: true),
-                TableHeaderCell(
-                    text: 'Popularnost', flex: 2, alignRight: true),
-              ]),
-            ),
-            ...plans.asMap().entries.map((e) {
-              final i = e.key;
-              final p = e.value;
-              return HoverableTableRow(
-                index: i,
-                isLast: i == plans.length - 1,
-                child: Row(children: [
-                  TableDataCell(text: p.packageName, flex: 3, bold: true),
-                  TableDataCell(
-                      text: '${p.packagePrice.toStringAsFixed(2)} KM',
-                      flex: 2,
-                      muted: true),
-                  TableDataCell(
-                      text: '${p.activeSubscriptions}', flex: 1, bold: true),
-                  Expanded(
-                    flex: 1,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (p.newSubscriptionsLast30Days > 0)
-                          Icon(LucideIcons.arrowUp,
-                              color: AppColors.success, size: 14),
-                        Expanded(
-                          child: Text(
-                            '${p.newSubscriptionsLast30Days}',
-                            style: AppTextStyles.bodyBold.copyWith(
-                              color: p.newSubscriptionsLast30Days > 0
-                                  ? AppColors.success
-                                  : AppColors.textMuted,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '${p.revenueLast90Days.toStringAsFixed(2)} KM',
-                      textAlign: TextAlign.right,
-                      style: AppTextStyles.bodyMd
-                          .copyWith(color: AppColors.textPrimary),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [_popBadge(p.popularityPercentage.toDouble())],
-                    ),
-                  ),
-                ]),
-              );
-            }),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _popBadge(double pct) {
-    final color = pct >= 30
-        ? AppColors.success
-        : pct >= 10
-            ? AppColors.orange
-            : AppColors.textMuted;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-      ),
-      child: Text('${pct.toStringAsFixed(1)}%',
-          style: AppTextStyles.badge.copyWith(color: color)),
-    );
-  }
-}
-
-class _RevenueSummaryCard extends StatelessWidget {
-  const _RevenueSummaryCard({
-    required this.revenue,
-    required this.selectedDays,
-    required this.onDaysChanged,
-  });
-
-  final num revenue;
-  final int selectedDays;
-  final ValueChanged<int> onDaysChanged;
-
-  static const _periods = [30, 90, 180, 360];
-
-  @override
-  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.xl),
       decoration: BoxDecoration(
@@ -433,28 +201,134 @@ class _RevenueSummaryCard extends StatelessWidget {
             color: AppColors.success.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
           ),
-          child: Icon(LucideIcons.banknote, color: AppColors.success, size: 24),
+          child: Icon(LucideIcons.calendarCheck, color: AppColors.success, size: 24),
         ),
         const SizedBox(width: AppSpacing.lg),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text('Prihod', style: AppTextStyles.bodySm),
-                  const SizedBox(width: AppSpacing.sm),
-                  _PeriodDropdown(
-                    value: selectedDays,
-                    periods: _periods,
-                    onChanged: onDaysChanged,
-                  ),
-                ],
+              Text(title, style: AppTextStyles.bodySm),
+              const SizedBox(height: AppSpacing.xs),
+              if (dateStr != null)
+                Text(
+                  dateStr,
+                  style: AppTextStyles.stat.copyWith(color: AppColors.success),
+                ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(description, style: AppTextStyles.caption, maxLines: 2, overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _ActivePackageCard extends StatelessWidget {
+  const _ActivePackageCard({required this.data});
+
+  final MostActivePackageDTO? data;
+
+  @override
+  Widget build(BuildContext context) {
+    const title = 'Najaktivniji paket u ovom mjesecu';
+
+    final packageName = data?.packageName ?? 'Nema podataka';
+    final visitCount = data?.visitCount ?? 0;
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          ),
+          child: Icon(LucideIcons.award, color: AppColors.primary, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: AppTextStyles.bodySm),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                packageName,
+                style: AppTextStyles.stat.copyWith(color: AppColors.primary),
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (data != null) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  'Ukupno $visitCount posjeta',
+                  style: AppTextStyles.caption,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+}
+
+class _GrowthRateCard extends StatelessWidget {
+  const _GrowthRateCard({required this.growthRate});
+
+  final GrowthRateDTO? growthRate;
+
+  @override
+  Widget build(BuildContext context) {
+    final pct = growthRate?.growthPct.toDouble() ?? 0;
+    final isPositive = pct >= 0;
+    final color = isPositive ? AppColors.success : AppColors.error;
+    final icon = isPositive ? LucideIcons.trendingUp : LucideIcons.trendingDown;
+    final sign = isPositive ? '+' : '';
+    const description = 'Zadnjih 30 dana';
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.xl),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceSolid,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(width: AppSpacing.lg),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Stopa rasta', style: AppTextStyles.bodySm),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '$sign${pct.toStringAsFixed(1)}%',
+                style: AppTextStyles.stat.copyWith(color: color),
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                '${revenue.toStringAsFixed(2)} KM',
-                style: AppTextStyles.stat.copyWith(color: AppColors.success),
+                description,
+                style: AppTextStyles.caption,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -465,53 +339,161 @@ class _RevenueSummaryCard extends StatelessWidget {
   }
 }
 
-class _PeriodDropdown extends StatelessWidget {
-  const _PeriodDropdown({
-    required this.value,
-    required this.periods,
-    required this.onChanged,
-  });
+class _DailyVisitsBarChart extends StatefulWidget {
+  const _DailyVisitsBarChart({required this.data});
+  final List<DailyVisitsDTO> data;
 
-  final int value;
-  final List<int> periods;
-  final ValueChanged<int> onChanged;
+  @override
+  State<_DailyVisitsBarChart> createState() => _DailyVisitsBarChartState();
+}
 
-  String _label(int days) {
-    if (days < 90) return '$days dana';
-    if (days < 365) return '${days ~/ 30} mjeseci';
-    return '1 godina';
+class _DailyVisitsBarChartState extends State<_DailyVisitsBarChart>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  int? _hoveredIndex;
+  late List<DailyVisitsDTO> _sorted;
+  late double _maxVal;
+
+  @override
+  void initState() {
+    super.initState();
+    _computeData();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    )..forward();
+  }
+
+  @override
+  void didUpdateWidget(_DailyVisitsBarChart old) {
+    super.didUpdateWidget(old);
+    if (old.data != widget.data) {
+      _computeData();
+      _controller.forward(from: 0);
+    }
+  }
+
+  void _computeData() {
+    _sorted = widget.data.toList()
+      ..sort((a, b) => a.date.compareTo(b.date));
+    _maxVal = _sorted.isEmpty
+        ? 0
+        : _sorted.map((d) => d.visitCount).reduce((a, b) => a > b ? a : b).toDouble();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final sorted = _sorted;
+    if (sorted.isEmpty) return const SizedBox.shrink();
+
+    final maxVal = _maxVal;
+
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 2,
-      ),
+      padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        color: AppColors.surface,
+        borderRadius: AppSpacing.cardRadius,
         border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<int>(
-          value: value,
-          isDense: true,
-          dropdownColor: AppColors.surface,
-          style: AppTextStyles.bodyBold,
-          icon: const Icon(Icons.arrow_drop_down,
-              color: AppColors.textMuted, size: 16),
-          items: periods
-              .map((d) => DropdownMenuItem(
-                    value: d,
-                    child: Text(_label(d), style: AppTextStyles.caption),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Posjete po danima', style: AppTextStyles.headingSm),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Zadnjih 30 dana',
+            style: AppTextStyles.caption,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            height: 180,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                final progress = Curves.easeOutCubic.transform(_controller.value);
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final barCount = sorted.length;
+                    final gap = 2.0;
+                    final barWidth = (constraints.maxWidth - gap * (barCount - 1)) / barCount;
+
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: List.generate(barCount, (i) {
+                        final item = sorted[i];
+                        final fraction = maxVal > 0 ? item.visitCount / maxVal : 0.0;
+                        final barHeight = fraction * 150 * progress;
+                        final isHovered = _hoveredIndex == i;
+                        final isPeak = item.visitCount == maxVal.toInt() && maxVal > 0;
+
+                        return Padding(
+                          padding: EdgeInsets.only(right: i < barCount - 1 ? gap : 0),
+                          child: MouseRegion(
+                            onEnter: (_) => setState(() => _hoveredIndex = i),
+                            onExit: (_) => setState(() => _hoveredIndex = null),
+                            child: Tooltip(
+                              message: '${item.date.day.toString().padLeft(2, '0')}.${item.date.month.toString().padLeft(2, '0')}. — ${item.visitCount} posjeta',
+                              waitDuration: const Duration(milliseconds: 200),
+                              child: SizedBox(
+                                width: barWidth,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
+                                      width: barWidth,
+                                      height: barHeight.clamp(0.0, 150.0),
+                                      decoration: BoxDecoration(
+                                        gradient: isPeak || isHovered
+                                            ? const LinearGradient(
+                                                begin: Alignment.bottomCenter,
+                                                end: Alignment.topCenter,
+                                                colors: [AppColors.accent, AppColors.cyan],
+                                              )
+                                            : null,
+                                        color: isPeak || isHovered ? null : AppColors.accent.withValues(alpha: 0.35),
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(barWidth > 6 ? 4 : 2),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    SizedBox(
+                                      height: 26,
+                                      child: i % 5 == 0 || i == barCount - 1
+                                          ? FittedBox(
+                                              fit: BoxFit.scaleDown,
+                                              child: Text(
+                                                '${item.date.day}.${item.date.month}',
+                                                style: AppTextStyles.overline.copyWith(
+                                                  fontSize: 9,
+                                                  color: AppColors.textMuted,
+                                                ),
+                                              ),
+                                            )
+                                          : null,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

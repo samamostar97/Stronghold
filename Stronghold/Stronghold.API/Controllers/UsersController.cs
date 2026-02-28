@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Users.Commands;
 using Stronghold.Application.Features.Users.DTOs;
 using Stronghold.Application.Features.Users.Queries;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.API.Controllers;
@@ -16,17 +16,10 @@ namespace Stronghold.API.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAdminActivityService _activityService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public UsersController(
-        IMediator mediator,
-        IAdminActivityService activityService,
-        ICurrentUserService currentUserService)
+    public UsersController(IMediator mediator)
     {
         _mediator = mediator;
-        _activityService = activityService;
-        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -54,7 +47,12 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<UserResponse>> Create([FromBody] CreateUserCommand command)
     {
         var result = await _mediator.Send(command);
-        await LogAddActivityAsync(result.Id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Add,
+            EntityType = nameof(User),
+            EntityId = result.Id
+        });
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -70,7 +68,12 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteUserCommand { Id = id });
-        await LogDeleteActivityAsync(id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Delete,
+            EntityType = nameof(User),
+            EntityId = id
+        });
         return NoContent();
     }
 
@@ -107,25 +110,4 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    private async Task LogAddActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogAddAsync(_currentUserService.UserId.Value, adminUsername, nameof(User), id);
-    }
-
-    private async Task LogDeleteActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(User), id);
-    }
 }

@@ -4,6 +4,7 @@ import '../responses/order_response.dart';
 /// Matches backend OrderQueryFilter exactly
 class OrderQueryFilter extends BaseQueryFilter {
   OrderStatus? status;
+  int? userId;
   DateTime? dateFrom;
   DateTime? dateTo;
   bool descending;
@@ -14,6 +15,7 @@ class OrderQueryFilter extends BaseQueryFilter {
     super.search,
     super.orderBy,
     this.status,
+    this.userId,
     this.dateFrom,
     this.dateTo,
     this.descending = true,
@@ -25,6 +27,9 @@ class OrderQueryFilter extends BaseQueryFilter {
 
     if (status != null) {
       params['status'] = status!.index.toString();
+    }
+    if (userId != null) {
+      params['userId'] = userId.toString();
     }
     if (dateFrom != null) {
       params['dateFrom'] = dateFrom!.toIso8601String();
@@ -44,6 +49,7 @@ class OrderQueryFilter extends BaseQueryFilter {
     String? search,
     String? orderBy,
     OrderStatus? status,
+    int? userId,
     DateTime? dateFrom,
     DateTime? dateTo,
     bool? descending,
@@ -54,6 +60,7 @@ class OrderQueryFilter extends BaseQueryFilter {
       search: search ?? this.search,
       orderBy: orderBy ?? this.orderBy,
       status: status ?? this.status,
+      userId: userId ?? this.userId,
       dateFrom: dateFrom ?? this.dateFrom,
       dateTo: dateTo ?? this.dateTo,
       descending: descending ?? this.descending,

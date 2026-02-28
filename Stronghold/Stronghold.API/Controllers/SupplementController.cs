@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Supplements.Commands;
 using Stronghold.Application.Features.Supplements.DTOs;
 using Stronghold.Application.Features.Supplements.Queries;
-using Stronghold.Application.IServices;
 using Stronghold.Core.Entities;
 
 namespace Stronghold.API.Controllers;
@@ -16,17 +16,10 @@ namespace Stronghold.API.Controllers;
 public class SupplementController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly IAdminActivityService _activityService;
-    private readonly ICurrentUserService _currentUserService;
 
-    public SupplementController(
-        IMediator mediator,
-        IAdminActivityService activityService,
-        ICurrentUserService currentUserService)
+    public SupplementController(IMediator mediator)
     {
         _mediator = mediator;
-        _activityService = activityService;
-        _currentUserService = currentUserService;
     }
 
     [HttpGet]
@@ -54,7 +47,12 @@ public class SupplementController : ControllerBase
     public async Task<ActionResult<SupplementResponse>> Create([FromBody] CreateSupplementCommand command)
     {
         var result = await _mediator.Send(command);
-        await LogAddActivityAsync(result.Id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Add,
+            EntityType = nameof(Supplement),
+            EntityId = result.Id
+        });
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
     }
 
@@ -70,7 +68,12 @@ public class SupplementController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _mediator.Send(new DeleteSupplementCommand { Id = id });
-        await LogDeleteActivityAsync(id);
+        await _mediator.Send(new LogAdminActivityCommand
+        {
+            Action = AdminActivityLogAction.Delete,
+            EntityType = nameof(Supplement),
+            EntityId = id
+        });
         return NoContent();
     }
 
@@ -114,25 +117,4 @@ public class SupplementController : ControllerBase
         return Ok(result);
     }
 
-    private async Task LogAddActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogAddAsync(_currentUserService.UserId.Value, adminUsername, nameof(Supplement), id);
-    }
-
-    private async Task LogDeleteActivityAsync(int id)
-    {
-        if (!_currentUserService.UserId.HasValue)
-        {
-            return;
-        }
-
-        var adminUsername = _currentUserService.Username ?? "admin";
-        await _activityService.LogDeleteAsync(_currentUserService.UserId.Value, adminUsername, nameof(Supplement), id);
-    }
 }

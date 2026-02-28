@@ -4,7 +4,7 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 
-/// Weekly check-in heatmap: 7 rows (Mon-Sun) × 24 cols (hours).
+/// Weekly check-in heatmap: 7 rows (Mon-Sun) × hours (06-21).
 /// Cell color intensity reflects visit count relative to max.
 class DashboardCheckinHeatmap extends StatefulWidget {
   const DashboardCheckinHeatmap({super.key, required this.data});
@@ -26,16 +26,21 @@ class _DashboardCheckinHeatmapState extends State<DashboardCheckinHeatmap> {
   // Display order: Mon(1), Tue(2), Wed(3), Thu(4), Fri(5), Sat(6), Sun(0)
   static const _backendDayOrder = [1, 2, 3, 4, 5, 6, 0];
 
+  // Gym working hours
+  static const _startHour = 6;
+  static const _endHour = 21;
+  static const _hourCount = _endHour - _startHour; // 15 hours
+
   @override
   Widget build(BuildContext context) {
-    // Build 7×24 grid from data
-    final grid = List.generate(7, (_) => List.filled(24, 0));
+    // Build 7×15 grid from data (06:00 - 20:59)
+    final grid = List.generate(7, (_) => List.filled(_hourCount, 0));
     int maxCount = 0;
 
     for (final cell in widget.data) {
       final rowIdx = _backendDayOrder.indexOf(cell.day);
-      if (rowIdx < 0 || cell.hour < 0 || cell.hour > 23) continue;
-      grid[rowIdx][cell.hour] = cell.count;
+      if (rowIdx < 0 || cell.hour < _startHour || cell.hour >= _endHour) continue;
+      grid[rowIdx][cell.hour - _startHour] = cell.count;
       if (cell.count > maxCount) maxCount = cell.count;
     }
 
@@ -69,7 +74,7 @@ class _DashboardCheckinHeatmapState extends State<DashboardCheckinHeatmap> {
             builder: (context, constraints) {
               final availableWidth = constraints.maxWidth - labelWidth;
               final cellWidth =
-                  (availableWidth - cellGap * 23) / 24;
+                  (availableWidth - cellGap * (_hourCount - 1)) / _hourCount;
               final cellHeight = cellWidth.clamp(14.0, 22.0);
 
               return Column(
@@ -80,10 +85,11 @@ class _DashboardCheckinHeatmapState extends State<DashboardCheckinHeatmap> {
                     child: SizedBox(
                       height: headerHeight,
                       child: Row(
-                        children: List.generate(24, (h) {
+                        children: List.generate(_hourCount, (i) {
+                          final h = i + _startHour;
                           return SizedBox(
-                            width: cellWidth + (h < 23 ? cellGap : 0),
-                            child: h % 3 == 0
+                            width: cellWidth + (i < _hourCount - 1 ? cellGap : 0),
+                            child: i % 3 == 0
                                 ? Text(
                                     h.toString().padLeft(2, '0'),
                                     style: AppTextStyles.overline.copyWith(
@@ -119,21 +125,22 @@ class _DashboardCheckinHeatmapState extends State<DashboardCheckinHeatmap> {
                               ),
                             ),
                           ),
-                          ...List.generate(24, (h) {
-                            final count = grid[dayIdx][h];
+                          ...List.generate(_hourCount, (i) {
+                            final h = i + _startHour;
+                            final count = grid[dayIdx][i];
                             final intensity = maxCount > 0
                                 ? (count / maxCount).clamp(0.0, 1.0)
                                 : 0.0;
                             final isHovered =
-                                _hoverDay == dayIdx && _hoverHour == h;
+                                _hoverDay == dayIdx && _hoverHour == i;
 
                             return Padding(
                               padding: EdgeInsets.only(
-                                  right: h < 23 ? cellGap : 0),
+                                  right: i < _hourCount - 1 ? cellGap : 0),
                               child: MouseRegion(
                                 onEnter: (_) => setState(() {
                                   _hoverDay = dayIdx;
-                                  _hoverHour = h;
+                                  _hoverHour = i;
                                 }),
                                 onExit: (_) => setState(() {
                                   _hoverDay = null;

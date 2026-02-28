@@ -7,20 +7,15 @@ import 'package:stronghold_core/stronghold_core.dart'
     show ParticleBackground, TokenStorage;
 import '../constants/app_colors.dart';
 import '../providers/notification_provider.dart';
-import '../widgets/shell/admin_top_bar.dart';
 import '../widgets/shell/app_sidebar.dart';
 import '../widgets/shell/command_palette.dart';
 import '../widgets/shared/success_animation.dart';
 
 const _idToPath = <String, String>{
   'dashboardHome': '/dashboard',
-  'currentVisitors': '/visitors',
-  'memberships': '/memberships',
   'membershipPackages': '/membership-packages',
   'users': '/users',
-  'trainers': '/trainers',
-  'nutritionists': '/nutritionists',
-  'appointments': '/appointments',
+  'staff': '/staff',
   'supplements': '/supplements',
   'categories': '/categories',
   'suppliers': '/suppliers',
@@ -29,27 +24,6 @@ const _idToPath = <String, String>{
   'reviews': '/reviews',
   'seminars': '/seminars',
   'businessReport': '/reports',
-  'leaderboard': '/leaderboard',
-};
-
-const _pathTitles = <String, String>{
-  '/dashboard': 'Kontrolna ploca',
-  '/visitors': 'Trenutno u teretani',
-  '/memberships': 'Clanarine',
-  '/membership-packages': 'Paketi clanarina',
-  '/users': 'Korisnici',
-  '/trainers': 'Treneri',
-  '/nutritionists': 'Nutricionisti',
-  '/appointments': 'Termini',
-  '/supplements': 'Suplementi',
-  '/categories': 'Kategorije',
-  '/suppliers': 'Dobavljaci',
-  '/orders': 'Kupovine',
-  '/faq': 'FAQ',
-  '/reviews': 'Recenzije',
-  '/seminars': 'Seminari',
-  '/reports': 'Biznis izvjestaji',
-  '/leaderboard': 'Rang lista',
 };
 
 final _pathToId = {
@@ -67,40 +41,24 @@ const _navGroups = [
         label: 'Kontrolna ploca',
         icon: LucideIcons.layoutDashboard),
   ]),
-  NavGroup(label: 'UPRAVLJANJE', items: [
-    NavItem(
-        id: 'currentVisitors',
-        label: 'Trenutno u teretani',
-        icon: LucideIcons.activity),
-    NavItem(
-        id: 'memberships',
-        label: 'Clanarine',
-        icon: LucideIcons.creditCard),
+  NavGroup(items: [
     NavItem(
         id: 'membershipPackages',
         label: 'Paketi clanarina',
         icon: LucideIcons.package2),
     NavItem(id: 'users', label: 'Korisnici', icon: LucideIcons.users),
   ]),
-  NavGroup(label: 'OSOBLJE', items: [
-    NavItem(id: 'trainers', label: 'Treneri', icon: LucideIcons.dumbbell),
-    NavItem(
-        id: 'nutritionists',
-        label: 'Nutricionisti',
-        icon: LucideIcons.apple),
-    NavItem(
-        id: 'appointments',
-        label: 'Termini',
-        icon: LucideIcons.calendarCheck),
+  NavGroup(items: [
+    NavItem(id: 'staff', label: 'Osoblje', icon: LucideIcons.users),
   ]),
-  NavGroup(label: 'PRODAVNICA', items: [
+  NavGroup(items: [
     NavItem(id: 'supplements', label: 'Suplementi', icon: LucideIcons.pill),
     NavItem(id: 'categories', label: 'Kategorije', icon: LucideIcons.tag),
     NavItem(id: 'suppliers', label: 'Dobavljaci', icon: LucideIcons.truck),
     NavItem(
         id: 'orders', label: 'Kupovine', icon: LucideIcons.shoppingBag),
   ]),
-  NavGroup(label: 'SADRZAJ', items: [
+  NavGroup(items: [
     NavItem(id: 'faq', label: 'FAQ', icon: LucideIcons.helpCircle),
     NavItem(id: 'reviews', label: 'Recenzije', icon: LucideIcons.star),
     NavItem(
@@ -108,13 +66,11 @@ const _navGroups = [
         label: 'Seminari',
         icon: LucideIcons.graduationCap),
   ]),
-  NavGroup(label: 'ANALITIKA', items: [
+  NavGroup(items: [
     NavItem(
         id: 'businessReport',
         label: 'Biznis izvjestaji',
         icon: LucideIcons.trendingUp),
-    NavItem(
-        id: 'leaderboard', label: 'Rang lista', icon: LucideIcons.trophy),
   ]),
 ];
 
@@ -158,7 +114,6 @@ class _AdminShellState extends ConsumerState<AdminShell> {
   Widget build(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     final activeId = _activeIdFromLocation(location);
-    final title = _pathTitles[location] ?? '';
 
     // Listen for new notifications and show toast
     ref.listen<NotificationState>(notificationProvider, (prev, next) {
@@ -215,18 +170,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
                           onToggleCollapse: _toggleCollapse,
                           onLogout: () => _logout(context),
                         ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              AdminTopBar(
-                                title: title,
-                                onNavigateToOrders: () =>
-                                    context.go('/orders'),
-                              ),
-                              Expanded(child: widget.child),
-                            ],
-                          ),
-                        ),
+                        Expanded(child: widget.child),
                       ],
                     ),
                   );

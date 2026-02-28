@@ -81,3 +81,7 @@ export 'responses/checkout_response.dart';
 export 'responses/recommendation_response.dart';
 export 'responses/purchased_supplement_response.dart';
 export 'responses/supplement_review_response.dart';
+export 'responses/staff_report_dto.dart';
+export 'responses/dashboard_sales_dto.dart';
+export 'responses/dashboard_overview_dto.dart';
+export 'responses/dashboard_attention_dto.dart';

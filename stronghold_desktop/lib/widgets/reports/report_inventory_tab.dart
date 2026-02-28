@@ -3,668 +3,489 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
-import '../../providers/list_state.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../providers/reports_provider.dart';
-import '../../utils/debouncer.dart';
-import '../shared/bar_chart.dart';
-import '../shared/data_table_widgets.dart';
-import '../shared/horizontal_bar_chart.dart';
-import '../shared/pagination_controls.dart';
+import '../shared/ring_chart.dart';
+import '../shared/shimmer_loading.dart';
+import '../shared/stat_card.dart';
 import 'report_date_range_bar.dart';
-import '../shared/search_input.dart';
 
-/// Inventory tab content for the report screen.
-class ReportInventoryTab extends ConsumerStatefulWidget {
-  const ReportInventoryTab({
+/// Staff (Osoblje) tab content for the report screen.
+class ReportStaffTab extends ConsumerWidget {
+  const ReportStaffTab({
     super.key,
-    required this.daysToAnalyze,
     required this.onExportExcel,
     required this.onExportPdf,
     required this.isExporting,
-    required this.dateFrom,
-    required this.dateTo,
-    required this.onDateFromChanged,
-    required this.onDateToChanged,
   });
 
-  final int daysToAnalyze;
   final VoidCallback onExportExcel;
   final VoidCallback onExportPdf;
   final bool isExporting;
-  final DateTime? dateFrom;
-  final DateTime? dateTo;
-  final ValueChanged<DateTime?> onDateFromChanged;
-  final ValueChanged<DateTime?> onDateToChanged;
 
   @override
-  ConsumerState<ReportInventoryTab> createState() => _ReportInventoryTabState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(staffReportProvider);
+
+    return async.when(
+      loading: () => const ShimmerDashboard(),
+      error: (e, _) => _ErrorState(
+        message: e.toString().replaceFirst('Exception: ', ''),
+        onRetry: () => ref.invalidate(staffReportProvider),
+      ),
+      data: (report) => _Body(
+        report: report,
+        onExportExcel: isExporting ? null : onExportExcel,
+        onExportPdf: isExporting ? null : onExportPdf,
+      ),
+    );
+  }
 }
 
-class _ReportInventoryTabState extends ConsumerState<ReportInventoryTab> {
-  final _searchController = TextEditingController();
-  final _debouncer = Debouncer(milliseconds: 400);
+class _Body extends StatelessWidget {
+  const _Body({
+    required this.report,
+    required this.onExportExcel,
+    required this.onExportPdf,
+  });
 
-  @override
-  void initState() {
-    super.initState();
-    final initialSearch =
-        ref.read(slowMovingProductsProvider).filter.search ?? '';
-    _searchController.text = initialSearch;
-    _searchController.addListener(_onSearchChanged);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(slowMovingProductsProvider.notifier)
-          .setDaysToAnalyze(widget.daysToAnalyze);
-    });
-  }
-
-  @override
-  void dispose() {
-    _searchController.removeListener(_onSearchChanged);
-    _searchController.dispose();
-    _debouncer.dispose();
-    super.dispose();
-  }
-
-  void _onSearchChanged() {
-    _debouncer.run(() {
-      final q = _searchController.text.trim();
-      ref
-          .read(slowMovingProductsProvider.notifier)
-          .setSearch(q.isEmpty ? '' : q);
-    });
-  }
+  final StaffReportDTO report;
+  final VoidCallback? onExportExcel;
+  final VoidCallback? onExportPdf;
 
   @override
   Widget build(BuildContext context) {
-    final summaryAsync = ref.watch(
-      inventorySummaryProvider(widget.daysToAnalyze),
-    );
-    final reportAsync = ref.watch(
-      inventoryReportProvider(widget.daysToAnalyze),
-    );
-    final productsState = ref.watch(slowMovingProductsProvider);
+    return LayoutBuilder(builder: (context, c) {
+      final wide = c.maxWidth >= 900;
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _exportRow(),
-          const SizedBox(height: AppSpacing.xl),
-          _summaryCards(summaryAsync),
-          const SizedBox(height: AppSpacing.xxl),
-          _chartsSection(reportAsync),
-          const SizedBox(height: AppSpacing.xxl),
-          _productsSection(productsState),
-        ],
-      ),
-    );
-  }
-
-  Widget _exportRow() => ReportDateRangeBar(
-    dateFrom: widget.dateFrom,
-    dateTo: widget.dateTo,
-    onDateFromChanged: widget.onDateFromChanged,
-    onDateToChanged: widget.onDateToChanged,
-    onExportExcel: widget.isExporting ? null : widget.onExportExcel,
-    onExportPdf: widget.isExporting ? null : widget.onExportPdf,
-  );
-
-  Widget _summaryCards(AsyncValue<InventorySummaryDTO> async) => async.when(
-    loading: () => const SizedBox(
-      height: 80,
-      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-    ),
-    error: (e, _) => Text(
-      'Greska: ${e.toString().replaceFirst('Exception: ', '')}',
-      style: AppTextStyles.bodyMd.copyWith(color: AppColors.error),
-    ),
-    data: (s) => Row(
-      children: [
-        Expanded(
-          child: _SummaryCard(
-            icon: LucideIcons.package,
-            label: 'Ukupno proizvoda',
-            value: '${s.totalProducts}',
-            color: AppColors.accent,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        Expanded(
-          child: _SummaryCard(
-            icon: LucideIcons.alertTriangle,
-            label: 'Slaba prodaja',
-            value: '${s.slowMovingCount}',
-            color: AppColors.orange,
-          ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        Expanded(
-          child: _SummaryCard(
-            icon: LucideIcons.calendar,
-            label: 'Period analize',
-            value: '${s.daysAnalyzed} dana',
-            color: AppColors.secondary,
-          ),
-        ),
-      ],
-    ),
-  );
-
-  Widget _chartsSection(AsyncValue<InventoryReportDTO> async) => async.when(
-    loading: () => const SizedBox(
-      height: 240,
-      child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-    ),
-    error: (error, stackTrace) => const SizedBox.shrink(),
-    data: (report) {
-      final products = report.slowMovingProducts;
-      if (products.isEmpty) return const SizedBox.shrink();
-
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 800;
-
-          final categoryGroups = <String, int>{};
-          for (final p in products) {
-            categoryGroups[p.categoryName] =
-                (categoryGroups[p.categoryName] ?? 0) + 1;
-          }
-          final categoryColors = [
-            AppColors.accent,
-            AppColors.orange,
-            AppColors.primary,
-            AppColors.secondary,
-            AppColors.error,
-            AppColors.warning,
-            AppColors.success,
-          ];
-          final categoryItems = categoryGroups.entries.toList()
-            ..sort((a, b) => b.value.compareTo(a.value));
-          final barItems = categoryItems
-              .map(
-                (e) => BarChartItem(
-                  label: e.key.length > 12
-                      ? '${e.key.substring(0, 10)}..'
-                      : e.key,
-                  value: e.value.toDouble(),
-                  color:
-                      categoryColors[categoryItems.indexOf(e) %
-                          categoryColors.length],
-                ),
-              )
-              .toList();
-
-          final sorted = products.toList()
-            ..sort(
-              (a, b) => b.daysSinceLastSale.compareTo(a.daysSinceLastSale),
-            );
-          final topData = sorted
-              .take(8)
-              .map(
-                (p) => (
-                  label: p.name.length > 14
-                      ? '${p.name.substring(0, 12)}..'
-                      : p.name,
-                  value: p.daysSinceLastSale.toDouble(),
-                ),
-              )
-              .toList();
-
-          final categoryChart = _ChartCard(
-            icon: LucideIcons.pieChart,
-            title: 'Po kategorijama',
-            child: barItems.isEmpty
-                ? Center(
-                    child: Text('Nema podataka', style: AppTextStyles.bodyMd),
-                  )
-                : BarChart(
-                    items: barItems,
-                    height: 200,
-                    barWidth: barItems.length > 6 ? 18 : 24,
-                  ),
-          );
-
-          final slowMoversChart = _ChartCard(
-            icon: LucideIcons.clock,
-            title: 'Najduze bez prodaje',
-            child: topData.isEmpty
-                ? Center(
-                    child: Text('Nema podataka', style: AppTextStyles.bodyMd),
-                  )
-                : HorizontalBarChart(
-                    data: topData,
-                    accentColor: AppColors.orange,
-                  ),
-          );
-
-          if (wide) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: categoryChart),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(child: slowMoversChart),
-              ],
-            );
-          }
-
-          return Column(
-            children: [
-              categoryChart,
-              const SizedBox(height: AppSpacing.lg),
-              slowMoversChart,
-            ],
-          );
-        },
-      );
-    },
-  );
-
-  Widget _productsSection(
-    ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter> state,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Row(
-              children: [
-                Icon(
-                  LucideIcons.trendingDown,
-                  color: AppColors.orange,
-                  size: 24,
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    'Proizvodi sa slabom prodajom (<=2 prodaje)',
-                    style: AppTextStyles.headingSm,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                if (state.isLoading)
-                  const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
-                    ),
-                  ),
-              ],
+      return SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            ReportDateRangeBar(
+              onExportExcel: onExportExcel,
+              onExportPdf: onExportPdf,
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xl,
-              0,
-              AppSpacing.xl,
-              AppSpacing.lg,
-            ),
-            child: LayoutBuilder(
-              builder: (context, constraints) =>
-                  _filtersBar(constraints, state),
-            ),
-          ),
-          if (state.error != null)
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Column(
-                children: [
-                  Text(
-                    state.error!.replaceFirst('Exception: ', ''),
-                    style: AppTextStyles.bodyMd.copyWith(
-                      color: AppColors.error,
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  GradientButton.text(
-                    text: 'Pokusaj ponovo',
-                    onPressed: () =>
-                        ref.read(slowMovingProductsProvider.notifier).refresh(),
-                  ),
-                ],
-              ),
-            )
-          else if (state.isEmpty && !state.isLoading)
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.xxxl),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      LucideIcons.checkCircle,
-                      color: AppColors.success,
-                      size: 48,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-                    Text(
-                      'Svi proizvodi imaju dobru prodaju!',
-                      style: AppTextStyles.bodyMd,
-                    ),
-                  ],
-                ),
-              ),
-            )
-          else ...[
-            _InventoryTable(products: state.items),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: PaginationControls(
-                currentPage: state.currentPage,
-                totalPages: state.totalPages,
-                totalCount: state.totalCount,
-                onPageChanged: (p) =>
-                    ref.read(slowMovingProductsProvider.notifier).goToPage(p),
-              ),
-            ),
+            const SizedBox(height: AppSpacing.xl),
+            _kpiCards(wide),
+            const SizedBox(height: AppSpacing.xxl),
+            _chartsRow(wide),
           ],
-        ],
-      ),
-    );
+        ),
+      );
+    });
   }
 
-  Widget _filtersBar(
-    BoxConstraints constraints,
-    ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter> state,
-  ) {
-    final notifier = ref.read(slowMovingProductsProvider.notifier);
-    final sortDropdown = _sortDropdown(state, notifier);
+  Widget _kpiCards(bool wide) {
+    final trainers = report.staffRanking.where((r) => r.type == 'Trener').toList();
+    final nutritionists = report.staffRanking.where((r) => r.type == 'Nutricionista').toList();
 
-    if (constraints.maxWidth < 900) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+    final topTrainer = trainers.firstOrNull;
+    final topNutritionist = nutritionists.firstOrNull;
+
+    final activeTrainerIds = trainers.length;
+    final activeNutritionistIds = nutritionists.length;
+    final inactive = (report.totalTrainers - activeTrainerIds) +
+        (report.totalNutritionists - activeNutritionistIds);
+
+    final cards = [
+      StatCard(
+        title: 'NAJTRAZENIJI TRENER',
+        value: topTrainer?.name ?? 'Nema podataka',
+        trendValue: topTrainer != null ? '${topTrainer.appointmentCount} termina' : null,
+        isPositive: true,
+        accentColor: AppColors.cyan,
+      ),
+      StatCard(
+        title: 'NAJTRAZENIJI NUTRICIONIST',
+        value: topNutritionist?.name ?? 'Nema podataka',
+        trendValue: topNutritionist != null ? '${topNutritionist.appointmentCount} termina' : null,
+        isPositive: true,
+        accentColor: AppColors.electric,
+      ),
+      StatCard(
+        title: 'NEAKTIVNO OSOBLJE (30D)',
+        value: '$inactive',
+        trendValue: inactive > 0 ? 'bez ijednog termina' : 'svi aktivni',
+        isPositive: inactive == 0,
+        accentColor: inactive > 0 ? AppColors.warning : AppColors.success,
+      ),
+    ];
+
+    if (wide) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SearchInput(
-            controller: _searchController,
-            onSubmitted: (value) {
-              final q = value.trim();
-              notifier.setSearch(q.isEmpty ? '' : q);
-            },
-            hintText: 'Pretrazi proizvode i kategorije...',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          sortDropdown,
+          for (int i = 0; i < cards.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.lg),
+            Expanded(child: cards[i]),
+          ],
         ],
       );
     }
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: SearchInput(
-            controller: _searchController,
-            onSubmitted: (value) {
-              final q = value.trim();
-              notifier.setSearch(q.isEmpty ? '' : q);
-            },
-            hintText: 'Pretrazi proizvode i kategorije...',
-          ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        sortDropdown,
+        for (int i = 0; i < cards.length; i++) ...[
+          if (i > 0) const SizedBox(height: AppSpacing.lg),
+          cards[i],
+        ],
       ],
     );
   }
 
-  Widget _sortDropdown(
-    ListState<SlowMovingProductDTO, SlowMovingProductQueryFilter> state,
-    SlowMovingProductsNotifier notifier,
-  ) {
-    final selectedOrderBy = state.filter.orderBy;
-    final dropdownValue = selectedOrderBy == null || selectedOrderBy.isEmpty
-        ? null
-        : selectedOrderBy;
+  Widget _chartsRow(bool wide) {
+    final rankingChart = _StaffRankingCard(ranking: report.staffRanking);
+    final ringChart = _AppointmentTypeCard(report: report);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          value: dropdownValue,
-          hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
-          dropdownColor: AppColors.surfaceSolid,
-          style: AppTextStyles.bodyBold,
-          icon: Icon(
-            LucideIcons.arrowUpDown,
-            color: AppColors.textMuted,
-            size: 16,
-          ),
-          items: const [
-            DropdownMenuItem(value: null, child: Text('Zadano')),
-            DropdownMenuItem(
-              value: 'quantitysold',
-              child: Text('Najmanje prodato'),
-            ),
-            DropdownMenuItem(
-              value: 'quantitysolddesc',
-              child: Text('Najvise prodato'),
-            ),
-            DropdownMenuItem(
-              value: 'dayssincelastsaledesc',
-              child: Text('Najduze bez prodaje'),
-            ),
-            DropdownMenuItem(
-              value: 'dayssincelastsale',
-              child: Text('Najkrace bez prodaje'),
-            ),
-            DropdownMenuItem(value: 'name', child: Text('Naziv (A-Z)')),
-            DropdownMenuItem(value: 'namedesc', child: Text('Naziv (Z-A)')),
-            DropdownMenuItem(
-              value: 'category',
-              child: Text('Kategorija (A-Z)'),
-            ),
-            DropdownMenuItem(
-              value: 'categorydesc',
-              child: Text('Kategorija (Z-A)'),
-            ),
-            DropdownMenuItem(value: 'price', child: Text('Cijena (niza)')),
-            DropdownMenuItem(value: 'pricedesc', child: Text('Cijena (visa)')),
+    if (wide) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: rankingChart),
+            const SizedBox(width: AppSpacing.lg),
+            Expanded(child: ringChart),
           ],
-          onChanged: (value) => notifier.setOrderBy(value),
         ),
-      ),
+      );
+    }
+
+    return Column(
+      children: [
+        rankingChart,
+        const SizedBox(height: AppSpacing.lg),
+        ringChart,
+      ],
     );
   }
+
 }
 
-class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({
-    required this.icon,
-    required this.label,
-    required this.value,
-    required this.color,
-  });
+// ─────────────────────────────────────────────────────────────────────────────
+// STAFF RANKING CARD
+// ─────────────────────────────────────────────────────────────────────────────
 
-  final IconData icon;
-  final String label;
-  final String value;
-  final Color color;
+class _StaffRankingCard extends StatefulWidget {
+  const _StaffRankingCard({required this.ranking});
+  final List<StaffRankingItemDTO> ranking;
+
+  @override
+  State<_StaffRankingCard> createState() => _StaffRankingCardState();
+}
+
+class _StaffRankingCardState extends State<_StaffRankingCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    )..forward();
+  }
+
+  @override
+  void didUpdateWidget(_StaffRankingCard old) {
+    super.didUpdateWidget(old);
+    if (old.ranking != widget.ranking) _controller.forward(from: 0);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  double _staggered(int index) {
+    final total = widget.ranking.length;
+    if (total == 0) return 0;
+    final start = index / total * 0.4;
+    final t = ((_controller.value - start) / 0.6).clamp(0.0, 1.0);
+    return Curves.easeOutCubic.transform(t);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final ranking = widget.ranking;
+    final maxVal = ranking.isEmpty
+        ? 0
+        : ranking.map((r) => r.appointmentCount).reduce((a, b) => a > b ? a : b);
+
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
+      padding: AppSpacing.cardPadding,
       decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+        color: AppColors.surface,
+        borderRadius: AppSpacing.cardRadius,
         border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-            ),
-            child: Icon(icon, color: color, size: 24),
-          ),
-          const SizedBox(width: AppSpacing.lg),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: AppTextStyles.bodySm),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  value,
-                  style: AppTextStyles.stat.copyWith(color: color),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ChartCard extends StatelessWidget {
-  const _ChartCard({
-    required this.icon,
-    required this.title,
-    required this.child,
-  });
-
-  final IconData icon;
-  final String title;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.textSecondary, size: 18),
-              const SizedBox(width: AppSpacing.sm),
-              Text(title, style: AppTextStyles.headingSm),
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.cyan.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child:
+                    const Icon(LucideIcons.users, size: 18, color: AppColors.cyan),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Rang lista osoblja', style: AppTextStyles.headingSm),
+                    Text('Po broju termina (30d)',
+                        style: AppTextStyles.caption),
+                  ],
+                ),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          child,
+          if (ranking.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.xl),
+                child: Text('Nema podataka', style: AppTextStyles.bodyMd),
+              ),
+            )
+          else
+            AnimatedBuilder(
+              animation: _controller,
+              builder: (context, _) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    for (int i = 0; i < ranking.length; i++) ...[
+                      _RankRow(
+                        rank: i + 1,
+                        item: ranking[i],
+                        fraction: maxVal > 0 ? ranking[i].appointmentCount / maxVal : 0,
+                        progress: _staggered(i),
+                      ),
+                      if (i < ranking.length - 1)
+                        const SizedBox(height: AppSpacing.sm),
+                    ],
+                  ],
+                );
+              },
+            ),
         ],
       ),
     );
   }
 }
 
-class _InventoryTable extends StatelessWidget {
-  const _InventoryTable({required this.products});
-  final List<SlowMovingProductDTO> products;
+class _RankRow extends StatelessWidget {
+  const _RankRow({
+    required this.rank,
+    required this.item,
+    required this.fraction,
+    required this.progress,
+  });
+
+  final int rank;
+  final StaffRankingItemDTO item;
+  final double fraction;
+  final double progress;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+    final isTrainer = item.type == 'Trener';
+    final color = isTrainer ? AppColors.cyan : AppColors.electric;
+    final isTop = rank == 1;
+
+    return Row(
+      children: [
+        SizedBox(
+          width: 24,
+          child: Text(
+            '#$rank',
+            style: AppTextStyles.caption.copyWith(
+              color: isTop ? color : AppColors.textMuted,
+              fontWeight: isTop ? FontWeight.w700 : FontWeight.w400,
+            ),
+          ),
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-          child: Column(
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          flex: 2,
+          child: Text(
+            item.name,
+            style: AppTextStyles.bodyMd.copyWith(
+              color: isTop ? AppColors.textPrimary : AppColors.textSecondary,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          flex: 3,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: FractionallySizedBox(
+              widthFactor: (fraction * progress).clamp(0.0, 1.0),
+              child: Container(
+                height: 18,
+                decoration: BoxDecoration(
+                  gradient: isTop
+                      ? LinearGradient(colors: [color, color.withValues(alpha: 0.5)])
+                      : null,
+                  color: isTop ? null : color.withValues(alpha: 0.25),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        SizedBox(
+          width: 28,
+          child: Text(
+            '${item.appointmentCount}',
+            style: AppTextStyles.bodySm.copyWith(
+              color: isTop ? color : AppColors.textMuted,
+              fontWeight: isTop ? FontWeight.w700 : FontWeight.w400,
+            ),
+            textAlign: TextAlign.right,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// APPOINTMENT TYPE RING CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _AppointmentTypeCard extends StatelessWidget {
+  const _AppointmentTypeCard({required this.report});
+  final StaffReportDTO report;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = report.totalAppointments;
+    final trainerPct = total > 0
+        ? '${(report.trainerAppointments / total * 100).toStringAsFixed(0)}%'
+        : '0%';
+    final nutritionistPct = total > 0
+        ? '${(report.nutritionistAppointments / total * 100).toStringAsFixed(0)}%'
+        : '0%';
+
+    return Container(
+      padding: AppSpacing.cardPadding,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.cardRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              TableHeader(
-                child: Row(
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: AppColors.electric.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+                ),
+                child: const Icon(LucideIcons.pieChart,
+                    size: 18, color: AppColors.electric),
+              ),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    TableHeaderCell(text: 'Naziv', flex: 3),
-                    TableHeaderCell(text: 'Kategorija', flex: 2),
-                    TableHeaderCell(text: 'Cijena', flex: 2),
-                    TableHeaderCell(text: 'Prodato', flex: 1),
-                    TableHeaderCell(
-                      text: 'Dana bez prodaje',
-                      flex: 2,
-                      alignRight: true,
-                    ),
+                    Text('Struktura termina', style: AppTextStyles.headingSm),
+                    Text('Treninzi vs konsultacije',
+                        style: AppTextStyles.caption),
                   ],
                 ),
               ),
-              ...products.asMap().entries.map((e) {
-                final i = e.key;
-                final p = e.value;
-                final isLast = i == products.length - 1;
-                return HoverableTableRow(
-                  index: i,
-                  isLast: isLast,
-                  child: Row(
-                    children: [
-                      TableDataCell(text: p.name, flex: 3, bold: true),
-                      TableDataCell(text: p.categoryName, flex: 2, muted: true),
-                      TableDataCell(
-                        text: '${p.price.toStringAsFixed(2)} KM',
-                        flex: 2,
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Center(child: _soldBadge(p.quantitySold)),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          '${p.daysSinceLastSale}',
-                          textAlign: TextAlign.right,
-                          style: AppTextStyles.bodyBold.copyWith(
-                            color: _daysColor(p.daysSinceLastSale),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }),
             ],
           ),
-        ),
+          const Spacer(),
+          Center(
+            child: RingChart(
+              centerLabel: 'Ukupno',
+              centerValue: '$total',
+              showLegend: false,
+              segments: [
+                RingSegment(
+                  label: 'Treninzi',
+                  value: report.trainerAppointments.toDouble(),
+                  color: AppColors.cyan,
+                ),
+                RingSegment(
+                  label: 'Konsultacije',
+                  value: report.nutritionistAppointments.toDouble(),
+                  color: AppColors.electric,
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              RingChartLegendItem(
+                color: AppColors.cyan,
+                label: 'Treninzi',
+                value: '${report.trainerAppointments}',
+                pct: trainerPct,
+              ),
+              const SizedBox(width: AppSpacing.xl),
+              RingChartLegendItem(
+                color: AppColors.electric,
+                label: 'Konsultacije',
+                value: '${report.nutritionistAppointments}',
+                pct: nutritionistPct,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
+}
 
-  Widget _soldBadge(int qty) {
-    final color = qty == 0 ? AppColors.error : AppColors.orange;
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-      ),
-      child: Text('$qty', style: AppTextStyles.badge.copyWith(color: color)),
+// ─────────────────────────────────────────────────────────────────────────────
+// ERROR STATE
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.message, required this.onRetry});
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Icon(LucideIcons.alertCircle, color: AppColors.error, size: 48),
+        const SizedBox(height: AppSpacing.lg),
+        Text(message,
+            style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary),
+            textAlign: TextAlign.center),
+        const SizedBox(height: AppSpacing.lg),
+        GradientButton.text(text: 'Pokusaj ponovo', onPressed: onRetry),
+      ]),
     );
-  }
-
-  Color _daysColor(int days) {
-    if (days > 20) return AppColors.error;
-    if (days > 10) return AppColors.orange;
-    return AppColors.textMuted;
   }
 }

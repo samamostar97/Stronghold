@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
 import '../providers/leaderboard_provider.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../widgets/shared/hover_icon_button.dart';
 import '../widgets/leaderboard/leaderboard_table.dart';
 import '../widgets/shared/shimmer_loading.dart';
 

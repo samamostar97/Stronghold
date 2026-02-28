@@ -1,38 +1,33 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
-import '../../providers/reports_provider.dart';
 
-/// Period option for the sales chart dropdown.
-enum _SalesPeriod {
-  days30(30, '30 dana'),
-  months6(180, '6 mjeseci'),
-  year(365, 'Godina');
-
-  const _SalesPeriod(this.days, this.label);
-  final int days;
-  final String label;
-}
-
-/// Sales chart showing daily revenue as an area chart with configurable period.
-class DashboardSalesChart extends ConsumerStatefulWidget {
+/// Sales chart showing daily revenue as an area chart (last 30 days).
+/// Consumes [DashboardSalesDTO] from the dedicated dashboard sales endpoint.
+class DashboardSalesChart extends StatefulWidget {
   const DashboardSalesChart({
     super.key,
     this.expand = false,
+    required this.data,
+    this.isLoading = false,
+    this.error,
+    this.onRetry,
   });
 
   final bool expand;
+  final DashboardSalesDTO? data;
+  final bool isLoading;
+  final String? error;
+  final VoidCallback? onRetry;
 
   @override
-  ConsumerState<DashboardSalesChart> createState() =>
-      _DashboardSalesChartState();
+  State<DashboardSalesChart> createState() => _DashboardSalesChartState();
 }
 
-class _DashboardSalesChartState extends ConsumerState<DashboardSalesChart>
+class _DashboardSalesChartState extends State<DashboardSalesChart>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   int? _hoveredIndex;
@@ -52,96 +47,89 @@ class _DashboardSalesChartState extends ConsumerState<DashboardSalesChart>
     super.dispose();
   }
 
-  void _onPeriodChanged(_SalesPeriod period) {
-    ref.read(salesPeriodProvider.notifier).state = period.days;
-    _controller.forward(from: 0);
-  }
-
   @override
   Widget build(BuildContext context) {
-    final selectedDays = ref.watch(salesPeriodProvider);
-    final asyncData = ref.watch(salesChartDataProvider);
-    final currentPeriod = _SalesPeriod.values.firstWhere(
-      (p) => p.days == selectedDays,
-      orElse: () => _SalesPeriod.days30,
-    );
+    final sales = widget.data;
 
     return GlassCard(
       backgroundColor: AppColors.surface,
-      child: asyncData.when(
-        loading: () => _buildShell(currentPeriod, null),
-        error: (e, _) => _buildShell(currentPeriod, null, error: e.toString()),
-        data: (dailySales) => _buildShell(currentPeriod, dailySales),
-      ),
-    );
-  }
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxHeight < 80;
 
-  Widget _buildShell(
-    _SalesPeriod period,
-    List<DailySalesDTO>? dailySales, {
-    String? error,
-  }) {
-    final totalRevenue = dailySales?.fold<num>(0, (s, d) => s + d.revenue) ?? 0;
-    final totalOrders =
-        dailySales?.fold<int>(0, (s, d) => s + d.orderCount) ?? 0;
-
-    final chartArea = dailySales != null
-        ? _buildChart(dailySales)
-        : error != null
-            ? Center(
-                child: Text(error,
-                    style: AppTextStyles.caption
-                        .copyWith(color: AppColors.danger)))
-            : const Center(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: AppColors.primary),
-                ),
-              );
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxHeight < 80;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
-          children: [
-            if (!compact) ...[
-              Row(
-                children: [
-                  Text('Prodaja', style: AppTextStyles.headingSm),
-                  const SizedBox(width: AppSpacing.md),
-                  _PeriodDropdown(
-                    value: period,
-                    onChanged: _onPeriodChanged,
-                  ),
-                  const Spacer(),
-                  if (dailySales != null) ...[
-                    _SummaryChip(
-                      label: 'Ukupno',
-                      value: '${totalRevenue.toStringAsFixed(0)} KM',
-                      color: AppColors.success,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    _SummaryChip(
-                      label: 'Narudzbe',
-                      value: '$totalOrders',
+          final chartArea = sales != null && sales.dailySales.isNotEmpty
+              ? _buildChart(sales.dailySales)
+              : widget.isLoading
+              ? const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: AppColors.primary,
                     ),
+                  ),
+                )
+              : widget.error != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        widget.error!,
+                        style: AppTextStyles.bodyMd,
+                        textAlign: TextAlign.center,
+                      ),
+                      if (widget.onRetry != null) ...[
+                        const SizedBox(height: AppSpacing.md),
+                        TextButton(
+                          onPressed: widget.onRetry,
+                          child: const Text('Pokusaj ponovo'),
+                        ),
+                      ],
+                    ],
+                  ),
+                )
+              : Center(
+                  child: Text('Nema podataka', style: AppTextStyles.bodyMd),
+                );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: widget.expand ? MainAxisSize.max : MainAxisSize.min,
+            children: [
+              if (!compact) ...[
+                Row(
+                  children: [
+                    Text('Prodaja', style: AppTextStyles.headingSm),
+                    const SizedBox(width: AppSpacing.md),
+                    Text('zadnjih 30 dana', style: AppTextStyles.caption),
+                    const Spacer(),
+                    if (sales != null) ...[
+                      _SummaryChip(
+                        label: 'Ukupno',
+                        value: '${sales.totalRevenue.toStringAsFixed(0)} KM',
+                        color: AppColors.success,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      _SummaryChip(
+                        label: 'Narudzbe',
+                        value: '${sales.totalOrders}',
+                        color: AppColors.primary,
+                      ),
+                    ],
                   ],
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
+                ),
+                const SizedBox(height: AppSpacing.xl),
+              ],
+              if (widget.expand)
+                Expanded(child: chartArea)
+              else
+                SizedBox(height: 200, child: chartArea),
             ],
-            if (widget.expand)
-              Expanded(child: chartArea)
-            else
-              SizedBox(height: 200, child: chartArea),
-          ],
-        );
-      },
+          );
+        },
+      ),
     );
   }
 
@@ -166,15 +154,13 @@ class _DashboardSalesChartState extends ConsumerState<DashboardSalesChart>
                 size: Size(constraints.maxWidth, h),
                 painter: _SalesChartPainter(
                   data: dailySales,
-                  progress:
-                      Curves.easeOutCubic.transform(_controller.value),
+                  progress: Curves.easeOutCubic.transform(_controller.value),
                   hoveredIndex: _hoveredIndex,
                   labelInterval: _labelInterval(dailySales.length),
                 ),
-                child: _hoveredIndex != null &&
-                        _hoveredIndex! < dailySales.length
-                    ? _buildTooltip(
-                        constraints.maxWidth, dailySales)
+                child:
+                    _hoveredIndex != null && _hoveredIndex! < dailySales.length
+                    ? _buildTooltip(constraints.maxWidth, dailySales)
                     : null,
               ),
             );
@@ -244,49 +230,6 @@ class _DashboardSalesChartState extends ConsumerState<DashboardSalesChart>
   }
 }
 
-// ── Period dropdown ──────────────────────────────────────────────────────
-
-class _PeriodDropdown extends StatelessWidget {
-  const _PeriodDropdown({required this.value, required this.onChanged});
-
-  final _SalesPeriod value;
-  final ValueChanged<_SalesPeriod> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<_SalesPeriod>(
-          value: value,
-          isDense: true,
-          dropdownColor: AppColors.surface,
-          style: AppTextStyles.bodyBold,
-          icon: const Icon(Icons.arrow_drop_down,
-              color: AppColors.textMuted, size: 18),
-          items: _SalesPeriod.values
-              .map((p) => DropdownMenuItem(
-                    value: p,
-                    child: Text(p.label, style: AppTextStyles.bodyMedium),
-                  ))
-              .toList(),
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
-      ),
-    );
-  }
-}
-
 // ── Summary chip ────────────────────────────────────────────────────────
 
 class _SummaryChip extends StatelessWidget {
@@ -346,8 +289,7 @@ class _SalesChartPainter extends CustomPainter {
     final chartH = size.height - bottomPad;
     final maxRev = data.map((d) => d.revenue.toDouble()).reduce(math.max);
     final maxVal = maxRev > 0 ? maxRev : 1.0;
-    final step =
-        data.length > 1 ? size.width / (data.length - 1) : size.width;
+    final step = data.length > 1 ? size.width / (data.length - 1) : size.width;
 
     // Build points
     final points = <Offset>[];
@@ -408,30 +350,18 @@ class _SalesChartPainter extends CustomPainter {
     // Hover dot
     if (hoveredIndex != null && hoveredIndex! < points.length) {
       final hp = points[hoveredIndex!];
-      canvas.drawCircle(
-        hp,
-        5,
-        Paint()..color = AppColors.primary,
-      );
-      canvas.drawCircle(
-        hp,
-        3,
-        Paint()..color = AppColors.surfaceSolid,
-      );
+      canvas.drawCircle(hp, 5, Paint()..color = AppColors.primary);
+      canvas.drawCircle(hp, 3, Paint()..color = AppColors.surfaceSolid);
 
       // Vertical guide line
       final guidePaint = Paint()
         ..color = AppColors.primary.withValues(alpha: 0.3)
         ..strokeWidth = 1;
-      canvas.drawLine(
-          Offset(hp.dx, hp.dy), Offset(hp.dx, chartH), guidePaint);
+      canvas.drawLine(Offset(hp.dx, hp.dy), Offset(hp.dx, chartH), guidePaint);
     }
 
     // X-axis labels
-    final labelStyle = TextStyle(
-      color: AppColors.textDark,
-      fontSize: 10,
-    );
+    final labelStyle = TextStyle(color: AppColors.textDark, fontSize: 10);
     for (int i = 0; i < data.length; i += labelInterval) {
       final d = data[i].date;
       final text = labelInterval >= 30

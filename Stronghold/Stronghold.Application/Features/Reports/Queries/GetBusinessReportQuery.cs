@@ -13,10 +13,10 @@ public class GetBusinessReportQuery : IRequest<BusinessReportResponse>, IAuthori
 
 public class GetBusinessReportQueryHandler : IRequestHandler<GetBusinessReportQuery, BusinessReportResponse>
 {
-    private readonly IReportService _reportService;
+    private readonly IReportReadService _reportService;
 
     public GetBusinessReportQueryHandler(
-        IReportService reportService)
+        IReportReadService reportService)
     {
         _reportService = reportService;
     }

@@ -11,7 +11,7 @@ public class ReportServiceTests
     public async Task GetInventorySummaryAsync_ShouldIgnoreSoftDeletedOrdersWhenCalculatingSales()
     {
         await using var context = TestDbContextFactory.Create();
-        var reportService = new ReportService(context);
+        var reportService = new ReportReadService(context);
 
         var category = new SupplementCategory { Name = "Protein" };
         var supplier = new Supplier { Name = "SuppCo" };
@@ -71,7 +71,7 @@ public class ReportServiceTests
     public async Task GetActivityFeedAsync_ShouldExcludeSoftDeletedEntities()
     {
         await using var context = TestDbContextFactory.Create();
-        var reportService = new ReportService(context);
+        var reportService = new ReportReadService(context);
 
         var activeUser = new User
         {

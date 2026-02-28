@@ -175,6 +175,11 @@ public class OrderRepository : IOrderRepository
                 .ThenByDescending(x => x.Id);
         }
 
+        if (filter.UserId.HasValue)
+        {
+            query = query.Where(x => x.UserId == filter.UserId.Value);
+        }
+
         if (!string.IsNullOrWhiteSpace(filter.Search))
         {
             var search = filter.Search.Trim().ToLower();

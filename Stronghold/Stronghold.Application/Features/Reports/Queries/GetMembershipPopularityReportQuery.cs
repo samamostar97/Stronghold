@@ -13,10 +13,10 @@ public class GetMembershipPopularityReportQuery : IRequest<MembershipPopularityR
 
 public class GetMembershipPopularityReportQueryHandler : IRequestHandler<GetMembershipPopularityReportQuery, MembershipPopularityReportResponse>
 {
-    private readonly IReportService _reportService;
+    private readonly IReportReadService _reportService;
 
     public GetMembershipPopularityReportQueryHandler(
-        IReportService reportService)
+        IReportReadService reportService)
     {
         _reportService = reportService;
     }

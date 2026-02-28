@@ -1,64 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../constants/motion.dart';
 
-/// Row of 4 stat cards with rich content.
+/// Row of stat cards with rich content.
 class DashboardStatCards extends StatelessWidget {
   const DashboardStatCards({
     super.key,
-    required this.report,
-    required this.visitorCount,
-    this.heatmap = const [],
+    required this.activeMemberships,
+    required this.expiringThisWeekCount,
+    required this.todayCheckIns,
+    required this.onQuickCheckIn,
   });
 
-  final BusinessReportDTO? report;
-  final int visitorCount;
-  final List<HeatmapCellDTO> heatmap;
+  final int activeMemberships;
+  final int expiringThisWeekCount;
+  final int todayCheckIns;
+  final VoidCallback onQuickCheckIn;
 
   @override
   Widget build(BuildContext context) {
-    final r = report;
-
     final cards = <Widget>[
-      // 1. U TERETANI
-      _StatCardShell(
-        color: AppColors.cyan,
-        icon: LucideIcons.users,
-        child: _CardContent(
-          label: 'U TERETANI',
-          value: '$visitorCount',
-          color: AppColors.cyan,
-          trailing: _MiniSparkline(
-            data: _todayHourlyData(),
-            color: AppColors.cyan,
-          ),
-        ),
-      ),
+      // 1. BRZI CHECK-IN
+      _QuickCheckInCard(onTap: onQuickCheckIn),
 
-      // 2. PRIHOD (cycles: danas → sedmica → mjesec)
-      _RevenueCard(report: r),
-
-      // 3. AKTIVNE CLANARINE
+      // 2. AKTIVNE CLANARINE
       _StatCardShell(
         color: AppColors.purple,
         icon: LucideIcons.award,
         child: _CardContent(
           label: 'AKTIVNE CLANARINE',
-          value: '${r?.activeMemberships ?? 0}',
+          value: '$activeMemberships',
           color: AppColors.purple,
-          warning: (r?.expiringThisWeekCount ?? 0) > 0
-              ? '${r!.expiringThisWeekCount} isticu ove sedmice'
+          warning: expiringThisWeekCount > 0
+              ? '$expiringThisWeekCount isticu ove sedmice'
               : null,
         ),
       ),
 
-      // 4. CHECK-INI (cycles: danas → sedmica → mjesec)
-      _CheckInCard(report: r),
+      // 3. POSJETE DANAS
+      _StatCardShell(
+        color: AppColors.electric,
+        icon: LucideIcons.footprints,
+        child: _CardContent(
+          label: 'POSJETE DANAS',
+          value: '$todayCheckIns',
+          color: AppColors.electric,
+        ),
+      ),
     ];
 
     return LayoutBuilder(
@@ -110,140 +102,39 @@ class DashboardStatCards extends StatelessWidget {
     );
   }
 
-  /// Extract today's hourly visit counts (24 values) from heatmap.
-  List<double> _todayHourlyData() {
-    if (heatmap.isEmpty) return List.filled(24, 0);
-    // .NET DayOfWeek: Sunday=0, Monday=1 ... Saturday=6
-    final now = DateTime.now();
-    final dotnetDay = now.weekday == 7 ? 0 : now.weekday; // Dart: Mon=1..Sun=7
-    final todayCells =
-        heatmap.where((c) => c.day == dotnetDay).toList();
-    final result = List.filled(24, 0.0);
-    for (final c in todayCells) {
-      if (c.hour >= 0 && c.hour < 24) result[c.hour] = c.count.toDouble();
-    }
-    return result;
-  }
-
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// REVENUE CARD (tap to cycle: danas → sedmica → mjesec)
+// QUICK CHECK-IN CARD
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum _RevenuePeriod { danas, sedmica, mjesec }
-
-class _RevenueCard extends StatefulWidget {
-  const _RevenueCard({required this.report});
-  final BusinessReportDTO? report;
-
-  @override
-  State<_RevenueCard> createState() => _RevenueCardState();
-}
-
-class _RevenueCardState extends State<_RevenueCard> {
-  _RevenuePeriod _period = _RevenuePeriod.mjesec;
-
-  void _cycle() {
-    setState(() {
-      _period = switch (_period) {
-        _RevenuePeriod.danas => _RevenuePeriod.sedmica,
-        _RevenuePeriod.sedmica => _RevenuePeriod.mjesec,
-        _RevenuePeriod.mjesec => _RevenuePeriod.danas,
-      };
-    });
-  }
+class _QuickCheckInCard extends StatelessWidget {
+  const _QuickCheckInCard({required this.onTap});
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final r = widget.report;
-    final rb = r?.revenueBreakdown;
-
-    final (label, value) = switch (_period) {
-      _RevenuePeriod.danas => (
-          'PRIHOD (DANAS)',
-          '${(rb?.todayRevenue ?? 0).toStringAsFixed(0)} KM',
-        ),
-      _RevenuePeriod.sedmica => (
-          'PRIHOD (SEDMICA)',
-          '${(rb?.thisWeekRevenue ?? 0).toStringAsFixed(0)} KM',
-        ),
-      _RevenuePeriod.mjesec => (
-          'PRIHOD (MJESEC)',
-          '${(r?.thisMonthRevenue ?? 0).toStringAsFixed(0)} KM',
-        ),
-    };
-
     return GestureDetector(
-      onTap: _cycle,
+      onTap: onTap,
       child: _StatCardShell(
         color: AppColors.success,
-        icon: LucideIcons.creditCard,
-        child: _CardContent(
-          label: label,
-          value: value,
-          color: AppColors.success,
-        ),
-      ),
-    );
-  }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CHECK-IN CARD (tap to cycle: danas → sedmica → mjesec)
-// ─────────────────────────────────────────────────────────────────────────────
-
-enum _CheckInPeriod { danas, sedmica, mjesec }
-
-class _CheckInCard extends StatefulWidget {
-  const _CheckInCard({required this.report});
-  final BusinessReportDTO? report;
-
-  @override
-  State<_CheckInCard> createState() => _CheckInCardState();
-}
-
-class _CheckInCardState extends State<_CheckInCard> {
-  _CheckInPeriod _period = _CheckInPeriod.danas;
-
-  void _cycle() {
-    setState(() {
-      _period = switch (_period) {
-        _CheckInPeriod.danas => _CheckInPeriod.sedmica,
-        _CheckInPeriod.sedmica => _CheckInPeriod.mjesec,
-        _CheckInPeriod.mjesec => _CheckInPeriod.danas,
-      };
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final r = widget.report;
-
-    final (label, value) = switch (_period) {
-      _CheckInPeriod.danas => (
-          'CHECK-INI (DANAS)',
-          '${r?.todayCheckIns ?? 0}',
-        ),
-      _CheckInPeriod.sedmica => (
-          'CHECK-INI (SEDMICA)',
-          '${r?.thisWeekVisits ?? 0}',
-        ),
-      _CheckInPeriod.mjesec => (
-          'CHECK-INI (MJESEC)',
-          '${r?.last30DaysCheckIns ?? 0}',
-        ),
-    };
-
-    return GestureDetector(
-      onTap: _cycle,
-      child: _StatCardShell(
-        color: AppColors.electric,
         icon: LucideIcons.logIn,
         child: _CardContent(
-          label: label,
-          value: value,
-          color: AppColors.electric,
+          label: 'BRZI CHECK-IN',
+          value: 'Check-in',
+          color: AppColors.success,
+          trailing: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: AppSpacing.badgeRadius,
+            ),
+            child: Icon(
+              LucideIcons.arrowRight,
+              size: 14,
+              color: AppColors.success,
+            ),
+          ),
         ),
       ),
     );
@@ -376,82 +267,4 @@ class _CardContent extends StatelessWidget {
       ],
     );
   }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// MINI SPARKLINE (CustomPainter)
-// ─────────────────────────────────────────────────────────────────────────────
-
-class _MiniSparkline extends StatelessWidget {
-  const _MiniSparkline({required this.data, required this.color});
-  final List<double> data;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 60,
-      height: 28,
-      child: CustomPaint(
-        painter: _SparklinePainter(data: data, color: color),
-      ),
-    );
-  }
-}
-
-class _SparklinePainter extends CustomPainter {
-  final List<double> data;
-  final Color color;
-
-  _SparklinePainter({required this.data, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (data.isEmpty) return;
-    final maxVal = data.reduce((a, b) => a > b ? a : b);
-    if (maxVal == 0) return;
-
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final fillPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [color.withValues(alpha: 0.3), color.withValues(alpha: 0.0)],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..style = PaintingStyle.fill;
-
-    final path = Path();
-    final fillPath = Path();
-    final step = size.width / (data.length - 1);
-
-    for (int i = 0; i < data.length; i++) {
-      final x = i * step;
-      final y = size.height - (data[i] / maxVal) * size.height;
-      if (i == 0) {
-        path.moveTo(x, y);
-        fillPath.moveTo(x, size.height);
-        fillPath.lineTo(x, y);
-      } else {
-        path.lineTo(x, y);
-        fillPath.lineTo(x, y);
-      }
-    }
-
-    // Close fill path
-    fillPath.lineTo(size.width, size.height);
-    fillPath.close();
-
-    canvas.drawPath(fillPath, fillPaint);
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(_SparklinePainter oldDelegate) =>
-      oldDelegate.data != data || oldDelegate.color != color;
 }

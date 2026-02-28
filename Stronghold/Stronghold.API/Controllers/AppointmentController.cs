@@ -2,10 +2,10 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.Appointments.Commands;
 using Stronghold.Application.Features.Appointments.DTOs;
 using Stronghold.Application.Features.Appointments.Queries;
-using Stronghold.Application.IServices;
 
 namespace Stronghold.API.Controllers
 {
@@ -15,17 +15,10 @@ namespace Stronghold.API.Controllers
     public class AppointmentController : ControllerBase
     {
         private readonly IMediator _mediator;
-        private readonly IAdminActivityService _activityService;
-        private readonly ICurrentUserService _currentUserService;
 
-        public AppointmentController(
-            IMediator mediator,
-            IAdminActivityService activityService,
-            ICurrentUserService currentUserService)
+        public AppointmentController(IMediator mediator)
         {
             _mediator = mediator;
-            _activityService = activityService;
-            _currentUserService = currentUserService;
         }
 
         [HttpGet("my")]
@@ -53,16 +46,12 @@ namespace Stronghold.API.Controllers
         public async Task<ActionResult> AdminCreate([FromBody] AdminCreateAppointmentCommand command)
         {
             var id = await _mediator.Send(command);
-
-            if (_currentUserService.UserId.HasValue)
+            await _mediator.Send(new LogAdminActivityCommand
             {
-                var adminUsername = _currentUserService.Username ?? "admin";
-                await _activityService.LogAddAsync(
-                    _currentUserService.UserId.Value,
-                    adminUsername,
-                    "Appointment",
-                    id);
-            }
+                Action = AdminActivityLogAction.Add,
+                EntityType = "Appointment",
+                EntityId = id
+            });
 
             return CreatedAtAction(nameof(GetAllAppointments), new { id }, new { id });
         }
@@ -79,16 +68,12 @@ namespace Stronghold.API.Controllers
         public async Task<ActionResult> AdminDelete(int id)
         {
             await _mediator.Send(new AdminDeleteAppointmentCommand { Id = id });
-
-            if (_currentUserService.UserId.HasValue)
+            await _mediator.Send(new LogAdminActivityCommand
             {
-                var adminUsername = _currentUserService.Username ?? "admin";
-                await _activityService.LogDeleteAsync(
-                    _currentUserService.UserId.Value,
-                    adminUsername,
-                    "Appointment",
-                    id);
-            }
+                Action = AdminActivityLogAction.Delete,
+                EntityType = "Appointment",
+                EntityId = id
+            });
 
             return NoContent();
         }

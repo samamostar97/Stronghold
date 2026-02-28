@@ -14,19 +14,18 @@ public class GetSlowMovingProductsQuery : IRequest<PagedResult<SlowMovingProduct
 
 public class GetSlowMovingProductsQueryHandler : IRequestHandler<GetSlowMovingProductsQuery, PagedResult<SlowMovingProductResponse>>
 {
-    private readonly IReportService _reportService;
+    private readonly IReportReadService _reportService;
 
-    public GetSlowMovingProductsQueryHandler(
-        IReportService reportService)
+    public GetSlowMovingProductsQueryHandler(IReportReadService reportService)
     {
         _reportService = reportService;
     }
 
-public async Task<PagedResult<SlowMovingProductResponse>> Handle(GetSlowMovingProductsQuery request, CancellationToken cancellationToken)
+    public async Task<PagedResult<SlowMovingProductResponse>> Handle(GetSlowMovingProductsQuery request, CancellationToken cancellationToken)
     {
         return await _reportService.GetSlowMovingProductsPagedAsync(request.Filter);
     }
-    }
+}
 
 public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovingProductsQuery>
 {
@@ -57,7 +56,7 @@ public class GetSlowMovingProductsQueryValidator : AbstractValidator<GetSlowMovi
             .WithMessage("Neispravna vrijednost za sortiranje.");
     }
 
-private static bool BeValidOrderBy(string? orderBy)
+    private static bool BeValidOrderBy(string? orderBy)
     {
         var normalized = orderBy?.Trim().ToLower();
         return normalized is
@@ -72,4 +71,4 @@ private static bool BeValidOrderBy(string? orderBy)
             "dayssincelastsale" or
             "dayssincelastsaledesc";
     }
-    }
+}
