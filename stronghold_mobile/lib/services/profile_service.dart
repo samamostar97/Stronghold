@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/responses/user_progress_response.dart';
-import '../models/responses/leaderboard_entry_response.dart';
-import '../models/responses/membership_payment_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// User profile service (progress, leaderboard, membership history, picture)
 class ProfileService {

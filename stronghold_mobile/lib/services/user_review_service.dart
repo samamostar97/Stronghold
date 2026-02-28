@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/responses/user_review_response.dart';
-import '../models/responses/purchased_supplement_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// User-facing review service (member's own reviews)
 class UserReviewService {

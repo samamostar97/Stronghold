@@ -1,5 +1,4 @@
-import '../api/api_client.dart';
-import '../models/responses/user_seminar_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// User-facing seminar service (upcoming seminars for members)
 class UserSeminarService {

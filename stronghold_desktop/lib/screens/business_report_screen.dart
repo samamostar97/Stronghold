@@ -10,8 +10,8 @@ import '../constants/motion.dart';
 import '../providers/reports_provider.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/reports/report_business_tab.dart';
-import '../widgets/reports/report_inventory_tab.dart';
-import '../widgets/reports/report_membership_tab.dart';
+import '../widgets/reports/report_staff_tab.dart';
+import '../widgets/reports/report_visits_tab.dart';
 import '../widgets/shared/success_animation.dart';
 
 class BusinessReportScreen extends ConsumerStatefulWidget {

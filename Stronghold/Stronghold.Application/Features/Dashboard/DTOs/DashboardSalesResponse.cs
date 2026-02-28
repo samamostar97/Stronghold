@@ -1,4 +1,6 @@
-namespace Stronghold.Application.Features.Reports.DTOs;
+using Stronghold.Application.Features.Reports.DTOs;
+
+namespace Stronghold.Application.Features.Dashboard.DTOs;
 
 public class DashboardSalesResponse
 {

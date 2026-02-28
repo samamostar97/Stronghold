@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 import 'list_state.dart';
 
@@ -42,7 +43,7 @@ final appointmentThisWeekCountProvider = FutureProvider<int>((ref) async {
       .length;
 });
 
-/// Custom list notifier for appointments (read-only, no CrudService)
+/// Custom list notifier for appointments (read-only)
 class AppointmentListNotifier
     extends
         StateNotifier<

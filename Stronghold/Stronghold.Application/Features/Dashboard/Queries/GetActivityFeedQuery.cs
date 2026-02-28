@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
-using Stronghold.Application.Features.Reports.DTOs;
+using Stronghold.Application.Features.Dashboard.DTOs;
 using Stronghold.Application.IServices;
 using Stronghold.Application.Common.Authorization;
 
-namespace Stronghold.Application.Features.Reports.Queries;
+namespace Stronghold.Application.Features.Dashboard.Queries;
 
 public class GetActivityFeedQuery : IRequest<IReadOnlyList<ActivityFeedItemResponse>>, IAuthorizeAdminRequest
 {
@@ -13,16 +13,16 @@ public class GetActivityFeedQuery : IRequest<IReadOnlyList<ActivityFeedItemRespo
 
 public class GetActivityFeedQueryHandler : IRequestHandler<GetActivityFeedQuery, IReadOnlyList<ActivityFeedItemResponse>>
 {
-    private readonly IReportReadService _reportService;
+    private readonly IDashboardReadService _dashboardService;
 
-    public GetActivityFeedQueryHandler(IReportReadService reportService)
+    public GetActivityFeedQueryHandler(IDashboardReadService dashboardService)
     {
-        _reportService = reportService;
+        _dashboardService = dashboardService;
     }
 
     public async Task<IReadOnlyList<ActivityFeedItemResponse>> Handle(GetActivityFeedQuery request, CancellationToken cancellationToken)
     {
-        var feed = await _reportService.GetActivityFeedAsync(request.Count);
+        var feed = await _dashboardService.GetActivityFeedAsync(request.Count);
         return feed;
     }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 
 /// My appointments state

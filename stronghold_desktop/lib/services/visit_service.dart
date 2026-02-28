@@ -1,8 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/filters/visit_query_filter.dart';
-import '../models/responses/current_visitor_response.dart';
-import '../models/requests/check_in_request.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Visit service for gym check-in/check-out operations
 class VisitService {

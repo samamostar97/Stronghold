@@ -1,5 +1,4 @@
-import '../api/api_client.dart';
-import '../models/responses/leaderboard_entry_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Leaderboard service for fetching leaderboard data
 class LeaderboardService {

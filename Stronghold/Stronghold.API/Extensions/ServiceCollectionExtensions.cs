@@ -61,6 +61,7 @@ public static class ServiceCollectionExtensions
 
         // Services
         services.AddScoped<IJwtService, JwtService>();
+        services.AddScoped<IDashboardReadService, DashboardReadService>();
         services.AddScoped<IReportReadService, ReportReadService>();
         services.AddScoped<IReportExportService, ReportExportService>();
         services.AddScoped<IUserProfileService, UserProfileService>();

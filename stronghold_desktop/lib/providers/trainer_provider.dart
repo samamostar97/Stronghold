@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 import 'list_notifier.dart';
 import 'list_state.dart';
@@ -36,7 +37,13 @@ class TrainerListNotifier
           TrainerQueryFilter
         > {
   TrainerListNotifier(TrainerService service)
-    : super(service: service, initialFilter: TrainerQueryFilter());
+    : super(
+        getAll: service.getAll,
+        create: service.create,
+        update: service.update,
+        delete: service.delete,
+        initialFilter: TrainerQueryFilter(),
+      );
   @override
   TrainerQueryFilter createFilterCopy({
     int? pageNumber,

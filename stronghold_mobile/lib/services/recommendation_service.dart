@@ -1,5 +1,4 @@
-import '../api/api_client.dart';
-import '../models/responses/recommendation_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Recommendation service for personalized supplement suggestions
 class RecommendationService {

@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/date_time_utils.dart';
-import '../models/common/paged_result.dart';
-import '../models/responses/user_appointment_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// User-facing appointment service (member's own appointments)
 class UserAppointmentService {

@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/responses/user_order_response.dart';
-import '../models/responses/checkout_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// User-facing order service (member's own orders + checkout)
 class UserOrderService {

@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Common;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.IServices;
-using Stronghold.Core.Enums;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services
@@ -128,32 +127,24 @@ namespace Stronghold.Infrastructure.Services
                 });
             }
 
-            // ── SQL-side visits by weekday (current week) ──
-            var rawByDay = await _context.GymVisits
+            // ── Visits by weekday + heatmap (client-side GroupBy — DayOfWeek can't translate to SQL) ──
+            var weekVisitTimes = await _context.GymVisits
                 .AsNoTracking()
                 .Where(v => !v.IsDeleted && v.CheckInTime >= startOfWeek && v.CheckInTime < startOfNextWeek)
-                .GroupBy(v => v.CheckInTime.DayOfWeek)
-                .Select(g => new WeekdayVisitsResponse
-                {
-                    Day = g.Key,
-                    Count = g.Count()
-                })
+                .Select(v => v.CheckInTime)
                 .ToListAsync();
+
+            var rawByDay = weekVisitTimes
+                .GroupBy(t => t.DayOfWeek)
+                .Select(g => new WeekdayVisitsResponse { Day = g.Key, Count = g.Count() })
+                .ToList();
 
             var visitsByWeekday = BuildWeekdayVisits(rawByDay);
 
-            // ── SQL-side heatmap (day × hour, current week) ──
-            var heatmapRows = await _context.GymVisits
-                .AsNoTracking()
-                .Where(v => !v.IsDeleted && v.CheckInTime >= startOfWeek && v.CheckInTime < startOfNextWeek)
-                .GroupBy(v => new { v.CheckInTime.DayOfWeek, v.CheckInTime.Hour })
-                .Select(g => new HeatmapCellResponse
-                {
-                    Day = g.Key.DayOfWeek,
-                    Hour = g.Key.Hour,
-                    Count = g.Count()
-                })
-                .ToListAsync();
+            var heatmapRows = weekVisitTimes
+                .GroupBy(t => new { t.DayOfWeek, t.Hour })
+                .Select(g => new HeatmapCellResponse { Day = g.Key.DayOfWeek, Hour = g.Key.Hour, Count = g.Count() })
+                .ToList();
 
             var heatmapDict = heatmapRows.ToDictionary(c => (c.Day, c.Hour), c => c.Count);
 
@@ -613,68 +604,6 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
-        public async Task<List<ActivityFeedItemResponse>> GetActivityFeedAsync(int count = 20)
-        {
-            var feed = new List<ActivityFeedItemResponse>();
-
-            // Recent orders
-            var recentOrders = await _context.Orders
-                .AsNoTracking()
-                .Where(o => !o.IsDeleted && !o.User.IsDeleted)
-                .OrderByDescending(o => o.PurchaseDate)
-                .Take(count)
-                .Select(o => new ActivityFeedItemResponse
-                {
-                    Type = "order",
-                    Description = $"Nova narudzba - {o.TotalAmount:F2} KM",
-                    Timestamp = o.PurchaseDate,
-                    UserName = o.User.FirstName + " " + o.User.LastName
-                })
-                .ToListAsync();
-
-            feed.AddRange(recentOrders);
-
-            // Recent user registrations
-            var recentRegistrations = await _context.Users
-                .AsNoTracking()
-                .Where(u => !u.IsDeleted)
-                .OrderByDescending(u => u.CreatedAt)
-                .Take(count)
-                .Select(u => new ActivityFeedItemResponse
-                {
-                    Type = "registration",
-                    Description = "Novi korisnik registrovan",
-                    Timestamp = u.CreatedAt,
-                    UserName = u.FirstName + " " + u.LastName
-                })
-                .ToListAsync();
-
-            feed.AddRange(recentRegistrations);
-
-            // Recent memberships
-            var recentMemberships = await _context.Memberships
-                .AsNoTracking()
-                .Where(m => !m.IsDeleted && !m.User.IsDeleted && !m.MembershipPackage.IsDeleted)
-                .OrderByDescending(m => m.CreatedAt)
-                .Take(count)
-                .Select(m => new ActivityFeedItemResponse
-                {
-                    Type = "membership",
-                    Description = $"Nova clanarina - {m.MembershipPackage.PackageName}",
-                    Timestamp = m.CreatedAt,
-                    UserName = m.User.FirstName + " " + m.User.LastName
-                })
-                .ToListAsync();
-
-            feed.AddRange(recentMemberships);
-
-            // Sort all combined and take the requested count
-            return feed
-                .OrderByDescending(f => f.Timestamp)
-                .Take(count)
-                .ToList();
-        }
-
         private static DateTime GetStartOfWeekUtc(DateTime utcNow)
         {
             // Monday-based week
@@ -796,68 +725,5 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
-        // ── Dashboard sales (lightweight — single SQL query) ──
-
-        public async Task<DashboardSalesResponse> GetDashboardSalesAsync()
-        {
-            var now = DateTime.UtcNow;
-            var since = now.AddDays(-30);
-
-            var dailyOrderData = await _context.Orders
-                .AsNoTracking()
-                .Where(o => !o.IsDeleted && o.PurchaseDate >= since && o.PurchaseDate <= now)
-                .GroupBy(o => o.PurchaseDate.Date)
-                .Select(g => new
-                {
-                    Date = g.Key,
-                    Revenue = g.Sum(x => x.TotalAmount),
-                    OrderCount = g.Count()
-                })
-                .ToListAsync();
-
-            var dailySales = new List<DailySalesResponse>();
-            for (var d = since.Date; d <= now.Date; d = d.AddDays(1))
-            {
-                var entry = dailyOrderData.FirstOrDefault(x => x.Date == d);
-                dailySales.Add(new DailySalesResponse
-                {
-                    Date = d,
-                    Revenue = entry?.Revenue ?? 0m,
-                    OrderCount = entry?.OrderCount ?? 0
-                });
-            }
-
-            return new DashboardSalesResponse
-            {
-                DailySales = dailySales,
-                TotalRevenue = dailyOrderData.Sum(d => d.Revenue),
-                TotalOrders = dailyOrderData.Sum(d => d.OrderCount),
-            };
-        }
-
-        public async Task<DashboardAttentionResponse> GetDashboardAttentionAsync(int days = 7)
-        {
-            var now = DateTime.UtcNow;
-            var cutoff = now.AddDays(days);
-
-            var pendingOrdersTask = _context.Orders
-                .AsNoTracking()
-                .Where(o => !o.IsDeleted && o.Status == OrderStatus.Processing)
-                .CountAsync();
-
-            var expiringMembershipsTask = _context.Memberships
-                .AsNoTracking()
-                .Where(m => !m.IsDeleted && m.StartDate <= now && m.EndDate > now && m.EndDate <= cutoff)
-                .CountAsync();
-
-            await Task.WhenAll(pendingOrdersTask, expiringMembershipsTask);
-
-            return new DashboardAttentionResponse
-            {
-                PendingOrdersCount = pendingOrdersTask.Result,
-                ExpiringMembershipsCount = expiringMembershipsTask.Result,
-                WindowDays = days,
-            };
-        }
     }
 }

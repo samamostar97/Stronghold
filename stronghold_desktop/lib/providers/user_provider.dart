@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 import 'list_notifier.dart';
 import 'list_state.dart';
@@ -28,7 +29,10 @@ class UserListNotifier extends ListNotifier<
   UserListNotifier(UserService service)
       : _userService = service,
         super(
-          service: service,
+          getAll: service.getAll,
+          create: service.create,
+          update: service.update,
+          delete: service.delete,
           initialFilter: UserQueryFilter(),
         );
 

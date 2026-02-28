@@ -1,10 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/filters/active_member_query_filter.dart';
-import '../models/responses/active_member_response.dart';
-import '../models/responses/membership_payment_response.dart';
-import '../models/requests/assign_membership_request.dart';
-import '../models/filters/membership_query_filter.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Membership service for managing user memberships
 class MembershipService {

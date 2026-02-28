@@ -1,3 +1,4 @@
+using Stronghold.Application.Features.Dashboard.Queries;
 using Stronghold.Application.Features.Reports.Queries;
 using Stronghold.Application.Features.Reports.DTOs;
 

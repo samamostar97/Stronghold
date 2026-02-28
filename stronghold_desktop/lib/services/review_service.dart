@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/filters/review_query_filter.dart';
-import '../models/responses/review_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Review service - read-only with delete support (no create/update)
 /// Matches backend AdminReviewController pattern

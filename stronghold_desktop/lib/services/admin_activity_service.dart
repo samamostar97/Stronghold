@@ -1,5 +1,4 @@
-import '../api/api_client.dart';
-import '../models/responses/admin_activity_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 class AdminActivityService {
   final ApiClient _client;

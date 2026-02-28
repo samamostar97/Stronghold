@@ -24,7 +24,10 @@ class FaqListNotifier extends ListNotifier<
     FaqQueryFilter> {
   FaqListNotifier(FaqService service)
       : super(
-          service: service,
+          getAll: service.getAll,
+          create: service.create,
+          update: service.update,
+          delete: service.delete,
           initialFilter: FaqQueryFilter(),
         );
   @override

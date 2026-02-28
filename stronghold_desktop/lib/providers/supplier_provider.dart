@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 import 'list_notifier.dart';
 import 'list_state.dart';
@@ -29,7 +30,13 @@ class SupplierListNotifier
           SupplierQueryFilter
         > {
   SupplierListNotifier(SupplierService service)
-    : super(service: service, initialFilter: SupplierQueryFilter());
+    : super(
+        getAll: service.getAll,
+        create: service.create,
+        update: service.update,
+        delete: service.delete,
+        initialFilter: SupplierQueryFilter(),
+      );
   @override
   SupplierQueryFilter createFilterCopy({
     int? pageNumber,

@@ -10,19 +10,28 @@ abstract class ListNotifier<
   TFilter extends BaseQueryFilter
 >
     extends StateNotifier<ListState<T, TFilter>> {
-  final CrudService<T, TCreate, TUpdate, TFilter> _service;
+  final Future<PagedResult<T>> Function(TFilter filter) _getAll;
+  final Future<int> Function(TCreate request) _create;
+  final Future<void> Function(int id, TUpdate request) _update;
+  final Future<void> Function(int id) _delete;
 
   ListNotifier({
-    required CrudService<T, TCreate, TUpdate, TFilter> service,
+    required Future<PagedResult<T>> Function(TFilter filter) getAll,
+    required Future<int> Function(TCreate request) create,
+    required Future<void> Function(int id, TUpdate request) update,
+    required Future<void> Function(int id) delete,
     required TFilter initialFilter,
-  }) : _service = service,
+  }) : _getAll = getAll,
+       _create = create,
+       _update = update,
+       _delete = delete,
        super(ListState(filter: initialFilter));
 
   /// Load data from server with current filter
   Future<void> load() async {
     state = state.copyWithLoading();
     try {
-      final result = await _service.getAll(state.filter);
+      final result = await _getAll(state.filter);
       state = state.copyWithData(result);
     } on ApiException catch (e) {
       state = state.copyWithError(e.message);
@@ -84,20 +93,20 @@ abstract class ListNotifier<
 
   /// Create entity and refresh list
   Future<int> create(TCreate request) async {
-    final id = await _service.create(request);
+    final id = await _create(request);
     await refresh();
     return id;
   }
 
   /// Update entity and refresh list
   Future<void> update(int id, TUpdate request) async {
-    await _service.update(id, request);
+    await _update(id, request);
     await refresh();
   }
 
   /// Delete entity and refresh list
   Future<void> delete(int id) async {
-    await _service.delete(id);
+    await _delete(id);
     // If we deleted the last item on this page, go back one page
     if (state.items.length == 1 && state.currentPage > 1) {
       await goToPage(state.currentPage - 1);

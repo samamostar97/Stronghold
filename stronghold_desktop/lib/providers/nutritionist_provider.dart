@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 import 'list_notifier.dart';
 import 'list_state.dart';
@@ -36,7 +37,13 @@ class NutritionistListNotifier
           NutritionistQueryFilter
         > {
   NutritionistListNotifier(NutritionistService service)
-    : super(service: service, initialFilter: NutritionistQueryFilter());
+    : super(
+        getAll: service.getAll,
+        create: service.create,
+        update: service.update,
+        delete: service.delete,
+        initialFilter: NutritionistQueryFilter(),
+      );
   @override
   NutritionistQueryFilter createFilterCopy({
     int? pageNumber,

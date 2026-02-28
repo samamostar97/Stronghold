@@ -1,4 +1,4 @@
-namespace Stronghold.Application.Features.Reports.DTOs;
+namespace Stronghold.Application.Features.Dashboard.DTOs;
 
 public class DashboardAttentionResponse
 {

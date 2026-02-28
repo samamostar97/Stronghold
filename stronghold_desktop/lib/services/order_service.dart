@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/responses/order_response.dart';
-import '../models/filters/order_query_filter.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Order service for admin order management.
 /// Orders are read-only from admin (no create/update) but can be marked as delivered.

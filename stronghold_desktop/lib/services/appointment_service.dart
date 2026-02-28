@@ -1,9 +1,4 @@
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/filters/appointment_query_filter.dart';
-import '../models/requests/admin_create_appointment_request.dart';
-import '../models/requests/admin_update_appointment_request.dart';
-import '../models/responses/admin_appointment_response.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Appointment service for admin appointment management.
 class AppointmentService {

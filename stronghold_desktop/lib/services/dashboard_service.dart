@@ -1,7 +1,4 @@
-import '../api/api_client.dart';
-import '../models/responses/dashboard_attention_dto.dart';
-import '../models/responses/dashboard_sales_dto.dart';
-import '../models/responses/dashboard_overview_dto.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Dashboard-focused read service for admin home screen widgets.
 class DashboardService {

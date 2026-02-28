@@ -1,9 +1,5 @@
 import 'dart:io';
-import '../api/api_client.dart';
-import '../models/common/paged_result.dart';
-import '../models/filters/slow_moving_product_query_filter.dart';
-import '../models/responses/business_report_dto.dart';
-import '../models/responses/staff_report_dto.dart';
+import 'package:stronghold_core/stronghold_core.dart';
 
 /// Reports service using the generic ApiClient
 class ReportsService {

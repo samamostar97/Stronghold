@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import '../services/services.dart';
 import 'api_providers.dart';
 import 'list_notifier.dart';
 import 'list_state.dart';
@@ -61,7 +62,13 @@ class SupplementListNotifier
 
   SupplementListNotifier(SupplementService service)
     : _supplementService = service,
-      super(service: service, initialFilter: SupplementQueryFilter());
+      super(
+        getAll: service.getAll,
+        create: service.create,
+        update: service.update,
+        delete: service.delete,
+        initialFilter: SupplementQueryFilter(),
+      );
 
   @override
   SupplementQueryFilter createFilterCopy({

@@ -2,6 +2,8 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Common;
+using Stronghold.Application.Features.Dashboard.DTOs;
+using Stronghold.Application.Features.Dashboard.Queries;
 using Stronghold.Application.Features.Reports.DTOs;
 using Stronghold.Application.Features.Reports.Queries;
 

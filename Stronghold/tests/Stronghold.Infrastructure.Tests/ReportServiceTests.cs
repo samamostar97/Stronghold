@@ -71,7 +71,7 @@ public class ReportServiceTests
     public async Task GetActivityFeedAsync_ShouldExcludeSoftDeletedEntities()
     {
         await using var context = TestDbContextFactory.Create();
-        var reportService = new ReportReadService(context);
+        var dashboardService = new DashboardReadService(context);
 
         var activeUser = new User
         {
@@ -143,7 +143,7 @@ public class ReportServiceTests
 
         await context.SaveChangesAsync();
 
-        var feed = await reportService.GetActivityFeedAsync(20);
+        var feed = await dashboardService.GetActivityFeedAsync(20);
 
         Assert.Contains(feed, x => x.UserName == "John Doe");
         Assert.DoesNotContain(feed, x => x.UserName == "Zara Deleted");

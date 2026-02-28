@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common.Authorization;
-using Stronghold.Application.Features.Reports.DTOs;
+using Stronghold.Application.Features.Dashboard.DTOs;
 using Stronghold.Application.IServices;
 
-namespace Stronghold.Application.Features.Reports.Queries;
+namespace Stronghold.Application.Features.Dashboard.Queries;
 
 public class GetDashboardOverviewQuery : IRequest<DashboardOverviewResponse>, IAuthorizeAdminRequest
 {
@@ -13,24 +13,16 @@ public class GetDashboardOverviewQuery : IRequest<DashboardOverviewResponse>, IA
 
 public class GetDashboardOverviewQueryHandler : IRequestHandler<GetDashboardOverviewQuery, DashboardOverviewResponse>
 {
-    private readonly IReportReadService _reportReadService;
+    private readonly IDashboardReadService _dashboardService;
 
-    public GetDashboardOverviewQueryHandler(IReportReadService reportReadService)
+    public GetDashboardOverviewQueryHandler(IDashboardReadService dashboardService)
     {
-        _reportReadService = reportReadService;
+        _dashboardService = dashboardService;
     }
 
     public async Task<DashboardOverviewResponse> Handle(GetDashboardOverviewQuery request, CancellationToken cancellationToken)
     {
-        var report = await _reportReadService.GetBusinessReportAsync(request.Days);
-
-        return new DashboardOverviewResponse
-        {
-            ActiveMemberships = report.ActiveMemberships,
-            ExpiringThisWeekCount = report.ExpiringThisWeekCount,
-            TodayCheckIns = report.TodayCheckIns,
-            DailyVisits = report.DailyVisits,
-        };
+        return await _dashboardService.GetOverviewAsync(request.Days);
     }
 }
 

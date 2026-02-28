@@ -32,7 +32,13 @@ class SeminarListNotifier
 
   SeminarListNotifier(SeminarService service)
     : _seminarService = service,
-      super(service: service, initialFilter: SeminarQueryFilter());
+      super(
+        getAll: service.getAll,
+        create: service.create,
+        update: service.update,
+        delete: service.delete,
+        initialFilter: SeminarQueryFilter(),
+      );
   @override
   SeminarQueryFilter createFilterCopy({
     int? pageNumber,

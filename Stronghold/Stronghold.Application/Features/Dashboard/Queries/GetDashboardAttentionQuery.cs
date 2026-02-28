@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
 using Stronghold.Application.Common.Authorization;
-using Stronghold.Application.Features.Reports.DTOs;
+using Stronghold.Application.Features.Dashboard.DTOs;
 using Stronghold.Application.IServices;
 
-namespace Stronghold.Application.Features.Reports.Queries;
+namespace Stronghold.Application.Features.Dashboard.Queries;
 
 public class GetDashboardAttentionQuery : IRequest<DashboardAttentionResponse>, IAuthorizeAdminRequest
 {
@@ -13,16 +13,16 @@ public class GetDashboardAttentionQuery : IRequest<DashboardAttentionResponse>, 
 
 public class GetDashboardAttentionQueryHandler : IRequestHandler<GetDashboardAttentionQuery, DashboardAttentionResponse>
 {
-    private readonly IReportReadService _reportReadService;
+    private readonly IDashboardReadService _dashboardService;
 
-    public GetDashboardAttentionQueryHandler(IReportReadService reportReadService)
+    public GetDashboardAttentionQueryHandler(IDashboardReadService dashboardService)
     {
-        _reportReadService = reportReadService;
+        _dashboardService = dashboardService;
     }
 
     public async Task<DashboardAttentionResponse> Handle(GetDashboardAttentionQuery request, CancellationToken cancellationToken)
     {
-        return await _reportReadService.GetDashboardAttentionAsync(request.Days);
+        return await _dashboardService.GetAttentionAsync(request.Days);
     }
 }
 
