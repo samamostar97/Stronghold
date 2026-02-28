@@ -13,17 +13,14 @@ import '../widgets/shared/success_animation.dart';
 
 const _idToPath = <String, String>{
   'dashboardHome': '/dashboard',
-  'membershipPackages': '/membership-packages',
   'users': '/users',
   'staff': '/staff',
   'supplements': '/supplements',
-  'categories': '/categories',
-  'suppliers': '/suppliers',
   'orders': '/orders',
-  'faq': '/faq',
   'reviews': '/reviews',
   'seminars': '/seminars',
   'businessReport': '/reports',
+  'settings': '/settings',
 };
 
 final _pathToId = {
@@ -42,10 +39,6 @@ const _navGroups = [
         icon: LucideIcons.layoutDashboard),
   ]),
   NavGroup(items: [
-    NavItem(
-        id: 'membershipPackages',
-        label: 'Paketi clanarina',
-        icon: LucideIcons.package2),
     NavItem(id: 'users', label: 'Korisnici', icon: LucideIcons.users),
   ]),
   NavGroup(items: [
@@ -53,13 +46,10 @@ const _navGroups = [
   ]),
   NavGroup(items: [
     NavItem(id: 'supplements', label: 'Suplementi', icon: LucideIcons.pill),
-    NavItem(id: 'categories', label: 'Kategorije', icon: LucideIcons.tag),
-    NavItem(id: 'suppliers', label: 'Dobavljaci', icon: LucideIcons.truck),
     NavItem(
         id: 'orders', label: 'Kupovine', icon: LucideIcons.shoppingBag),
   ]),
   NavGroup(items: [
-    NavItem(id: 'faq', label: 'FAQ', icon: LucideIcons.helpCircle),
     NavItem(id: 'reviews', label: 'Recenzije', icon: LucideIcons.star),
     NavItem(
         id: 'seminars',
@@ -71,6 +61,12 @@ const _navGroups = [
         id: 'businessReport',
         label: 'Biznis izvjestaji',
         icon: LucideIcons.trendingUp),
+  ]),
+  NavGroup(items: [
+    NavItem(
+        id: 'settings',
+        label: 'Postavke',
+        icon: LucideIcons.settings),
   ]),
 ];
 

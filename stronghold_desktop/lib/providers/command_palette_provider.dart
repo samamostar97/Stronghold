@@ -31,13 +31,6 @@ const List<CommandEntry> _allCommands = [
     keywords: ['dashboard', 'pocetna', 'home'],
   ),
   CommandEntry(
-    label: 'Paketi clanarina',
-    sublabel: 'Upravljanje',
-    icon: LucideIcons.package2,
-    path: '/membership-packages',
-    keywords: ['package', 'paket', 'plan'],
-  ),
-  CommandEntry(
     label: 'Korisnici',
     sublabel: 'Upravljanje',
     icon: LucideIcons.users,
@@ -59,32 +52,11 @@ const List<CommandEntry> _allCommands = [
     keywords: ['supplement', 'proizvod', 'product'],
   ),
   CommandEntry(
-    label: 'Kategorije',
-    sublabel: 'Prodavnica',
-    icon: LucideIcons.tag,
-    path: '/categories',
-    keywords: ['category', 'kategorija'],
-  ),
-  CommandEntry(
-    label: 'Dobavljaci',
-    sublabel: 'Prodavnica',
-    icon: LucideIcons.truck,
-    path: '/suppliers',
-    keywords: ['supplier', 'dobavljac'],
-  ),
-  CommandEntry(
     label: 'Kupovine',
     sublabel: 'Prodavnica',
     icon: LucideIcons.shoppingBag,
     path: '/orders',
     keywords: ['order', 'kupovina', 'narudzba'],
-  ),
-  CommandEntry(
-    label: 'FAQ',
-    sublabel: 'Sadrzaj',
-    icon: LucideIcons.helpCircle,
-    path: '/faq',
-    keywords: ['faq', 'pitanja', 'pomoc'],
   ),
   CommandEntry(
     label: 'Recenzije',
@@ -113,6 +85,13 @@ const List<CommandEntry> _allCommands = [
     icon: LucideIcons.trophy,
     path: '/users',
     keywords: ['leaderboard', 'rang', 'top'],
+  ),
+  CommandEntry(
+    label: 'Postavke',
+    sublabel: 'Konfiguracija',
+    icon: LucideIcons.settings,
+    path: '/settings',
+    keywords: ['settings', 'postavke', 'konfiguracija', 'paket', 'kategorija', 'dobavljac', 'faq'],
   ),
 ];
 

@@ -3,17 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../screens/admin_shell.dart';
 import '../screens/business_report_screen.dart';
-import '../screens/categories_screen.dart';
 import '../screens/dashboard_home_screen.dart';
-import '../screens/faq_screen.dart';
 import '../screens/login_screen.dart';
-import '../screens/membership_packages_screen.dart';
 import '../screens/orders_screen.dart';
 import '../screens/reviews_screen.dart';
 import '../screens/seminars_screen.dart';
+import '../screens/settings_screen.dart';
 import '../screens/staff_screen.dart';
 import '../screens/supplements_screen.dart';
-import '../screens/suppliers_screen.dart';
 import '../screens/users_screen.dart';
 import '../screens/user_profile_screen.dart';
 import '../screens/visitors_screen.dart';
@@ -61,11 +58,6 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _fadeSlidePage(const VisitorsScreen(), state),
           ),
           GoRoute(
-            path: '/membership-packages',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const MembershipPackagesScreen(), state),
-          ),
-          GoRoute(
             path: '/users',
             pageBuilder: (context, state) =>
                 _fadeSlidePage(const UsersScreen(), state),
@@ -91,24 +83,9 @@ final routerProvider = Provider<GoRouter>((ref) {
                 _fadeSlidePage(const SupplementsScreen(), state),
           ),
           GoRoute(
-            path: '/categories',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const CategoriesScreen(), state),
-          ),
-          GoRoute(
-            path: '/suppliers',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const SuppliersScreen(), state),
-          ),
-          GoRoute(
             path: '/orders',
             pageBuilder: (context, state) =>
                 _fadeSlidePage(const OrdersScreen(), state),
-          ),
-          GoRoute(
-            path: '/faq',
-            pageBuilder: (context, state) =>
-                _fadeSlidePage(const FaqScreen(), state),
           ),
           GoRoute(
             path: '/reviews',
@@ -124,6 +101,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reports',
             pageBuilder: (context, state) =>
                 _fadeSlidePage(const BusinessReportScreen(), state),
+          ),
+          GoRoute(
+            path: '/settings',
+            pageBuilder: (context, state) =>
+                _fadeSlidePage(const SettingsScreen(), state),
           ),
         ],
       ),
