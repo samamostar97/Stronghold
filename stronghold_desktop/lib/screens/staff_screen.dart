@@ -21,7 +21,6 @@ import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/confirm_dialog.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/error_animation.dart';
-import '../widgets/shared/screen_intro_banner.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/trainers/trainer_add_dialog.dart';
 import '../widgets/trainers/trainer_edit_dialog.dart';
@@ -243,32 +242,6 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
           Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ScreenIntroBanner(
-                    icon: LucideIcons.briefcase,
-                    title: 'Operativni centar osoblja',
-                    subtitle:
-                        'Brzi pristup trenerima, nutricionistima i terminima',
-                    trailing: Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        SmallButton(
-                          text: 'Dodaj trenera',
-                          color: AppColors.primary,
-                          onTap: _addTrainer,
-                        ),
-                        SmallButton(
-                          text: 'Dodaj termin',
-                          color: AppColors.secondary,
-                          onTap: () {
-                            _tabController.animateTo(2);
-                            _addAppointment();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
                   Expanded(
                     child: Stack(
                       children: [

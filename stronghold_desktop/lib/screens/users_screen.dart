@@ -14,7 +14,6 @@ import '../widgets/leaderboard/leaderboard_table.dart';
 import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/crud_list_scaffold.dart';
 import '../widgets/shared/error_animation.dart';
-import '../widgets/shared/screen_intro_banner.dart';
 import '../widgets/shared/shimmer_loading.dart';
 import '../widgets/shared/success_animation.dart';
 import '../widgets/users/user_add_dialog.dart';
@@ -77,28 +76,6 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
           Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  ScreenIntroBanner(
-                    icon: LucideIcons.users,
-                    title: 'Korisnicki centar',
-                    subtitle: 'Upravljanje clanovima i pregled rang liste',
-                    trailing: Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        SmallButton(
-                          text: 'Dodaj korisnika',
-                          color: AppColors.primary,
-                          onTap: _addUser,
-                        ),
-                        SmallButton(
-                          text: 'Rang lista',
-                          color: AppColors.secondary,
-                          onTap: () => _tabController.animateTo(1),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
                   Expanded(
                     child: Stack(
                       children: [

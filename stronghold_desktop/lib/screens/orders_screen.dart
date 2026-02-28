@@ -8,17 +8,17 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
-import '../providers/order_provider.dart';
 import '../providers/list_state.dart';
+import '../providers/order_provider.dart';
 import '../utils/debouncer.dart';
 import '../utils/error_handler.dart';
-import '../widgets/shared/error_animation.dart';
 import '../widgets/orders/order_details_dialog.dart';
 import '../widgets/shared/data_table_widgets.dart';
+import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/pagination_controls.dart';
-import '../widgets/shared/small_button.dart';
 import '../widgets/shared/search_input.dart';
 import '../widgets/shared/shimmer_loading.dart';
+import '../widgets/shared/small_button.dart';
 import '../widgets/shared/success_animation.dart';
 
 class OrdersScreen extends ConsumerStatefulWidget {
@@ -30,7 +30,7 @@ class OrdersScreen extends ConsumerStatefulWidget {
 
 class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   final _searchController = TextEditingController();
-  final _debouncer = Debouncer(milliseconds: 400);
+  final _debouncer = Debouncer(milliseconds: 350);
   String? _selectedSort;
   OrderStatus? _selectedStatus;
 
@@ -53,8 +53,10 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
   void _onSearchChanged() {
     _debouncer.run(() {
-      final s = _searchController.text.trim();
-      ref.read(orderListProvider.notifier).setSearch(s.isEmpty ? '' : s);
+      final value = _searchController.text.trim();
+      ref
+          .read(orderListProvider.notifier)
+          .setSearch(value.isEmpty ? '' : value);
     });
   }
 
@@ -76,6 +78,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
   Future<void> _cancelOrder(OrderResponse order, String? reason) async {
     if (order.status != OrderStatus.processing) return;
+
     try {
       await ref
           .read(orderListProvider.notifier)
@@ -93,6 +96,7 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
 
   Future<void> _markDelivered(OrderResponse order) async {
     if (order.status == OrderStatus.delivered) return;
+
     try {
       await ref.read(orderListProvider.notifier).markAsDelivered(order.id);
       if (mounted) showSuccessAnimation(context);
@@ -106,10 +110,11 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
     }
   }
 
-  void _onSortChanged(String? v) {
-    setState(() => _selectedSort = v);
+  void _onSortChanged(String? value) {
+    setState(() => _selectedSort = value);
+
     final notifier = ref.read(orderListProvider.notifier);
-    switch (v) {
+    switch (value) {
       case 'date_desc':
         notifier.setOrderBy('date', descending: true);
       case 'date_asc':
@@ -135,41 +140,43 @@ class _OrdersScreenState extends ConsumerState<OrdersScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(orderListProvider);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Content
-        Expanded(
-          child: _OrdersContent(
-            state: state,
-            searchController: _searchController,
-            selectedSort: _selectedSort,
-            selectedStatus: _selectedStatus,
-            onSortChanged: _onSortChanged,
-            onStatusChanged: (v) {
-              setState(() => _selectedStatus = v);
-              ref.read(orderListProvider.notifier).setStatus(v);
-            },
-            onRefresh: ref.read(orderListProvider.notifier).refresh,
-            onViewDetails: _viewDetails,
-            onPageChanged: ref.read(orderListProvider.notifier).goToPage,
-          )
-              .animate(delay: 200.ms)
+    return Padding(
+      padding: AppSpacing.desktopPage,
+      child:
+          _OrdersPanel(
+                state: state,
+                searchController: _searchController,
+                selectedSort: _selectedSort,
+                selectedStatus: _selectedStatus,
+                onSortChanged: _onSortChanged,
+                onStatusChanged: (status) {
+                  setState(() => _selectedStatus = status);
+                  ref.read(orderListProvider.notifier).setStatus(status);
+                },
+                onRefresh: ref.read(orderListProvider.notifier).refresh,
+                onOnlyActive: () {
+                  setState(() => _selectedStatus = OrderStatus.processing);
+                  ref
+                      .read(orderListProvider.notifier)
+                      .setStatus(OrderStatus.processing);
+                },
+                onViewDetails: _viewDetails,
+                onPageChanged: ref.read(orderListProvider.notifier).goToPage,
+              )
+              .animate(delay: 160.ms)
               .fadeIn(duration: Motion.smooth, curve: Motion.curve)
               .slideY(
-                begin: 0.04,
+                begin: 0.03,
                 end: 0,
                 duration: Motion.smooth,
                 curve: Motion.curve,
               ),
-        ),
-      ],
     );
   }
 }
 
-class _OrdersContent extends StatelessWidget {
-  const _OrdersContent({
+class _OrdersPanel extends StatelessWidget {
+  const _OrdersPanel({
     required this.state,
     required this.searchController,
     required this.selectedSort,
@@ -177,6 +184,7 @@ class _OrdersContent extends StatelessWidget {
     required this.onSortChanged,
     required this.onStatusChanged,
     required this.onRefresh,
+    required this.onOnlyActive,
     required this.onViewDetails,
     required this.onPageChanged,
   });
@@ -188,85 +196,112 @@ class _OrdersContent extends StatelessWidget {
   final ValueChanged<String?> onSortChanged;
   final ValueChanged<OrderStatus?> onStatusChanged;
   final VoidCallback onRefresh;
+  final VoidCallback onOnlyActive;
   final ValueChanged<OrderResponse> onViewDetails;
   final ValueChanged<int> onPageChanged;
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final w = constraints.maxWidth;
-      final pad = w > 1200 ? 40.0 : w > 800 ? 24.0 : 16.0;
-
-      return Padding(
-        padding:
-            EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
-        child: Container(
-          padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: AppSpacing.cardRadius,
-            border: Border.all(color: AppColors.border),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildSearchBar(w),
-              const SizedBox(height: AppSpacing.xxl),
-              Expanded(child: _buildBody()),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  Widget _buildSearchBar(double width) {
-    final sort = _SortDropdown(
-      value: selectedSort,
-      onChanged: onSortChanged,
-    );
-    final status = _StatusDropdown(
-      value: selectedStatus,
-      onChanged: onStatusChanged,
-    );
-
-    if (width < 600) {
-      return Column(
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.cardRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          SearchInput(
-            controller: searchController,
-            onSubmitted: (_) {},
-            hintText: 'Pretrazi po korisniku ili email-u...',
-          ),
-          const SizedBox(height: AppSpacing.md),
-          sort,
-          const SizedBox(height: AppSpacing.md),
-          status,
+          _filters(),
+          const SizedBox(height: AppSpacing.lg),
+          Expanded(child: _body()),
         ],
-      );
-    }
-    return Row(
-      children: [
-        Expanded(
-          child: SearchInput(
-            controller: searchController,
-            onSubmitted: (_) {},
-            hintText: 'Pretrazi po korisniku ili email-u...',
-          ),
-        ),
-        const SizedBox(width: AppSpacing.lg),
-        sort,
-        const SizedBox(width: AppSpacing.lg),
-        status,
-      ],
+      ),
     );
   }
 
-  Widget _buildBody() {
-    if (state.isLoading) {
+  Widget _filters() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sort = _SortDropdown(
+          value: selectedSort,
+          onChanged: onSortChanged,
+        );
+        final status = _StatusDropdown(
+          value: selectedStatus,
+          onChanged: onStatusChanged,
+        );
+
+        if (constraints.maxWidth < 820) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SearchInput(
+                controller: searchController,
+                onSubmitted: (_) {},
+                hintText: 'Pretrazi po korisniku ili email-u...',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(child: sort),
+                  const SizedBox(width: 10),
+                  Expanded(child: status),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SmallButton(
+                text: 'Osvjezi rezultate',
+                color: AppColors.secondary,
+                onTap: onRefresh,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SmallButton(
+                text: 'Samo aktivne',
+                color: AppColors.primary,
+                onTap: onOnlyActive,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: SearchInput(
+                controller: searchController,
+                onSubmitted: (_) {},
+                hintText: 'Pretrazi po korisniku ili email-u...',
+              ),
+            ),
+            const SizedBox(width: 10),
+            sort,
+            const SizedBox(width: 10),
+            status,
+            const SizedBox(width: 10),
+            SmallButton(
+              text: 'Osvjezi',
+              color: AppColors.secondary,
+              onTap: onRefresh,
+            ),
+            const SizedBox(width: 8),
+            SmallButton(
+              text: 'Samo aktivne',
+              color: AppColors.primary,
+              onTap: onOnlyActive,
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _body() {
+    if (state.isLoading && state.items.isEmpty) {
       return const ShimmerTable(columnFlex: [1, 3, 2, 2, 2, 2]);
     }
+
     if (state.error != null) {
       return Center(
         child: Column(
@@ -280,12 +315,16 @@ class _OrdersContent extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.lg),
-            GradientButton.text(
-                text: 'Pokusaj ponovo', onPressed: onRefresh),
+            SmallButton(
+              text: 'Pokusaj ponovo',
+              color: AppColors.primary,
+              onTap: onRefresh,
+            ),
           ],
         ),
       );
     }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -293,21 +332,44 @@ class _OrdersContent extends StatelessWidget {
           child: GenericDataTable<OrderResponse>(
             items: state.items,
             columns: [
-              ColumnDef.text(label: 'Narudzba #', flex: 1, value: (o) => '#${o.id}'),
+              ColumnDef.text(
+                label: 'Narudzba',
+                flex: 1,
+                value: (o) => '#${o.id}',
+              ),
               ColumnDef<OrderResponse>(
-                label: 'Korisnik', flex: 3,
+                label: 'Korisnik',
+                flex: 3,
                 cellBuilder: (o) => Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(o.userFullName, style: AppTextStyles.bodyBold, overflow: TextOverflow.ellipsis),
-                    Text(o.userEmail, style: AppTextStyles.bodySm.copyWith(color: AppColors.textPrimary), overflow: TextOverflow.ellipsis),
+                    Text(
+                      o.userFullName,
+                      style: AppTextStyles.bodyMedium,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      o.userEmail,
+                      style: AppTextStyles.caption,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ],
                 ),
               ),
-              ColumnDef.text(label: 'Ukupno', flex: 2, value: (o) => '${o.totalAmount.toStringAsFixed(2)} KM'),
-              ColumnDef.text(label: 'Datum', flex: 2, value: (o) => DateFormat('dd.MM.yyyy HH:mm').format(o.purchaseDate)),
+              ColumnDef.text(
+                label: 'Ukupno',
+                flex: 2,
+                value: (o) => '${o.totalAmount.toStringAsFixed(2)} KM',
+              ),
+              ColumnDef.text(
+                label: 'Datum',
+                flex: 2,
+                value: (o) =>
+                    DateFormat('dd.MM.yyyy HH:mm').format(o.purchaseDate),
+              ),
               ColumnDef<OrderResponse>(
-                label: 'Status', flex: 2,
+                label: 'Status',
+                flex: 2,
                 cellBuilder: (o) => Align(
                   alignment: Alignment.centerLeft,
                   child: switch (o.status) {
@@ -317,13 +379,20 @@ class _OrdersContent extends StatelessWidget {
                   },
                 ),
               ),
-              ColumnDef.actions(flex: 2, builder: (o) => [
-                SmallButton(text: 'Detalji', color: AppColors.secondary, onTap: () => onViewDetails(o)),
-              ]),
+              ColumnDef.actions(
+                flex: 2,
+                builder: (o) => [
+                  SmallButton(
+                    text: 'Detalji',
+                    color: AppColors.primary,
+                    onTap: () => onViewDetails(o),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
-        const SizedBox(height: AppSpacing.lg),
+        const SizedBox(height: AppSpacing.md),
         PaginationControls(
           currentPage: state.currentPage,
           totalPages: state.totalPages,
@@ -337,6 +406,7 @@ class _OrdersContent extends StatelessWidget {
 
 class _SortDropdown extends StatelessWidget {
   const _SortDropdown({required this.value, required this.onChanged});
+
   final String? value;
   final ValueChanged<String?> onChanged;
 
@@ -352,32 +422,30 @@ class _SortDropdown extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: value,
-          hint: Text('Sortiraj', style: AppTextStyles.bodySecondary),
+          hint: Text('Sort', style: AppTextStyles.bodySecondary),
           dropdownColor: AppColors.surface,
-          style: AppTextStyles.bodyMedium,
-          icon: Icon(
+          style: AppTextStyles.bodySecondary,
+          icon: const Icon(
             LucideIcons.arrowUpDown,
             color: AppColors.textMuted,
-            size: 16,
+            size: 15,
           ),
           items: const [
             DropdownMenuItem(value: null, child: Text('Zadano')),
             DropdownMenuItem(
-                value: 'date_desc', child: Text('Datum (najnovije)')),
+              value: 'date_desc',
+              child: Text('Datum (najnovije)'),
+            ),
             DropdownMenuItem(
-                value: 'date_asc', child: Text('Datum (najstarije)')),
-            DropdownMenuItem(
-                value: 'amount_desc', child: Text('Iznos (opadajuce)')),
-            DropdownMenuItem(
-                value: 'amount_asc', child: Text('Iznos (rastuce)')),
-            DropdownMenuItem(
-                value: 'status_asc', child: Text('Status (A-Z)')),
-            DropdownMenuItem(
-                value: 'status_desc', child: Text('Status (Z-A)')),
-            DropdownMenuItem(
-                value: 'user_asc', child: Text('Korisnik (A-Z)')),
-            DropdownMenuItem(
-                value: 'user_desc', child: Text('Korisnik (Z-A)')),
+              value: 'date_asc',
+              child: Text('Datum (najstarije)'),
+            ),
+            DropdownMenuItem(value: 'amount_desc', child: Text('Iznos (veci)')),
+            DropdownMenuItem(value: 'amount_asc', child: Text('Iznos (manji)')),
+            DropdownMenuItem(value: 'status_asc', child: Text('Status (A-Z)')),
+            DropdownMenuItem(value: 'status_desc', child: Text('Status (Z-A)')),
+            DropdownMenuItem(value: 'user_asc', child: Text('Korisnik (A-Z)')),
+            DropdownMenuItem(value: 'user_desc', child: Text('Korisnik (Z-A)')),
           ],
           onChanged: onChanged,
         ),
@@ -388,6 +456,7 @@ class _SortDropdown extends StatelessWidget {
 
 class _StatusDropdown extends StatelessWidget {
   const _StatusDropdown({required this.value, required this.onChanged});
+
   final OrderStatus? value;
   final ValueChanged<OrderStatus?> onChanged;
 
@@ -405,17 +474,26 @@ class _StatusDropdown extends StatelessWidget {
           value: value,
           hint: Text('Status', style: AppTextStyles.bodySecondary),
           dropdownColor: AppColors.surface,
-          style: AppTextStyles.bodyMedium,
-          icon:
-              Icon(LucideIcons.filter, color: AppColors.textMuted, size: 16),
+          style: AppTextStyles.bodySecondary,
+          icon: const Icon(
+            LucideIcons.filter,
+            color: AppColors.textMuted,
+            size: 15,
+          ),
           items: const [
             DropdownMenuItem<OrderStatus?>(value: null, child: Text('Svi')),
             DropdownMenuItem<OrderStatus?>(
-                value: OrderStatus.processing, child: Text('U obradi')),
+              value: OrderStatus.processing,
+              child: Text('U obradi'),
+            ),
             DropdownMenuItem<OrderStatus?>(
-                value: OrderStatus.delivered, child: Text('Isporuceno')),
+              value: OrderStatus.delivered,
+              child: Text('Isporuceno'),
+            ),
             DropdownMenuItem<OrderStatus?>(
-                value: OrderStatus.cancelled, child: Text('Otkazano')),
+              value: OrderStatus.cancelled,
+              child: Text('Otkazano'),
+            ),
           ],
           onChanged: onChanged,
         ),

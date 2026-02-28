@@ -18,8 +18,8 @@ import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/pagination_controls.dart';
 import '../widgets/shared/search_input.dart';
 import '../widgets/shared/shimmer_loading.dart';
-import '../widgets/shared/success_animation.dart';
 import '../widgets/shared/small_button.dart';
+import '../widgets/shared/success_animation.dart';
 
 class AuditScreen extends ConsumerStatefulWidget {
   const AuditScreen({super.key});
@@ -45,6 +45,7 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() => setState(() {}));
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       await ref.read(membershipPaymentsProvider.notifier).load();
       await ref.read(adminActivityProvider.notifier).load(count: 120);
@@ -53,8 +54,8 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
 
   @override
   void dispose() {
-    _searchController.dispose();
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -83,99 +84,98 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
       0,
       (sum, payment) => sum + payment.amountPaid,
     );
-    final activeCount = paymentsState.items.where((x) => x.isActive).length;
+    final activeCount = paymentsState.items.where((p) => p.isActive).length;
 
     return Padding(
       padding: AppSpacing.desktopPage,
       child:
-          Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _AuditHeader(
-                    pageAmount: pageAmount,
-                    activeCount: activeCount,
-                    activitiesCount: activityState.items.length,
-                    onOpenReports: () => context.go('/reports'),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          top: chromeTabBarHeight - 1,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: AppColors.surface,
-                              borderRadius: const BorderRadius.only(
-                                topRight: Radius.circular(16),
-                                bottomLeft: Radius.circular(16),
-                                bottomRight: Radius.circular(16),
-                              ),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: TabBarView(
-                              controller: _tabController,
-                              physics: const NeverScrollableScrollPhysics(),
-                              children: [
-                                _MembershipPaymentsAuditTab(
-                                  dateFormat: _dateFormat,
-                                  searchController: _searchController,
-                                  selectedOrderBy: _selectedOrderBy,
-                                  onSearchChanged: (value) {
-                                    ref
-                                        .read(
-                                          membershipPaymentsProvider.notifier,
-                                        )
-                                        .setSearch(value.trim());
-                                  },
-                                  onSortChanged: (value) {
-                                    setState(() => _selectedOrderBy = value);
-                                    ref
-                                        .read(
-                                          membershipPaymentsProvider.notifier,
-                                        )
-                                        .setOrderBy(value);
-                                  },
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(AppSpacing.lg),
-                                  child: DashboardAdminActivityFeed(
-                                    items: activityState.items,
-                                    isLoading: activityState.isLoading,
-                                    undoInProgressIds:
-                                        activityState.undoInProgressIds,
-                                    error: activityState.error,
-                                    onRetry: () => ref
-                                        .read(adminActivityProvider.notifier)
-                                        .load(count: 120),
-                                    onUndo: _undoActivity,
-                                    expand: true,
-                                  ),
-                                ),
-                              ],
-                            ),
+          Container(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: AppSpacing.cardRadius,
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: AppColors.cardShadow,
+                ),
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          _MetricChip(
+                            icon: LucideIcons.banknote,
+                            label: '${pageAmount.toStringAsFixed(2)} KM',
                           ),
-                        ),
-                        Positioned(
-                          top: 0,
-                          left: 0,
-                          right: 0,
-                          height: chromeTabBarHeight,
-                          child: ChromeTabBar(
-                            controller: _tabController,
-                            tabs: _tabs,
+                          _MetricChip(
+                            icon: LucideIcons.badgeCheck,
+                            label: '$activeCount aktivnih',
                           ),
-                        ),
-                      ],
+                          _MetricChip(
+                            icon: LucideIcons.history,
+                            label: '${activityState.items.length} logova',
+                          ),
+                          SmallButton(
+                            text: 'Izvjestaji',
+                            color: AppColors.primary,
+                            onTap: () => context.go('/reports'),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: chromeTabBarHeight,
+                      child: ChromeTabBar(
+                        controller: _tabController,
+                        tabs: _tabs,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Expanded(
+                      child: TabBarView(
+                        controller: _tabController,
+                        physics: const NeverScrollableScrollPhysics(),
+                        children: [
+                          _MembershipPaymentsTab(
+                            dateFormat: _dateFormat,
+                            searchController: _searchController,
+                            selectedOrderBy: _selectedOrderBy,
+                            onSearchChanged: (value) {
+                              ref
+                                  .read(membershipPaymentsProvider.notifier)
+                                  .setSearch(value.trim());
+                            },
+                            onSortChanged: (value) {
+                              setState(() => _selectedOrderBy = value);
+                              ref
+                                  .read(membershipPaymentsProvider.notifier)
+                                  .setOrderBy(value);
+                            },
+                          ),
+                          DashboardAdminActivityFeed(
+                            items: activityState.items,
+                            isLoading: activityState.isLoading,
+                            undoInProgressIds: activityState.undoInProgressIds,
+                            error: activityState.error,
+                            onRetry: () => ref
+                                .read(adminActivityProvider.notifier)
+                                .load(count: 120),
+                            onUndo: _undoActivity,
+                            expand: true,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               )
-              .animate(delay: 200.ms)
+              .animate(delay: 160.ms)
               .fadeIn(duration: Motion.smooth, curve: Motion.curve)
               .slideY(
-                begin: 0.04,
+                begin: 0.03,
                 end: 0,
                 duration: Motion.smooth,
                 curve: Motion.curve,
@@ -184,136 +184,29 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
   }
 }
 
-class _AuditHeader extends StatelessWidget {
-  const _AuditHeader({
-    required this.pageAmount,
-    required this.activeCount,
-    required this.activitiesCount,
-    required this.onOpenReports,
-  });
-
-  final num pageAmount;
-  final int activeCount;
-  final int activitiesCount;
-  final VoidCallback onOpenReports;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: AppSpacing.panelRadius,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-      ),
-      child: Wrap(
-        spacing: AppSpacing.md,
-        runSpacing: AppSpacing.md,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        alignment: WrapAlignment.spaceBetween,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                ),
-                child: const Icon(
-                  LucideIcons.shieldCheck,
-                  size: 20,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Audit centar',
-                    style: AppTextStyles.sectionTitle.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    'Uplate clanarina i admin aktivnosti na jednom mjestu',
-                    style: AppTextStyles.caption.copyWith(
-                      color: Colors.white.withValues(alpha: 0.8),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              _AuditChip(
-                icon: LucideIcons.banknote,
-                label: 'Uplate (stranica)',
-                value: '${pageAmount.toStringAsFixed(2)} KM',
-              ),
-              _AuditChip(
-                icon: LucideIcons.badgeCheck,
-                label: 'Aktivne clanarine',
-                value: '$activeCount',
-              ),
-              _AuditChip(
-                icon: LucideIcons.history,
-                label: 'Aktivnosti',
-                value: '$activitiesCount',
-              ),
-              SmallButton(
-                text: 'Otvori izvjestaje',
-                color: AppColors.primary,
-                onTap: onOpenReports,
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _AuditChip extends StatelessWidget {
-  const _AuditChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
+class _MetricChip extends StatelessWidget {
+  const _MetricChip({required this.icon, required this.label});
 
   final IconData icon;
   final String label;
-  final String value;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.12),
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: AppSpacing.xs),
+          Icon(icon, size: 14, color: AppColors.textSecondary),
+          const SizedBox(width: 6),
           Text(
-            '$label: $value',
-            style: AppTextStyles.caption.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w600,
-            ),
+            label,
+            style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w700),
           ),
         ],
       ),
@@ -321,8 +214,8 @@ class _AuditChip extends StatelessWidget {
   }
 }
 
-class _MembershipPaymentsAuditTab extends ConsumerWidget {
-  const _MembershipPaymentsAuditTab({
+class _MembershipPaymentsTab extends ConsumerWidget {
+  const _MembershipPaymentsTab({
     required this.dateFormat,
     required this.searchController,
     required this.selectedOrderBy,
@@ -341,125 +234,118 @@ class _MembershipPaymentsAuditTab extends ConsumerWidget {
     final state = ref.watch(membershipPaymentsProvider);
 
     if (state.isLoading && state.items.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.all(AppSpacing.lg),
-        child: ShimmerTable(columnFlex: [3, 3, 2, 2, 3, 2, 2]),
-      );
+      return const ShimmerTable(columnFlex: [3, 3, 2, 2, 3, 2, 2]);
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _PaymentsFilters(
-            searchController: searchController,
-            selectedOrderBy: selectedOrderBy,
-            onSearchChanged: onSearchChanged,
-            onSortChanged: onSortChanged,
-            onRefresh: () =>
-                ref.read(membershipPaymentsProvider.notifier).load(),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Expanded(
-            child: state.error != null
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Greska pri ucitavanju',
-                          style: AppTextStyles.cardTitle,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          state.error!,
-                          style: AppTextStyles.bodySecondary,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        SmallButton(
-                          text: 'Pokusaj ponovo',
-                          color: AppColors.primary,
-                          onTap: () => ref
-                              .read(membershipPaymentsProvider.notifier)
-                              .load(),
-                        ),
-                      ],
-                    ),
-                  )
-                : GenericDataTable<AdminMembershipPaymentResponse>(
-                    items: state.items,
-                    emptyMessage: 'Nema uplata za prikaz.',
-                    columns: [
-                      ColumnDef.text(
-                        label: 'Korisnik',
-                        flex: 3,
-                        value: (p) => p.userName,
-                        bold: true,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _PaymentsFilters(
+          searchController: searchController,
+          selectedOrderBy: selectedOrderBy,
+          onSearchChanged: onSearchChanged,
+          onSortChanged: onSortChanged,
+          onRefresh: () => ref.read(membershipPaymentsProvider.notifier).load(),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Expanded(
+          child: state.error != null
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Greska pri ucitavanju',
+                        style: AppTextStyles.cardTitle,
                       ),
-                      ColumnDef.text(
-                        label: 'Email',
-                        flex: 3,
-                        value: (p) => p.userEmail,
+                      const SizedBox(height: 8),
+                      Text(
+                        state.error!,
+                        style: AppTextStyles.bodySecondary,
+                        textAlign: TextAlign.center,
                       ),
-                      ColumnDef.text(
-                        label: 'Paket',
-                        flex: 2,
-                        value: (p) => p.packageName,
-                      ),
-                      ColumnDef.text(
-                        label: 'Iznos',
-                        flex: 2,
-                        value: (p) => '${p.amountPaid.toStringAsFixed(2)} KM',
-                      ),
-                      ColumnDef.text(
-                        label: 'Uplata',
-                        flex: 2,
-                        value: (p) => dateFormat.format(p.paymentDate),
-                      ),
-                      ColumnDef.text(
-                        label: 'Period',
-                        flex: 3,
-                        value: (p) =>
-                            '${DateFormat('dd.MM.yyyy').format(p.startDate)} - ${DateFormat('dd.MM.yyyy').format(p.endDate)}',
-                      ),
-                      ColumnDef<AdminMembershipPaymentResponse>(
-                        label: 'Status',
-                        flex: 2,
-                        cellBuilder: (p) => Align(
-                          alignment: Alignment.centerLeft,
-                          child: StatusPill(
-                            label: p.isActive ? 'Aktivna' : 'Istekla',
-                            color: p.isActive
-                                ? AppColors.success
-                                : AppColors.textMuted,
-                          ),
-                        ),
-                      ),
-                      ColumnDef.actions(
-                        flex: 2,
-                        builder: (p) => [
-                          SmallButton(
-                            text: 'Profil',
-                            color: AppColors.secondary,
-                            onTap: () => context.go('/users/${p.userId}'),
-                          ),
-                        ],
+                      const SizedBox(height: 12),
+                      SmallButton(
+                        text: 'Pokusaj ponovo',
+                        color: AppColors.primary,
+                        onTap: () => ref
+                            .read(membershipPaymentsProvider.notifier)
+                            .load(),
                       ),
                     ],
                   ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          PaginationControls(
-            currentPage: state.currentPage,
-            totalPages: state.totalPages,
-            totalCount: state.totalCount,
-            onPageChanged: (page) =>
-                ref.read(membershipPaymentsProvider.notifier).goToPage(page),
-          ),
-        ],
-      ),
+                )
+              : GenericDataTable<AdminMembershipPaymentResponse>(
+                  items: state.items,
+                  emptyMessage: 'Nema uplata za prikaz.',
+                  columns: [
+                    ColumnDef.text(
+                      label: 'Korisnik',
+                      flex: 3,
+                      value: (p) => p.userName,
+                      bold: true,
+                    ),
+                    ColumnDef.text(
+                      label: 'Email',
+                      flex: 3,
+                      value: (p) => p.userEmail,
+                    ),
+                    ColumnDef.text(
+                      label: 'Paket',
+                      flex: 2,
+                      value: (p) => p.packageName,
+                    ),
+                    ColumnDef.text(
+                      label: 'Iznos',
+                      flex: 2,
+                      value: (p) => '${p.amountPaid.toStringAsFixed(2)} KM',
+                    ),
+                    ColumnDef.text(
+                      label: 'Uplata',
+                      flex: 2,
+                      value: (p) => dateFormat.format(p.paymentDate),
+                    ),
+                    ColumnDef.text(
+                      label: 'Period',
+                      flex: 3,
+                      value: (p) =>
+                          '${DateFormat('dd.MM.yyyy').format(p.startDate)} - ${DateFormat('dd.MM.yyyy').format(p.endDate)}',
+                    ),
+                    ColumnDef<AdminMembershipPaymentResponse>(
+                      label: 'Status',
+                      flex: 2,
+                      cellBuilder: (p) => Align(
+                        alignment: Alignment.centerLeft,
+                        child: StatusPill(
+                          label: p.isActive ? 'Aktivna' : 'Istekla',
+                          color: p.isActive
+                              ? AppColors.success
+                              : AppColors.textMuted,
+                        ),
+                      ),
+                    ),
+                    ColumnDef.actions(
+                      flex: 2,
+                      builder: (p) => [
+                        SmallButton(
+                          text: 'Profil',
+                          color: AppColors.primary,
+                          onTap: () => context.go('/users/${p.userId}'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        PaginationControls(
+          currentPage: state.currentPage,
+          totalPages: state.totalPages,
+          totalCount: state.totalCount,
+          onPageChanged: (page) =>
+              ref.read(membershipPaymentsProvider.notifier).goToPage(page),
+        ),
+      ],
     );
   }
 }
@@ -502,7 +388,7 @@ class _PaymentsFilters extends StatelessWidget {
               const SizedBox(height: AppSpacing.md),
               SmallButton(
                 text: 'Osvjezi',
-                color: AppColors.primary,
+                color: AppColors.secondary,
                 onTap: onRefresh,
               ),
             ],
@@ -518,12 +404,12 @@ class _PaymentsFilters extends StatelessWidget {
                 hintText: 'Pretraga po korisniku, email-u ili paketu...',
               ),
             ),
-            const SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.md),
             sort,
-            const SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.md),
             SmallButton(
               text: 'Osvjezi',
-              color: AppColors.primary,
+              color: AppColors.secondary,
               onTap: onRefresh,
             ),
           ],
@@ -535,6 +421,7 @@ class _PaymentsFilters extends StatelessWidget {
 
 class _SortDropdown extends StatelessWidget {
   const _SortDropdown({required this.value, required this.onChanged});
+
   final String? value;
   final ValueChanged<String?> onChanged;
 
@@ -550,13 +437,13 @@ class _SortDropdown extends StatelessWidget {
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: value,
-          hint: Text('Sortiraj', style: AppTextStyles.bodySecondary),
+          hint: Text('Sort', style: AppTextStyles.bodySecondary),
           dropdownColor: AppColors.surface,
-          style: AppTextStyles.bodyMedium,
-          icon: Icon(
+          style: AppTextStyles.bodySecondary,
+          icon: const Icon(
             LucideIcons.arrowUpDown,
             color: AppColors.textMuted,
-            size: 16,
+            size: 15,
           ),
           items: const [
             DropdownMenuItem(value: null, child: Text('Zadano')),
