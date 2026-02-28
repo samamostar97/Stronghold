@@ -15,6 +15,7 @@ class DashboardAdminActivityFeed extends StatelessWidget {
     required this.onRetry,
     this.error,
     this.expand = false,
+    this.embedded = false,
   });
 
   final List<AdminActivityResponse> items;
@@ -24,6 +25,7 @@ class DashboardAdminActivityFeed extends StatelessWidget {
   final VoidCallback onRetry;
   final String? error;
   final bool expand;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +96,17 @@ class DashboardAdminActivityFeed extends StatelessWidget {
       );
     }
 
+    if (embedded) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          header,
+          const SizedBox(height: AppSpacing.lg),
+          Expanded(child: content),
+        ],
+      );
+    }
+
     return GlassCard(
       backgroundColor: AppColors.surface,
       child: Column(
@@ -122,8 +135,9 @@ class _ActivityRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canUndo = item.canUndo && !item.isUndone;
-    final remaining =
-        DateTimeUtils.toLocal(item.undoAvailableUntil).difference(DateTime.now());
+    final remaining = DateTimeUtils.toLocal(
+      item.undoAvailableUntil,
+    ).difference(DateTime.now());
     final isAddAction = item.actionType.toLowerCase() == 'add';
     final accentColor = isAddAction ? AppColors.success : AppColors.warning;
     final actionIcon = isAddAction ? LucideIcons.plus : LucideIcons.trash2;
@@ -140,11 +154,7 @@ class _ActivityRow extends StatelessWidget {
               color: accentColor.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
             ),
-            child: Icon(
-              actionIcon,
-              size: 16,
-              color: accentColor,
-            ),
+            child: Icon(actionIcon, size: 16, color: accentColor),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -166,9 +176,7 @@ class _ActivityRow extends StatelessWidget {
                   const SizedBox(height: 2),
                   Text(
                     'Undo: jos ${remaining.inMinutes.clamp(0, 59)} min',
-                    style: AppTextStyles.caption.copyWith(
-                      color: accentColor,
-                    ),
+                    style: AppTextStyles.caption.copyWith(color: accentColor),
                   ),
                 ],
               ],

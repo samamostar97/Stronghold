@@ -165,6 +165,7 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
                                 .load(count: 120),
                             onUndo: _undoActivity,
                             expand: true,
+                            embedded: true,
                           ),
                         ],
                       ),

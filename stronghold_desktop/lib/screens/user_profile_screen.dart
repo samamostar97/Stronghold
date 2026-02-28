@@ -9,10 +9,11 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
 import '../providers/user_profile_provider.dart';
+import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/users/user_info_tab.dart';
+import '../widgets/users/user_management_tab.dart';
 import '../widgets/users/user_orders_tab.dart';
 import '../widgets/users/user_payments_tab.dart';
-import '../widgets/users/user_management_tab.dart';
 
 class UserProfileScreen extends ConsumerWidget {
   const UserProfileScreen({super.key, required this.userId});
@@ -25,24 +26,32 @@ class UserProfileScreen extends ConsumerWidget {
 
     return userAsync.when(
       loading: () => const Center(
-        child: CircularProgressIndicator(color: AppColors.electric),
+        child: CircularProgressIndicator(color: AppColors.primary),
       ),
       error: (e, _) => Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Greska pri ucitavanju korisnika',
-                style: AppTextStyles.cardTitle),
+            Text(
+              'Greska pri ucitavanju korisnika',
+              style: AppTextStyles.cardTitle,
+            ),
             const SizedBox(height: AppSpacing.sm),
             Text(e.toString(), style: AppTextStyles.bodySecondary),
             const SizedBox(height: AppSpacing.lg),
             TextButton.icon(
               onPressed: () => context.go('/users'),
-              icon: Icon(LucideIcons.arrowLeft,
-                  size: 16, color: AppColors.electric),
-              label: Text('Nazad na korisnike',
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(color: AppColors.electric)),
+              icon: const Icon(
+                LucideIcons.arrowLeft,
+                size: 16,
+                color: AppColors.primary,
+              ),
+              label: Text(
+                'Nazad na korisnike',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.primary,
+                ),
+              ),
             ),
           ],
         ),
@@ -54,6 +63,7 @@ class UserProfileScreen extends ConsumerWidget {
 
 class _UserProfileContent extends StatefulWidget {
   const _UserProfileContent({required this.user});
+
   final UserResponse user;
 
   @override
@@ -71,8 +81,6 @@ class _UserProfileContentState extends State<_UserProfileContent>
     (icon: LucideIcons.settings, label: 'Upravljanje'),
   ];
 
-  static const _tabBarHeight = 46.0;
-
   @override
   void initState() {
     super.initState();
@@ -88,71 +96,60 @@ class _UserProfileContentState extends State<_UserProfileContent>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final pad = w > 1200
-            ? 40.0
-            : w > 800
-                ? 24.0
-                : 16.0;
-
-        return Padding(
-          padding: EdgeInsets.symmetric(horizontal: pad, vertical: AppSpacing.xl),
-          child: Stack(
-            children: [
-              // Content panel
-              Positioned.fill(
-                top: _tabBarHeight - 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: const BorderRadius.only(
-                      topRight: Radius.circular(16),
-                      bottomLeft: Radius.circular(16),
-                      bottomRight: Radius.circular(16),
+    return Padding(
+      padding: AppSpacing.desktopPage,
+      child:
+          Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _ProfileToolbar(
+                    user: widget.user,
+                    onBack: () => context.go('/users'),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Expanded(
+                    child: Stack(
+                      children: [
+                        Positioned.fill(
+                          top: chromeTabBarHeight - 1,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: const BorderRadius.only(
+                                topRight: Radius.circular(16),
+                                bottomLeft: Radius.circular(16),
+                                bottomRight: Radius.circular(16),
+                              ),
+                              border: Border.all(color: AppColors.border),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: TabBarView(
+                              controller: _tabController,
+                              physics: const NeverScrollableScrollPhysics(),
+                              children: [
+                                UserInfoTab(user: widget.user),
+                                UserOrdersTab(userId: widget.user.id),
+                                UserPaymentsTab(userId: widget.user.id),
+                                UserManagementTab(user: widget.user),
+                              ],
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          top: 0,
+                          left: 0,
+                          right: 0,
+                          height: chromeTabBarHeight,
+                          child: ChromeTabBar(
+                            controller: _tabController,
+                            tabs: _tabs,
+                          ),
+                        ),
+                      ],
                     ),
-                    border: Border.all(color: AppColors.border),
                   ),
-                  clipBehavior: Clip.antiAlias,
-                  child: TabBarView(
-                    controller: _tabController,
-                    children: [
-                      UserInfoTab(user: widget.user),
-                      UserOrdersTab(userId: widget.user.id),
-                      UserPaymentsTab(userId: widget.user.id),
-                      UserManagementTab(user: widget.user),
-                    ],
-                  ),
-                ),
-              ),
-              // Tab bar
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                height: _tabBarHeight,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Back button
-                    _BackButton(onTap: () => context.go('/users')),
-                    const SizedBox(width: 2),
-                    for (int i = 0; i < _tabs.length; i++) ...[
-                      if (i > 0) const SizedBox(width: 2),
-                      _ProfileChromeTab(
-                        icon: _tabs[i].icon,
-                        label: _tabs[i].label,
-                        isActive: _tabController.index == i,
-                        onTap: () => _tabController.animateTo(i),
-                      ),
-                    ],
-                    const Spacer(),
-                  ],
-                ),
-              ),
-            ],
-          )
+                ],
+              )
               .animate(delay: 100.ms)
               .fadeIn(duration: Motion.smooth, curve: Motion.curve)
               .slideY(
@@ -161,148 +158,210 @@ class _UserProfileContentState extends State<_UserProfileContent>
                 duration: Motion.smooth,
                 curve: Motion.curve,
               ),
-        );
-      },
     );
   }
 }
 
-// ═══════════════════════════════════════════════════
-//  BACK BUTTON (styled like an inactive chrome tab)
-// ═══════════════════════════════════════════════════
+class _ProfileToolbar extends StatelessWidget {
+  const _ProfileToolbar({required this.user, required this.onBack});
 
-class _BackButton extends StatefulWidget {
-  const _BackButton({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  State<_BackButton> createState() => _BackButtonState();
-}
-
-class _BackButtonState extends State<_BackButton> {
-  bool _hovered = false;
+  final UserResponse user;
+  final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          curve: Motion.curve,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          decoration: BoxDecoration(
-            color: _hovered ? AppColors.surfaceAlt : AppColors.background,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            border: Border.all(
-              color: _hovered
-                  ? AppColors.border
-                  : AppColors.border.withValues(alpha: 0.5),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
+    final initials = _initials(user.firstName, user.lastName);
+    final avatar = Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: user.profileImageUrl != null
+          ? Image.network(
+              ApiConfig.imageUrl(user.profileImageUrl!),
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => _InitialsAvatar(initials: initials),
+            )
+          : _InitialsAvatar(initials: initials),
+    );
+
+    final identity = Row(
+      children: [
+        avatar,
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(LucideIcons.arrowLeft,
-                  size: 15, color: AppColors.textSecondary),
-              const SizedBox(width: 6),
               Text(
-                'Nazad',
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 13,
-                ),
+                user.fullName,
+                style: AppTextStyles.sectionTitle,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              Text(
+                '@${user.username}',
+                style: AppTextStyles.caption,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
+      ],
+    );
+
+    final chips = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        _MetaChip(icon: LucideIcons.mail, value: user.email),
+        if (user.phoneNumber.isNotEmpty)
+          _MetaChip(icon: LucideIcons.phone, value: user.phoneNumber),
+      ],
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.panelRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 980;
+          if (narrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  children: [
+                    _BackChip(onTap: onBack),
+                    const SizedBox(width: 8),
+                    Expanded(child: identity),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                chips,
+              ],
+            );
+          }
+
+          return Row(
+            children: [
+              _BackChip(onTap: onBack),
+              const SizedBox(width: 10),
+              Expanded(child: identity),
+              const SizedBox(width: 12),
+              Flexible(child: chips),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  static String _initials(String first, String last) {
+    final f = first.isNotEmpty ? first[0] : '';
+    final l = last.isNotEmpty ? last[0] : '';
+    return '$f$l'.toUpperCase();
+  }
+}
+
+class _InitialsAvatar extends StatelessWidget {
+  const _InitialsAvatar({required this.initials});
+
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.surfaceAlt,
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w700),
       ),
     );
   }
 }
 
-// ═══════════════════════════════════════════════════
-//  CHROME-STYLE TAB (same visual as StaffScreen)
-// ═══════════════════════════════════════════════════
-
-class _ProfileChromeTab extends StatefulWidget {
-  const _ProfileChromeTab({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.icon, required this.value});
 
   final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  State<_ProfileChromeTab> createState() => _ProfileChromeTabState();
-}
-
-class _ProfileChromeTabState extends State<_ProfileChromeTab> {
-  bool _hovered = false;
+  final String value;
 
   @override
   Widget build(BuildContext context) {
-    final active = widget.isActive;
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 260),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.textSecondary),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              value,
+              style: AppTextStyles.caption,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
+class _BackChip extends StatefulWidget {
+  const _BackChip({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  State<_BackChip> createState() => _BackChipState();
+}
+
+class _BackChipState extends State<_BackChip> {
+  bool _hover = false;
+
+  @override
+  Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      cursor: active ? SystemMouseCursors.basic : SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      cursor: SystemMouseCursors.click,
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: Motion.fast,
-          curve: Motion.curve,
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
           decoration: BoxDecoration(
-            color: active
-                ? AppColors.surface
-                : _hovered
-                    ? AppColors.surfaceAlt
-                    : AppColors.background,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
-            ),
-            border: active
-                ? null
-                : Border.all(
-                    color: _hovered
-                        ? AppColors.border
-                        : AppColors.border.withValues(alpha: 0.5),
-                  ),
+            color: _hover ? AppColors.surfaceHover : AppColors.surface,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(color: AppColors.border),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(
-                widget.icon,
-                size: 16,
-                color: active ? AppColors.electric : AppColors.textSecondary,
+              const Icon(
+                LucideIcons.arrowLeft,
+                size: 14,
+                color: AppColors.textSecondary,
               ),
-              const SizedBox(width: 8),
-              Text(
-                widget.label,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: active
-                      ? AppColors.textPrimary
-                      : AppColors.textSecondary,
-                  fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                  fontSize: 13,
-                ),
-              ),
+              const SizedBox(width: 6),
+              Text('Nazad', style: AppTextStyles.bodySecondary),
             ],
           ),
         ),
