@@ -3,9 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
-import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
 import '../providers/faq_provider.dart';
 import '../providers/membership_package_provider.dart';
@@ -20,6 +18,7 @@ import '../widgets/settings/settings_categories_tab.dart';
 import '../widgets/settings/settings_faq_tab.dart';
 import '../widgets/settings/settings_packages_tab.dart';
 import '../widgets/settings/settings_suppliers_tab.dart';
+import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/confirm_dialog.dart';
 import '../widgets/shared/error_animation.dart';
 import '../widgets/shared/success_animation.dart';
@@ -36,6 +35,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _loadedTabs = <int>{};
+  static const _tabs = [
+    (label: 'Paketi', icon: LucideIcons.package2),
+    (label: 'Kategorije', icon: LucideIcons.tag),
+    (label: 'Dobavljaci', icon: LucideIcons.truck),
+    (label: 'FAQ', icon: LucideIcons.helpCircle),
+  ];
 
   @override
   void initState() {
@@ -126,14 +131,14 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     );
     if (confirmed != true) return;
     try {
-      await ref
-          .read(membershipPackageListProvider.notifier)
-          .delete(package.id);
+      await ref.read(membershipPackageListProvider.notifier).delete(package.id);
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message: ErrorHandler.getContextualMessage(e, 'delete-package'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-package'),
+        );
       }
     }
   }
@@ -183,9 +188,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message:
-                ErrorHandler.getContextualMessage(e, 'delete-category'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-category'),
+        );
       }
     }
   }
@@ -216,7 +222,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       builder: (_) => SupplierDialog(
         initial: supplier,
         onSave: (name, website) async {
-          await ref.read(supplierListProvider.notifier).update(
+          await ref
+              .read(supplierListProvider.notifier)
+              .update(
                 supplier.id,
                 UpdateSupplierRequest(name: name, website: website),
               );
@@ -245,9 +253,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message:
-                ErrorHandler.getContextualMessage(e, 'delete-supplier'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-supplier'),
+        );
       }
     }
   }
@@ -259,9 +268,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       context: context,
       builder: (_) => FaqDialog(
         onSave: (question, answer) async {
-          await ref.read(faqListProvider.notifier).create(
-                CreateFaqRequest(question: question, answer: answer),
-              );
+          await ref
+              .read(faqListProvider.notifier)
+              .create(CreateFaqRequest(question: question, answer: answer));
         },
       ),
     );
@@ -278,7 +287,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       builder: (_) => FaqDialog(
         initial: faq,
         onSave: (question, answer) async {
-          await ref.read(faqListProvider.notifier).update(
+          await ref
+              .read(faqListProvider.notifier)
+              .update(
                 faq.id,
                 UpdateFaqRequest(question: question, answer: answer),
               );
@@ -306,8 +317,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       if (mounted) showSuccessAnimation(context);
     } catch (e) {
       if (mounted) {
-        showErrorAnimation(context,
-            message: ErrorHandler.getContextualMessage(e, 'delete-faq'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'delete-faq'),
+        );
       }
     }
   }
@@ -320,23 +333,31 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: LayoutBuilder(builder: (context, c) {
-            final pad =
-                c.maxWidth > 1200 ? 40.0 : c.maxWidth > 800 ? 24.0 : 16.0;
-            return Padding(
-              padding: EdgeInsets.symmetric(
-                  horizontal: pad, vertical: AppSpacing.xl),
-              child: _mainContent(),
-            );
-          })
-              .animate(delay: 200.ms)
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-              .slideY(
-                begin: 0.04,
-                end: 0,
-                duration: Motion.smooth,
-                curve: Motion.curve,
-              ),
+          child:
+              LayoutBuilder(
+                    builder: (context, c) {
+                      final pad = c.maxWidth > 1200
+                          ? 40.0
+                          : c.maxWidth > 800
+                          ? 24.0
+                          : 16.0;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: pad,
+                          vertical: AppSpacing.xl,
+                        ),
+                        child: _mainContent(),
+                      );
+                    },
+                  )
+                  .animate(delay: 200.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.04,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
         ),
       ],
     );
@@ -346,7 +367,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _tabBar(),
+        SizedBox(
+          height: chromeTabBarHeight,
+          child: ChromeTabBar(controller: _tabController, tabs: _tabs),
+        ),
         const SizedBox(height: AppSpacing.xl),
         Expanded(
           child: TabBarView(
@@ -376,82 +400,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _tabBar() {
-    final tabs = [
-      (label: 'Paketi', icon: LucideIcons.package2),
-      (label: 'Kategorije', icon: LucideIcons.tag),
-      (label: 'Dobavljaci', icon: LucideIcons.truck),
-      (label: 'FAQ', icon: LucideIcons.helpCircle),
-    ];
-
-    return AnimatedBuilder(
-      animation: _tabController,
-      builder: (context, _) {
-        return Container(
-          padding: const EdgeInsets.all(4),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: AppSpacing.buttonRadius,
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.electric.withValues(alpha: 0.06),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Row(
-            children: List.generate(tabs.length, (i) {
-              final isActive = _tabController.index == i;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => _tabController.animateTo(i),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    curve: Curves.easeOut,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.lg,
-                      vertical: AppSpacing.sm,
-                    ),
-                    decoration: BoxDecoration(
-                      color:
-                          isActive ? AppColors.deepBlue : Colors.transparent,
-                      borderRadius: AppSpacing.badgeRadius,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          tabs[i].icon,
-                          size: 18,
-                          color: isActive
-                              ? Colors.white
-                              : AppColors.textSecondary,
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                        Flexible(
-                          child: Text(
-                            tabs[i].label,
-                            style: AppTextStyles.bodyMedium.copyWith(
-                              color: isActive
-                                  ? Colors.white
-                                  : AppColors.textSecondary,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        );
-      },
     );
   }
 }
