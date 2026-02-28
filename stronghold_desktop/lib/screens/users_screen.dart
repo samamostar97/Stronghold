@@ -133,6 +133,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen>
     final notifier = ref.read(userListProvider.notifier);
 
     return CrudListScaffold<UserResponse, UserQueryFilter>(
+      embedded: true,
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

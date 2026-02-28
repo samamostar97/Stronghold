@@ -300,6 +300,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     final notifier = ref.read(trainerListProvider.notifier);
 
     return CrudListScaffold<TrainerResponse, TrainerQueryFilter>(
+      embedded: true,
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,
@@ -369,6 +370,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     final notifier = ref.read(nutritionistListProvider.notifier);
 
     return CrudListScaffold<NutritionistResponse, NutritionistQueryFilter>(
+      embedded: true,
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,
@@ -438,6 +440,7 @@ class _StaffScreenState extends ConsumerState<StaffScreen>
     final notifier = ref.read(appointmentListProvider.notifier);
 
     return CrudListScaffold<AdminAppointmentResponse, AppointmentQueryFilter>(
+      embedded: true,
       state: state,
       onRefresh: notifier.refresh,
       onSearch: notifier.setSearch,

@@ -10,16 +10,15 @@ import '../../utils/debouncer.dart';
 import 'pagination_controls.dart';
 import 'search_input.dart';
 import 'shimmer_loading.dart';
+import 'small_button.dart';
 
-/// Sort option for dropdown
 class SortOption {
+  const SortOption({required this.value, required this.label});
+
   final String? value;
   final String label;
-
-  const SortOption({required this.value, required this.label});
 }
 
-/// Generic CRUD list scaffold with search, sort, pagination, and add button.
 class CrudListScaffold<T, TFilter extends BaseQueryFilter>
     extends ConsumerStatefulWidget {
   const CrudListScaffold({
@@ -36,6 +35,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
     this.sortOptions = const [],
     this.loadingColumnFlex,
     this.extraFilter,
+    this.embedded = false,
   });
 
   final ListState<T, TFilter> state;
@@ -50,6 +50,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
   final List<SortOption> sortOptions;
   final List<int>? loadingColumnFlex;
   final Widget? extraFilter;
+  final bool embedded;
 
   @override
   ConsumerState<CrudListScaffold<T, TFilter>> createState() =>
@@ -59,7 +60,7 @@ class CrudListScaffold<T, TFilter extends BaseQueryFilter>
 class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     extends ConsumerState<CrudListScaffold<T, TFilter>> {
   final _searchController = TextEditingController();
-  final _debouncer = Debouncer(milliseconds: 400);
+  final _debouncer = Debouncer(milliseconds: 350);
   String? _selectedOrderBy;
 
   @override
@@ -67,10 +68,8 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     super.initState();
     _searchController.addListener(_onSearchChanged);
     _searchController.text = widget.state.filter.search ?? '';
-    final currentOrderBy = widget.state.filter.orderBy;
-    _selectedOrderBy = (currentOrderBy == null || currentOrderBy.isEmpty)
-        ? null
-        : currentOrderBy;
+    final order = widget.state.filter.orderBy;
+    _selectedOrderBy = (order == null || order.isEmpty) ? null : order;
   }
 
   @override
@@ -90,87 +89,115 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final w = constraints.maxWidth;
-        final pad = w > 1200
-            ? 40.0
-            : w > 800
-            ? 24.0
-            : 16.0;
-
-        return Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: pad,
-            vertical: AppSpacing.xl,
-          ),
-          child: Container(
-            padding: EdgeInsets.all(w > 600 ? 30 : AppSpacing.lg),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-              border: Border.all(color: AppColors.border),
-              boxShadow: AppColors.cardShadow,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildSearchBar(constraints),
-                const SizedBox(height: AppSpacing.xxl),
-                Expanded(child: _buildContent()),
-              ],
-            ),
-          ),
-        );
-      },
+    final content = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _toolbar(),
+        const SizedBox(height: AppSpacing.lg),
+        Expanded(child: _content()),
+      ],
     );
-  }
 
-  Widget _buildSearchBar(BoxConstraints constraints) {
-    final isNarrow = constraints.maxWidth < 600;
-    if (isNarrow) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SearchInput(
-            controller: _searchController,
-            onSubmitted: (_) {},
-            hintText: widget.searchHint,
-          ),
-          if (widget.sortOptions.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
-            _buildSortDropdown(),
-          ],
-          if (widget.extraFilter != null) ...[
-            const SizedBox(height: AppSpacing.md),
-            widget.extraFilter!,
-          ],
-          const SizedBox(height: AppSpacing.md),
-          GradientButton.text(text: widget.addButtonText, gradient: const LinearGradient(colors: [AppColors.navyBlue, AppColors.midBlue]), onPressed: widget.onAdd),
-        ],
+    if (widget.embedded) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: content,
       );
     }
 
-    return Row(
-      children: [
-        Expanded(
-          child: SearchInput(
-            controller: _searchController,
-            onSubmitted: (_) {},
-            hintText: widget.searchHint,
-          ),
+    return Padding(
+      padding: AppSpacing.desktopPage,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppSpacing.cardRadius,
+          border: Border.all(color: AppColors.border),
+          boxShadow: AppColors.cardShadow,
         ),
-        if (widget.sortOptions.isNotEmpty) ...[
-          const SizedBox(width: AppSpacing.lg),
-          _buildSortDropdown(),
-        ],
-        if (widget.extraFilter != null) ...[
-          const SizedBox(width: AppSpacing.lg),
-          widget.extraFilter!,
-        ],
-        const SizedBox(width: AppSpacing.lg),
-        GradientButton.text(text: widget.addButtonText, gradient: const LinearGradient(colors: [AppColors.navyBlue, AppColors.midBlue]), onPressed: widget.onAdd),
-      ],
+        child: content,
+      ),
+    );
+  }
+
+  Widget _toolbar() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final narrow = constraints.maxWidth < 860;
+
+        final sortDropdown = widget.sortOptions.isEmpty
+            ? const SizedBox.shrink()
+            : _buildSortDropdown();
+
+        if (narrow) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SearchInput(
+                controller: _searchController,
+                onSubmitted: (_) {},
+                hintText: widget.searchHint,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              if (widget.sortOptions.isNotEmpty) ...[
+                sortDropdown,
+                const SizedBox(height: AppSpacing.md),
+              ],
+              if (widget.extraFilter != null) ...[
+                widget.extraFilter!,
+                const SizedBox(height: AppSpacing.md),
+              ],
+              Row(
+                children: [
+                  SmallButton(
+                    text: 'Osvjezi',
+                    color: AppColors.secondary,
+                    onTap: widget.onRefresh,
+                  ),
+                  const SizedBox(width: 8),
+                  SmallButton(
+                    text: widget.addButtonText,
+                    color: AppColors.primary,
+                    onTap: widget.onAdd,
+                  ),
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: SearchInput(
+                controller: _searchController,
+                onSubmitted: (_) {},
+                hintText: widget.searchHint,
+              ),
+            ),
+            if (widget.sortOptions.isNotEmpty) ...[
+              const SizedBox(width: 10),
+              sortDropdown,
+            ],
+            if (widget.extraFilter != null) ...[
+              const SizedBox(width: 10),
+              widget.extraFilter!,
+            ],
+            const SizedBox(width: 10),
+            SmallButton(
+              text: 'Osvjezi',
+              color: AppColors.secondary,
+              onTap: widget.onRefresh,
+            ),
+            const SizedBox(width: 8),
+            SmallButton(
+              text: widget.addButtonText,
+              color: AppColors.primary,
+              onTap: widget.onAdd,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -178,26 +205,24 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceSolid,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        color: AppColors.surface,
+        borderRadius: AppSpacing.smallRadius,
         border: Border.all(color: AppColors.border),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String?>(
           value: _selectedOrderBy,
-          hint: Text('Sortiraj', style: AppTextStyles.bodyMd),
-          dropdownColor: AppColors.surfaceSolid,
-          style: AppTextStyles.bodyBold,
-          icon: Icon(
+          hint: Text('Sort', style: AppTextStyles.bodySecondary),
+          icon: const Icon(
             LucideIcons.arrowUpDown,
+            size: 15,
             color: AppColors.textMuted,
-            size: 16,
           ),
           items: widget.sortOptions
               .map(
                 (opt) => DropdownMenuItem<String?>(
                   value: opt.value,
-                  child: Text(opt.label),
+                  child: Text(opt.label, style: AppTextStyles.bodySecondary),
                 ),
               )
               .toList(),
@@ -210,10 +235,10 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
     );
   }
 
-  Widget _buildContent() {
+  Widget _content() {
     if (widget.state.isLoading) {
       return ShimmerTable(
-        columnFlex: widget.loadingColumnFlex ?? const [2, 3, 2, 2],
+        columnFlex: widget.loadingColumnFlex ?? const [3, 3, 2, 2],
       );
     }
 
@@ -222,39 +247,36 @@ class _CrudListScaffoldState<T, TFilter extends BaseQueryFilter>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Greska pri ucitavanju', style: AppTextStyles.headingSm),
-            const SizedBox(height: AppSpacing.sm),
+            Text('Greska pri ucitavanju', style: AppTextStyles.cardTitle),
+            const SizedBox(height: 8),
             Text(
               widget.state.error!,
-              style: AppTextStyles.bodyMd,
+              style: AppTextStyles.bodySecondary,
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppSpacing.lg),
-            GradientButton.text(text: 'Pokusaj ponovo', onPressed: widget.onRefresh),
+            const SizedBox(height: 12),
+            SmallButton(
+              text: 'Pokusaj ponovo',
+              color: AppColors.primary,
+              onTap: widget.onRefresh,
+            ),
           ],
         ),
       );
     }
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final showPagination = constraints.maxHeight > 120;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: widget.tableBuilder(widget.state.items)),
-            if (showPagination) ...[
-              const SizedBox(height: AppSpacing.lg),
-              PaginationControls(
-                currentPage: widget.state.currentPage,
-                totalPages: widget.state.totalPages,
-                totalCount: widget.state.totalCount,
-                onPageChanged: widget.onPageChanged,
-              ),
-            ],
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(child: widget.tableBuilder(widget.state.items)),
+        const SizedBox(height: AppSpacing.md),
+        PaginationControls(
+          currentPage: widget.state.currentPage,
+          totalPages: widget.state.totalPages,
+          totalCount: widget.state.totalCount,
+          onPageChanged: widget.onPageChanged,
+        ),
+      ],
     );
   }
 }
