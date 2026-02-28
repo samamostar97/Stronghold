@@ -3,6 +3,7 @@ import '../api/api_client.dart';
 import '../models/common/paged_result.dart';
 import '../models/filters/slow_moving_product_query_filter.dart';
 import '../models/responses/business_report_dto.dart';
+import '../models/responses/staff_report_dto.dart';
 
 /// Reports service using the generic ApiClient
 class ReportsService {
@@ -20,7 +21,9 @@ class ReportsService {
   }
 
   /// Get inventory report (slow moving products) - legacy, all at once
-  Future<InventoryReportDTO> getInventoryReport({int daysToAnalyze = 30}) async {
+  Future<InventoryReportDTO> getInventoryReport({
+    int daysToAnalyze = 30,
+  }) async {
     return _client.get<InventoryReportDTO>(
       '/api/reports/inventory',
       queryParameters: {'daysToAnalyze': daysToAnalyze.toString()},
@@ -29,7 +32,9 @@ class ReportsService {
   }
 
   /// Get inventory summary (totals only, no products list)
-  Future<InventorySummaryDTO> getInventorySummary({int daysToAnalyze = 30}) async {
+  Future<InventorySummaryDTO> getInventorySummary({
+    int daysToAnalyze = 30,
+  }) async {
     return _client.get<InventorySummaryDTO>(
       '/api/reports/inventory/summary',
       queryParameters: {'daysToAnalyze': daysToAnalyze.toString()},
@@ -52,11 +57,22 @@ class ReportsService {
   }
 
   /// Get membership popularity report
-  Future<MembershipPopularityReportDTO> getMembershipPopularityReport({int days = 90}) async {
+  Future<MembershipPopularityReportDTO> getMembershipPopularityReport({
+    int days = 90,
+  }) async {
     return _client.get<MembershipPopularityReportDTO>(
       '/api/reports/membership-popularity',
       queryParameters: {'days': days.toString()},
       parser: (json) => MembershipPopularityReportDTO.fromJson(json),
+    );
+  }
+
+  /// Get staff report
+  Future<StaffReportDTO> getStaffReport({int days = 30}) async {
+    return _client.get<StaffReportDTO>(
+      '/api/reports/staff',
+      queryParameters: {'days': days.toString()},
+      parser: (json) => StaffReportDTO.fromJson(json),
     );
   }
 
@@ -71,74 +87,62 @@ class ReportsService {
     );
   }
 
-  /// Build date range query parameters
-  Map<String, String> _dateRangeParams({DateTime? from, DateTime? to}) {
-    final qp = <String, String>{};
-    if (from != null) qp['from'] = from.toIso8601String();
-    if (to != null) qp['to'] = to.toIso8601String();
-    return qp;
-  }
-
   /// Export business report to Excel and save to file
-  Future<void> exportBusinessToExcel(String savePath, {DateTime? from, DateTime? to}) async {
-    final bytes = await _client.getBytes(
-      '/api/reports/export/excel',
-      queryParameters: _dateRangeParams(from: from, to: to),
-    );
+  Future<void> exportBusinessToExcel(String savePath) async {
+    final bytes = await _client.getBytes('/api/reports/export/excel');
     final file = File(savePath);
     await file.writeAsBytes(bytes);
   }
 
   /// Export business report to PDF and save to file
-  Future<void> exportBusinessToPdf(String savePath, {DateTime? from, DateTime? to}) async {
-    final bytes = await _client.getBytes(
-      '/api/reports/export/pdf',
-      queryParameters: _dateRangeParams(from: from, to: to),
-    );
-    final file = File(savePath);
-    await file.writeAsBytes(bytes);
-  }
-
-  /// Export inventory report to Excel
-  Future<void> exportInventoryToExcel(String savePath, {int daysToAnalyze = 30, DateTime? from, DateTime? to}) async {
-    final qp = <String, String>{'daysToAnalyze': daysToAnalyze.toString()};
-    qp.addAll(_dateRangeParams(from: from, to: to));
-    final bytes = await _client.getBytes(
-      '/api/reports/inventory/export/excel',
-      queryParameters: qp,
-    );
-    final file = File(savePath);
-    await file.writeAsBytes(bytes);
-  }
-
-  /// Export inventory report to PDF
-  Future<void> exportInventoryToPdf(String savePath, {int daysToAnalyze = 30, DateTime? from, DateTime? to}) async {
-    final qp = <String, String>{'daysToAnalyze': daysToAnalyze.toString()};
-    qp.addAll(_dateRangeParams(from: from, to: to));
-    final bytes = await _client.getBytes(
-      '/api/reports/inventory/export/pdf',
-      queryParameters: qp,
-    );
+  Future<void> exportBusinessToPdf(String savePath) async {
+    final bytes = await _client.getBytes('/api/reports/export/pdf');
     final file = File(savePath);
     await file.writeAsBytes(bytes);
   }
 
   /// Export membership popularity report to Excel
-  Future<void> exportMembershipToExcel(String savePath, {DateTime? from, DateTime? to}) async {
+  Future<void> exportMembershipToExcel(String savePath) async {
     final bytes = await _client.getBytes(
       '/api/reports/membership-popularity/export/excel',
-      queryParameters: _dateRangeParams(from: from, to: to),
     );
     final file = File(savePath);
     await file.writeAsBytes(bytes);
   }
 
   /// Export membership popularity report to PDF
-  Future<void> exportMembershipToPdf(String savePath, {DateTime? from, DateTime? to}) async {
+  Future<void> exportMembershipToPdf(String savePath) async {
     final bytes = await _client.getBytes(
       '/api/reports/membership-popularity/export/pdf',
-      queryParameters: _dateRangeParams(from: from, to: to),
     );
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+  }
+
+  /// Export staff report to Excel
+  Future<void> exportStaffToExcel(String savePath) async {
+    final bytes = await _client.getBytes('/api/reports/staff/export/excel');
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+  }
+
+  /// Export staff report to PDF
+  Future<void> exportStaffToPdf(String savePath) async {
+    final bytes = await _client.getBytes('/api/reports/staff/export/pdf');
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+  }
+
+  /// Export visits report to Excel
+  Future<void> exportVisitsToExcel(String savePath) async {
+    final bytes = await _client.getBytes('/api/reports/visits/export/excel');
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+  }
+
+  /// Export visits report to PDF
+  Future<void> exportVisitsToPdf(String savePath) async {
+    final bytes = await _client.getBytes('/api/reports/visits/export/pdf');
     final file = File(savePath);
     await file.writeAsBytes(bytes);
   }

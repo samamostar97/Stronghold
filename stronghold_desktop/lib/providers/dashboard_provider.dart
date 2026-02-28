@@ -1,38 +1,35 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'api_providers.dart';
+import 'visit_provider.dart';
 
 /// Aggregated dashboard state composing data from multiple services.
 class DashboardState {
   final BusinessReportDTO? businessReport;
-  final MembershipPopularityReportDTO? membershipReport;
+  final DashboardSalesDTO? salesReport;
   final List<CurrentVisitorResponse> currentVisitors;
-  final List<ActivityFeedItemDTO> activityFeed;
   final bool isLoading;
   final String? error;
 
   const DashboardState({
     this.businessReport,
-    this.membershipReport,
+    this.salesReport,
     this.currentVisitors = const [],
-    this.activityFeed = const [],
     this.isLoading = false,
     this.error,
   });
 
   DashboardState copyWith({
     BusinessReportDTO? businessReport,
-    MembershipPopularityReportDTO? membershipReport,
+    DashboardSalesDTO? salesReport,
     List<CurrentVisitorResponse>? currentVisitors,
-    List<ActivityFeedItemDTO>? activityFeed,
     bool? isLoading,
     String? error,
   }) {
     return DashboardState(
       businessReport: businessReport ?? this.businessReport,
-      membershipReport: membershipReport ?? this.membershipReport,
+      salesReport: salesReport ?? this.salesReport,
       currentVisitors: currentVisitors ?? this.currentVisitors,
-      activityFeed: activityFeed ?? this.activityFeed,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -41,28 +38,26 @@ class DashboardState {
 
 /// Dashboard notifier that fetches data from existing services in parallel.
 class DashboardNotifier extends StateNotifier<DashboardState> {
-  final ReportsService _reportsService;
+  final DashboardService _dashboardService;
   final VisitService _visitService;
 
-  DashboardNotifier(this._reportsService, this._visitService)
-      : super(const DashboardState());
+  DashboardNotifier(this._dashboardService, this._visitService)
+    : super(const DashboardState());
 
   /// Load all dashboard data in parallel.
   Future<void> load() async {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final results = await Future.wait([
-        _reportsService.getBusinessReport(),
-        _reportsService.getMembershipPopularityReport(),
+        _dashboardService.getOverview(),
+        _dashboardService.getSales(),
         _visitService.getCurrentVisitors(),
-        _reportsService.getActivityFeed(),
       ]);
 
       state = DashboardState(
         businessReport: results[0] as BusinessReportDTO,
-        membershipReport: results[1] as MembershipPopularityReportDTO,
+        salesReport: results[1] as DashboardSalesDTO,
         currentVisitors: List<CurrentVisitorResponse>.from(results[2] as List),
-        activityFeed: results[3] as List<ActivityFeedItemDTO>,
         isLoading: false,
       );
     } catch (e) {
@@ -77,10 +72,14 @@ class DashboardNotifier extends StateNotifier<DashboardState> {
   Future<void> refresh() => load();
 }
 
+final dashboardServiceProvider = Provider<DashboardService>((ref) {
+  return DashboardService(ref.watch(apiClientProvider));
+});
+
 /// Dashboard provider
 final dashboardProvider =
     StateNotifierProvider<DashboardNotifier, DashboardState>((ref) {
-  final reportsService = ReportsService(ref.watch(apiClientProvider));
-  final visitService = VisitService(ref.watch(apiClientProvider));
-  return DashboardNotifier(reportsService, visitService);
-});
+      final dashboardService = ref.watch(dashboardServiceProvider);
+      final visitService = ref.watch(visitServiceProvider);
+      return DashboardNotifier(dashboardService, visitService);
+    });

@@ -25,3 +25,4 @@ export 'user_seminar_service.dart';
 export 'user_review_service.dart';
 export 'profile_service.dart';
 export 'recommendation_service.dart';
+export 'dashboard_service.dart';
