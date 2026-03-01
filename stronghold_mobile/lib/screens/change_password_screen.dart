@@ -10,6 +10,7 @@ import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
+import '../widgets/shared/surface_card.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -102,13 +103,13 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
                     onPressed: () => context.pop(),
                     icon: const Icon(
                       LucideIcons.arrowLeft,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Promijeni lozinku',
-                      style: AppTextStyles.headingMd.copyWith(color: Colors.white),
+                      style: AppTextStyles.headingMd.copyWith(color: AppColors.textPrimary),
                     ),
                   ),
                 ],
@@ -164,7 +165,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
   }
 
   Widget _buildFormView() {
-    return GlassCard(
+    return SurfaceCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Form(
         key: _formKey,
@@ -301,11 +302,32 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
             ],
-            GradientButton(
-              label: 'PROMIJENI LOZINKU',
-              icon: LucideIcons.lock,
-              isLoading: _isLoading,
-              onPressed: _isLoading ? null : _handleChangePassword,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _isLoading ? null : _handleChangePassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+                  disabledForegroundColor: Colors.white70,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
+                icon: _isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(LucideIcons.lock, size: 16),
+                label: Text('PROMIJENI LOZINKU',
+                    style: AppTextStyles.buttonMd
+                        .copyWith(color: Colors.white)),
+              ),
             ),
           ],
         ),

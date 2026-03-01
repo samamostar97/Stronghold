@@ -86,7 +86,7 @@ class _OrderHistoryScreenState
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child: Text('Historija narudzbi',
-                      style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
+                      style: AppTextStyles.headingMd.copyWith(color: AppColors.textPrimary))),
             ]),
           ),
           Expanded(child: _body(state))

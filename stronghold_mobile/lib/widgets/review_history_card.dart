@@ -5,6 +5,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import 'review_card.dart';
+import 'shared/surface_card.dart';
 
 class ReviewHistoryCard extends StatelessWidget {
   final UserReviewResponse review;
@@ -20,7 +21,7 @@ class ReviewHistoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -29,7 +30,7 @@ class ReviewHistoryCard extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(review.supplementName,
-                    style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+                    style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
               ),
               const SizedBox(width: AppSpacing.md),
               ReviewCard.starRating(review.rating.toDouble()),
@@ -39,7 +40,7 @@ class ReviewHistoryCard extends StatelessWidget {
               review.comment!.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.md),
             Text(review.comment!,
-                style: AppTextStyles.bodyMd.copyWith(height: 1.4, color: Colors.white)),
+                style: AppTextStyles.bodyMd.copyWith(height: 1.4, color: AppColors.textPrimary)),
           ],
           const SizedBox(height: AppSpacing.lg),
           Row(
@@ -51,7 +52,7 @@ class ReviewHistoryCard extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Text('${review.rating}/5',
                     style: AppTextStyles.bodyBold
-                        .copyWith(color: Colors.white)),
+                        .copyWith(color: AppColors.textPrimary)),
               ]),
               GestureDetector(
                 onTap: isDeleting ? null : onDelete,

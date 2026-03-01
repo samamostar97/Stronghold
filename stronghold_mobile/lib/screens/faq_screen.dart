@@ -47,7 +47,7 @@ class FaqScreen extends ConsumerWidget {
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                   child: Text('Cesta pitanja',
-                      style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
+                      style: AppTextStyles.headingMd.copyWith(color: AppColors.textPrimary))),
             ]),
           ),
           Expanded(

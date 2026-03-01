@@ -11,6 +11,7 @@ import '../providers/auth_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
+import '../widgets/shared/surface_card.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
@@ -155,13 +156,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     onPressed: () => context.pop(),
                     icon: const Icon(
                       LucideIcons.arrowLeft,
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   Expanded(
                     child: Text(
                       'Zaboravljena lozinka',
-                      style: AppTextStyles.headingMd.copyWith(color: Colors.white),
+                      style: AppTextStyles.headingMd.copyWith(color: AppColors.textPrimary),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -200,7 +201,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: AppSpacing.xxl),
-                    GlassCard(
+                    SurfaceCard(
                       padding: const EdgeInsets.all(AppSpacing.xl),
                       child: !_codeSent ? _buildEmailStep() : _buildResetStep(),
                     )
@@ -246,11 +247,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             },
           ),
           const SizedBox(height: AppSpacing.xl),
-          GradientButton(
-            label: 'POSALJI KOD',
-            icon: LucideIcons.send,
-            isLoading: _isLoading,
-            onPressed: _isLoading ? null : _handleSendCode,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isLoading ? null : _handleSendCode,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+                disabledForegroundColor: Colors.white70,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+              ),
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(LucideIcons.send, size: 16),
+              label: Text('POSALJI KOD',
+                  style: AppTextStyles.buttonMd
+                      .copyWith(color: Colors.white)),
+            ),
           ),
         ],
       ),
@@ -332,11 +354,32 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
             },
           ),
           const SizedBox(height: AppSpacing.xl),
-          GradientButton(
-            label: 'RESETUJ LOZINKU',
-            icon: LucideIcons.keyRound,
-            isLoading: _isLoading,
-            onPressed: _isLoading ? null : _handleResetPassword,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: _isLoading ? null : _handleResetPassword,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+                disabledForegroundColor: Colors.white70,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+              ),
+              icon: _isLoading
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white),
+                    )
+                  : const Icon(LucideIcons.keyRound, size: 16),
+              label: Text('RESETUJ LOZINKU',
+                  style: AppTextStyles.buttonMd
+                      .copyWith(color: Colors.white)),
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           Center(

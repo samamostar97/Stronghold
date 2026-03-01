@@ -5,6 +5,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
+import 'shared/surface_card.dart';
 
 class OrderHistoryCard extends StatelessWidget {
   final UserOrderResponse order;
@@ -36,7 +37,7 @@ class OrderHistoryCard extends StatelessWidget {
     final totalQty = order.orderItems
         .fold<int>(0, (sum, item) => sum + item.quantity);
 
-    return GlassCard(
+    return SurfaceCard(
       padding: EdgeInsets.zero,
       child: Column(children: [
         GestureDetector(
@@ -50,7 +51,7 @@ class OrderHistoryCard extends StatelessWidget {
                   Expanded(
                     child: Text(
                       'Narudzba ${formatDateDDMMYYYY(order.purchaseDate)}',
-                      style: AppTextStyles.headingSm.copyWith(color: Colors.white),
+                      style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
@@ -72,22 +73,22 @@ class OrderHistoryCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Datum narudzbe',
-                            style: AppTextStyles.caption.copyWith(color: Colors.white)),
+                            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                         const SizedBox(height: AppSpacing.xs),
                         Text(formatDateDDMMYYYY(order.purchaseDate),
-                            style: AppTextStyles.bodyMd.copyWith(color: Colors.white)),
+                            style: AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary)),
                       ],
                     ),
                     Row(children: [
                       Text(
                           '$totalQty artikl${totalQty == 1 ? '' : 'a'}',
-                          style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
+                          style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary)),
                       const SizedBox(width: AppSpacing.sm),
                       Icon(
                         isExpanded
                             ? LucideIcons.chevronUp
                             : LucideIcons.chevronDown,
-                        color: Colors.white,
+                        color: AppColors.textSecondary,
                         size: 18,
                       ),
                     ]),
@@ -126,17 +127,17 @@ class OrderHistoryCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(item.supplementName,
-                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
                   overflow: TextOverflow.ellipsis),
               const SizedBox(height: AppSpacing.xs),
               Text(
                   '${item.quantity} x ${item.unitPrice.toStringAsFixed(2)} KM',
-                  style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
+                  style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary)),
             ],
           ),
         ),
         Text('${item.totalPrice.toStringAsFixed(2)} KM',
-            style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+            style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary)),
       ]),
     );
   }

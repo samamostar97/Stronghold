@@ -10,6 +10,7 @@ import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
+import '../widgets/shared/surface_card.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -93,7 +94,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       'STRONGHOLD',
                       style: AppTextStyles.stat.copyWith(
                         letterSpacing: 4,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                     )
                         .animate(delay: 150.ms)
@@ -103,7 +104,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     Text(
                       'Dobrodosli nazad',
                       style: AppTextStyles.bodyLg.copyWith(
-                        color: Colors.white70,
+                        color: AppColors.textSecondary,
                       ),
                     )
                         .animate(delay: 250.ms)
@@ -141,7 +142,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         Text(
                           'Nemate racun? ',
                           style: AppTextStyles.bodyMd.copyWith(
-                            color: Colors.white70,
+                            color: AppColors.textSecondary,
                           ),
                         ),
                         GestureDetector(
@@ -195,7 +196,7 @@ class _LoginFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Form(
         key: formKey,
@@ -266,7 +267,7 @@ class _LoginFormCard extends StatelessWidget {
                   child: Text(
                     'Zaboravili ste lozinku?',
                     style: AppTextStyles.bodySm.copyWith(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -277,11 +278,32 @@ class _LoginFormCard extends StatelessWidget {
               _ErrorBanner(message: errorMessage!),
             ],
             const SizedBox(height: AppSpacing.lg),
-            GradientButton(
-              label: 'PRIJAVI SE',
-              icon: LucideIcons.logIn,
-              isLoading: isLoading,
-              onPressed: isLoading ? null : onLogin,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isLoading ? null : onLogin,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+                  disabledForegroundColor: Colors.white70,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(LucideIcons.logIn, size: 16),
+                label: Text('PRIJAVI SE',
+                    style: AppTextStyles.buttonMd
+                        .copyWith(color: Colors.white)),
+              ),
             ),
           ],
         ),

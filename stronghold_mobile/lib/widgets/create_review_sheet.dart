@@ -143,14 +143,35 @@ class _CreateReviewSheetState extends ConsumerState<CreateReviewSheet> {
                 const SizedBox(height: AppSpacing.sm),
                 _commentField(),
                 const SizedBox(height: AppSpacing.xxl),
-                GradientButton(
-                  label: 'Ostavi recenziju',
-                  icon: LucideIcons.send,
-                  isLoading: _isSubmitting,
-                  onPressed:
-                      (_selectedSupplement != null && _rating > 0)
-                          ? _submit
-                          : null,
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed:
+                        (_selectedSupplement != null && _rating > 0 && !_isSubmitting)
+                            ? _submit
+                            : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+                      disabledForegroundColor: Colors.white70,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      ),
+                    ),
+                    icon: _isSubmitting
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: Colors.white),
+                          )
+                        : const Icon(LucideIcons.send, size: 16),
+                    label: Text('Ostavi recenziju',
+                        style: AppTextStyles.buttonMd
+                            .copyWith(color: Colors.white)),
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
               ],

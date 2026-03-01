@@ -10,6 +10,7 @@ import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
 import '../utils/input_decoration_utils.dart';
 import '../utils/validators.dart';
+import '../widgets/shared/surface_card.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
@@ -126,13 +127,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         onPressed: () => context.pop(),
                         icon: const Icon(
                           LucideIcons.arrowLeft,
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       Expanded(
                         child: Text(
                           'Registracija',
-                          style: AppTextStyles.headingMd.copyWith(color: Colors.white),
+                          style: AppTextStyles.headingMd.copyWith(color: AppColors.textPrimary),
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -307,7 +308,7 @@ class _RegisterFormCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Form(
         key: formKey,
@@ -419,11 +420,32 @@ class _RegisterFormCard extends StatelessWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.xl),
-            GradientButton(
-              label: 'REGISTRUJ SE',
-              icon: LucideIcons.userPlus,
-              isLoading: isLoading,
-              onPressed: isLoading ? null : onRegister,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: isLoading ? null : onRegister,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  disabledBackgroundColor: AppColors.primary.withValues(alpha: 0.4),
+                  disabledForegroundColor: Colors.white70,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
+                icon: isLoading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Icon(LucideIcons.userPlus, size: 16),
+                label: Text('REGISTRUJ SE',
+                    style: AppTextStyles.buttonMd
+                        .copyWith(color: Colors.white)),
+              ),
             ),
           ],
         ),

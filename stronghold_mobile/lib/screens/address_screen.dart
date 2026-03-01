@@ -12,6 +12,7 @@ import '../providers/address_provider.dart';
 import '../utils/error_handler.dart';
 import '../utils/validators.dart';
 import '../widgets/feedback_dialog.dart';
+import '../widgets/shared/surface_card.dart';
 
 class AddressScreen extends ConsumerStatefulWidget {
   const AddressScreen({super.key});
@@ -81,10 +82,10 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: Colors.white),
+          icon: const Icon(LucideIcons.arrowLeft, color: AppColors.textPrimary),
           onPressed: () => context.pop(),
         ),
-        title: Text('Adresa za dostavu', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+        title: Text('Adresa za dostavu', style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
         centerTitle: false,
       ),
       body: addressAsync.when(
@@ -108,7 +109,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: AppSpacing.sm),
-                  GlassCard(
+                  SurfaceCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -159,7 +160,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                   ),
                   const SizedBox(height: AppSpacing.md),
                   // Country info
-                  GlassCard(
+                  SurfaceCard(
                     child: Row(
                       children: [
                         Container(
@@ -192,7 +193,7 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                               const SizedBox(height: 2),
                               Text(
                                 'Bosna i Hercegovina',
-                                style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                                style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
                               ),
                             ],
                           ),
@@ -201,12 +202,26 @@ class _AddressScreenState extends ConsumerState<AddressScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
-                  GradientButton(
-                    label: existing != null
-                        ? 'Sacuvaj izmjene'
-                        : 'Dodaj adresu',
-                    onPressed: _isLoading ? null : _save,
-                    isLoading: _isLoading,
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                        ),
+                      ),
+                      icon: _isLoading
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : const Icon(LucideIcons.save, size: 16),
+                      label: Text(
+                        existing != null ? 'Sacuvaj izmjene' : 'Dodaj adresu',
+                        style: AppTextStyles.buttonMd.copyWith(color: Colors.white),
+                      ),
+                    ),
                   ),
                 ],
               ),
