@@ -55,60 +55,58 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _progressOverviewCard(
-                    context,
-                    name: name,
-                    imageUrl: imageUrl,
-                    progressAsync: progressAsync,
-                    unreadCount: unreadCount,
-                    cartCount: cartCount,
-                  )
-                  .animate(delay: 40.ms)
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                  .slideY(
-                    begin: 0.04,
-                    end: 0,
-                    duration: Motion.smooth,
-                    curve: Motion.curve,
-                  ),
-              const SizedBox(height: AppSpacing.lg),
-              _appointmentsOverviewCard(context, appointmentsState)
-                  .animate(delay: 110.ms)
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                  .slideY(
-                    begin: 0.04,
-                    end: 0,
-                    duration: Motion.smooth,
-                    curve: Motion.curve,
-                  ),
-              const SizedBox(height: AppSpacing.lg),
-              _shopFeatureCard(context, homeSupplementsAsync)
-                  .animate(delay: 140.ms)
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                  .slideY(
-                    begin: 0.04,
-                    end: 0,
-                    duration: Motion.smooth,
-                    curve: Motion.curve,
-                  ),
-              const SizedBox(height: AppSpacing.lg),
-              _seminarFeatureCard(context, seminarsState)
-                  .animate(delay: 170.ms)
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                  .slideY(
-                    begin: 0.04,
-                    end: 0,
-                    duration: Motion.smooth,
-                    curve: Motion.curve,
-                  ),
-            ],
-          ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _progressOverviewCard(
+                  context,
+                  name: name,
+                  imageUrl: imageUrl,
+                  progressAsync: progressAsync,
+                  unreadCount: unreadCount,
+                  cartCount: cartCount,
+                )
+                .animate(delay: 40.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.04,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
+            const SizedBox(height: AppSpacing.lg),
+            _appointmentsOverviewCard(context, appointmentsState)
+                .animate(delay: 110.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.04,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
+            const SizedBox(height: AppSpacing.lg),
+            _shopFeatureCard(context, homeSupplementsAsync)
+                .animate(delay: 140.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.04,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
+            const SizedBox(height: AppSpacing.lg),
+            _seminarFeatureCard(context, seminarsState)
+                .animate(delay: 170.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                .slideY(
+                  begin: 0.04,
+                  end: 0,
+                  duration: Motion.smooth,
+                  curve: Motion.curve,
+                ),
+          ],
         ),
       ),
     );
@@ -145,10 +143,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     required int cartCount,
   }) {
     final fullImageUrl = imageUrl != null ? getFullImageUrl(imageUrl) : null;
+    final topInset = MediaQuery.paddingOf(context).top;
 
     return Container(
       width: double.infinity,
-      constraints: const BoxConstraints(minHeight: 360),
+      constraints: const BoxConstraints(minHeight: 300),
       decoration: _softPremiumCardDecoration(
         gradientColors: const [Color(0xFFF2F7FF), Color(0xFFE7F0FF)],
         accentColor: AppColors.primary,
@@ -177,7 +176,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.lg + topInset,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
