@@ -12,6 +12,7 @@ import '../constants/motion.dart';
 import '../providers/appointment_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
+import '../widgets/shared/surface_card.dart';
 
 class _NotifItem {
   final String type;
@@ -20,15 +21,24 @@ class _NotifItem {
   final DateTime date;
   final int? backendId;
   final bool isRead;
+  final String route;
 
   const _NotifItem({
     required this.type,
     required this.title,
     required this.message,
     required this.date,
+    required this.route,
     this.backendId,
     this.isRead = false,
   });
+}
+
+class _NotifSection {
+  final String title;
+  final List<_NotifItem> items;
+
+  const _NotifSection({required this.title, required this.items});
 }
 
 class NotificationScreen extends ConsumerStatefulWidget {
@@ -44,7 +54,7 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    Future.microtask(() => _refresh());
+    Future.microtask(_refresh);
   }
 
   @override
@@ -55,7 +65,9 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) _refresh();
+    if (state == AppLifecycleState.resumed) {
+      _refresh();
+    }
   }
 
   void _refresh() {
@@ -63,103 +75,188 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
     ref.read(myAppointmentsProvider.notifier).load();
   }
 
-  List<_NotifItem> _buildNotificationList() {
-    final items = <_NotifItem>[];
+  List<_NotifItem> _buildItems({
+    required UserNotificationState backendState,
+    required MyAppointmentsState appointmentState,
+    required List<MembershipPaymentResponse> memberships,
+  }) {
     final now = DateTime.now();
     final sevenDaysFromNow = now.add(const Duration(days: 7));
+    final items = <_NotifItem>[];
 
-    // Backend notifications
-    final backendState = ref.watch(userNotificationProvider);
-    for (final n in backendState.items) {
-      items.add(_NotifItem(
-        type: n.type,
-        title: n.title,
-        message: n.message,
-        date: n.createdAt,
-        backendId: n.id,
-        isRead: n.isRead,
-      ));
+    for (final notification in backendState.items) {
+      items.add(
+        _NotifItem(
+          type: notification.type,
+          title: notification.title,
+          message: notification.message,
+          date: notification.createdAt,
+          backendId: notification.id,
+          isRead: notification.isRead,
+          route: _routeFromBackendNotification(
+            notification.type,
+            notification.relatedEntityType,
+          ),
+        ),
+      );
     }
 
-    // Upcoming appointments within 7 days
-    final appointmentState = ref.watch(myAppointmentsProvider);
-    for (final a in appointmentState.items) {
-      if (a.appointmentDate.isAfter(now) &&
-          a.appointmentDate.isBefore(sevenDaysFromNow)) {
-        final daysUntil = a.appointmentDate.difference(now).inDays;
-        final professional = a.trainerName ?? a.nutritionistName ?? '';
-        final dateStr = DateFormat('dd.MM', 'bs').format(a.appointmentDate);
-        final timeStr = DateFormat('HH:mm').format(a.appointmentDate);
+    for (final appointment in appointmentState.items) {
+      if (appointment.appointmentDate.isAfter(now) &&
+          appointment.appointmentDate.isBefore(sevenDaysFromNow)) {
+        final professional =
+            appointment.trainerName ?? appointment.nutritionistName ?? '';
+        final dateLabel = DateFormat(
+          'dd.MM',
+          'bs',
+        ).format(appointment.appointmentDate);
+        final timeLabel = DateFormat(
+          'HH:mm',
+        ).format(appointment.appointmentDate);
+        final daysUntil = appointment.appointmentDate.difference(now).inDays;
 
-        String dayLabel;
-        if (daysUntil == 0) {
-          dayLabel = 'danas';
-        } else if (daysUntil == 1) {
-          dayLabel = 'sutra';
-        } else {
-          dayLabel = 'za $daysUntil dana';
-        }
-
-        items.add(_NotifItem(
-          type: 'appointment_reminder',
-          title: 'Termin $dayLabel',
-          message: '$professional - $dateStr u $timeStr',
-          date: a.appointmentDate,
-        ));
+        items.add(
+          _NotifItem(
+            type: 'appointment_reminder',
+            title: daysUntil == 0
+                ? 'Termin danas'
+                : (daysUntil == 1
+                      ? 'Termin sutra'
+                      : 'Termin za $daysUntil dana'),
+            message: '$professional - $dateLabel u $timeLabel',
+            date: appointment.appointmentDate,
+            route: '/appointments',
+            isRead: true,
+          ),
+        );
       }
     }
 
-    // Membership expiring within 7 days
-    final membershipAsync = ref.watch(membershipHistoryProvider);
-    membershipAsync.whenData((payments) {
-      final active = payments.where((p) => p.isActive).toList();
-      for (final m in active) {
-        final daysLeft = m.endDate.difference(now).inDays;
-        if (daysLeft <= 7 && daysLeft >= 0) {
-          String dayLabel;
-          if (daysLeft == 0) {
-            dayLabel = 'danas';
-          } else if (daysLeft == 1) {
-            dayLabel = 'sutra';
-          } else {
-            dayLabel = 'za $daysLeft dana';
-          }
-
-          items.add(_NotifItem(
+    for (final membership in memberships) {
+      final daysLeft = membership.endDate.difference(now).inDays;
+      if (membership.isActive && daysLeft >= 0 && daysLeft <= 7) {
+        items.add(
+          _NotifItem(
             type: 'membership_expiry',
-            title: 'Clanarina istice $dayLabel',
+            title: daysLeft == 0
+                ? 'Clanarina istice danas'
+                : (daysLeft == 1
+                      ? 'Clanarina istice sutra'
+                      : 'Clanarina istice za $daysLeft dana'),
             message:
-                '${m.packageName} istice ${DateFormat('dd.MM.yyyy').format(m.endDate)}',
-            date: m.endDate,
-          ));
-        }
+                '${membership.packageName} istice ${DateFormat('dd.MM.yyyy').format(membership.endDate)}',
+            date: membership.endDate,
+            route: '/profile',
+            isRead: true,
+          ),
+        );
       }
-    });
+    }
 
-    // Sort: unread first, then by date descending
-    items.sort((a, b) {
-      if (a.isRead != b.isRead) return a.isRead ? 1 : -1;
-      return b.date.compareTo(a.date);
-    });
-
+    items.sort((a, b) => b.date.compareTo(a.date));
     return items;
+  }
+
+  List<_NotifSection> _groupItems(List<_NotifItem> items) {
+    final grouped = <String, List<_NotifItem>>{};
+
+    for (final item in items) {
+      final key = _sectionLabel(item.date);
+      grouped.putIfAbsent(key, () => []).add(item);
+    }
+
+    return grouped.entries
+        .map((entry) => _NotifSection(title: entry.key, items: entry.value))
+        .toList();
+  }
+
+  String _sectionLabel(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final itemDay = DateTime(date.year, date.month, date.day);
+    final diff = today.difference(itemDay).inDays;
+
+    if (diff == 0) return 'Danas';
+    if (diff == 1) return 'Juce';
+    if (diff < 7) {
+      final weekday = DateFormat('EEEE', 'bs').format(date);
+      return weekday[0].toUpperCase() + weekday.substring(1);
+    }
+    return DateFormat('dd.MM.yyyy').format(date);
+  }
+
+  String _routeFromBackendNotification(String type, String? relatedEntityType) {
+    final normalizedType = type.toLowerCase();
+    final normalizedEntity = (relatedEntityType ?? '').toLowerCase();
+
+    if (normalizedType.contains('order') ||
+        normalizedEntity.contains('order')) {
+      return '/orders';
+    }
+    if (normalizedType.contains('appointment') ||
+        normalizedEntity.contains('appointment')) {
+      return '/appointments';
+    }
+    if (normalizedType.contains('review') ||
+        normalizedEntity.contains('review')) {
+      return '/reviews';
+    }
+    if (normalizedType.contains('seminar') ||
+        normalizedEntity.contains('seminar')) {
+      return '/seminars';
+    }
+    if (normalizedType.contains('membership')) {
+      return '/profile';
+    }
+    return '/home';
+  }
+
+  Future<void> _openNotification(_NotifItem item) async {
+    if (!item.isRead && item.backendId != null) {
+      await ref
+          .read(userNotificationProvider.notifier)
+          .markAsRead(item.backendId!);
+    }
+    if (!mounted) return;
+    _openRoute(item.route);
+  }
+
+  void _openRoute(String route) {
+    if (route == '/home' ||
+        route == '/appointments' ||
+        route == '/shop' ||
+        route == '/profile') {
+      context.go(route);
+      return;
+    }
+    context.push(route);
   }
 
   @override
   Widget build(BuildContext context) {
     final backendState = ref.watch(userNotificationProvider);
-    final items = _buildNotificationList();
-    final hasUnread = items.any((n) => !n.isRead && n.backendId != null);
+    final appointmentState = ref.watch(myAppointmentsProvider);
+    final membershipState = ref.watch(membershipHistoryProvider);
+    final memberships = membershipState.asData?.value ?? [];
+
+    final items = _buildItems(
+      backendState: backendState,
+      appointmentState: appointmentState,
+      memberships: memberships,
+    );
+
+    final sections = _groupItems(items);
+    final hasUnreadBackend = backendState.unreadCount > 0;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Column(
           children: [
-            // App bar
             Padding(
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
               child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   GestureDetector(
                     onTap: () => context.pop(),
@@ -167,38 +264,71 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
                       width: AppSpacing.touchTarget,
                       height: AppSpacing.touchTarget,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
-                        borderRadius:
-                            BorderRadius.circular(AppSpacing.radiusMd),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
                         border: Border.all(color: AppColors.border),
                       ),
-                      child: const Icon(LucideIcons.arrowLeft,
-                          color: Colors.white, size: 20),
+                      child: const Icon(
+                        LucideIcons.arrowLeft,
+                        color: AppColors.textPrimary,
+                        size: 20,
+                      ),
                     ),
                   ),
                   const SizedBox(width: AppSpacing.lg),
                   Expanded(
-                    child: Text(
-                      'Obavijesti',
-                      style: AppTextStyles.headingMd
-                          .copyWith(color: Colors.white),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Obavijesti', style: AppTextStyles.headingMd),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${items.length} stavki',
+                          style: AppTextStyles.caption,
+                        ),
+                      ],
                     ),
                   ),
-                  if (hasUnread)
-                    GestureDetector(
-                      onTap: () => ref
-                          .read(userNotificationProvider.notifier)
-                          .markAllAsRead(),
-                      child: Text(
-                        'Oznaci sve',
-                        style: AppTextStyles.bodySm
-                            .copyWith(color: AppColors.primary),
+                  if (hasUnreadBackend)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: InkWell(
+                        onTap: () => ref
+                            .read(userNotificationProvider.notifier)
+                            .markAllAsRead(),
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xs,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusMd,
+                            ),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Text(
+                            'Oznaci sve',
+                            style: AppTextStyles.caption.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                 ],
               ),
             ),
-            // Content
             Expanded(
               child: backendState.isLoading && items.isEmpty
                   ? const Center(
@@ -208,25 +338,49 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
                       ),
                     )
                   : items.isEmpty
-                      ? _emptyState()
-                      : ListView.separated(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.screenPadding,
-                          ),
-                          itemCount: items.length,
-                          separatorBuilder: (_, __) =>
-                              const SizedBox(height: AppSpacing.sm),
-                          itemBuilder: (_, i) => _notificationCard(items[i])
-                              .animate(delay: (50 * i).ms)
-                              .fadeIn(
-                                  duration: Motion.smooth, curve: Motion.curve)
-                              .slideY(
-                                begin: 0.04,
-                                end: 0,
-                                duration: Motion.smooth,
-                                curve: Motion.curve,
+                  ? _emptyState()
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.screenPadding,
+                      ),
+                      children: [
+                        for (var i = 0; i < sections.length; i++) ...[
+                          Padding(
+                            padding: EdgeInsets.only(
+                              top: i == 0 ? 0 : AppSpacing.lg,
+                              bottom: AppSpacing.sm,
+                            ),
+                            child: Text(
+                              sections[i].title,
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.textSecondary,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.2,
                               ),
-                        ),
+                            ),
+                          ),
+                          for (var j = 0; j < sections[i].items.length; j++)
+                            Padding(
+                              padding: const EdgeInsets.only(
+                                bottom: AppSpacing.sm,
+                              ),
+                              child: _notificationCard(sections[i].items[j])
+                                  .animate(delay: (40 * (i + j)).ms)
+                                  .fadeIn(
+                                    duration: Motion.smooth,
+                                    curve: Motion.curve,
+                                  )
+                                  .slideY(
+                                    begin: 0.03,
+                                    end: 0,
+                                    duration: Motion.smooth,
+                                    curve: Motion.curve,
+                                  ),
+                            ),
+                        ],
+                        const SizedBox(height: AppSpacing.xl),
+                      ],
+                    ),
             ),
           ],
         ),
@@ -243,24 +397,24 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: AppColors.primaryDim,
+              color: AppColors.primary.withValues(alpha: 0.08),
               shape: BoxShape.circle,
               border: Border.all(
-                  color: AppColors.navyBlue.withValues(alpha: 0.5)),
+                color: AppColors.primary.withValues(alpha: 0.25),
+              ),
             ),
-            child:
-                const Icon(LucideIcons.bellOff, size: 28, color: Colors.white),
+            child: const Icon(
+              LucideIcons.bellOff,
+              size: 28,
+              color: AppColors.primary,
+            ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          Text(
-            'Nemate obavijesti',
-            style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
-          ),
+          Text('Nemate obavijesti', style: AppTextStyles.bodyBold),
           const SizedBox(height: AppSpacing.xs),
           Text(
-            'Ovdje cete vidjeti sve obavijesti',
-            style: AppTextStyles.bodySm
-                .copyWith(color: Colors.white.withValues(alpha: 0.5)),
+            'Ovdje cete vidjeti novosti i podsjetnike.',
+            style: AppTextStyles.bodySm,
           ),
         ],
       ),
@@ -272,13 +426,8 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
     final color = _colorForType(item.type);
     final timeLabel = _formatTimeLabel(item);
 
-    return GlassCard(
-      backgroundColor: const Color(0x33FFFFFF),
-      onTap: (!item.isRead && item.backendId != null)
-          ? () => ref
-              .read(userNotificationProvider.notifier)
-              .markAsRead(item.backendId!)
-          : null,
+    return SurfaceCard(
+      onTap: () => _openNotification(item),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -286,13 +435,11 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.25),
+              color: color.withValues(alpha: 0.14),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(
-                  color: AppColors.navyBlue.withValues(alpha: 0.5),
-                  width: 0.5),
+              border: Border.all(color: color.withValues(alpha: 0.26)),
             ),
-            child: Icon(icon, size: 18, color: Colors.white),
+            child: Icon(icon, size: 18, color: color),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -305,10 +452,12 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
                       child: Text(
                         item.title,
                         style: item.isRead
-                            ? AppTextStyles.bodyMd
-                                .copyWith(color: Colors.white)
-                            : AppTextStyles.bodyBold
-                                .copyWith(color: Colors.white),
+                            ? AppTextStyles.bodyMd.copyWith(
+                                color: AppColors.textPrimary,
+                              )
+                            : AppTextStyles.bodyBold.copyWith(
+                                color: AppColors.textPrimary,
+                              ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -321,21 +470,23 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
                           shape: BoxShape.circle,
                         ),
                       ),
+                    const SizedBox(width: AppSpacing.xs),
+                    const Icon(
+                      LucideIcons.chevronRight,
+                      size: 15,
+                      color: AppColors.textMuted,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
                   item.message,
-                  style: AppTextStyles.bodySm.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodySm,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                Text(
-                  timeLabel,
-                  style:
-                      AppTextStyles.caption.copyWith(color: Colors.white70),
-                ),
+                Text(timeLabel, style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -345,37 +496,25 @@ class _NotificationScreenState extends ConsumerState<NotificationScreen>
   }
 
   IconData _iconForType(String type) {
-    switch (type) {
-      case 'order_confirmed':
-        return LucideIcons.packageCheck;
-      case 'order_delivered':
-        return LucideIcons.truck;
-      case 'order_cancelled':
-        return LucideIcons.packageX;
-      case 'appointment_reminder':
-        return LucideIcons.calendarClock;
-      case 'membership_expiry':
-        return LucideIcons.alertTriangle;
-      default:
-        return LucideIcons.bell;
-    }
+    return switch (type) {
+      'order_confirmed' => LucideIcons.packageCheck,
+      'order_delivered' => LucideIcons.truck,
+      'order_cancelled' => LucideIcons.packageX,
+      'appointment_reminder' => LucideIcons.calendarClock,
+      'membership_expiry' => LucideIcons.alertTriangle,
+      _ => LucideIcons.bell,
+    };
   }
 
   Color _colorForType(String type) {
-    switch (type) {
-      case 'order_confirmed':
-        return AppColors.success;
-      case 'order_delivered':
-        return AppColors.primary;
-      case 'order_cancelled':
-        return AppColors.error;
-      case 'appointment_reminder':
-        return AppColors.secondary;
-      case 'membership_expiry':
-        return AppColors.warning;
-      default:
-        return AppColors.accent;
-    }
+    return switch (type) {
+      'order_confirmed' => AppColors.success,
+      'order_delivered' => AppColors.primary,
+      'order_cancelled' => AppColors.error,
+      'appointment_reminder' => AppColors.secondary,
+      'membership_expiry' => AppColors.warning,
+      _ => AppColors.accent,
+    };
   }
 
   String _formatTimeLabel(_NotifItem item) {

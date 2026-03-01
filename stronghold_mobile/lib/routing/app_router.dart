@@ -17,8 +17,6 @@ import '../screens/address_screen.dart';
 import '../screens/change_password_screen.dart';
 import '../screens/appointment_screen.dart';
 import '../screens/book_appointment_screen.dart';
-import '../screens/trainer_list_screen.dart';
-import '../screens/nutritionist_list_screen.dart';
 import '../screens/seminar_screen.dart';
 import '../screens/faq_screen.dart';
 import '../screens/review_history_screen.dart';
@@ -101,19 +99,7 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/book-appointment',
-        builder: (_, state) {
-          final args = state.extra as BookAppointmentArgs;
-          return BookAppointmentScreen(
-            staffId: args.staffId,
-            staffName: args.staffName,
-            staffType: args.staffType,
-          );
-        },
-      ),
-      GoRoute(path: '/trainers', builder: (_, __) => const TrainerListScreen()),
-      GoRoute(
-        path: '/nutritionists',
-        builder: (_, __) => const NutritionistListScreen(),
+        builder: (_, __) => const BookAppointmentScreen(),
       ),
       GoRoute(path: '/seminars', builder: (_, __) => const SeminarScreen()),
       GoRoute(

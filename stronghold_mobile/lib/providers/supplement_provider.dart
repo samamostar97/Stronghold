@@ -10,6 +10,7 @@ class SupplementListState {
   final int pageSize;
   final String? search;
   final int? categoryId;
+  final String? orderBy;
   final bool isLoading;
   final String? error;
 
@@ -20,6 +21,7 @@ class SupplementListState {
     this.pageSize = 10,
     this.search,
     this.categoryId,
+    this.orderBy,
     this.isLoading = false,
     this.error,
   });
@@ -31,11 +33,13 @@ class SupplementListState {
     int? pageSize,
     String? search,
     int? categoryId,
+    String? orderBy,
     bool? isLoading,
     String? error,
     bool clearError = false,
     bool clearCategory = false,
     bool clearSearch = false,
+    bool clearOrderBy = false,
   }) {
     return SupplementListState(
       items: items ?? this.items,
@@ -44,6 +48,7 @@ class SupplementListState {
       pageSize: pageSize ?? this.pageSize,
       search: clearSearch ? null : (search ?? this.search),
       categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
+      orderBy: clearOrderBy ? null : (orderBy ?? this.orderBy),
       isLoading: isLoading ?? this.isLoading,
       error: clearError ? null : (error ?? this.error),
     );
@@ -72,6 +77,9 @@ class SupplementListNotifier extends StateNotifier<SupplementListState> {
       }
       if (state.categoryId != null) {
         filter.supplementCategoryId = state.categoryId;
+      }
+      if (state.orderBy != null && state.orderBy!.isNotEmpty) {
+        filter.orderBy = state.orderBy;
       }
 
       final result = await _service.getAll(filter);
@@ -112,6 +120,16 @@ class SupplementListNotifier extends StateNotifier<SupplementListState> {
     await load();
   }
 
+  /// Set sort and reload from page 1
+  Future<void> setOrderBy(String? orderBy) async {
+    state = state.copyWith(
+      orderBy: orderBy,
+      pageNumber: 1,
+      clearOrderBy: orderBy == null || orderBy.isEmpty,
+    );
+    await load();
+  }
+
   /// Go to next page
   Future<void> nextPage() async {
     if (state.hasNextPage) {
@@ -130,46 +148,76 @@ class SupplementListNotifier extends StateNotifier<SupplementListState> {
 
   /// Refresh current page
   Future<void> refresh() => load();
+
+  /// Clear search/category/sort and reload browse defaults
+  Future<void> resetFilters() async {
+    state = state.copyWith(
+      pageNumber: 1,
+      clearSearch: true,
+      clearCategory: true,
+      clearOrderBy: true,
+    );
+    await load();
+  }
 }
 
 /// Supplement list provider
 final supplementListProvider =
     StateNotifierProvider<SupplementListNotifier, SupplementListState>((ref) {
-  final client = ref.watch(apiClientProvider);
-  return SupplementListNotifier(SupplementService(client));
-});
+      final client = ref.watch(apiClientProvider);
+      return SupplementListNotifier(SupplementService(client));
+    });
 
 /// Single supplement detail provider
-final supplementDetailProvider =
-    FutureProvider.family<SupplementResponse, int>((ref, id) async {
-  final client = ref.watch(apiClientProvider);
-  return SupplementService(client).getById(id);
-});
+final supplementDetailProvider = FutureProvider.family<SupplementResponse, int>(
+  (ref, id) async {
+    final client = ref.watch(apiClientProvider);
+    return SupplementService(client).getById(id);
+  },
+);
 
 /// Supplement categories provider
 final supplementCategoriesProvider =
     FutureProvider<List<SupplementCategoryResponse>>((ref) async {
-  final client = ref.watch(apiClientProvider);
-  final filter = SupplementCategoryQueryFilter()..pageSize = 100;
-  final result = await SupplementCategoryService(client).getAll(filter);
-  return result.items;
-});
+      final client = ref.watch(apiClientProvider);
+      final filter = SupplementCategoryQueryFilter()..pageSize = 100;
+      final result = await SupplementCategoryService(client).getAll(filter);
+      return result.items;
+    });
 
 /// Supplements by category (first 6 per category for shop sections)
 final supplementsByCategoryProvider =
-    FutureProvider.family<List<SupplementResponse>, int>((ref, categoryId) async {
-  final client = ref.watch(apiClientProvider);
-  final filter = SupplementQueryFilter()
-    ..supplementCategoryId = categoryId
-    ..pageSize = 6
-    ..pageNumber = 1;
-  final result = await SupplementService(client).getAll(filter);
-  return result.items;
-});
+    FutureProvider.family<List<SupplementResponse>, int>((
+      ref,
+      categoryId,
+    ) async {
+      final client = ref.watch(apiClientProvider);
+      final filter = SupplementQueryFilter()
+        ..supplementCategoryId = categoryId
+        ..pageSize = 6
+        ..pageNumber = 1;
+      final result = await SupplementService(client).getAll(filter);
+      return result.items;
+    });
 
 /// Supplement reviews provider
 final supplementReviewsProvider =
-    FutureProvider.family<List<SupplementReviewResponse>, int>((ref, supplementId) async {
+    FutureProvider.family<List<SupplementReviewResponse>, int>((
+      ref,
+      supplementId,
+    ) async {
+      final client = ref.watch(apiClientProvider);
+      return SupplementService(client).getReviews(supplementId);
+    });
+
+/// Home preview supplements (small curated list)
+final homeSupplementsProvider = FutureProvider<List<SupplementResponse>>((
+  ref,
+) async {
   final client = ref.watch(apiClientProvider);
-  return SupplementService(client).getReviews(supplementId);
+  final filter = SupplementQueryFilter()
+    ..pageNumber = 1
+    ..pageSize = 3;
+  final result = await SupplementService(client).getAll(filter);
+  return result.items;
 });
