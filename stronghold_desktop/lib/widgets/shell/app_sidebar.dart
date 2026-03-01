@@ -3,24 +3,22 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
-import '../../constants/motion.dart';
 
-/// Navigation item model.
 class NavItem {
   const NavItem({required this.id, required this.label, required this.icon});
+
   final String id;
   final String label;
   final IconData icon;
 }
 
-/// Grouped navigation items with optional section label.
 class NavGroup {
   const NavGroup({this.label, required this.items});
+
   final String? label;
   final List<NavItem> items;
 }
 
-/// Aether sidebar — collapsible nav rail for admin shell.
 class AppSidebar extends StatelessWidget {
   const AppSidebar({
     super.key,
@@ -30,7 +28,6 @@ class AppSidebar extends StatelessWidget {
     required this.collapsed,
     required this.onToggleCollapse,
     required this.onLogout,
-    this.bottom,
   });
 
   final List<NavGroup> groups;
@@ -39,168 +36,145 @@ class AppSidebar extends StatelessWidget {
   final bool collapsed;
   final VoidCallback onToggleCollapse;
   final VoidCallback onLogout;
-  final Widget? bottom;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
+      duration: const Duration(milliseconds: 220),
       curve: Curves.easeOutCubic,
-      width: collapsed ? 72 : 240,
-      decoration: BoxDecoration(
-        color: AppColors.deepBlue.withValues(alpha: 0.65),
-        border: Border(
-          right: BorderSide(color: Colors.white.withValues(alpha: 0.08), width: 1),
-        ),
+      width: collapsed ? 84 : 252,
+      decoration: const BoxDecoration(
+        color: AppColors.surface,
+        border: Border(right: BorderSide(color: AppColors.border)),
       ),
-      child: Column(
-        children: [
-          const SizedBox(height: AppSpacing.lg),
-          _Logo(collapsed: collapsed, onLogout: onLogout),
-          const SizedBox(height: AppSpacing.lg),
-          Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
-          const SizedBox(height: AppSpacing.sm),
-          Expanded(
-            child: ListView(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              children: [
-                for (final group in groups) ...[
-                  if (group.label != null)
-                    _SectionLabel(
-                        label: group.label!, collapsed: collapsed),
-                  for (final item in group.items)
-                    _NavTile(
-                      item: item,
-                      isActive: item.id == activeId,
-                      collapsed: collapsed,
-                      onTap: () => onSelect(item.id),
-                    ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _BrandHeader(collapsed: collapsed),
+            const Divider(height: 1, color: AppColors.borderLight),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(10, 12, 10, 12),
+                children: [
+                  for (final group in groups) ...[
+                    if (group.label != null)
+                      _GroupLabel(label: group.label!, collapsed: collapsed),
+                    for (final item in group.items)
+                      _NavTile(
+                        item: item,
+                        collapsed: collapsed,
+                        active: item.id == activeId,
+                        onTap: () => onSelect(item.id),
+                      ),
+                    const SizedBox(height: 8),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
-          _CollapseButton(collapsed: collapsed, onTap: onToggleCollapse),
-          if (bottom != null) ...[
-            Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
-            bottom!,
+            const Divider(height: 1, color: AppColors.borderLight),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _SidebarAction(
+                      icon: collapsed
+                          ? LucideIcons.panelLeftOpen
+                          : LucideIcons.panelLeftClose,
+                      label: collapsed ? 'Expand' : 'Collapse',
+                      collapsed: collapsed,
+                      onTap: onToggleCollapse,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _SidebarAction(
+                      icon: LucideIcons.logOut,
+                      label: 'Logout',
+                      collapsed: collapsed,
+                      onTap: onLogout,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
-          const SizedBox(height: AppSpacing.sm),
-        ],
+        ),
       ),
     );
   }
 }
 
-class _Logo extends StatelessWidget {
-  const _Logo({required this.collapsed, required this.onLogout});
+class _BrandHeader extends StatelessWidget {
+  const _BrandHeader({required this.collapsed});
+
   final bool collapsed;
-  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
-    final logoImage = Container(
-      width: 36,
-      height: 36,
-      decoration: BoxDecoration(
-        borderRadius: AppSpacing.avatarRadius,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.electric.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: AppSpacing.avatarRadius,
-        child: Image.asset('assets/images/logo.png', width: 36, height: 36),
-      ),
-    );
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = collapsed || constraints.maxWidth < 80;
-
-          Widget content;
-          if (compact) {
-            content = Center(child: logoImage);
-          } else {
-            content = Row(
-              children: [
-                logoImage,
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: Text(
-                    'STRONGHOLD',
-                    style: AppTextStyles.sectionTitle.copyWith(
-                      letterSpacing: 1.5,
-                      color: Colors.white,
-                    ),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: AppSpacing.avatarRadius,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: ClipRRect(
+              borderRadius: AppSpacing.avatarRadius,
+              child: Image.asset('assets/images/logo.png'),
+            ),
+          ),
+          if (!collapsed) ...[
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Stronghold',
+                    style: AppTextStyles.bodyMedium,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ),
-              ],
-            );
-          }
-
-          return PopupMenuButton<String>(
-            offset: Offset(compact ? 56 : 200, 0),
-            shape: RoundedRectangleBorder(
-              borderRadius: AppSpacing.panelRadius,
-            ),
-            color: AppColors.deepBlue,
-            elevation: 8,
-            shadowColor: AppColors.electric.withValues(alpha: 0.12),
-            onSelected: (value) {
-              if (value == 'logout') onLogout();
-            },
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'logout',
-                child: Row(
-                  children: [
-                    const Icon(LucideIcons.logOut,
-                        color: AppColors.danger, size: 18),
-                    const SizedBox(width: AppSpacing.md),
-                    Text('Odjavi se',
-                        style: AppTextStyles.bodyMedium
-                            .copyWith(color: AppColors.danger)),
-                  ],
-                ),
+                  Text(
+                    'Admin Console',
+                    style: AppTextStyles.caption,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-            ],
-            child: content,
-          );
-        },
+            ),
+          ],
+        ],
       ),
     );
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel({required this.label, required this.collapsed});
+class _GroupLabel extends StatelessWidget {
+  const _GroupLabel({required this.label, required this.collapsed});
+
   final String label;
   final bool collapsed;
 
   @override
   Widget build(BuildContext context) {
     if (collapsed) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Container(height: 1, color: Colors.white.withValues(alpha: 0.06)),
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Divider(height: 1, color: AppColors.borderLight),
       );
     }
+
     return Padding(
-      padding: const EdgeInsets.only(
-          left: 14, top: AppSpacing.lg, bottom: AppSpacing.sm),
-      child: Text(label,
-          style: AppTextStyles.overline
-              .copyWith(color: Colors.white.withValues(alpha: 0.35)),
-          overflow: TextOverflow.ellipsis),
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 8),
+      child: Text(label.toUpperCase(), style: AppTextStyles.overline),
     );
   }
 }
@@ -208,14 +182,14 @@ class _SectionLabel extends StatelessWidget {
 class _NavTile extends StatefulWidget {
   const _NavTile({
     required this.item,
-    required this.isActive,
     required this.collapsed,
+    required this.active,
     required this.onTap,
   });
 
   final NavItem item;
-  final bool isActive;
   final bool collapsed;
+  final bool active;
   final VoidCallback onTap;
 
   @override
@@ -227,98 +201,118 @@ class _NavTileState extends State<_NavTile> {
 
   @override
   Widget build(BuildContext context) {
-    final active = widget.isActive;
+    final active = widget.active;
+    final background = active
+        ? AppColors.primaryDim
+        : (_hover ? AppColors.surfaceHover : Colors.transparent);
+
+    final tile = AnimatedContainer(
+      duration: const Duration(milliseconds: 140),
+      margin: const EdgeInsets.only(bottom: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: AppSpacing.smallRadius,
+        border: Border.all(
+          color: active
+              ? AppColors.primaryBorder
+              : (_hover ? AppColors.borderHover : Colors.transparent),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            alignment: Alignment.center,
+            child: Icon(
+              widget.item.icon,
+              size: 16,
+              color: active ? AppColors.primary : AppColors.textSecondary,
+            ),
+          ),
+          if (!widget.collapsed) ...[
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                widget.item.label,
+                style: active
+                    ? AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.primary,
+                      )
+                    : AppTextStyles.bodySecondary,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
 
     return MouseRegion(
-      cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          margin: const EdgeInsets.only(bottom: 2),
-          padding: EdgeInsets.symmetric(
-            horizontal: AppSpacing.md,
-            vertical: AppSpacing.sm + 2,
-          ),
-          decoration: BoxDecoration(
-            color: active
-                ? Colors.white
-                : _hover
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.transparent,
-            borderRadius: AppSpacing.badgeRadius,
-          ),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final compact =
-                  widget.collapsed || constraints.maxWidth < 80;
-              return Row(
-                children: [
-                  if (active)
-                    Container(
-                      width: 3,
-                      height: 20,
-                      margin: const EdgeInsets.only(right: AppSpacing.sm),
-                      decoration: BoxDecoration(
-                        color: AppColors.deepBlue,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  Icon(widget.item.icon,
-                      size: 20,
-                      color: active
-                          ? AppColors.deepBlue
-                          : _hover
-                              ? Colors.white.withValues(alpha: 0.85)
-                              : Colors.white.withValues(alpha: 0.45)),
-                  if (!compact) ...[
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Text(
-                        widget.item.label,
-                        style: active
-                            ? AppTextStyles.bodyMedium
-                                .copyWith(color: AppColors.deepBlue)
-                            : AppTextStyles.bodySecondary.copyWith(
-                                color: _hover
-                                    ? Colors.white.withValues(alpha: 0.9)
-                                    : Colors.white.withValues(alpha: 0.5)),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-        ),
+      child: Tooltip(
+        message: widget.collapsed ? widget.item.label : '',
+        waitDuration: const Duration(milliseconds: 500),
+        child: GestureDetector(onTap: widget.onTap, child: tile),
       ),
     );
   }
 }
 
-class _CollapseButton extends StatelessWidget {
-  const _CollapseButton({required this.collapsed, required this.onTap});
+class _SidebarAction extends StatefulWidget {
+  const _SidebarAction({
+    required this.icon,
+    required this.label,
+    required this.collapsed,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
   final bool collapsed;
   final VoidCallback onTap;
 
   @override
+  State<_SidebarAction> createState() => _SidebarActionState();
+}
+
+class _SidebarActionState extends State<_SidebarAction> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: AppSpacing.sm),
-      child: IconButton(
-        icon: Icon(
-          collapsed
-              ? LucideIcons.panelLeftOpen
-              : LucideIcons.panelLeftClose,
-          size: 18,
-          color: Colors.white.withValues(alpha: 0.4),
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          decoration: BoxDecoration(
+            color: _hover ? AppColors.surfaceHover : Colors.transparent,
+            borderRadius: AppSpacing.smallRadius,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.icon, size: 14, color: AppColors.textSecondary),
+              if (!widget.collapsed) ...[
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    widget.label,
+                    style: AppTextStyles.caption,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
-        onPressed: onTap,
       ),
     );
   }

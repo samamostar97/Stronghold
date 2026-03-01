@@ -19,28 +19,32 @@ class PaginationControls extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final safeTotalPages = totalPages < 1 ? 1 : totalPages;
+
+    return Wrap(
+      spacing: 10,
+      runSpacing: 10,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      alignment: WrapAlignment.spaceBetween,
       children: [
         Text(
-          'Ukupno: $totalCount | Stranica $currentPage od $totalPages',
-          style: AppTextStyles.bodySm.copyWith(color: AppColors.deepBlue),
-          textAlign: TextAlign.center,
+          '$totalCount stavki · Stranica $currentPage / $safeTotalPages',
+          style: AppTextStyles.caption,
         ),
-        const SizedBox(height: AppSpacing.md),
         Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            PaginationButton(
-              text: '\u2190',
+            _PaginationButton(
+              text: 'Prev',
               enabled: currentPage > 1,
               onTap: () => onPageChanged(currentPage - 1),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            ..._buildPageNumbers(),
-            const SizedBox(width: AppSpacing.sm),
-            PaginationButton(
-              text: '\u2192',
-              enabled: currentPage < totalPages,
+            const SizedBox(width: 6),
+            ..._buildPageButtons(safeTotalPages),
+            const SizedBox(width: 6),
+            _PaginationButton(
+              text: 'Next',
+              enabled: currentPage < safeTotalPages,
               onTap: () => onPageChanged(currentPage + 1),
             ),
           ],
@@ -49,58 +53,33 @@ class PaginationControls extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildPageNumbers() {
-    final List<Widget> pageButtons = [];
+  List<Widget> _buildPageButtons(int safeTotalPages) {
+    final result = <Widget>[];
 
-    if (currentPage > 3) {
-      pageButtons.add(PaginationButton(
-        text: '1', enabled: true, onTap: () => onPageChanged(1),
-      ));
-      if (currentPage > 4) {
-        pageButtons.add(Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: Text('...', style: AppTextStyles.bodySm),
-        ));
-      }
-      pageButtons.add(const SizedBox(width: AppSpacing.xs));
+    final start = (currentPage - 1).clamp(1, safeTotalPages);
+    final end = (start + 2).clamp(1, safeTotalPages);
+    final adjustedStart = (end - 2).clamp(1, safeTotalPages);
+
+    for (var i = adjustedStart; i <= end; i++) {
+      result.add(
+        Padding(
+          padding: const EdgeInsets.only(left: 6),
+          child: _PaginationButton(
+            text: '$i',
+            enabled: true,
+            isActive: i == currentPage,
+            onTap: () => onPageChanged(i),
+          ),
+        ),
+      );
     }
 
-    for (int i = currentPage - 2; i <= currentPage + 2; i++) {
-      if (i >= 1 && i <= totalPages) {
-        pageButtons.add(PaginationButton(
-          text: i.toString(),
-          enabled: true,
-          isActive: i == currentPage,
-          onTap: () => onPageChanged(i),
-        ));
-        if (i < currentPage + 2 && i < totalPages) {
-          pageButtons.add(const SizedBox(width: AppSpacing.xs));
-        }
-      }
-    }
-
-    if (currentPage < totalPages - 2) {
-      pageButtons.add(const SizedBox(width: AppSpacing.xs));
-      if (currentPage < totalPages - 3) {
-        pageButtons.add(Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
-          child: Text('...', style: AppTextStyles.bodySm),
-        ));
-      }
-      pageButtons.add(PaginationButton(
-        text: totalPages.toString(),
-        enabled: true,
-        onTap: () => onPageChanged(totalPages),
-      ));
-    }
-
-    return pageButtons;
+    return result;
   }
 }
 
-class PaginationButton extends StatefulWidget {
-  const PaginationButton({
-    super.key,
+class _PaginationButton extends StatefulWidget {
+  const _PaginationButton({
     required this.text,
     required this.enabled,
     required this.onTap,
@@ -113,58 +92,47 @@ class PaginationButton extends StatefulWidget {
   final VoidCallback onTap;
 
   @override
-  State<PaginationButton> createState() => _PaginationButtonState();
+  State<_PaginationButton> createState() => _PaginationButtonState();
 }
 
-class _PaginationButtonState extends State<PaginationButton> {
+class _PaginationButtonState extends State<_PaginationButton> {
   bool _hover = false;
 
   @override
   Widget build(BuildContext context) {
+    final bg = widget.isActive
+        ? AppColors.primary
+        : (_hover && widget.enabled
+              ? AppColors.surfaceHover
+              : AppColors.surface);
+
+    final border = widget.isActive ? AppColors.primary : AppColors.border;
+
+    final textColor = widget.isActive
+        ? Colors.white
+        : (widget.enabled ? AppColors.textSecondary : AppColors.textMuted);
+
     return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
       cursor: widget.enabled
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
         onTap: widget.enabled ? widget.onTap : null,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+          duration: const Duration(milliseconds: 120),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            color: widget.isActive
-                ? AppColors.primary
-                : widget.enabled && _hover
-                    ? AppColors.surfaceHover
-                    : Colors.transparent,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: widget.enabled
-                  ? AppColors.border
-                  : AppColors.textMuted.withValues(alpha: 0.3),
-            ),
-            boxShadow: widget.isActive
-                ? [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                    ),
-                  ]
-                : [],
+            color: bg,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(color: border),
           ),
           child: Text(
             widget.text,
-            style: AppTextStyles.bodyMd.copyWith(
-              color: widget.isActive
-                  ? AppColors.background
-                  : widget.enabled
-                      ? AppColors.textPrimary
-                      : AppColors.textMuted.withValues(alpha: 0.5),
-              fontWeight:
-                  widget.isActive ? FontWeight.w700 : FontWeight.w500,
+            style: AppTextStyles.caption.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),

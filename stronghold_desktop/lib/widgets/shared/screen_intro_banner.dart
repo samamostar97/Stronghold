@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 
@@ -21,9 +22,10 @@ class ScreenIntroBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
+        color: AppColors.surface,
         borderRadius: AppSpacing.panelRadius,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -33,30 +35,21 @@ class ScreenIntroBanner extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 38,
+                height: 38,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.14),
+                  color: AppColors.surfaceAlt,
                   borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  border: Border.all(color: AppColors.border),
                 ),
-                child: Icon(icon, color: Colors.white, size: 20),
+                child: Icon(icon, color: AppColors.textSecondary, size: 18),
               ),
               const SizedBox(width: AppSpacing.md),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: AppTextStyles.sectionTitle.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    subtitle,
-                    style: AppTextStyles.caption.copyWith(
-                      color: Colors.white.withValues(alpha: 0.82),
-                    ),
-                  ),
+                  Text(title, style: AppTextStyles.sectionTitle),
+                  Text(subtitle, style: AppTextStyles.caption),
                 ],
               ),
             ],

@@ -4,7 +4,6 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 
-/// Reusable header cell for data tables
 class TableHeaderCell extends StatelessWidget {
   const TableHeaderCell({
     super.key,
@@ -24,13 +23,13 @@ class TableHeaderCell extends StatelessWidget {
       child: Text(
         text.toUpperCase(),
         textAlign: alignRight ? TextAlign.right : TextAlign.left,
-        style: AppTextStyles.label.copyWith(color: AppColors.deepBlue),
+        style: AppTextStyles.tableHeader,
+        overflow: TextOverflow.ellipsis,
       ),
     );
   }
 }
 
-/// Reusable data cell for table rows
 class TableDataCell extends StatelessWidget {
   const TableDataCell({
     super.key,
@@ -52,17 +51,14 @@ class TableDataCell extends StatelessWidget {
       child: Text(
         text,
         style: bold
-            ? AppTextStyles.bodyBold
-            : (muted
-                ? AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary)
-                : AppTextStyles.bodyMd.copyWith(color: AppColors.textPrimary)),
+            ? AppTextStyles.bodyMedium
+            : (muted ? AppTextStyles.caption : AppTextStyles.bodySecondary),
         overflow: TextOverflow.ellipsis,
       ),
     );
   }
 }
 
-/// Reusable table container with header and list
 class DataTableContainer extends StatelessWidget {
   const DataTableContainer({
     super.key,
@@ -74,46 +70,48 @@ class DataTableContainer extends StatelessWidget {
 
   final Widget header;
   final int itemCount;
-  final Widget Function(BuildContext, int) itemBuilder;
+  final Widget Function(BuildContext context, int index) itemBuilder;
   final String emptyMessage;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+        color: AppColors.surface,
+        borderRadius: AppSpacing.panelRadius,
+        border: Border.all(color: AppColors.border),
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxHeight < 80;
-            return Column(
-              children: [
-                if (!compact) header,
-                if (itemCount == 0)
-                  Expanded(
+        borderRadius: AppSpacing.panelRadius,
+        child: Column(
+          children: [
+            header,
+            if (itemCount == 0)
+              Expanded(
                 child: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 64,
-                        height: 64,
+                        width: 42,
+                        height: 42,
                         decoration: BoxDecoration(
-                          color: AppColors.textMuted.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
+                          color: AppColors.surfaceAlt,
+                          borderRadius: AppSpacing.buttonRadius,
+                          border: Border.all(color: AppColors.border),
                         ),
-                        child: Icon(LucideIcons.inbox,
-                            size: 28, color: AppColors.textMuted),
+                        child: const Icon(
+                          LucideIcons.inbox,
+                          size: 18,
+                          color: AppColors.textMuted,
+                        ),
                       ),
-                      const SizedBox(height: AppSpacing.lg),
-                      Text(emptyMessage, style: AppTextStyles.bodyBold),
-                      const SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: 10),
+                      Text(emptyMessage, style: AppTextStyles.bodyMedium),
+                      const SizedBox(height: 4),
                       Text(
-                        'Pokusajte promijeniti filtere ili dodajte novi zapis',
-                        style: AppTextStyles.bodySm,
+                        'Podesi filtere ili dodaj novi zapis.',
+                        style: AppTextStyles.caption,
                       ),
                     ],
                   ),
@@ -121,21 +119,23 @@ class DataTableContainer extends StatelessWidget {
               )
             else
               Expanded(
-                child: ListView.builder(
+                child: ListView.separated(
                   itemCount: itemCount,
+                  separatorBuilder: (_, __) => const Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: AppColors.borderLight,
+                  ),
                   itemBuilder: itemBuilder,
                 ),
               ),
-              ],
-            );
-          },
+          ],
         ),
       ),
     );
   }
 }
 
-/// Hoverable table row wrapper
 class HoverableTableRow extends StatefulWidget {
   const HoverableTableRow({
     super.key,
@@ -159,66 +159,37 @@ class HoverableTableRow extends StatefulWidget {
 class _HoverableTableRowState extends State<HoverableTableRow> {
   bool _hover = false;
 
-  bool get _hasActiveAccent => widget.activeAccentColor != null;
-
-  Color get _backgroundColor {
-    if (_hover) return AppColors.surfaceHover;
-    if (_hasActiveAccent) {
-      return widget.activeAccentColor!.withValues(alpha: 0.04);
-    }
-    return Colors.transparent;
-  }
-
   @override
   Widget build(BuildContext context) {
-    final showBar = _hover || _hasActiveAccent;
-    final barColor = _hover ? null : widget.activeAccentColor;
+    final activeColor = widget.activeAccentColor ?? AppColors.primary;
 
     return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
       cursor: widget.onTap != null
           ? SystemMouseCursors.click
           : SystemMouseCursors.basic,
-      onEnter: (_) => setState(() => _hover = true),
-      onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
         onTap: widget.onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          curve: Curves.easeOut,
-          decoration: BoxDecoration(
-            color: _backgroundColor,
-            borderRadius:
-                _hover ? BorderRadius.circular(6) : BorderRadius.zero,
-            border: widget.isLast
-                ? null
-                : const Border(
-                    bottom: BorderSide(color: AppColors.border)),
+          duration: const Duration(milliseconds: 120),
+          color: _hover ? AppColors.surfaceHover : Colors.transparent,
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.lg,
+            vertical: 12,
           ),
           child: Row(
             children: [
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 3,
-                height: 32,
+              Container(
+                width: 2,
+                height: 18,
+                margin: const EdgeInsets.only(right: 10),
                 decoration: BoxDecoration(
-                  color: showBar ? barColor : Colors.transparent,
-                  gradient: _hover
-                      ? const LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [AppColors.primary, AppColors.secondary],
-                        )
-                      : null,
-                  borderRadius: BorderRadius.circular(2),
+                  color: _hover ? activeColor : Colors.transparent,
+                  borderRadius: BorderRadius.circular(999),
                 ),
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 14, horizontal: AppSpacing.lg),
-                  child: widget.child,
-                ),
-              ),
+              Expanded(child: widget.child),
             ],
           ),
         ),
@@ -227,7 +198,6 @@ class _HoverableTableRowState extends State<HoverableTableRow> {
   }
 }
 
-/// Standard table header container
 class TableHeader extends StatelessWidget {
   const TableHeader({super.key, required this.child});
 
@@ -236,18 +206,19 @@ class TableHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-            bottom: BorderSide(color: AppColors.border, width: 2)),
-      ),
       padding: const EdgeInsets.symmetric(
-          vertical: 14, horizontal: AppSpacing.lg),
+        horizontal: AppSpacing.lg,
+        vertical: 11,
+      ),
+      decoration: const BoxDecoration(
+        color: AppColors.surfaceAlt,
+        border: Border(bottom: BorderSide(color: AppColors.border)),
+      ),
       child: child,
     );
   }
 }
 
-/// Responsive action buttons cell that scales down to fit
 class TableActionCell extends StatelessWidget {
   const TableActionCell({
     super.key,
@@ -275,13 +246,7 @@ class TableActionCell extends StatelessWidget {
   }
 }
 
-/// Column definition for [GenericDataTable].
 class ColumnDef<T> {
-  final String label;
-  final int flex;
-  final bool alignRight;
-  final Widget Function(T item) cellBuilder;
-
   const ColumnDef({
     required this.label,
     required this.flex,
@@ -289,7 +254,11 @@ class ColumnDef<T> {
     this.alignRight = false,
   });
 
-  /// Simple text column.
+  final String label;
+  final int flex;
+  final bool alignRight;
+  final Widget Function(T item) cellBuilder;
+
   static ColumnDef<T> text<T>({
     required String label,
     required int flex,
@@ -305,19 +274,14 @@ class ColumnDef<T> {
         return Text(
           value(item),
           style: bold
-              ? AppTextStyles.bodyBold
-              : (isMuted
-                  ? AppTextStyles.bodySm
-                      .copyWith(color: AppColors.textSecondary)
-                  : AppTextStyles.bodyMd
-                      .copyWith(color: AppColors.textPrimary)),
+              ? AppTextStyles.bodyMedium
+              : (isMuted ? AppTextStyles.caption : AppTextStyles.bodySecondary),
           overflow: TextOverflow.ellipsis,
         );
       },
     );
   }
 
-  /// Actions column with responsive button scaling.
   static ColumnDef<T> actions<T>({
     int flex = 2,
     required List<Widget> Function(T item) builder,
@@ -339,7 +303,6 @@ class ColumnDef<T> {
   }
 }
 
-/// Generic data table driven by [ColumnDef] list.
 class GenericDataTable<T> extends StatelessWidget {
   const GenericDataTable({
     super.key,
@@ -360,11 +323,13 @@ class GenericDataTable<T> extends StatelessWidget {
       header: TableHeader(
         child: Row(
           children: columns
-              .map((col) => TableHeaderCell(
-                    text: col.label,
-                    flex: col.flex,
-                    alignRight: col.alignRight,
-                  ))
+              .map(
+                (col) => TableHeaderCell(
+                  text: col.label,
+                  flex: col.flex,
+                  alignRight: col.alignRight,
+                ),
+              )
               .toList(),
         ),
       ),
@@ -375,13 +340,13 @@ class GenericDataTable<T> extends StatelessWidget {
         return HoverableTableRow(
           index: i,
           isLast: i == items.length - 1,
-          onTap: onRowTap != null ? () => onRowTap!(item) : null,
+          onTap: onRowTap == null ? null : () => onRowTap!(item),
           child: Row(
             children: columns
-                .map((col) => Expanded(
-                      flex: col.flex,
-                      child: col.cellBuilder(item),
-                    ))
+                .map(
+                  (col) =>
+                      Expanded(flex: col.flex, child: col.cellBuilder(item)),
+                )
                 .toList(),
           ),
         );

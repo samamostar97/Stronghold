@@ -5,7 +5,6 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 
-/// Tier 1 — Search field with surface bg, primary border on focus.
 class SearchInput extends StatefulWidget {
   const SearchInput({
     super.key,
@@ -43,9 +42,12 @@ class _SearchInputState extends State<SearchInput> {
 
   void _onTextChanged() {
     final hasText = widget.controller.text.isNotEmpty;
-    if (hasText != _hasText) setState(() => _hasText = hasText);
+    if (hasText != _hasText) {
+      setState(() => _hasText = hasText);
+    }
+
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 300), () {
+    _debounce = Timer(const Duration(milliseconds: 320), () {
       widget.onSubmitted(widget.controller.text);
     });
   }
@@ -53,60 +55,43 @@ class _SearchInputState extends State<SearchInput> {
   @override
   Widget build(BuildContext context) {
     return Focus(
-      onFocusChange: (f) => setState(() => _focused = f),
+      onFocusChange: (focused) => setState(() => _focused = focused),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 140),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-          boxShadow: _focused
-              ? [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.12),
-                    blurRadius: 12,
-                  ),
-                ]
-              : [],
+          boxShadow: _focused ? AppColors.cyanGlow : const <BoxShadow>[],
         ),
         child: TextField(
           controller: widget.controller,
           onSubmitted: widget.onSubmitted,
-          style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
+          style: AppTextStyles.bodyMedium,
           decoration: InputDecoration(
             hintText: widget.hintText,
-            hintStyle: AppTextStyles.bodyMd.copyWith(color: AppColors.textMuted),
-            filled: true,
-            fillColor: AppColors.surfaceSolid,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.lg,
-              vertical: AppSpacing.md,
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.border),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderSide: const BorderSide(color: AppColors.primary),
-              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-            ),
+            hintStyle: AppTextStyles.bodySecondary,
             prefixIcon: Icon(
               LucideIcons.search,
+              size: 16,
               color: _focused ? AppColors.primary : AppColors.textMuted,
-              size: 18,
             ),
             suffixIcon: _hasText
                 ? IconButton(
-                    icon: const Icon(
-                      LucideIcons.x,
-                      size: 16,
-                      color: AppColors.textMuted,
-                    ),
                     onPressed: () {
                       widget.controller.clear();
                       widget.onSubmitted('');
                     },
+                    icon: const Icon(
+                      LucideIcons.x,
+                      size: 15,
+                      color: AppColors.textMuted,
+                    ),
                   )
                 : null,
+            fillColor: AppColors.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: AppSpacing.md,
+            ),
           ),
         ),
       ),

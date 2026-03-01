@@ -3,8 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart'
-    show ParticleBackground, TokenStorage;
+import 'package:stronghold_core/stronghold_core.dart' show TokenStorage;
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
@@ -34,66 +33,66 @@ String _activeIdFromLocation(String location) {
 }
 
 class _PageMeta {
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
   const _PageMeta({
     required this.title,
     required this.subtitle,
     required this.icon,
   });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
 }
 
 const _pageMetaById = <String, _PageMeta>{
   'dashboardHome': _PageMeta(
     title: 'Kontrolna ploca',
-    subtitle: 'Pregled kljucnih KPI metrika i hitnih stavki',
+    subtitle: 'Pregled metrika i kljucnih operacija',
     icon: LucideIcons.layoutDashboard,
   ),
   'audit': _PageMeta(
     title: 'Audit centar',
-    subtitle: 'Globalni pregled uplata clanarina i admin aktivnosti',
+    subtitle: 'Uplate clanarina i administratorske aktivnosti',
     icon: LucideIcons.shieldCheck,
   ),
   'users': _PageMeta(
     title: 'Korisnici',
-    subtitle: 'Clanovi, profili, rang lista i korisnicka historija',
+    subtitle: 'Clanovi, profili i rang lista',
     icon: LucideIcons.users,
   ),
   'staff': _PageMeta(
     title: 'Osoblje',
-    subtitle: 'Treneri, nutricionisti i zakazani termini',
+    subtitle: 'Treneri, nutricionisti i termini',
     icon: LucideIcons.briefcase,
   ),
   'supplements': _PageMeta(
     title: 'Suplementi',
-    subtitle: 'Katalog proizvoda i stanje ponude',
+    subtitle: 'Katalog i zalihe proizvoda',
     icon: LucideIcons.pill,
   ),
   'orders': _PageMeta(
-    title: 'Kupovine',
-    subtitle: 'Narudzbe, status isporuke i kontrola procesa',
-    icon: LucideIcons.shoppingBag,
+    title: 'Narudzbe',
+    subtitle: 'Statusi isporuke i finansijski tok',
+    icon: LucideIcons.shoppingCart,
   ),
   'reviews': _PageMeta(
     title: 'Recenzije',
-    subtitle: 'Moderacija korisnickih ocjena i komentara',
+    subtitle: 'Moderacija i uvid u feedback',
     icon: LucideIcons.star,
   ),
   'seminars': _PageMeta(
     title: 'Seminari',
-    subtitle: 'Raspored, kapacitet i status edukativnih dogadjaja',
+    subtitle: 'Raspored i upravljanje kapacitetom',
     icon: LucideIcons.graduationCap,
   ),
   'businessReport': _PageMeta(
-    title: 'Biznis izvjestaji',
-    subtitle: 'Prihodi, osoblje i trendovi posjeta',
+    title: 'Izvjestaji',
+    subtitle: 'Prihodi, trendovi i operativna analiza',
     icon: LucideIcons.trendingUp,
   ),
   'settings': _PageMeta(
     title: 'Sistem i katalog',
-    subtitle: 'Paketi, kategorije, dobavljaci i FAQ konfiguracija',
+    subtitle: 'Konfiguracije i osnovni sifarnici',
     icon: LucideIcons.settings,
   ),
 };
@@ -115,7 +114,7 @@ const _navGroups = [
     ],
   ),
   NavGroup(
-    label: 'Clanstvo',
+    label: 'Ljudi',
     items: [
       NavItem(id: 'users', label: 'Korisnici', icon: LucideIcons.users),
       NavItem(id: 'staff', label: 'Osoblje', icon: LucideIcons.briefcase),
@@ -124,8 +123,8 @@ const _navGroups = [
   NavGroup(
     label: 'Prodaja',
     items: [
+      NavItem(id: 'orders', label: 'Narudzbe', icon: LucideIcons.shoppingBag),
       NavItem(id: 'supplements', label: 'Suplementi', icon: LucideIcons.pill),
-      NavItem(id: 'orders', label: 'Kupovine', icon: LucideIcons.shoppingBag),
     ],
   ),
   NavGroup(
@@ -144,7 +143,7 @@ const _navGroups = [
     items: [
       NavItem(
         id: 'businessReport',
-        label: 'Biznis izvjestaji',
+        label: 'Izvjestaji',
         icon: LucideIcons.trendingUp,
       ),
     ],
@@ -192,9 +191,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
   Future<void> _logout(BuildContext context) async {
     await TokenStorage.clear();
-    if (context.mounted) {
-      context.go('/login');
-    }
+    if (context.mounted) context.go('/login');
   }
 
   @override
@@ -202,6 +199,7 @@ class _AdminShellState extends ConsumerState<AdminShell> {
     final location = GoRouterState.of(context).uri.path;
     final activeId = _activeIdFromLocation(location);
     final pageMeta = _pageMetaById[activeId] ?? _pageMetaById['dashboardHome']!;
+    final notificationState = ref.watch(notificationProvider);
 
     ref.listen<NotificationState>(notificationProvider, (prev, next) {
       if (prev != null &&
@@ -223,56 +221,45 @@ class _AdminShellState extends ConsumerState<AdminShell> {
       child: Focus(
         autofocus: true,
         child: Scaffold(
-          backgroundColor: AppColors.deepBlue,
-          body: Stack(
-            children: [
-              Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.heroGradient,
-                ),
-              ),
-              const ParticleBackground(
-                particleColor: Color(0xFF38BDF8),
-                particleCount: 60,
-                connectDistance: 130,
-              ),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final collapsed =
-                      _userCollapse ?? constraints.maxWidth < 1200;
+          backgroundColor: AppColors.background,
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              final collapsed = _userCollapse ?? constraints.maxWidth < 1180;
 
-                  return SafeArea(
-                    child: Row(
-                      children: [
-                        AppSidebar(
-                          groups: _navGroups,
-                          activeId: activeId,
-                          onSelect: (id) {
-                            final path = _idToPath[id];
-                            if (path != null) context.go(path);
-                          },
-                          collapsed: collapsed,
-                          onToggleCollapse: _toggleCollapse,
-                          onLogout: () => _logout(context),
-                        ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              _ShellTopBar(
-                                meta: pageMeta,
-                                currentPath: location,
-                                onNavigate: (path) => context.go(path),
-                              ),
-                              Expanded(child: widget.child),
-                            ],
+              return Row(
+                children: [
+                  AppSidebar(
+                    groups: _navGroups,
+                    activeId: activeId,
+                    onSelect: (id) {
+                      final path = _idToPath[id];
+                      if (path != null) context.go(path);
+                    },
+                    collapsed: collapsed,
+                    onToggleCollapse: _toggleCollapse,
+                    onLogout: () => _logout(context),
+                  ),
+                  Expanded(
+                    child: SafeArea(
+                      child: Column(
+                        children: [
+                          _ShellTopBar(
+                            meta: pageMeta,
+                            currentPath: location,
+                            unreadCount: notificationState.unreadCount,
+                            onNavigate: (path) => context.go(path),
+                            onOpenCommandPalette: () =>
+                                showCommandPalette(context),
+                            onLogout: () => _logout(context),
                           ),
-                        ),
-                      ],
+                          Expanded(child: widget.child),
+                        ],
+                      ),
                     ),
-                  );
-                },
-              ),
-            ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
@@ -284,124 +271,118 @@ class _ShellTopBar extends StatelessWidget {
   const _ShellTopBar({
     required this.meta,
     required this.currentPath,
+    required this.unreadCount,
     required this.onNavigate,
+    required this.onOpenCommandPalette,
+    required this.onLogout,
   });
 
   final _PageMeta meta;
   final String currentPath;
+  final int unreadCount;
   final ValueChanged<String> onNavigate;
+  final VoidCallback onOpenCommandPalette;
+  final VoidCallback onLogout;
 
   @override
   Widget build(BuildContext context) {
     const quickLinks = [
       (
         path: '/dashboard',
-        label: 'Kontrola',
+        label: 'Dashboard',
         icon: LucideIcons.layoutDashboard,
       ),
       (path: '/users', label: 'Korisnici', icon: LucideIcons.users),
-      (path: '/audit', label: 'Audit', icon: LucideIcons.shieldCheck),
+      (path: '/orders', label: 'Narudzbe', icon: LucideIcons.shoppingBag),
       (path: '/reports', label: 'Izvjestaji', icon: LucideIcons.trendingUp),
     ];
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 18, 22, 0),
-      child: Container(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: AppSpacing.panelRadius,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final narrow = constraints.maxWidth < 940;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.panelRadius,
+        border: Border.all(color: AppColors.border),
+        boxShadow: AppColors.cardShadow,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final narrow = constraints.maxWidth < 1040;
 
-            final titleBlock = Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                  child: Icon(meta.icon, size: 19, color: Colors.white),
+          final titleBlock = Row(
+            children: [
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceAlt,
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  border: Border.all(color: AppColors.border),
                 ),
-                const SizedBox(width: AppSpacing.md),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      meta.title,
-                      style: AppTextStyles.sectionTitle.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                    Text(
-                      meta.subtitle,
-                      style: AppTextStyles.caption.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
-                  ],
+                alignment: Alignment.center,
+                child: Icon(
+                  meta.icon,
+                  size: 16,
+                  color: AppColors.textSecondary,
                 ),
-              ],
-            );
-
-            final quickActions = Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: [
-                for (final item in quickLinks)
-                  _QuickLinkChip(
-                    icon: item.icon,
-                    label: item.label,
-                    active: currentPath == item.path,
-                    onTap: () => onNavigate(item.path),
-                  ),
-                _QuickLinkChip(
-                  icon: LucideIcons.command,
-                  label: 'Komande (Ctrl+K)',
-                  active: false,
-                  onTap: () => showCommandPalette(context),
-                ),
-              ],
-            );
-
-            if (narrow) {
-              return Column(
+              ),
+              const SizedBox(width: 10),
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  titleBlock,
-                  const SizedBox(height: AppSpacing.md),
-                  quickActions,
+                  Text(meta.title, style: AppTextStyles.sectionTitle),
+                  Text(meta.subtitle, style: AppTextStyles.caption),
                 ],
-              );
-            }
+              ),
+            ],
+          );
 
-            return Row(
-              children: [
-                Expanded(child: titleBlock),
-                const SizedBox(width: AppSpacing.lg),
-                Flexible(
-                  child: Align(
-                    alignment: Alignment.centerRight,
-                    child: quickActions,
-                  ),
+          final tools = Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              for (final item in quickLinks)
+                _TopChip(
+                  icon: item.icon,
+                  label: item.label,
+                  active: currentPath == item.path,
+                  onTap: () => onNavigate(item.path),
                 ),
-              ],
+              _TopChip(
+                icon: LucideIcons.command,
+                label: 'Ctrl+K',
+                active: false,
+                onTap: onOpenCommandPalette,
+              ),
+              _NotificationChip(unreadCount: unreadCount),
+              _UserChip(onLogout: onLogout),
+            ],
+          );
+
+          if (narrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [titleBlock, const SizedBox(height: 10), tools],
             );
-          },
-        ),
+          }
+
+          return Row(
+            children: [
+              Expanded(child: titleBlock),
+              const SizedBox(width: 12),
+              Flexible(child: tools),
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _QuickLinkChip extends StatelessWidget {
-  const _QuickLinkChip({
+class _TopChip extends StatefulWidget {
+  const _TopChip({
     required this.icon,
     required this.label,
     required this.active,
@@ -414,37 +395,153 @@ class _QuickLinkChip extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
+  State<_TopChip> createState() => _TopChipState();
+}
+
+class _TopChipState extends State<_TopChip> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
-        decoration: BoxDecoration(
-          color: active ? Colors.white : Colors.white.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-          border: Border.all(
-            color: active ? Colors.white : Colors.white.withValues(alpha: 0.24),
+    final background = widget.active
+        ? AppColors.primaryDim
+        : (_hover ? AppColors.surfaceHover : AppColors.surface);
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hover = true),
+      onExit: (_) => setState(() => _hover = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 140),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            border: Border.all(
+              color: widget.active ? AppColors.primaryBorder : AppColors.border,
+            ),
           ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                widget.icon,
+                size: 14,
+                color: widget.active
+                    ? AppColors.primary
+                    : AppColors.textSecondary,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                widget.label,
+                style:
+                    (widget.active
+                            ? AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.primary,
+                              )
+                            : AppTextStyles.caption)
+                        .copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationChip extends StatelessWidget {
+  const _NotificationChip({required this.unreadCount});
+
+  final int unreadCount;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            LucideIcons.bell,
+            size: 14,
+            color: AppColors.textSecondary,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            unreadCount > 99 ? '99+' : '$unreadCount',
+            style: AppTextStyles.caption.copyWith(
+              color: unreadCount > 0 ? AppColors.primary : AppColors.textMuted,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _UserChip extends StatelessWidget {
+  const _UserChip({required this.onLogout});
+
+  final VoidCallback onLogout;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      tooltip: 'Korisnik',
+      onSelected: (value) {
+        if (value == 'logout') onLogout();
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem<String>(
+          value: 'logout',
+          child: Row(
+            children: [
+              const Icon(LucideIcons.logOut, size: 16, color: AppColors.error),
+              const SizedBox(width: 8),
+              Text('Odjavi se', style: AppTextStyles.bodyMedium),
+            ],
+          ),
+        ),
+      ],
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          border: Border.all(color: AppColors.border),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 14,
-              color: active ? AppColors.deepBlue : Colors.white,
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Text(
-              label,
-              style: AppTextStyles.caption.copyWith(
-                color: active ? AppColors.deepBlue : Colors.white,
-                fontWeight: FontWeight.w600,
+            Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.surfaceAlt,
               ),
+              alignment: Alignment.center,
+              child: Text(
+                'A',
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Icon(
+              LucideIcons.chevronDown,
+              size: 13,
+              color: AppColors.textMuted,
             ),
           ],
         ),
