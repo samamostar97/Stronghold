@@ -85,65 +85,88 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
     final state = ref.watch(supplementListProvider);
     final notifier = ref.read(supplementListProvider.notifier);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: CrudListScaffold<SupplementResponse, SupplementQueryFilter>(
-            state: state,
-            onRefresh: notifier.refresh,
-            onSearch: notifier.setSearch,
-            onSort: notifier.setOrderBy,
-            onPageChanged: notifier.goToPage,
-            onAdd: _addSupplement,
-            searchHint: 'Pretrazi po nazivu, dobavljacu ili kategoriji...',
-            addButtonText: '+ Dodaj suplement',
-            sortOptions: const [
-              SortOption(value: null, label: 'Zadano'),
-              SortOption(value: 'name', label: 'Naziv (A-Z)'),
-              SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
-              SortOption(value: 'category', label: 'Kategorija (A-Z)'),
-              SortOption(value: 'categorydesc', label: 'Kategorija (Z-A)'),
-              SortOption(value: 'supplier', label: 'Dobavljac (A-Z)'),
-              SortOption(value: 'supplierdesc', label: 'Dobavljac (Z-A)'),
-              SortOption(value: 'price', label: 'Cijena rastuce'),
-              SortOption(value: 'pricedesc', label: 'Cijena opadajuce'),
-              SortOption(value: 'createdat', label: 'Najstarije prvo'),
-              SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
-            ],
-            tableBuilder: (items) => GenericDataTable<SupplementResponse>(
-              items: items,
-              columns: [
-                ColumnDef<SupplementResponse>(
-                  label: 'Slika', flex: 1,
-                  cellBuilder: (s) => Align(
-                    alignment: Alignment.centerLeft,
-                    child: _SupplementImage(imageUrl: s.imageUrl),
-                  ),
+    return CrudListScaffold<SupplementResponse, SupplementQueryFilter>(
+          state: state,
+          onRefresh: notifier.refresh,
+          onSearch: notifier.setSearch,
+          onSort: notifier.setOrderBy,
+          onPageChanged: notifier.goToPage,
+          onAdd: _addSupplement,
+          searchHint: 'Pretrazi po nazivu, dobavljacu ili kategoriji...',
+          addButtonText: '+ Dodaj suplement',
+          loadingColumnFlex: const [1, 2, 1, 2, 2, 2],
+          sortOptions: const [
+            SortOption(value: null, label: 'Zadano'),
+            SortOption(value: 'name', label: 'Naziv (A-Z)'),
+            SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
+            SortOption(value: 'category', label: 'Kategorija (A-Z)'),
+            SortOption(value: 'categorydesc', label: 'Kategorija (Z-A)'),
+            SortOption(value: 'supplier', label: 'Dobavljac (A-Z)'),
+            SortOption(value: 'supplierdesc', label: 'Dobavljac (Z-A)'),
+            SortOption(value: 'price', label: 'Cijena rastuce'),
+            SortOption(value: 'pricedesc', label: 'Cijena opadajuce'),
+            SortOption(value: 'createdat', label: 'Najstarije prvo'),
+            SortOption(value: 'createdatdesc', label: 'Najnovije prvo'),
+          ],
+          tableBuilder: (items) => GenericDataTable<SupplementResponse>(
+            items: items,
+            columns: [
+              ColumnDef<SupplementResponse>(
+                label: 'Slika',
+                flex: 1,
+                cellBuilder: (s) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: _SupplementImage(imageUrl: s.imageUrl),
                 ),
-                ColumnDef.text(label: 'Naziv', flex: 2, value: (s) => s.name, bold: true),
-                ColumnDef.text(label: 'Cijena', flex: 1, value: (s) => '${s.price.toStringAsFixed(2)} KM'),
-                ColumnDef.text(label: 'Kategorija', flex: 2, value: (s) => s.supplementCategoryName ?? '-'),
-                ColumnDef.text(label: 'Dobavljac', flex: 2, value: (s) => s.supplierName ?? '-'),
-                ColumnDef.actions(flex: 2, builder: (s) => [
-                  SmallButton(text: 'Izmijeni', color: AppColors.secondary, onTap: () => _editSupplement(s)),
-                  const SizedBox(width: AppSpacing.sm),
-                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteSupplement(s)),
-                ]),
-              ],
-            ),
-          )
-              .animate(delay: 200.ms)
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-              .slideY(
-                begin: 0.04,
-                end: 0,
-                duration: Motion.smooth,
-                curve: Motion.curve,
               ),
-        ),
-      ],
-    );
+              ColumnDef.text(
+                label: 'Naziv',
+                flex: 2,
+                value: (s) => s.name,
+                bold: true,
+              ),
+              ColumnDef.text(
+                label: 'Cijena',
+                flex: 1,
+                value: (s) => '${s.price.toStringAsFixed(2)} KM',
+              ),
+              ColumnDef.text(
+                label: 'Kategorija',
+                flex: 2,
+                value: (s) => s.supplementCategoryName ?? '-',
+              ),
+              ColumnDef.text(
+                label: 'Dobavljac',
+                flex: 2,
+                value: (s) => s.supplierName ?? '-',
+              ),
+              ColumnDef.actions(
+                flex: 2,
+                builder: (s) => [
+                  SmallButton(
+                    text: 'Izmijeni',
+                    color: AppColors.secondary,
+                    onTap: () => _editSupplement(s),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(
+                    text: 'Obrisi',
+                    color: AppColors.error,
+                    onTap: () => _deleteSupplement(s),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        )
+        .animate(delay: 200.ms)
+        .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+        .slideY(
+          begin: 0.04,
+          end: 0,
+          duration: Motion.smooth,
+          curve: Motion.curve,
+        );
   }
 }
 
@@ -157,19 +180,21 @@ class _SupplementImage extends StatelessWidget {
       width: 40,
       height: 40,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.surfaceAlt,
         borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
       ),
-      child: imageUrl != null
+      child: imageUrl != null && imageUrl!.isNotEmpty
           ? ClipRRect(
               borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
               child: Image.network(
-                '${ApiConfig.baseUrl}$imageUrl',
+                ApiConfig.imageUrl(imageUrl!),
                 fit: BoxFit.cover,
                 errorBuilder: (_, e, s) => Icon(
-                    LucideIcons.image,
-                    color: AppColors.textMuted,
-                    size: 20),
+                  LucideIcons.image,
+                  color: AppColors.textMuted,
+                  size: 20,
+                ),
               ),
             )
           : Icon(LucideIcons.image, color: AppColors.textMuted, size: 20),

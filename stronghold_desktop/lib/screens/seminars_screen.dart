@@ -140,78 +140,114 @@ class _SeminarsScreenState extends ConsumerState<SeminarsScreen> {
     final state = ref.watch(seminarListProvider);
     final notifier = ref.read(seminarListProvider.notifier);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: CrudListScaffold<SeminarResponse, SeminarQueryFilter>(
-            state: state,
-            onRefresh: notifier.refresh,
-            onSearch: notifier.setSearch,
-            onSort: notifier.setOrderBy,
-            onPageChanged: notifier.goToPage,
-            onAdd: _addSeminar,
-            searchHint: 'Pretrazi po temi ili voditelju...',
-            addButtonText: '+ Dodaj seminar',
-            extraFilter: _StatusFilter(
-              value: _selectedStatus,
-              onChanged: (v) {
-                setState(() => _selectedStatus = v);
-                notifier.setStatus(v);
-              },
-            ),
-            sortOptions: const [
-              SortOption(value: null, label: 'Zadano'),
-              SortOption(value: 'topic', label: 'Tema (A-Z)'),
-              SortOption(value: 'topicdesc', label: 'Tema (Z-A)'),
-              SortOption(value: 'speakername', label: 'Voditelj (A-Z)'),
-              SortOption(value: 'speakernamedesc', label: 'Voditelj (Z-A)'),
-              SortOption(value: 'eventdate', label: 'Najstarije prvo'),
-              SortOption(value: 'eventdatedesc', label: 'Najnovije prvo'),
-              SortOption(value: 'maxcapacity', label: 'Kapacitet (manji)'),
-              SortOption(value: 'maxcapacitydesc', label: 'Kapacitet (veci)'),
-            ],
-            tableBuilder: (items) => GenericDataTable<SeminarResponse>(
-              items: items,
-              columns: [
-                ColumnDef.text(label: 'Naziv teme', flex: 3, value: (s) => s.topic, bold: true),
-                ColumnDef.text(label: 'Voditelj', flex: 2, value: (s) => s.speakerName),
-                ColumnDef<SeminarResponse>(
-                  label: 'Popunjenost', flex: 2,
-                  cellBuilder: (s) => _CapacityIndicator(current: s.currentAttendees, max: s.maxCapacity),
-                ),
-                ColumnDef.text(label: 'Datum', flex: 2, value: (s) => DateFormat('dd.MM.yyyy').format(s.eventDate)),
-                ColumnDef.text(label: 'Satnica', flex: 1, value: (s) => DateFormat('HH:mm').format(s.eventDate)),
-                ColumnDef<SeminarResponse>(
-                  label: 'Status', flex: 2,
-                  cellBuilder: (s) => Align(
-                    alignment: Alignment.centerLeft,
-                    child: switch (s.status.toLowerCase()) {
-                      'cancelled' => const StatusPill(label: 'Otkazan', color: AppColors.error),
-                      'finished' => const StatusPill(label: 'Zavrsen', color: AppColors.textMuted),
-                      _ => const StatusPill(label: 'Aktivan', color: AppColors.success),
-                    },
-                  ),
-                ),
-                ColumnDef.actions(flex: 2, builder: (s) => [
-                  SmallButton(text: 'Detalji', color: AppColors.primary, onTap: () => _viewDetails(s)),
-                  const SizedBox(width: AppSpacing.sm),
-                  SmallButton(text: 'Obrisi', color: AppColors.error, onTap: () => _deleteSeminar(s)),
-                ]),
-              ],
-            ),
-          )
-              .animate(delay: 200.ms)
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-              .slideY(
-                begin: 0.04,
-                end: 0,
-                duration: Motion.smooth,
-                curve: Motion.curve,
+    return CrudListScaffold<SeminarResponse, SeminarQueryFilter>(
+          state: state,
+          onRefresh: notifier.refresh,
+          onSearch: notifier.setSearch,
+          onSort: notifier.setOrderBy,
+          onPageChanged: notifier.goToPage,
+          onAdd: _addSeminar,
+          searchHint: 'Pretrazi po temi ili voditelju...',
+          addButtonText: '+ Dodaj seminar',
+          loadingColumnFlex: const [3, 2, 2, 2, 1, 2, 2],
+          extraFilter: _StatusFilter(
+            value: _selectedStatus,
+            onChanged: (v) {
+              setState(() => _selectedStatus = v);
+              notifier.setStatus(v);
+            },
+          ),
+          sortOptions: const [
+            SortOption(value: null, label: 'Zadano'),
+            SortOption(value: 'topic', label: 'Tema (A-Z)'),
+            SortOption(value: 'topicdesc', label: 'Tema (Z-A)'),
+            SortOption(value: 'speakername', label: 'Voditelj (A-Z)'),
+            SortOption(value: 'speakernamedesc', label: 'Voditelj (Z-A)'),
+            SortOption(value: 'eventdate', label: 'Najstarije prvo'),
+            SortOption(value: 'eventdatedesc', label: 'Najnovije prvo'),
+            SortOption(value: 'maxcapacity', label: 'Kapacitet (manji)'),
+            SortOption(value: 'maxcapacitydesc', label: 'Kapacitet (veci)'),
+          ],
+          tableBuilder: (items) => GenericDataTable<SeminarResponse>(
+            items: items,
+            columns: [
+              ColumnDef.text(
+                label: 'Naziv teme',
+                flex: 3,
+                value: (s) => s.topic,
+                bold: true,
               ),
-        ),
-      ],
-    );
+              ColumnDef.text(
+                label: 'Voditelj',
+                flex: 2,
+                value: (s) => s.speakerName,
+              ),
+              ColumnDef<SeminarResponse>(
+                label: 'Popunjenost',
+                flex: 2,
+                cellBuilder: (s) => _CapacityIndicator(
+                  current: s.currentAttendees,
+                  max: s.maxCapacity,
+                ),
+              ),
+              ColumnDef.text(
+                label: 'Datum',
+                flex: 2,
+                value: (s) => DateFormat('dd.MM.yyyy').format(s.eventDate),
+              ),
+              ColumnDef.text(
+                label: 'Satnica',
+                flex: 1,
+                value: (s) => DateFormat('HH:mm').format(s.eventDate),
+              ),
+              ColumnDef<SeminarResponse>(
+                label: 'Status',
+                flex: 2,
+                cellBuilder: (s) => Align(
+                  alignment: Alignment.centerLeft,
+                  child: switch (s.status.toLowerCase()) {
+                    'cancelled' => const StatusPill(
+                      label: 'Otkazan',
+                      color: AppColors.error,
+                    ),
+                    'finished' => const StatusPill(
+                      label: 'Zavrsen',
+                      color: AppColors.textMuted,
+                    ),
+                    _ => const StatusPill(
+                      label: 'Aktivan',
+                      color: AppColors.success,
+                    ),
+                  },
+                ),
+              ),
+              ColumnDef.actions(
+                flex: 2,
+                builder: (s) => [
+                  SmallButton(
+                    text: 'Detalji',
+                    color: AppColors.primary,
+                    onTap: () => _viewDetails(s),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  SmallButton(
+                    text: 'Obrisi',
+                    color: AppColors.error,
+                    onTap: () => _deleteSeminar(s),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        )
+        .animate(delay: 200.ms)
+        .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+        .slideY(
+          begin: 0.04,
+          end: 0,
+          duration: Motion.smooth,
+          curve: Motion.curve,
+        );
   }
 }
 
@@ -223,6 +259,7 @@ class _StatusFilter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      constraints: const BoxConstraints(minWidth: 128),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
       decoration: BoxDecoration(
         color: AppColors.surface,
@@ -240,9 +277,13 @@ class _StatusFilter extends StatelessWidget {
             DropdownMenuItem<String?>(value: null, child: Text('Svi')),
             DropdownMenuItem<String?>(value: 'active', child: Text('Aktivni')),
             DropdownMenuItem<String?>(
-                value: 'cancelled', child: Text('Otkazani')),
+              value: 'cancelled',
+              child: Text('Otkazani'),
+            ),
             DropdownMenuItem<String?>(
-                value: 'finished', child: Text('Zavrseni')),
+              value: 'finished',
+              child: Text('Zavrseni'),
+            ),
           ],
           onChanged: onChanged,
         ),
@@ -263,8 +304,8 @@ class _CapacityIndicator extends StatelessWidget {
     final color = isFull
         ? AppColors.error
         : ratio > 0.8
-            ? AppColors.warning
-            : AppColors.success;
+        ? AppColors.warning
+        : AppColors.success;
 
     return Text(
       '$current/$max',
