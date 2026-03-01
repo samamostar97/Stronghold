@@ -5,6 +5,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
+import 'shared/surface_card.dart';
 
 class SupplementDetailHeader extends StatelessWidget {
   final SupplementResponse supplement;
@@ -25,7 +26,7 @@ class SupplementDetailHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xxl),
-        Text(supplement.name, style: AppTextStyles.headingLg.copyWith(color: Colors.white)),
+        Text(supplement.name, style: AppTextStyles.headingLg.copyWith(color: AppColors.textPrimary)),
         const SizedBox(height: AppSpacing.sm),
         StatusPill(label: supplement.supplementCategoryName ?? '', color: AppColors.primary),
         const SizedBox(height: AppSpacing.lg),
@@ -36,12 +37,12 @@ class SupplementDetailHeader extends StatelessWidget {
         if (supplement.description != null &&
             supplement.description!.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xxl),
-          Text('Opis', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+          Text('Opis', style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.sm),
-          GlassCard(
+          SurfaceCard(
             child: Text(
               supplement.description!,
-              style: AppTextStyles.bodyMd.copyWith(height: 1.5, color: Colors.white),
+              style: AppTextStyles.bodyMd.copyWith(height: 1.5, color: AppColors.textPrimary),
             ),
           ),
         ],

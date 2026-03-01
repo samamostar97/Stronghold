@@ -7,7 +7,7 @@ import '../models/cart_models.dart';
 import 'checkout_item_card.dart';
 import 'checkout_summary_row.dart';
 import 'package:stronghold_core/stronghold_core.dart';
-import 'section_header.dart';
+import 'shared/surface_card.dart';
 
 class CheckoutReviewStep extends StatelessWidget {
   final List<CartItem> items;
@@ -36,7 +36,7 @@ class CheckoutReviewStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSpacing.lg),
-                Text('Stavke narudzbe', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+                Text('Stavke narudzbe', style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
                 const SizedBox(height: AppSpacing.md),
                 ...items.map(
                   (item) => Padding(
@@ -45,7 +45,7 @@ class CheckoutReviewStep extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: AppSpacing.lg),
-                GlassCard(
+                SurfaceCard(
                   child: Column(
                     children: [
                       CheckoutSummaryRow(
@@ -86,7 +86,7 @@ class CheckoutReviewStep extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
@@ -117,10 +117,18 @@ class CheckoutReviewStep extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             flex: 2,
-            child: GradientButton(
-              label: 'Nastavi',
-              icon: LucideIcons.arrowRight,
+            child: ElevatedButton.icon(
               onPressed: onNext,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+              ),
+              icon: const Icon(LucideIcons.arrowRight, size: 16),
+              label: Text('Nastavi', style: AppTextStyles.buttonMd.copyWith(color: Colors.white)),
             ),
           ),
         ],

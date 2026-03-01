@@ -191,7 +191,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           Expanded(
             child: Text(
               _stepTitles[_currentStep],
-              style: AppTextStyles.headingMd.copyWith(color: Colors.white),
+              style: AppTextStyles.headingMd.copyWith(color: AppColors.textPrimary),
             ),
           ),
         ],

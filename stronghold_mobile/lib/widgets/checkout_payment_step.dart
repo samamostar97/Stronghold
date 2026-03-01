@@ -6,7 +6,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../models/cart_models.dart';
 import 'checkout_summary_row.dart';
-import 'section_header.dart';
+import 'shared/surface_card.dart';
 
 class CheckoutPaymentStep extends StatelessWidget {
   final List<CartItem> items;
@@ -41,10 +41,10 @@ class CheckoutPaymentStep extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSpacing.lg),
-                Text('Pregled placanja', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+                Text('Pregled placanja', style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
                 const SizedBox(height: AppSpacing.md),
                 // Order summary
-                GlassCard(
+                SurfaceCard(
                   child: Column(
                     children: [
                       CheckoutSummaryRow(
@@ -78,9 +78,9 @@ class CheckoutPaymentStep extends StatelessWidget {
                 // Delivery address
                 if (address != null) ...[
                   const SizedBox(height: AppSpacing.xl),
-                  Text('Adresa dostave', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+                  Text('Adresa dostave', style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
                   const SizedBox(height: AppSpacing.md),
-                  GlassCard(
+                  SurfaceCard(
                     child: Row(
                       children: [
                         Container(
@@ -101,11 +101,11 @@ class CheckoutPaymentStep extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(address!.street,
-                                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+                                  style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary)),
                               const SizedBox(height: 2),
                               Text(
                                 '${address!.postalCode} ${address!.city}, ${address!.country}',
-                                style: AppTextStyles.bodySm.copyWith(color: Colors.white),
+                                style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary),
                               ),
                             ],
                           ),
@@ -117,7 +117,7 @@ class CheckoutPaymentStep extends StatelessWidget {
                 // Error message
                 if (error != null) ...[
                   const SizedBox(height: AppSpacing.lg),
-                  GlassCard(
+                  SurfaceCard(
                     child: Row(
                       children: [
                         const Icon(LucideIcons.alertCircle,
@@ -149,7 +149,7 @@ class CheckoutPaymentStep extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
@@ -180,11 +180,20 @@ class CheckoutPaymentStep extends StatelessWidget {
           const SizedBox(width: AppSpacing.md),
           Expanded(
             flex: 2,
-            child: GradientButton(
-              label: 'Plati ${total.toStringAsFixed(2)} KM',
-              icon: LucideIcons.lock,
-              isLoading: isProcessing,
+            child: ElevatedButton.icon(
               onPressed: isProcessing ? null : onPay,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+              ),
+              icon: isProcessing
+                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(LucideIcons.lock, size: 16),
+              label: Text('Plati ${total.toStringAsFixed(2)} KM', style: AppTextStyles.buttonMd.copyWith(color: Colors.white)),
             ),
           ),
         ],

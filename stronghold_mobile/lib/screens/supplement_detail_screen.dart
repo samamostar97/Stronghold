@@ -12,8 +12,8 @@ import '../providers/cart_provider.dart';
 import '../providers/supplement_provider.dart';
 import '../widgets/feedback_dialog.dart';
 import '../widgets/review_card.dart';
-import '../widgets/section_header.dart';
 import '../widgets/supplement_detail_header.dart';
+import '../widgets/shared/surface_card.dart';
 
 class SupplementDetailScreen extends ConsumerWidget {
   final SupplementResponse supplement;
@@ -50,7 +50,9 @@ class SupplementDetailScreen extends ConsumerWidget {
               Expanded(
                 child: Text(
                   supplement.name,
-                  style: AppTextStyles.headingMd.copyWith(color: Colors.white),
+                  style: AppTextStyles.headingMd.copyWith(
+                    color: AppColors.textPrimary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -90,14 +92,28 @@ class SupplementDetailScreen extends ConsumerWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.screenPadding),
-            child: GradientButton(
-              label: 'DODAJ U KORPU',
-              icon: LucideIcons.shoppingCart,
-              onPressed: () {
-                ref.read(cartProvider.notifier).addItem(supplement);
-                showSuccessFeedback(
-                    context, '${supplement.name} dodano u korpu');
-              },
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  ref.read(cartProvider.notifier).addItem(supplement);
+                  showSuccessFeedback(
+                      context, '${supplement.name} dodano u korpu');
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  ),
+                ),
+                icon: const Icon(LucideIcons.shoppingCart, size: 16),
+                label: Text(
+                  'DODAJ U KORPU',
+                  style: AppTextStyles.buttonMd.copyWith(color: Colors.white),
+                ),
+              ),
             ),
           )
               .animate(delay: 300.ms)
@@ -117,7 +133,10 @@ class SupplementDetailScreen extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'Recenzije'),
+        Text(
+          'Recenzije',
+          style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary),
+        ),
         const SizedBox(height: AppSpacing.md),
         reviewsAsync.when(
           loading: () => const Center(
@@ -127,7 +146,7 @@ class SupplementDetailScreen extends ConsumerWidget {
                   strokeWidth: 2, color: AppColors.primary),
             ),
           ),
-          error: (_, _) => GlassCard(
+          error: (_, _) => SurfaceCard(
             child: Text(
               'Greska prilikom ucitavanja recenzija',
               style: AppTextStyles.bodyMd,
@@ -136,7 +155,7 @@ class SupplementDetailScreen extends ConsumerWidget {
           ),
           data: (reviews) {
             if (reviews.isEmpty) {
-              return GlassCard(
+              return SurfaceCard(
                 child: Center(
                   child: Text('Nema recenzija', style: AppTextStyles.bodyMd),
                 ),
@@ -159,16 +178,22 @@ class SupplementDetailScreen extends ConsumerWidget {
   }
 
   Widget _ratingSummary(double avg, int count) {
-    return GlassCard(
+    return SurfaceCard(
       child: Row(children: [
-        Text(avg.toStringAsFixed(1), style: AppTextStyles.stat.copyWith(color: Colors.white)),
+        Text(
+          avg.toStringAsFixed(1),
+          style: AppTextStyles.stat.copyWith(color: AppColors.textPrimary),
+        ),
         const SizedBox(width: AppSpacing.md),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ReviewCard.starRating(avg, size: 18),
             const SizedBox(height: AppSpacing.xs),
-            Text('$count recenzija', style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
+            Text(
+              '$count recenzija',
+              style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary),
+            ),
           ],
         ),
       ]),

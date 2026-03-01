@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../constants/app_colors.dart';
 import '../constants/app_text_styles.dart';
 
 class CheckoutSummaryRow extends StatelessWidget {
@@ -23,12 +24,12 @@ class CheckoutSummaryRow extends StatelessWidget {
         Text(
           label,
           style: (isBold ? AppTextStyles.bodyBold : AppTextStyles.bodyMd)
-              .copyWith(color: Colors.white),
+              .copyWith(color: AppColors.textPrimary),
         ),
         Text(
           value,
           style: (isBold ? AppTextStyles.bodyBold : AppTextStyles.bodyMd)
-              .copyWith(color: valueColor ?? Colors.white),
+              .copyWith(color: valueColor ?? AppColors.textPrimary),
         ),
       ],
     );

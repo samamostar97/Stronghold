@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
+import '../widgets/shared/surface_card.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 
@@ -39,17 +40,17 @@ class CheckoutConfirmationStep extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.xxl),
-          Text('Narudzba uspjesna!', style: AppTextStyles.headingLg.copyWith(color: Colors.white)),
+          Text('Narudzba uspjesna!', style: AppTextStyles.headingLg.copyWith(color: AppColors.textPrimary)),
           const SizedBox(height: AppSpacing.sm),
           Text(
             'Vasa narudzba je uspjesno kreirana.',
-            style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
+            style: AppTextStyles.bodyMd.copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
           // Delivery address
           if (address != null) ...[
             const SizedBox(height: AppSpacing.xxl),
-            GlassCard(
+            SurfaceCard(
               child: Row(
                 children: [
                   Container(
@@ -70,11 +71,11 @@ class CheckoutConfirmationStep extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Dostava na adresu',
-                            style: AppTextStyles.caption.copyWith(color: Colors.white)),
+                            style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary)),
                         const SizedBox(height: 2),
                         Text(
                           '${address!.street}, ${address!.postalCode} ${address!.city}',
-                          style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                          style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
                         ),
                       ],
                     ),
@@ -85,12 +86,23 @@ class CheckoutConfirmationStep extends StatelessWidget {
           ],
           const Spacer(),
           // Bottom actions
-          GradientButton(
-            label: 'Moje narudzbe',
-            icon: LucideIcons.package,
-            onPressed: () {
-              context.go('/orders');
-            },
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                context.go('/orders');
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                ),
+              ),
+              icon: const Icon(LucideIcons.package, size: 16),
+              label: Text('Moje narudzbe', style: AppTextStyles.buttonMd.copyWith(color: Colors.white)),
+            ),
           ),
           const SizedBox(height: AppSpacing.md),
           GestureDetector(

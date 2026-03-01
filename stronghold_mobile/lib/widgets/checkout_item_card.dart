@@ -6,6 +6,7 @@ import '../constants/app_text_styles.dart';
 import '../models/cart_models.dart';
 import '../utils/image_utils.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import 'shared/surface_card.dart';
 
 class CheckoutItemCard extends StatelessWidget {
   final CartItem item;
@@ -14,7 +15,7 @@ class CheckoutItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
         children: [
@@ -41,14 +42,14 @@ class CheckoutItemCard extends StatelessWidget {
               children: [
                 Text(
                   item.supplement.name,
-                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   '${item.supplement.price.toStringAsFixed(2)} KM x ${item.quantity}',
-                  style: AppTextStyles.bodySm.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ),

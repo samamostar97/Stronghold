@@ -7,7 +7,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/address_provider.dart';
 import '../utils/validators.dart';
-import '../widgets/section_header.dart';
+import '../widgets/shared/surface_card.dart';
 
 class CheckoutAddressStep extends ConsumerStatefulWidget {
   final VoidCallback onBack;
@@ -98,7 +98,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: AppSpacing.lg),
-                Text('Adresa dostave', style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+                Text('Adresa dostave', style: AppTextStyles.headingSm.copyWith(color: AppColors.textPrimary)),
                 const SizedBox(height: AppSpacing.md),
                 addressAsync.when(
                   loading: () => _loadingState(),
@@ -132,7 +132,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
   }
 
   Widget _loadingState() {
-    return const GlassCard(
+    return const SurfaceCard(
       child: SizedBox(
         height: 80,
         child: Center(
@@ -150,7 +150,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
   }
 
   Widget _addressPreview(AddressResponse address) {
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -175,13 +175,13 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(address.street, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+                    Text(address.street, style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary)),
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       '${address.postalCode} ${address.city}',
-                      style: AppTextStyles.bodySm.copyWith(color: Colors.white),
+                      style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary),
                     ),
-                    Text(address.country, style: AppTextStyles.bodySm.copyWith(color: Colors.white)),
+                    Text(address.country, style: AppTextStyles.bodySm.copyWith(color: AppColors.textSecondary)),
                   ],
                 ),
               ),
@@ -195,12 +195,12 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                   decoration: BoxDecoration(
                     color: AppColors.primaryDim,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppColors.border),
                   ),
                   child: const Icon(
                     LucideIcons.pencil,
                     size: 16,
-                    color: Colors.white,
+                    color: AppColors.primary,
                   ),
                 ),
               ),
@@ -258,7 +258,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
           ),
           const SizedBox(height: AppSpacing.lg),
           // Country (read-only)
-          GlassCard(
+          SurfaceCard(
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: Row(
               children: [
@@ -309,11 +309,20 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   flex: 2,
-                  child: GradientButton(
-                    label: 'Sacuvaj adresu',
-                    icon: LucideIcons.save,
-                    isLoading: _isSaving,
-                    onPressed: _saveAddress,
+                  child: ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _saveAddress,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(44),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      ),
+                    ),
+                    icon: _isSaving
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(LucideIcons.save, size: 16),
+                    label: Text('Sacuvaj adresu', style: AppTextStyles.buttonMd.copyWith(color: Colors.white)),
                   ),
                 ),
               ],
@@ -388,7 +397,7 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.3))),
+        border: Border(top: BorderSide(color: AppColors.border)),
       ),
       child: Row(
         children: [
@@ -423,16 +432,33 @@ class _CheckoutAddressStepState extends ConsumerState<CheckoutAddressStep> {
           Expanded(
             flex: 2,
             child: _canProceed
-                ? GradientButton(
-                    label: 'Nastavi na placanje',
-                    icon: LucideIcons.arrowRight,
+                ? ElevatedButton.icon(
                     onPressed: widget.onNext,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      ),
+                    ),
+                    icon: const Icon(LucideIcons.arrowRight, size: 16),
+                    label: Text('Nastavi na placanje', style: AppTextStyles.buttonMd.copyWith(color: Colors.white)),
                   )
-                : GradientButton(
-                    label: 'Sacuvaj adresu',
-                    icon: LucideIcons.save,
-                    isLoading: _isSaving,
-                    onPressed: _saveAddress,
+                : ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _saveAddress,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size.fromHeight(48),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                      ),
+                    ),
+                    icon: _isSaving
+                        ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : const Icon(LucideIcons.save, size: 16),
+                    label: Text('Sacuvaj adresu', style: AppTextStyles.buttonMd.copyWith(color: Colors.white)),
                   ),
           ),
         ],

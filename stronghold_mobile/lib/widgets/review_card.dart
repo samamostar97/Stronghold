@@ -4,6 +4,7 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
+import 'shared/surface_card.dart';
 
 class ReviewCard extends StatelessWidget {
   final SupplementReviewResponse review;
@@ -12,7 +13,7 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -20,13 +21,13 @@ class ReviewCard extends StatelessWidget {
             Expanded(
               child: Text(
                 review.userName,
-                style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                style: AppTextStyles.bodyBold.copyWith(color: AppColors.textPrimary),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
             Text(
               '${review.createdAt.day}.${review.createdAt.month}.${review.createdAt.year}.',
-              style: AppTextStyles.caption.copyWith(color: Colors.white70),
+              style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
             ),
           ]),
           const SizedBox(height: AppSpacing.sm),
@@ -35,7 +36,7 @@ class ReviewCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             Text(
               review.comment!,
-              style: AppTextStyles.bodyMd.copyWith(height: 1.4, color: Colors.white),
+              style: AppTextStyles.bodyMd.copyWith(height: 1.4, color: AppColors.textPrimary),
             ),
           ],
         ],
