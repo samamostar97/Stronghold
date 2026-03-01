@@ -102,10 +102,7 @@ class _UserProfileContentState extends State<_UserProfileContent>
           Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _ProfileToolbar(
-                    user: widget.user,
-                    onBack: () => context.go('/users'),
-                  ),
+                  _ProfileToolbar(onBack: () => context.go('/users')),
                   const SizedBox(height: AppSpacing.md),
                   Expanded(
                     child: Stack(
@@ -163,66 +160,12 @@ class _UserProfileContentState extends State<_UserProfileContent>
 }
 
 class _ProfileToolbar extends StatelessWidget {
-  const _ProfileToolbar({required this.user, required this.onBack});
+  const _ProfileToolbar({required this.onBack});
 
-  final UserResponse user;
   final VoidCallback onBack;
 
   @override
   Widget build(BuildContext context) {
-    final initials = _initials(user.firstName, user.lastName);
-    final avatar = Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: user.profileImageUrl != null
-          ? Image.network(
-              ApiConfig.imageUrl(user.profileImageUrl!),
-              fit: BoxFit.cover,
-              errorBuilder: (_, _, _) => _InitialsAvatar(initials: initials),
-            )
-          : _InitialsAvatar(initials: initials),
-    );
-
-    final identity = Row(
-      children: [
-        avatar,
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                user.fullName,
-                style: AppTextStyles.sectionTitle,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '@${user.username}',
-                style: AppTextStyles.caption,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-
-    final chips = Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: [
-        _MetaChip(icon: LucideIcons.mail, value: user.email),
-        if (user.phoneNumber.isNotEmpty)
-          _MetaChip(icon: LucideIcons.phone, value: user.phoneNumber),
-      ],
-    );
-
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -233,92 +176,31 @@ class _ProfileToolbar extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final narrow = constraints.maxWidth < 980;
-          if (narrow) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  children: [
-                    _BackChip(onTap: onBack),
-                    const SizedBox(width: 8),
-                    Expanded(child: identity),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                chips,
-              ],
-            );
-          }
-
+          final narrow = constraints.maxWidth < 760;
           return Row(
             children: [
               _BackChip(onTap: onBack),
-              const SizedBox(width: 10),
-              Expanded(child: identity),
-              const SizedBox(width: 12),
-              Flexible(child: chips),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Profil korisnika', style: AppTextStyles.sectionTitle),
+                    if (!narrow) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Informacije, narudzbe, uplate i upravljanje korisnikom',
+                        style: AppTextStyles.caption,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ],
           );
         },
-      ),
-    );
-  }
-
-  static String _initials(String first, String last) {
-    final f = first.isNotEmpty ? first[0] : '';
-    final l = last.isNotEmpty ? last[0] : '';
-    return '$f$l'.toUpperCase();
-  }
-}
-
-class _InitialsAvatar extends StatelessWidget {
-  const _InitialsAvatar({required this.initials});
-
-  final String initials;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: AppColors.surfaceAlt,
-      alignment: Alignment.center,
-      child: Text(
-        initials,
-        style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
-
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.icon, required this.value});
-
-  final IconData icon;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(maxWidth: 260),
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 13, color: AppColors.textSecondary),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              value,
-              style: AppTextStyles.caption,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
       ),
     );
   }
