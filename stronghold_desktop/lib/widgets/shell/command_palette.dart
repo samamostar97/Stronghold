@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,14 +6,12 @@ import 'package:lucide_icons/lucide_icons.dart';
 import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
-import '../../constants/motion.dart';
 import '../../providers/command_palette_provider.dart';
 
-/// Shows the command palette dialog overlay.
 void showCommandPalette(BuildContext context) {
   showDialog(
     context: context,
-    barrierColor: Colors.transparent,
+    barrierColor: AppColors.overlay,
     builder: (context) => const _CommandPaletteOverlay(),
   );
 }
@@ -31,7 +27,8 @@ class _CommandPaletteOverlay extends ConsumerStatefulWidget {
 class _CommandPaletteOverlayState
     extends ConsumerState<_CommandPaletteOverlay> {
   final _searchController = TextEditingController();
-  final _focusNode = FocusNode();
+  final _searchFocus = FocusNode();
+  final _keyboardFocus = FocusNode();
   final _scrollController = ScrollController();
 
   @override
@@ -40,7 +37,7 @@ class _CommandPaletteOverlayState
     _searchController.addListener(_onQueryChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(commandPaletteProvider.notifier).open();
-      _focusNode.requestFocus();
+      _searchFocus.requestFocus();
     });
   }
 
@@ -48,7 +45,8 @@ class _CommandPaletteOverlayState
   void dispose() {
     _searchController.removeListener(_onQueryChanged);
     _searchController.dispose();
-    _focusNode.dispose();
+    _searchFocus.dispose();
+    _keyboardFocus.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -60,96 +58,118 @@ class _CommandPaletteOverlayState
   }
 
   void _close() {
+    if (!mounted) return;
     Navigator.of(context).pop();
     ref.read(commandPaletteProvider.notifier).close();
   }
 
   void _executeSelected() {
-    final entry =
-        ref.read(commandPaletteProvider.notifier).getSelectedEntry();
+    final entry = ref.read(commandPaletteProvider.notifier).getSelectedEntry();
     if (entry == null) return;
+
     _close();
+    if (!mounted) return;
+
     if (entry.path != null) {
       context.go(entry.path!);
-    } else if (entry.action != null) {
-      entry.action!();
-    }
-  }
-
-  void _handleKeyEvent(KeyEvent event) {
-    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return;
-    final notifier = ref.read(commandPaletteProvider.notifier);
-    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-      notifier.moveSelection(1);
-      _ensureVisible();
-    } else if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-      notifier.moveSelection(-1);
-      _ensureVisible();
-    } else if (event.logicalKey == LogicalKeyboardKey.enter) {
-      _executeSelected();
+    } else {
+      entry.action?.call();
     }
   }
 
   void _ensureVisible() {
     final state = ref.read(commandPaletteProvider);
-    if (state.filteredResults.isEmpty) return;
-    const itemHeight = 48.0;
-    final targetOffset = state.selectedIndex * itemHeight;
-    final viewportHeight = _scrollController.position.viewportDimension;
-    final currentOffset = _scrollController.offset;
-    if (targetOffset < currentOffset) {
-      _scrollController.animateTo(targetOffset,
-          duration: const Duration(milliseconds: 100), curve: Curves.easeOut);
-    } else if (targetOffset + itemHeight > currentOffset + viewportHeight) {
+    if (state.filteredResults.isEmpty || !_scrollController.hasClients) return;
+
+    const itemHeight = 52.0;
+    final target = state.selectedIndex * itemHeight;
+    final viewport = _scrollController.position.viewportDimension;
+    final current = _scrollController.offset;
+
+    if (target < current) {
       _scrollController.animateTo(
-          targetOffset + itemHeight - viewportHeight,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.easeOut);
+        target,
+        duration: const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+      );
+    } else if (target + itemHeight > current + viewport) {
+      _scrollController.animateTo(
+        target + itemHeight - viewport,
+        duration: const Duration(milliseconds: 90),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  void _handleKey(KeyEvent event) {
+    if (event is! KeyDownEvent && event is! KeyRepeatEvent) return;
+
+    final notifier = ref.read(commandPaletteProvider.notifier);
+
+    if (event.logicalKey == LogicalKeyboardKey.escape) {
+      _close();
+      return;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
+      notifier.moveSelection(1);
+      _ensureVisible();
+      return;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
+      notifier.moveSelection(-1);
+      _ensureVisible();
+      return;
+    }
+    if (event.logicalKey == LogicalKeyboardKey.enter) {
+      _executeSelected();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(commandPaletteProvider);
-    return KeyboardListener(
-      focusNode: FocusNode(),
-      onKeyEvent: _handleKeyEvent,
-      child: GestureDetector(
-        onTap: _close,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-          child: Container(
-            color: AppColors.deepBlue.withOpacity(0.3),
-            alignment: const Alignment(0, -0.3),
-            child: GestureDetector(
-              onTap: () {},
-              child: Material(
-                type: MaterialType.transparency,
-                child: Container(
-                  width: 560,
-                  constraints: const BoxConstraints(maxHeight: 460),
-                  decoration: BoxDecoration(
-                    color: AppColors.surface,
-                    borderRadius: AppSpacing.cardRadius,
-                    border: Border.all(color: AppColors.border),
-                    boxShadow: AppColors.cardShadowStrong,
+
+    return Material(
+      type: MaterialType.transparency,
+      child: KeyboardListener(
+        focusNode: _keyboardFocus,
+        autofocus: true,
+        onKeyEvent: _handleKey,
+        child: GestureDetector(
+          onTap: _close,
+          child: SafeArea(
+            child: Center(
+              child: GestureDetector(
+                onTap: () {},
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 320,
+                    maxWidth: 620,
+                    minHeight: 220,
+                    maxHeight: 500,
                   ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _searchField(),
-                      Container(height: 1, color: AppColors.borderLight),
-                      if (state.filteredResults.isEmpty)
-                        Padding(
-                          padding: const EdgeInsets.all(AppSpacing.xl),
-                          child: Text('Nema rezultata',
-                              style: AppTextStyles.bodySecondary.copyWith(
-                                  color: AppColors.textMuted)),
-                        )
-                      else
-                        _resultsList(state),
-                      _footer(),
-                    ],
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: AppSpacing.cardRadius,
+                      border: Border.all(color: AppColors.border),
+                      boxShadow: AppColors.cardShadowStrong,
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        _header(),
+                        const Divider(height: 1, color: AppColors.borderLight),
+                        Expanded(
+                          child: state.filteredResults.isEmpty
+                              ? _empty()
+                              : _results(state),
+                        ),
+                        const Divider(height: 1, color: AppColors.borderLight),
+                        _footer(),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -160,70 +180,114 @@ class _CommandPaletteOverlayState
     );
   }
 
-  Widget _searchField() {
+  Widget _header() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          AppSpacing.xl, AppSpacing.base, AppSpacing.xl, AppSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
       child: TextField(
         controller: _searchController,
-        focusNode: _focusNode,
-        style: AppTextStyles.body,
+        focusNode: _searchFocus,
+        style: AppTextStyles.bodyMedium,
         decoration: InputDecoration(
-          hintText: 'Pretrazi stranice i akcije...',
-          hintStyle: AppTextStyles.bodySecondary.copyWith(
-              color: AppColors.textMuted),
-          prefixIcon: const Icon(LucideIcons.search,
-              color: AppColors.textMuted, size: 18),
-          border: InputBorder.none,
-          enabledBorder: InputBorder.none,
-          focusedBorder: InputBorder.none,
-          filled: false,
-          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+          hintText: 'Pretrazi ekrane i komande...',
+          hintStyle: AppTextStyles.bodySecondary,
+          prefixIcon: const Icon(
+            LucideIcons.search,
+            size: 16,
+            color: AppColors.textMuted,
+          ),
+          suffixIcon: IconButton(
+            onPressed: _close,
+            icon: const Icon(
+              LucideIcons.x,
+              size: 16,
+              color: AppColors.textMuted,
+            ),
+            tooltip: 'Zatvori',
+          ),
         ),
       ),
     );
   }
 
-  Widget _resultsList(CommandPaletteState state) {
-    return Flexible(
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        shrinkWrap: true,
-        itemCount: state.filteredResults.length,
-        itemBuilder: (context, index) {
-          final entry = state.filteredResults[index];
-          return _CommandResultItem(
-            entry: entry,
-            isSelected: index == state.selectedIndex,
-            onTap: () {
-              _close();
-              if (entry.path != null) context.go(entry.path!);
-            },
-            onHover: () => ref
-                .read(commandPaletteProvider.notifier)
-                .moveSelection(index - state.selectedIndex),
-          );
-        },
+  Widget _results(CommandPaletteState state) {
+    return ListView.builder(
+      controller: _scrollController,
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: state.filteredResults.length,
+      itemBuilder: (context, index) {
+        final entry = state.filteredResults[index];
+        final selected = index == state.selectedIndex;
+
+        return _ResultRow(
+          entry: entry,
+          selected: selected,
+          onHover: () {
+            final delta = index - state.selectedIndex;
+            if (delta != 0) {
+              ref.read(commandPaletteProvider.notifier).moveSelection(delta);
+            }
+          },
+          onTap: () {
+            _close();
+            if (!mounted) return;
+            if (entry.path != null) {
+              context.go(entry.path!);
+            } else {
+              entry.action?.call();
+            }
+          },
+        );
+      },
+    );
+  }
+
+  Widget _empty() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppColors.surfaceAlt,
+              borderRadius: AppSpacing.buttonRadius,
+              border: Border.all(color: AppColors.border),
+            ),
+            child: const Icon(
+              LucideIcons.searchX,
+              size: 18,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text('Nema rezultata', style: AppTextStyles.bodyMedium),
+          const SizedBox(height: 4),
+          Text(
+            'Promijeni upit i pokusaj ponovo.',
+            style: AppTextStyles.caption,
+          ),
+        ],
       ),
     );
   }
 
   Widget _footer() {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xl, vertical: AppSpacing.md),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.borderLight)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       child: Row(
         children: [
           const _KeyHint(label: 'Enter'),
-          const SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: 6),
           Text('otvori', style: AppTextStyles.caption),
-          const SizedBox(width: AppSpacing.base),
+          const SizedBox(width: 12),
+          const _KeyHint(label: '? ?'),
+          const SizedBox(width: 6),
+          Text('kretanje', style: AppTextStyles.caption),
+          const SizedBox(width: 12),
           const _KeyHint(label: 'Esc'),
-          const SizedBox(width: AppSpacing.xs),
+          const SizedBox(width: 6),
           Text('zatvori', style: AppTextStyles.caption),
         ],
       ),
@@ -231,53 +295,79 @@ class _CommandPaletteOverlayState
   }
 }
 
-class _CommandResultItem extends StatelessWidget {
-  const _CommandResultItem({
+class _ResultRow extends StatefulWidget {
+  const _ResultRow({
     required this.entry,
-    required this.isSelected,
+    required this.selected,
     required this.onTap,
     required this.onHover,
   });
 
   final CommandEntry entry;
-  final bool isSelected;
+  final bool selected;
   final VoidCallback onTap;
   final VoidCallback onHover;
 
   @override
+  State<_ResultRow> createState() => _ResultRowState();
+}
+
+class _ResultRowState extends State<_ResultRow> {
+  bool _hover = false;
+
+  @override
   Widget build(BuildContext context) {
+    final active = widget.selected || _hover;
+
     return MouseRegion(
-      onEnter: (_) => onHover(),
+      onEnter: (_) {
+        setState(() => _hover = true);
+        widget.onHover();
+      },
+      onExit: (_) => setState(() => _hover = false),
       child: GestureDetector(
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          margin: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm, vertical: 1),
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.base, vertical: AppSpacing.md),
+        onTap: widget.onTap,
+        child: Container(
+          margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
           decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.electric.withOpacity(0.08)
-                : Colors.transparent,
-            borderRadius: AppSpacing.badgeRadius,
+            color: active ? AppColors.primaryDim : Colors.transparent,
+            borderRadius: AppSpacing.smallRadius,
+            border: Border.all(
+              color: active ? AppColors.primaryBorder : Colors.transparent,
+            ),
           ),
           child: Row(
             children: [
-              Icon(entry.icon,
-                  color: isSelected
-                      ? AppColors.electric
-                      : AppColors.textMuted,
-                  size: 18),
-              const SizedBox(width: AppSpacing.base),
-              Expanded(
-                child: Text(entry.label,
-                    style: isSelected
-                        ? AppTextStyles.bodyMedium
-                            .copyWith(color: AppColors.electric)
-                        : AppTextStyles.bodySecondary),
+              Container(
+                width: 26,
+                height: 26,
+                decoration: BoxDecoration(
+                  color: active ? AppColors.surface : AppColors.surfaceAlt,
+                  borderRadius: AppSpacing.tinyRadius,
+                  border: Border.all(color: AppColors.border),
+                ),
+                alignment: Alignment.center,
+                child: Icon(
+                  widget.entry.icon,
+                  size: 14,
+                  color: active ? AppColors.primary : AppColors.textSecondary,
+                ),
               ),
-              Text(entry.sublabel, style: AppTextStyles.caption),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  widget.entry.label,
+                  style: active
+                      ? AppTextStyles.bodyMedium.copyWith(
+                          color: AppColors.primary,
+                        )
+                      : AppTextStyles.bodySecondary,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(widget.entry.sublabel, style: AppTextStyles.caption),
             ],
           ),
         ),
@@ -294,15 +384,13 @@ class _KeyHint extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
         color: AppColors.surfaceAlt,
         borderRadius: AppSpacing.tinyRadius,
         border: Border.all(color: AppColors.border),
       ),
-      child: Text(label,
-          style: AppTextStyles.badge.copyWith(color: AppColors.textMuted)),
+      child: Text(label, style: AppTextStyles.badge),
     );
   }
 }
