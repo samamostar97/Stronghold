@@ -7,7 +7,9 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../constants/motion.dart';
+import '../../providers/list_state.dart';
 import '../../providers/membership_package_provider.dart';
+import 'settings_tab_scaffold.dart';
 
 class SettingsPackagesTab extends ConsumerWidget {
   const SettingsPackagesTab({
@@ -25,17 +27,48 @@ class SettingsPackagesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(membershipPackageListProvider);
 
+    return SettingsTabScaffold(
+      title: 'Paketi clanarina',
+      subtitle: 'Definisi cijene i opis paketa dostupnih korisnicima',
+      addLabel: '+ Dodaj paket',
+      onAdd: onAdd,
+      child: _body(state, ref),
+    );
+  }
+
+  Widget _body(
+    ListState<MembershipPackageResponse, MembershipPackageQueryFilter> state,
+    WidgetRef ref,
+  ) {
     if (state.isLoading && state.data == null) {
-      return _buildShimmer();
+      return const SettingsSkeletonWrap(
+        itemCount: 4,
+        itemWidth: 292,
+        itemHeight: 182,
+      );
     }
 
     if (state.error != null && state.data == null) {
-      return _buildError(state.error!, ref);
+      return SettingsStatePane(
+        icon: LucideIcons.alertCircle,
+        title: 'Greska pri ucitavanju',
+        description: state.error!,
+        actionLabel: 'Pokusaj ponovo',
+        onAction: () =>
+            ref.read(membershipPackageListProvider.notifier).refresh(),
+      );
     }
 
     final items = state.items;
     if (items.isEmpty) {
-      return _buildEmpty();
+      return SettingsStatePane(
+        icon: LucideIcons.package2,
+        title: 'Nema paketa clanarina',
+        description:
+            'Dodaj prvi paket kako bi korisnici mogli aktivirati clanarinu.',
+        actionLabel: '+ Dodaj paket',
+        onAction: onAdd,
+      );
     }
 
     return SingleChildScrollView(
@@ -43,85 +76,16 @@ class SettingsPackagesTab extends ConsumerWidget {
       child: Wrap(
         spacing: AppSpacing.lg,
         runSpacing: AppSpacing.lg,
-        children: [
-          ...items.asMap().entries.map((entry) => _PackageCard(
+        children: items.asMap().entries.map((entry) {
+          return _PackageCard(
                 package: entry.value,
                 onEdit: () => onEdit(entry.value),
                 onDelete: () => onDelete(entry.value),
               )
-                  .animate(delay: (80 * entry.key).ms)
-                  .fadeIn(duration: Motion.fast, curve: Motion.curve)
-                  .slideY(begin: 0.06, end: 0, duration: Motion.fast)),
-          _AddCard(onTap: onAdd)
-              .animate(delay: (80 * items.length).ms)
-              .fadeIn(duration: Motion.fast, curve: Motion.curve),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShimmer() {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Wrap(
-        spacing: AppSpacing.lg,
-        runSpacing: AppSpacing.lg,
-        children: List.generate(
-          3,
-          (i) => Container(
-            width: 280,
-            height: 180,
-            decoration: BoxDecoration(
-              color: AppColors.shimmer,
-              borderRadius: AppSpacing.cardRadius,
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat())
-              .shimmer(duration: 1200.ms, color: AppColors.shimmerHighlight),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildError(String error, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(LucideIcons.alertCircle, size: 48, color: AppColors.textMuted),
-          const SizedBox(height: AppSpacing.md),
-          Text(error, style: AppTextStyles.bodyMd),
-          const SizedBox(height: AppSpacing.lg),
-          TextButton(
-            onPressed: () =>
-                ref.read(membershipPackageListProvider.notifier).refresh(),
-            child: Text('Pokusaj ponovo',
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.electric)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(LucideIcons.package2, size: 48, color: AppColors.textMuted),
-          const SizedBox(height: AppSpacing.md),
-          Text('Nema paketa clanarina',
-              style: AppTextStyles.bodyMd
-                  .copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: AppSpacing.lg),
-          TextButton(
-            onPressed: onAdd,
-            child: Text('+ Dodaj prvi paket',
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.electric)),
-          ),
-        ],
+              .animate(delay: (80 * entry.key).ms)
+              .fadeIn(duration: Motion.fast, curve: Motion.curve)
+              .slideY(begin: 0.05, end: 0, duration: Motion.fast);
+        }).toList(),
       ),
     );
   }
@@ -150,136 +114,70 @@ class _PackageCardState extends State<_PackageCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onEdit,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          curve: Motion.gentle,
-          width: 280,
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          transform: _hovered
-              ? (Matrix4.identity()..translate(0.0, -4.0, 0.0))
-              : Matrix4.identity(),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: AppSpacing.cardRadius,
-            border: Border.all(
-              color: _hovered
-                  ? AppColors.electric.withValues(alpha: 0.4)
-                  : AppColors.border,
-            ),
-            boxShadow: _hovered ? AppColors.cardShadowStrong : AppColors.cardShadow,
+      child: AnimatedContainer(
+        duration: Motion.fast,
+        curve: Motion.gentle,
+        width: 292,
+        padding: const EdgeInsets.all(AppSpacing.xl),
+        transform: _hovered
+            ? Matrix4.translationValues(0.0, -2.0, 0.0)
+            : Matrix4.identity(),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppSpacing.cardRadius,
+          border: Border.all(
+            color: _hovered ? AppColors.primaryBorder : AppColors.border,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      widget.package.packageName ?? '-',
-                      style: AppTextStyles.cardTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (_hovered) ...[
-                    _IconBtn(
-                      icon: LucideIcons.pencil,
-                      color: AppColors.electric,
-                      onTap: widget.onEdit,
-                    ),
-                    const SizedBox(width: AppSpacing.xs),
-                    _IconBtn(
-                      icon: LucideIcons.trash2,
-                      color: AppColors.error,
-                      onTap: widget.onDelete,
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: AppSpacing.base),
-              Text(
-                '${widget.package.packagePrice.toStringAsFixed(2)} KM',
-                style: AppTextStyles.metricMedium
-                    .copyWith(color: AppColors.electric),
-              ),
-              if (widget.package.description?.isNotEmpty == true) ...[
-                const SizedBox(height: AppSpacing.md),
-                Text(
-                  widget.package.description!,
-                  style: AppTextStyles.bodyMd
-                      .copyWith(color: AppColors.textSecondary),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ],
-          ),
+          boxShadow: _hovered
+              ? AppColors.cardShadowStrong
+              : AppColors.cardShadow,
         ),
-      ),
-    );
-  }
-}
-
-class _AddCard extends StatefulWidget {
-  const _AddCard({required this.onTap});
-  final VoidCallback onTap;
-
-  @override
-  State<_AddCard> createState() => _AddCardState();
-}
-
-class _AddCardState extends State<_AddCard> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          curve: Motion.gentle,
-          width: 280,
-          height: 180,
-          decoration: BoxDecoration(
-            color: _hovered
-                ? AppColors.electric.withValues(alpha: 0.04)
-                : Colors.transparent,
-            borderRadius: AppSpacing.cardRadius,
-            border: Border.all(
-              color: _hovered
-                  ? AppColors.electric.withValues(alpha: 0.4)
-                  : AppColors.textMuted.withValues(alpha: 0.3),
-              width: 1.5,
-              strokeAlign: BorderSide.strokeAlignInside,
-            ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
               children: [
-                Icon(LucideIcons.plus,
-                    size: 28,
-                    color: _hovered
-                        ? AppColors.electric
-                        : AppColors.textMuted),
-                const SizedBox(height: AppSpacing.sm),
-                Text(
-                  'Dodaj paket',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: _hovered
-                        ? AppColors.electric
-                        : AppColors.textMuted,
+                Expanded(
+                  child: Text(
+                    widget.package.packageName ?? '-',
+                    style: AppTextStyles.cardTitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                ),
+                _IconBtn(
+                  icon: LucideIcons.pencil,
+                  color: AppColors.primary,
+                  tooltip: 'Izmijeni paket',
+                  onTap: widget.onEdit,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                _IconBtn(
+                  icon: LucideIcons.trash2,
+                  color: AppColors.error,
+                  tooltip: 'Obrisi paket',
+                  onTap: widget.onDelete,
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: AppSpacing.base),
+            Text(
+              '${widget.package.packagePrice.toStringAsFixed(2)} KM',
+              style: AppTextStyles.metricMedium.copyWith(
+                color: AppColors.primary,
+              ),
+            ),
+            if (widget.package.description?.isNotEmpty == true) ...[
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                widget.package.description!,
+                style: AppTextStyles.bodySecondary,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ],
         ),
       ),
     );
@@ -290,21 +188,26 @@ class _IconBtn extends StatelessWidget {
   const _IconBtn({
     required this.icon,
     required this.color,
+    required this.tooltip,
     required this.onTap,
   });
 
   final IconData icon;
   final Color color;
+  final String tooltip;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: AppSpacing.badgeRadius,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xs),
-        child: Icon(icon, size: 16, color: color),
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppSpacing.badgeRadius,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          child: Icon(icon, size: 16, color: color),
+        ),
       ),
     );
   }

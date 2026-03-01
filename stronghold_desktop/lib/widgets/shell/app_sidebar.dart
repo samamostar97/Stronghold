@@ -283,6 +283,9 @@ class _SidebarActionState extends State<_SidebarAction> {
 
   @override
   Widget build(BuildContext context) {
+    final horizontalPadding = widget.collapsed ? 6.0 : 8.0;
+    final verticalPadding = widget.collapsed ? 7.0 : 8.0;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _hover = true),
       onExit: (_) => setState(() => _hover = false),
@@ -290,28 +293,31 @@ class _SidebarActionState extends State<_SidebarAction> {
         onTap: widget.onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 120),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+          padding: EdgeInsets.symmetric(
+            horizontal: horizontalPadding,
+            vertical: verticalPadding,
+          ),
           decoration: BoxDecoration(
             color: _hover ? AppColors.surfaceHover : Colors.transparent,
             borderRadius: AppSpacing.smallRadius,
             border: Border.all(color: AppColors.border),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(widget.icon, size: 14, color: AppColors.textSecondary),
-              if (!widget.collapsed) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    widget.label,
-                    style: AppTextStyles.caption,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+          child: widget.collapsed
+              ? Icon(widget.icon, size: 13, color: AppColors.textSecondary)
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(widget.icon, size: 14, color: AppColors.textSecondary),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        widget.label,
+                        style: AppTextStyles.caption,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ],
-          ),
         ),
       ),
     );

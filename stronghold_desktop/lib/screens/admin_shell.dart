@@ -14,6 +14,7 @@ import '../widgets/shared/success_animation.dart';
 
 const _idToPath = <String, String>{
   'dashboardHome': '/dashboard',
+  'visitors': '/visitors',
   'audit': '/audit',
   'users': '/users',
   'staff': '/staff',
@@ -49,6 +50,11 @@ const _pageMetaById = <String, _PageMeta>{
     title: 'Kontrolna ploca',
     subtitle: 'Pregled metrika i kljucnih operacija',
     icon: LucideIcons.layoutDashboard,
+  ),
+  'visitors': _PageMeta(
+    title: 'Trenutno u teretani',
+    subtitle: 'Aktivni posjetioci i check-in pregled',
+    icon: LucideIcons.footprints,
   ),
   'audit': _PageMeta(
     title: 'Audit centar',
@@ -106,11 +112,6 @@ const _navGroups = [
         label: 'Kontrolna ploca',
         icon: LucideIcons.layoutDashboard,
       ),
-      NavItem(
-        id: 'audit',
-        label: 'Audit centar',
-        icon: LucideIcons.shieldCheck,
-      ),
     ],
   ),
   NavGroup(
@@ -121,30 +122,13 @@ const _navGroups = [
     ],
   ),
   NavGroup(
-    label: 'Prodaja',
+    label: 'Katalog',
     items: [
-      NavItem(id: 'orders', label: 'Narudzbe', icon: LucideIcons.shoppingBag),
       NavItem(id: 'supplements', label: 'Suplementi', icon: LucideIcons.pill),
-    ],
-  ),
-  NavGroup(
-    label: 'Sadrzaj',
-    items: [
-      NavItem(id: 'reviews', label: 'Recenzije', icon: LucideIcons.star),
       NavItem(
         id: 'seminars',
         label: 'Seminari',
         icon: LucideIcons.graduationCap,
-      ),
-    ],
-  ),
-  NavGroup(
-    label: 'Analitika',
-    items: [
-      NavItem(
-        id: 'businessReport',
-        label: 'Izvjestaji',
-        icon: LucideIcons.trendingUp,
       ),
     ],
   ),
@@ -288,12 +272,13 @@ class _ShellTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     const quickLinks = [
       (
-        path: '/dashboard',
-        label: 'Dashboard',
-        icon: LucideIcons.layoutDashboard,
+        path: '/visitors',
+        label: 'Trenutno u teretani',
+        icon: LucideIcons.footprints,
       ),
-      (path: '/users', label: 'Korisnici', icon: LucideIcons.users),
+      (path: '/audit', label: 'Audit centar', icon: LucideIcons.shieldCheck),
       (path: '/orders', label: 'Narudzbe', icon: LucideIcons.shoppingBag),
+      (path: '/reviews', label: 'Recenzije', icon: LucideIcons.star),
       (path: '/reports', label: 'Izvjestaji', icon: LucideIcons.trendingUp),
     ];
 

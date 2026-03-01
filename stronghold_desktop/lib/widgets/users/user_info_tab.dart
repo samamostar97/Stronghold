@@ -21,8 +21,7 @@ class UserInfoTab extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final addressAsync = ref.watch(userAddressProvider(user.id));
-    final membershipAsync =
-        ref.watch(userHasActiveMembershipProvider(user.id));
+    final membershipAsync = ref.watch(userHasActiveMembershipProvider(user.id));
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.xl),
@@ -31,19 +30,14 @@ class UserInfoTab extends ConsumerWidget {
         children: [
           _ProfileHeader(user: user),
           const SizedBox(height: AppSpacing.xxl),
-          _MembershipCard(
-            user: user,
-            membershipAsync: membershipAsync,
-          ),
+          _MembershipCard(user: user, membershipAsync: membershipAsync),
           const SizedBox(height: AppSpacing.xxl),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: _PersonalInfoCard(user: user)),
               const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: _AddressCard(addressAsync: addressAsync),
-              ),
+              Expanded(child: _AddressCard(addressAsync: addressAsync)),
             ],
           ),
         ],
@@ -97,8 +91,9 @@ class _ProfileHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '@${user.username}',
-                  style: AppTextStyles.bodySecondary
-                      .copyWith(color: Colors.white70),
+                  style: AppTextStyles.bodySecondary.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -108,15 +103,17 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               Text(
                 user.email,
-                style:
-                    AppTextStyles.caption.copyWith(color: Colors.white60),
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
               if (user.phoneNumber.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
                   user.phoneNumber,
-                  style:
-                      AppTextStyles.caption.copyWith(color: Colors.white60),
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textMuted,
+                  ),
                 ),
               ],
             ],
@@ -138,10 +135,7 @@ class _ProfileHeader extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class _MembershipCard extends ConsumerWidget {
-  const _MembershipCard({
-    required this.user,
-    required this.membershipAsync,
-  });
+  const _MembershipCard({required this.user, required this.membershipAsync});
 
   final UserResponse user;
   final AsyncValue<bool> membershipAsync;
@@ -176,8 +170,9 @@ class _MembershipCard extends ConsumerWidget {
                   ),
                   error: (_, _) => Text(
                     'Greska pri provjeri',
-                    style: AppTextStyles.bodySecondary
-                        .copyWith(color: AppColors.danger),
+                    style: AppTextStyles.bodySecondary.copyWith(
+                      color: AppColors.danger,
+                    ),
                   ),
                   data: (isActive) => _StatusBadge(isActive: isActive),
                 ),
@@ -208,10 +203,14 @@ class _MembershipCard extends ConsumerWidget {
 
   void _invalidateAll(WidgetRef ref) {
     ref.invalidate(userHasActiveMembershipProvider(user.id));
-    ref.invalidate(userPaymentsProvider(UserPaymentsParams(
-      userId: user.id,
-      filter: MembershipQueryFilter(pageSize: 10),
-    )));
+    ref.invalidate(
+      userPaymentsProvider(
+        UserPaymentsParams(
+          userId: user.id,
+          filter: MembershipQueryFilter(pageSize: 10),
+        ),
+      ),
+    );
   }
 
   Future<void> _assignMembership(BuildContext context, WidgetRef ref) async {
@@ -245,9 +244,10 @@ class _MembershipCard extends ConsumerWidget {
       _invalidateAll(ref);
     } catch (e) {
       if (context.mounted) {
-        showErrorAnimation(context,
-            message:
-                ErrorHandler.getContextualMessage(e, 'revoke-membership'));
+        showErrorAnimation(
+          context,
+          message: ErrorHandler.getContextualMessage(e, 'revoke-membership'),
+        );
       }
     }
   }
@@ -367,11 +367,7 @@ class _PersonalInfoCard extends StatelessWidget {
             label: 'Korisnicko ime',
             value: user.username,
           ),
-          _InfoRow(
-            icon: LucideIcons.mail,
-            label: 'Email',
-            value: user.email,
-          ),
+          _InfoRow(icon: LucideIcons.mail, label: 'Email', value: user.email),
           _InfoRow(
             icon: LucideIcons.phone,
             label: 'Telefon',
@@ -426,18 +422,21 @@ class _AddressCard extends StatelessWidget {
             ),
             error: (_, _) => Text(
               'Greska pri ucitavanju adrese',
-              style: AppTextStyles.bodySecondary
-                  .copyWith(color: AppColors.danger),
+              style: AppTextStyles.bodySecondary.copyWith(
+                color: AppColors.danger,
+              ),
             ),
             data: (address) {
               if (address == null) {
                 return Row(
                   children: [
-                    Icon(LucideIcons.mapPinOff,
-                        size: 16, color: AppColors.textMuted),
+                    Icon(
+                      LucideIcons.mapPinOff,
+                      size: 16,
+                      color: AppColors.textMuted,
+                    ),
                     const SizedBox(width: AppSpacing.md),
-                    Text('Nema sacuvane adrese',
-                        style: AppTextStyles.caption),
+                    Text('Nema sacuvane adrese', style: AppTextStyles.caption),
                   ],
                 );
               }

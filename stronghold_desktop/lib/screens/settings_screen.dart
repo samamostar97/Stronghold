@@ -61,6 +61,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen>
   }
 
   void _onTabChanged() {
+    if (mounted) {
+      setState(() {});
+    }
     if (!_tabController.indexIsChanging) {
       _loadTabData(_tabController.index);
     }

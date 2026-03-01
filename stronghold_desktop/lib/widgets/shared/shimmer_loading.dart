@@ -76,10 +76,7 @@ class _ShimmerBoxState extends State<ShimmerBox>
 
 /// Shimmer placeholder for a single table row.
 class ShimmerTableRow extends StatelessWidget {
-  const ShimmerTableRow({
-    super.key,
-    required this.columnFlex,
-  });
+  const ShimmerTableRow({super.key, required this.columnFlex});
 
   final List<int> columnFlex;
 
@@ -97,10 +94,7 @@ class ShimmerTableRow extends StatelessWidget {
               flex: columnFlex[i],
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: ShimmerBox(
-                  width: i == 0 ? 120 : null,
-                  height: 14,
-                ),
+                child: ShimmerBox(width: i == 0 ? 120 : null, height: 14),
               ),
             ),
             if (i < columnFlex.length - 1) const SizedBox(width: 12),
@@ -154,9 +148,8 @@ class ShimmerTable extends StatelessWidget {
           child: ListView.builder(
             physics: const NeverScrollableScrollPhysics(),
             itemCount: rowCount,
-            itemBuilder: (context, index) => ShimmerTableRow(
-              columnFlex: columnFlex,
-            ),
+            itemBuilder: (context, index) =>
+                ShimmerTableRow(columnFlex: columnFlex),
           ),
         ),
       ],
@@ -297,7 +290,7 @@ class ShimmerDashboard extends StatelessWidget {
                           ShimmerBox(width: 140, height: 16),
                           SizedBox(height: 16),
                           ShimmerBox(height: 36, borderRadius: 10),
-                          SizedBox(height: 10),
+                          SizedBox(height: 8),
                           ShimmerBox(height: 36, borderRadius: 10),
                         ],
                       ),

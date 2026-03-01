@@ -7,7 +7,9 @@ import '../../constants/app_colors.dart';
 import '../../constants/app_spacing.dart';
 import '../../constants/app_text_styles.dart';
 import '../../constants/motion.dart';
+import '../../providers/list_state.dart';
 import '../../providers/supplier_provider.dart';
+import 'settings_tab_scaffold.dart';
 
 class SettingsSuppliersTab extends ConsumerWidget {
   const SettingsSuppliersTab({
@@ -25,126 +27,82 @@ class SettingsSuppliersTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(supplierListProvider);
 
+    return SettingsTabScaffold(
+      title: 'Dobavljaci',
+      subtitle: 'Upravljanje partnerima i izvorima nabavke',
+      addLabel: '+ Dodaj dobavljaca',
+      onAdd: onAdd,
+      child: _body(state, ref),
+    );
+  }
+
+  Widget _body(
+    ListState<SupplierResponse, SupplierQueryFilter> state,
+    WidgetRef ref,
+  ) {
     if (state.isLoading && state.data == null) {
-      return _buildShimmer();
+      return const SettingsSkeletonWrap(
+        itemCount: 6,
+        itemWidth: 280,
+        itemHeight: 104,
+      );
     }
 
     if (state.error != null && state.data == null) {
-      return _buildError(state.error!, ref);
+      return SettingsStatePane(
+        icon: LucideIcons.alertCircle,
+        title: 'Greska pri ucitavanju',
+        description: state.error!,
+        actionLabel: 'Pokusaj ponovo',
+        onAction: () => ref.read(supplierListProvider.notifier).refresh(),
+      );
     }
 
     final items = state.items;
     if (items.isEmpty) {
-      return _buildEmpty();
+      return SettingsStatePane(
+        icon: LucideIcons.truck,
+        title: 'Nema dobavljaca',
+        description:
+            'Dodaj prvog dobavljaca kako bi katalog bio spreman za nabavku.',
+        actionLabel: '+ Dodaj dobavljaca',
+        onAction: onAdd,
+      );
     }
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final crossCount = constraints.maxWidth > 900
+        final crossCount = constraints.maxWidth > 1020
             ? 3
-            : constraints.maxWidth > 550
-                ? 2
-                : 1;
+            : constraints.maxWidth > 680
+            ? 2
+            : 1;
+        final itemWidth =
+            (constraints.maxWidth - AppSpacing.lg * (crossCount + 1)) /
+            crossCount;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: Wrap(
             spacing: AppSpacing.lg,
             runSpacing: AppSpacing.lg,
-            children: [
-              ...items.asMap().entries.map((entry) => SizedBox(
-                    width: (constraints.maxWidth -
-                            AppSpacing.lg * 2 -
-                            AppSpacing.lg * (crossCount - 1)) /
-                        crossCount,
-                    child: _SupplierCard(
-                      supplier: entry.value,
-                      onEdit: () => onEdit(entry.value),
-                      onDelete: () => onDelete(entry.value),
-                    )
-                        .animate(delay: (70 * entry.key).ms)
+            children: items.asMap().entries.map((entry) {
+              return SizedBox(
+                width: itemWidth,
+                child:
+                    _SupplierCard(
+                          supplier: entry.value,
+                          onEdit: () => onEdit(entry.value),
+                          onDelete: () => onDelete(entry.value),
+                        )
+                        .animate(delay: (60 * entry.key).ms)
                         .fadeIn(duration: Motion.fast, curve: Motion.curve)
-                        .slideY(begin: 0.06, end: 0, duration: Motion.fast),
-                  )),
-              SizedBox(
-                width: (constraints.maxWidth -
-                        AppSpacing.lg * 2 -
-                        AppSpacing.lg * (crossCount - 1)) /
-                    crossCount,
-                child: _AddCard(onTap: onAdd)
-                    .animate(delay: (70 * items.length).ms)
-                    .fadeIn(duration: Motion.fast, curve: Motion.curve),
-              ),
-            ],
+                        .slideY(begin: 0.05, end: 0, duration: Motion.fast),
+              );
+            }).toList(),
           ),
         );
       },
-    );
-  }
-
-  Widget _buildShimmer() {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      child: Wrap(
-        spacing: AppSpacing.lg,
-        runSpacing: AppSpacing.lg,
-        children: List.generate(
-          4,
-          (i) => Container(
-            width: 260,
-            height: 100,
-            decoration: BoxDecoration(
-              color: AppColors.shimmer,
-              borderRadius: AppSpacing.cardRadius,
-            ),
-          )
-              .animate(onPlay: (c) => c.repeat())
-              .shimmer(duration: 1200.ms, color: AppColors.shimmerHighlight),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildError(String error, WidgetRef ref) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(LucideIcons.alertCircle, size: 48, color: AppColors.textMuted),
-          const SizedBox(height: AppSpacing.md),
-          Text(error, style: AppTextStyles.bodyMd),
-          const SizedBox(height: AppSpacing.lg),
-          TextButton(
-            onPressed: () =>
-                ref.read(supplierListProvider.notifier).refresh(),
-            child: Text('Pokusaj ponovo',
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.electric)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmpty() {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(LucideIcons.truck, size: 48, color: AppColors.textMuted),
-          const SizedBox(height: AppSpacing.md),
-          Text('Nema dobavljaca',
-              style: AppTextStyles.bodyMd
-                  .copyWith(color: AppColors.textSecondary)),
-          const SizedBox(height: AppSpacing.lg),
-          TextButton(
-            onPressed: onAdd,
-            child: Text('+ Dodaj prvog dobavljaca',
-                style: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.electric)),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -172,147 +130,103 @@ class _SupplierCardState extends State<_SupplierCard> {
     return MouseRegion(
       onEnter: (_) => setState(() => _hovered = true),
       onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onEdit,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          curve: Motion.gentle,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          transform: _hovered
-              ? (Matrix4.identity()..translate(0.0, -2.0, 0.0))
-              : Matrix4.identity(),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: AppSpacing.panelRadius,
-            border: Border.all(
-              color: _hovered
-                  ? AppColors.electric.withValues(alpha: 0.4)
-                  : AppColors.border,
-            ),
-            boxShadow: _hovered ? AppColors.cardShadow : null,
+      child: AnimatedContainer(
+        duration: Motion.fast,
+        curve: Motion.gentle,
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        transform: _hovered
+            ? Matrix4.translationValues(0.0, -2.0, 0.0)
+            : Matrix4.identity(),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: AppSpacing.panelRadius,
+          border: Border.all(
+            color: _hovered ? AppColors.primaryBorder : AppColors.border,
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.electric.withValues(alpha: 0.08),
-                  borderRadius: AppSpacing.badgeRadius,
-                ),
-                child: Icon(LucideIcons.truck,
-                    size: 18, color: AppColors.electric),
+          boxShadow: _hovered ? AppColors.cardShadow : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.primaryDim,
+                borderRadius: AppSpacing.badgeRadius,
               ),
-              const SizedBox(width: AppSpacing.base),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
+              child: const Icon(
+                LucideIcons.truck,
+                size: 18,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.base),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.supplier.name,
+                    style: AppTextStyles.bodyBold,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (widget.supplier.website?.isNotEmpty == true) ...[
+                    const SizedBox(height: 2),
                     Text(
-                      widget.supplier.name,
-                      style: AppTextStyles.bodyBold,
+                      widget.supplier.website!,
+                      style: AppTextStyles.caption,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (widget.supplier.website?.isNotEmpty == true) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        widget.supplier.website!,
-                        style: AppTextStyles.caption
-                            .copyWith(color: AppColors.textMuted),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
-              if (_hovered) ...[
-                InkWell(
-                  onTap: widget.onEdit,
-                  borderRadius: AppSpacing.badgeRadius,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xs),
-                    child: Icon(LucideIcons.pencil,
-                        size: 16, color: AppColors.electric),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                InkWell(
-                  onTap: widget.onDelete,
-                  borderRadius: AppSpacing.badgeRadius,
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xs),
-                    child: Icon(LucideIcons.trash2,
-                        size: 16, color: AppColors.error),
-                  ),
-                ),
-              ],
-            ],
-          ),
+            ),
+            _SupplierAction(
+              icon: LucideIcons.pencil,
+              color: AppColors.primary,
+              tooltip: 'Izmijeni dobavljaca',
+              onTap: widget.onEdit,
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            _SupplierAction(
+              icon: LucideIcons.trash2,
+              color: AppColors.error,
+              tooltip: 'Obrisi dobavljaca',
+              onTap: widget.onDelete,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _AddCard extends StatefulWidget {
-  const _AddCard({required this.onTap});
+class _SupplierAction extends StatelessWidget {
+  const _SupplierAction({
+    required this.icon,
+    required this.color,
+    required this.tooltip,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final Color color;
+  final String tooltip;
   final VoidCallback onTap;
 
   @override
-  State<_AddCard> createState() => _AddCardState();
-}
-
-class _AddCardState extends State<_AddCard> {
-  bool _hovered = false;
-
-  @override
   Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: Motion.fast,
-          curve: Motion.gentle,
-          height: 80,
-          decoration: BoxDecoration(
-            color: _hovered
-                ? AppColors.electric.withValues(alpha: 0.04)
-                : Colors.transparent,
-            borderRadius: AppSpacing.panelRadius,
-            border: Border.all(
-              color: _hovered
-                  ? AppColors.electric.withValues(alpha: 0.4)
-                  : AppColors.textMuted.withValues(alpha: 0.3),
-              width: 1.5,
-              strokeAlign: BorderSide.strokeAlignInside,
-            ),
-          ),
-          child: Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(LucideIcons.plus,
-                    size: 18,
-                    color: _hovered
-                        ? AppColors.electric
-                        : AppColors.textMuted),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  'Dodaj dobavljaca',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                    color: _hovered
-                        ? AppColors.electric
-                        : AppColors.textMuted,
-                  ),
-                ),
-              ],
-            ),
-          ),
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: AppSpacing.badgeRadius,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          child: Icon(icon, size: 16, color: color),
         ),
       ),
     );
