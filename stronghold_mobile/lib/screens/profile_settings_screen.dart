@@ -12,6 +12,7 @@ import '../providers/cart_provider.dart';
 import '../utils/image_utils.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../widgets/profile_image_picker.dart';
+import '../widgets/shared/surface_card.dart';
 
 class ProfileSettingsScreen extends ConsumerStatefulWidget {
   const ProfileSettingsScreen({super.key});
@@ -31,9 +32,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     try {
       ref.read(cartProvider.notifier).clear();
       await ref.read(authProvider.notifier).logout();
-      if (mounted) {
-        context.go('/login');
-      }
+      if (mounted) context.go('/login');
     } catch (_) {
       if (mounted) setState(() => _isLoggingOut = false);
     }
@@ -62,21 +61,16 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: AppSpacing.sm),
-              Text('Profil', style: AppTextStyles.headingLg.copyWith(color: Colors.white)),
-              const SizedBox(height: AppSpacing.xl),
-              // User card - tappable for image change
+              Text('Profil', style: AppTextStyles.headingLg),
+              const SizedBox(height: AppSpacing.lg),
               _userCard(user),
-              const SizedBox(height: AppSpacing.xxl),
-              // Settings section
-              Text('POSTAVKE',
-                  style: AppTextStyles.label
-                      .copyWith(color: Colors.white70)),
-              const SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.xl),
+              Text('Postavke racuna', style: AppTextStyles.bodyBold),
+              const SizedBox(height: AppSpacing.sm),
               _navOption(
                 icon: LucideIcons.mapPin,
                 color: AppColors.secondary,
@@ -94,6 +88,14 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
               ),
               const SizedBox(height: AppSpacing.sm),
               _navOption(
+                icon: LucideIcons.star,
+                color: AppColors.warning,
+                title: 'Moje recenzije',
+                subtitle: 'Pregled i upravljanje recenzijama',
+                onTap: () => context.push('/reviews'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              _navOption(
                 icon: LucideIcons.helpCircle,
                 color: AppColors.textMuted,
                 title: 'FAQ',
@@ -108,15 +110,11 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
                 subtitle: 'Azuriraj svoju lozinku',
                 onTap: () => context.push('/change-password'),
               ),
-              const SizedBox(height: AppSpacing.xxl),
-              // Logout
+              const SizedBox(height: AppSpacing.xl),
               _logoutButton(),
-              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
-        ).animate()
-            .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-            .slideY(begin: 0.04, end: 0, duration: Motion.smooth, curve: Motion.curve),
+        ).animate().fadeIn(duration: Motion.smooth, curve: Motion.curve),
       ),
     );
   }
@@ -131,30 +129,23 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
         ? (_localImageUrl != null ? getFullImageUrl(_localImageUrl!) : null)
         : (rawImageUrl != null ? getFullImageUrl(rawImageUrl) : null);
 
-    return GlassCard(
+    return SurfaceCard(
       onTap: () => _openImagePicker(rawImageUrl),
       child: Row(
         children: [
-          AvatarWidget(
-            initials: initials,
-            size: 56,
-            imageUrl: displayImageUrl,
-          ),
+          AvatarWidget(initials: initials, size: 56, imageUrl: displayImageUrl),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+                Text(name, style: AppTextStyles.headingSm),
                 const SizedBox(height: 2),
-                Text(email,
-                    style: AppTextStyles.bodySm
-                        .copyWith(color: Colors.white)),
+                Text(email, style: AppTextStyles.bodySm),
               ],
             ),
           ),
-          const Icon(LucideIcons.camera,
-              color: Colors.white, size: 18),
+          const Icon(LucideIcons.camera, color: AppColors.textMuted, size: 18),
         ],
       ),
     );
@@ -167,7 +158,7 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return GlassCard(
+    return SurfaceCard(
       onTap: onTap,
       child: Row(
         children: [
@@ -175,42 +166,44 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.25),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-              border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.6)),
+              border: Border.all(color: color.withValues(alpha: 0.24)),
             ),
-            child: Icon(icon, color: AppColors.navyBlue, size: 20),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: AppSpacing.lg),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+                Text(title, style: AppTextStyles.bodyBold),
                 const SizedBox(height: 2),
-                Text(subtitle,
-                    style: AppTextStyles.bodySm
-                        .copyWith(color: Colors.white70)),
+                Text(subtitle, style: AppTextStyles.bodySm),
               ],
             ),
           ),
-          const Icon(LucideIcons.chevronRight,
-              color: Colors.white, size: 18),
+          const Icon(
+            LucideIcons.chevronRight,
+            color: AppColors.textMuted,
+            size: 18,
+          ),
         ],
       ),
     );
   }
 
   Widget _logoutButton() {
-    return GestureDetector(
+    return InkWell(
       onTap: _isLoggingOut ? null : _handleLogout,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
       child: Container(
         width: double.infinity,
         height: 48,
         decoration: BoxDecoration(
-          color: AppColors.surfaceLight,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-          border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+          border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
         ),
         child: _isLoggingOut
             ? const Center(
@@ -226,11 +219,14 @@ class _ProfileSettingsScreenState extends ConsumerState<ProfileSettingsScreen> {
             : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(LucideIcons.logOut,
-                      color: AppColors.error, size: 18),
+                  const Icon(
+                    LucideIcons.logOut,
+                    color: AppColors.error,
+                    size: 18,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(
-                    'ODJAVI SE',
+                    'Odjavi se',
                     style: AppTextStyles.label.copyWith(color: AppColors.error),
                   ),
                 ],

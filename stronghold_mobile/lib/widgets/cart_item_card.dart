@@ -5,7 +5,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../models/cart_models.dart';
 import '../utils/image_utils.dart';
-import 'package:stronghold_core/stronghold_core.dart';
+import 'shared/surface_card.dart';
 
 class CartItemCard extends StatelessWidget {
   final CartItem item;
@@ -21,45 +21,44 @@ class CartItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
-      child: Row(children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-          child: SizedBox(
-            width: 56,
-            height: 56,
-            child: _image(),
+    return SurfaceCard(
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+            child: SizedBox(width: 56, height: 56, child: _image()),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                item.supplement.name,
-                style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                '${item.supplement.price.toStringAsFixed(2)} KM',
-                style: AppTextStyles.bodyBold
-                    .copyWith(color: AppColors.navyBlue),
-              ),
-            ],
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.supplement.name,
+                  style: AppTextStyles.bodyBold,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '${item.supplement.price.toStringAsFixed(2)} KM',
+                  style: AppTextStyles.bodyBold.copyWith(
+                    color: AppColors.primary,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        _stepper(),
-        GestureDetector(
-          onTap: onRemove,
-          child: const Padding(
-            padding: EdgeInsets.all(AppSpacing.sm),
-            child: Icon(LucideIcons.trash2, color: AppColors.error, size: 18),
+          _stepper(),
+          InkWell(
+            onTap: onRemove,
+            child: const Padding(
+              padding: EdgeInsets.all(AppSpacing.sm),
+              child: Icon(LucideIcons.trash2, color: AppColors.error, size: 18),
+            ),
           ),
-        ),
-      ]),
+        ],
+      ),
     );
   }
 
@@ -70,7 +69,7 @@ class CartItemCard extends StatelessWidget {
         _stepBtn(LucideIcons.minus, () => onQuantityChanged(item.quantity - 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-          child: Text('${item.quantity}', style: AppTextStyles.bodyBold.copyWith(color: Colors.white)),
+          child: Text('${item.quantity}', style: AppTextStyles.bodyBold),
         ),
         _stepBtn(LucideIcons.plus, () => onQuantityChanged(item.quantity + 1)),
       ],
@@ -78,14 +77,16 @@ class CartItemCard extends StatelessWidget {
   }
 
   Widget _stepBtn(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
       child: Container(
         width: 30,
         height: 30,
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: AppColors.surfaceAlt,
           borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          border: Border.all(color: AppColors.border),
         ),
         child: Icon(icon, color: AppColors.textPrimary, size: 14),
       ),
@@ -106,9 +107,9 @@ class CartItemCard extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      color: AppColors.surface,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(LucideIcons.package, color: AppColors.textDark, size: 20),
+        child: Icon(LucideIcons.package, color: AppColors.textMuted, size: 20),
       ),
     );
   }

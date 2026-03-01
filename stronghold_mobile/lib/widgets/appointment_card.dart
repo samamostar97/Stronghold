@@ -6,6 +6,7 @@ import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/date_format_utils.dart';
 import 'outline_button.dart';
+import 'shared/surface_card.dart';
 
 class AppointmentCard extends StatelessWidget {
   final UserAppointmentResponse appointment;
@@ -27,59 +28,60 @@ class AppointmentCard extends StatelessWidget {
         : appointment.nutritionistName;
     final icon = isTrainer ? LucideIcons.dumbbell : LucideIcons.apple;
 
-    return GlassCard(
+    return SurfaceCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.primaryDim,
-                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-              ),
-              child: Icon(icon, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isTrainer ? 'Trener' : 'Nutricionist',
-                    style: AppTextStyles.caption.copyWith(color: Colors.white),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.25),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    name ?? 'Nepoznato',
-                    style: AppTextStyles.headingSm.copyWith(color: Colors.white),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+                ),
+                child: Icon(icon, color: AppColors.primary, size: 20),
               ),
-            ),
-          ]),
-          const SizedBox(height: AppSpacing.lg),
-          Row(children: [
-            const Icon(LucideIcons.calendar,
-                color: Colors.white, size: 16),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              formatDateDDMMYYYY(appointment.appointmentDate),
-              style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
-            ),
-            const SizedBox(width: AppSpacing.lg),
-            const Icon(LucideIcons.clock,
-                color: Colors.white, size: 16),
-            const SizedBox(width: AppSpacing.sm),
-            Text(
-              '${appointment.appointmentDate.hour.toString().padLeft(2, '0')}:00',
-              style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
-            ),
-          ]),
-          const SizedBox(height: AppSpacing.lg),
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isTrainer ? 'Trener' : 'Nutricionist',
+                      style: AppTextStyles.caption,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      name ?? 'Nepoznato',
+                      style: AppTextStyles.headingSm,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Wrap(
+            spacing: AppSpacing.lg,
+            runSpacing: AppSpacing.sm,
+            children: [
+              _meta(
+                LucideIcons.calendar,
+                formatDateDDMMYYYY(appointment.appointmentDate),
+              ),
+              _meta(
+                LucideIcons.clock,
+                '${appointment.appointmentDate.hour.toString().padLeft(2, '0')}:00',
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
           SizedBox(
             width: double.infinity,
             child: OutlineButton(
@@ -91,6 +93,17 @@ class AppointmentCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _meta(IconData icon, String value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: AppColors.textMuted, size: 15),
+        const SizedBox(width: AppSpacing.xs),
+        Text(value, style: AppTextStyles.bodyMd),
+      ],
     );
   }
 }

@@ -60,8 +60,7 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
     } catch (e) {
       if (mounted) {
         setState(() => _cancelingIds.remove(id));
-        await showErrorFeedback(
-            context, ErrorHandler.message(e));
+        await showErrorFeedback(context, ErrorHandler.message(e));
       }
     }
   }
@@ -69,46 +68,74 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(myAppointmentsProvider);
+    final canGoBack = Navigator.of(context).canPop();
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: Column(children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenPadding),
-            child: Row(children: [
-              GestureDetector(
-                onTap: () { if (context.canPop()) { context.pop(); } else { context.go('/home'); } },
-                child: Container(
-                  width: AppSpacing.touchTarget,
-                  height: AppSpacing.touchTarget,
-                  decoration: BoxDecoration(
-                    color: AppColors.surfaceLight,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusMd),
-                    border: Border.all(color: AppColors.border),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.screenPadding),
+              child: Row(
+                children: [
+                  if (canGoBack)
+                    GestureDetector(
+                      onTap: () => context.pop(),
+                      child: Container(
+                        width: AppSpacing.touchTarget,
+                        height: AppSpacing.touchTarget,
+                        decoration: BoxDecoration(
+                          color: AppColors.surfaceLight,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusMd,
+                          ),
+                          border: Border.all(color: AppColors.border),
+                        ),
+                        child: const Icon(
+                          LucideIcons.arrowLeft,
+                          color: AppColors.textPrimary,
+                          size: 20,
+                        ),
+                      ),
+                    ),
+                  if (!canGoBack)
+                    Container(
+                      width: AppSpacing.touchTarget,
+                      height: AppSpacing.touchTarget,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceLight,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusMd,
+                        ),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Icon(
+                        LucideIcons.calendarClock,
+                        color: AppColors.textPrimary,
+                        size: 20,
+                      ),
+                    ),
+                  const SizedBox(width: AppSpacing.lg),
+                  Expanded(
+                    child: Text('Termini', style: AppTextStyles.headingMd),
                   ),
-                  child: const Icon(LucideIcons.arrowLeft,
-                      color: AppColors.textPrimary, size: 20),
-                ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                  child: Text('Termini', style: AppTextStyles.headingMd.copyWith(color: Colors.white))),
-            ]),
-          ),
-          Expanded(
-            child: _body(state)
-                .animate(delay: 100.ms)
-                .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                .slideY(
-                  begin: 0.04,
-                  end: 0,
-                  duration: Motion.smooth,
-                  curve: Motion.curve,
-                ),
-          ),
-        ]),
+            ),
+            Expanded(
+              child: _body(state)
+                  .animate(delay: 100.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.04,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -136,8 +163,10 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
       child: ListView.builder(
         controller: _scrollCtrl,
         padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.screenPadding),
-        itemCount: state.items.length +
+          horizontal: AppSpacing.screenPadding,
+        ),
+        itemCount:
+            state.items.length +
             (state.isLoading && state.items.isNotEmpty ? 1 : 0),
         itemBuilder: (_, i) {
           if (i == state.items.length) {
@@ -145,7 +174,9 @@ class _AppointmentScreenState extends ConsumerState<AppointmentScreen> {
               padding: EdgeInsets.all(AppSpacing.lg),
               child: Center(
                 child: CircularProgressIndicator(
-                    strokeWidth: 2, color: AppColors.primary),
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
               ),
             );
           }

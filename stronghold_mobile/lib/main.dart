@@ -61,16 +61,21 @@ class StrongholdApp extends ConsumerWidget {
       builder: (context, child) {
         return Stack(
           children: [
+            Positioned.fill(child: Container(color: AppColors.background)),
             Positioned.fill(
-              child: Container(
-                decoration: const BoxDecoration(gradient: AppColors.heroGradient),
-              ),
-            ),
-            const Positioned.fill(
-              child: ParticleBackground(
-                particleColor: Color(0xFF38BDF8),
-                particleCount: 40,
-                connectDistance: 100,
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.86),
+                        AppColors.background.withValues(alpha: 0.92),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
             if (child != null) child,

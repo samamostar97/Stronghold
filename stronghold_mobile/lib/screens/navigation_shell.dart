@@ -33,7 +33,10 @@ class NavigationShellWrapper extends ConsumerWidget {
         body: navigationShell,
         bottomNavigationBar: AppBottomNav(
           currentIndex: navigationShell.currentIndex,
-          onTap: (index) => navigationShell.goBranch(index),
+          onTap: (index) => navigationShell.goBranch(
+            index,
+            initialLocation: index == navigationShell.currentIndex,
+          ),
         ),
       ),
     );

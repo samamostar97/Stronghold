@@ -18,8 +18,8 @@ class AppBottomNav extends ConsumerWidget {
 
   static const _items = [
     _NavItem(icon: LucideIcons.home, label: 'Pocetna'),
-    _NavItem(icon: LucideIcons.shoppingCart, label: 'Korpa', hasBadge: true),
-    _NavItem(icon: LucideIcons.star, label: 'Recenzije'),
+    _NavItem(icon: LucideIcons.calendarClock, label: 'Termini'),
+    _NavItem(icon: LucideIcons.shoppingBag, label: 'Shop', hasBadge: true),
     _NavItem(icon: LucideIcons.user, label: 'Profil'),
   ];
 
@@ -27,22 +27,24 @@ class AppBottomNav extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartCount = ref.watch(cartProvider).itemCount;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.deepBlue.withValues(alpha: 0.4),
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 20,
-            offset: const Offset(0, -4),
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+        child: Container(
+          height: 72,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.deepBlue.withValues(alpha: 0.12),
+                blurRadius: 28,
+                offset: const Offset(0, 10),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 60,
           child: Row(
             children: List.generate(_items.length, (i) {
               final item = _items[i];
@@ -55,48 +57,44 @@ class AppBottomNav extends ConsumerWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Active indicator bar
                       AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        height: 3,
-                        width: active ? 20 : 0,
-                        margin: const EdgeInsets.only(bottom: AppSpacing.xs),
+                        duration: const Duration(milliseconds: 220),
+                        width: 34,
+                        height: 28,
                         decoration: BoxDecoration(
-                          gradient: active
-                              ? AppColors.accentGradient
-                              : null,
-                          borderRadius: BorderRadius.circular(2),
+                          color: active
+                              ? AppColors.primary.withValues(alpha: 0.14)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
-                      // Icon with optional badge
-                      SizedBox(
-                        width: 30,
-                        height: 22,
                         child: Stack(
                           clipBehavior: Clip.none,
                           children: [
                             Center(
                               child: Icon(
                                 item.icon,
-                                size: 22,
+                                size: 20,
                                 color: active
-                                    ? AppColors.cyan
-                                    : Colors.white54,
+                                    ? AppColors.primary
+                                    : AppColors.textMuted,
                               ),
                             ),
                             if (badgeCount > 0)
                               Positioned(
-                                right: -6,
+                                right: -7,
                                 top: -6,
                                 child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: const BoxDecoration(
-                                    color: AppColors.danger,
-                                    shape: BoxShape.circle,
-                                  ),
                                   constraints: const BoxConstraints(
                                     minWidth: 16,
                                     minHeight: 16,
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 4,
+                                    vertical: 1,
+                                  ),
+                                  decoration: const BoxDecoration(
+                                    color: AppColors.danger,
+                                    shape: BoxShape.circle,
                                   ),
                                   child: Text(
                                     badgeCount > 9 ? '9+' : '$badgeCount',
@@ -105,7 +103,6 @@ class AppBottomNav extends ConsumerWidget {
                                       fontWeight: FontWeight.w700,
                                       fontSize: 9,
                                     ),
-                                    textAlign: TextAlign.center,
                                   ),
                                 ),
                               ),
@@ -115,10 +112,11 @@ class AppBottomNav extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         item.label,
-                        style: (active
-                                ? AppTextStyles.tabActive.copyWith(color: AppColors.cyan)
-                                : AppTextStyles.tabInactive.copyWith(color: Colors.white54))
-                            .copyWith(fontSize: 11),
+                        style:
+                            (active
+                                    ? AppTextStyles.tabActive
+                                    : AppTextStyles.tabInactive)
+                                .copyWith(fontSize: 11),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ],
@@ -137,5 +135,9 @@ class _NavItem {
   final IconData icon;
   final String label;
   final bool hasBadge;
-  const _NavItem({required this.icon, required this.label, this.hasBadge = false});
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    this.hasBadge = false,
+  });
 }

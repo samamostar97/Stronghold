@@ -89,37 +89,43 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final cartCount = ref.watch(cartProvider).itemCount;
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
-        child: Column(children: [
-          _appBar()
-              .animate()
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.screenPadding),
-            child: SearchBarWidget(
-              controller: _searchCtrl,
-              hint: 'Pretrazi suplemente...',
-              onChanged: (_) => setState(() {}),
-              onSubmitted: (_) => _startSearch(_searchCtrl.text.trim()),
-              suffixIcon: _searchCtrl.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(LucideIcons.x,
-                          color: AppColors.textMuted, size: 18),
-                      onPressed: _clearSearch,
-                    )
-                  : null,
-            ),
-          )
-              .animate(delay: 100.ms)
-              .fadeIn(duration: Motion.smooth, curve: Motion.curve),
-          const SizedBox(height: AppSpacing.md),
-          Expanded(
-            child: _isSearching ? _searchResults() : _browseBody(),
-          ),
-        ]),
+        child: Column(
+          children: [
+            _appBar(
+              cartCount,
+            ).animate().fadeIn(duration: Motion.smooth, curve: Motion.curve),
+            Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding,
+                  ),
+                  child: SearchBarWidget(
+                    controller: _searchCtrl,
+                    hint: 'Pretrazi suplemente...',
+                    onChanged: (_) => setState(() {}),
+                    onSubmitted: (_) => _startSearch(_searchCtrl.text.trim()),
+                    suffixIcon: _searchCtrl.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(
+                              LucideIcons.x,
+                              color: AppColors.textMuted,
+                              size: 18,
+                            ),
+                            onPressed: _clearSearch,
+                          )
+                        : null,
+                  ),
+                )
+                .animate(delay: 100.ms)
+                .fadeIn(duration: Motion.smooth, curve: Motion.curve),
+            const SizedBox(height: AppSpacing.md),
+            Expanded(child: _isSearching ? _searchResults() : _browseBody()),
+          ],
+        ),
       ),
     );
   }
@@ -168,11 +174,11 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
             // Category sections
             final cat = categories[i - 1];
             return ShopCategorySection(
-              category: cat,
-              onSupplementTap: _onSupplementTap,
-              onAddToCart: _onAddToCart,
-              onViewAll: () => _onViewAllCategory(cat),
-            )
+                  category: cat,
+                  onSupplementTap: _onSupplementTap,
+                  onAddToCart: _onAddToCart,
+                  onViewAll: () => _onViewAllCategory(cat),
+                )
                 .animate(delay: (200 + i * 100).ms)
                 .fadeIn(duration: Motion.smooth, curve: Motion.curve)
                 .slideY(
@@ -222,16 +228,15 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
               padding: const EdgeInsets.only(bottom: AppSpacing.md),
               child: Text(
                 '${state.totalCount} rezultata',
-                style: AppTextStyles.bodySm.copyWith(
-                  color: Colors.white.withValues(alpha: 0.6),
-                ),
+                style: AppTextStyles.bodySm,
               ),
             ),
           ),
         ),
         SliverPadding(
           padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.screenPadding),
+            horizontal: AppSpacing.screenPadding,
+          ),
           sliver: SliverGrid(
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -246,7 +251,9 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
                     child: Padding(
                       padding: EdgeInsets.all(AppSpacing.lg),
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.primary),
+                        strokeWidth: 2,
+                        color: AppColors.primary,
+                      ),
                     ),
                   );
                 }
@@ -257,13 +264,13 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
                   onAddToCart: () => _onAddToCart(s),
                 );
               },
-              childCount: state.items.length +
+              childCount:
+                  state.items.length +
                   (state.isLoading && state.items.isNotEmpty ? 1 : 0),
             ),
           ),
         ),
-        const SliverPadding(
-            padding: EdgeInsets.only(bottom: AppSpacing.xxl)),
+        const SliverPadding(padding: EdgeInsets.only(bottom: AppSpacing.xxl)),
       ],
     );
   }
@@ -272,25 +279,99 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
   // APP BAR
   // ───────────────────────────────────────────────────────────────────────────
 
-  Widget _appBar() {
+  Widget _appBar(int cartCount) {
+    final canGoBack = Navigator.of(context).canPop();
+
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      child: Row(children: [
-        _iconBtn(LucideIcons.arrowLeft, () {
-          if (_isSearching) {
-            _clearSearch();
-          } else {
-            context.go('/home');
-          }
-        }),
-        const SizedBox(width: AppSpacing.lg),
-        Expanded(
-          child: Text(
-            _isSearching ? 'Rezultati pretrage' : 'Prodavnica',
-            style: AppTextStyles.headingMd.copyWith(color: Colors.white),
+      child: Row(
+        children: [
+          if (_isSearching || canGoBack)
+            _iconBtn(LucideIcons.arrowLeft, () {
+              if (_isSearching) {
+                _clearSearch();
+              } else if (canGoBack) {
+                context.pop();
+              }
+            }),
+          if (!_isSearching && !canGoBack)
+            Container(
+              width: AppSpacing.touchTarget,
+              height: AppSpacing.touchTarget,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                LucideIcons.shoppingBag,
+                color: AppColors.textPrimary,
+                size: 20,
+              ),
+            ),
+          const SizedBox(width: AppSpacing.lg),
+          Expanded(
+            child: Text(
+              _isSearching ? 'Rezultati pretrage' : 'Prodavnica',
+              style: AppTextStyles.headingMd,
+            ),
           ),
-        ),
-      ]),
+          const SizedBox(width: AppSpacing.md),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => context.push('/cart'),
+            child: Container(
+              width: AppSpacing.touchTarget,
+              height: AppSpacing.touchTarget,
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight,
+                borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  const Center(
+                    child: Icon(
+                      LucideIcons.shoppingCart,
+                      color: AppColors.textPrimary,
+                      size: 20,
+                    ),
+                  ),
+                  if (cartCount > 0)
+                    Positioned(
+                      right: 2,
+                      top: 2,
+                      child: Container(
+                        constraints: const BoxConstraints(
+                          minWidth: 16,
+                          minHeight: 16,
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 1,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppColors.danger,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          cartCount > 9 ? '9+' : '$cartCount',
+                          style: AppTextStyles.caption.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 9,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

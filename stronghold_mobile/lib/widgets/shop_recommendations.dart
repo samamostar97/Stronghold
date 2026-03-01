@@ -7,6 +7,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
+import 'shared/surface_card.dart';
 
 class ShopRecommendations extends StatefulWidget {
   final List<RecommendationResponse> items;
@@ -22,10 +23,7 @@ class _ShopRecommendationsState extends State<ShopRecommendations> {
   Timer? _autoScrollTimer;
   int _currentPage = 0;
 
-  /// How long each slide stays visible before auto-advancing.
   static const _autoScrollInterval = Duration(seconds: 4);
-
-  /// Pause duration after user swipes before auto-scroll resumes.
   static const _userPauseDuration = Duration(seconds: 5);
 
   @override
@@ -57,7 +55,6 @@ class _ShopRecommendationsState extends State<ShopRecommendations> {
   }
 
   void _onUserInteraction() {
-    // Pause auto-scroll, resume after delay
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer(_userPauseDuration, () {
       if (mounted) _startAutoScroll();
@@ -91,23 +88,19 @@ class _ShopRecommendationsState extends State<ShopRecommendations> {
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.screenPadding,
           ),
-          child: Text(
-            'Preporuceno za tebe',
-            style: AppTextStyles.headingSm.copyWith(color: Colors.white),
-          ),
+          child: Text('Preporuceno za tebe', style: AppTextStyles.headingSm),
         ),
         const SizedBox(height: AppSpacing.md),
         Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.screenPadding,
           ),
-          child: GlassCard(
+          child: SurfaceCard(
             padding: EdgeInsets.zero,
             child: Column(
               children: [
-                // PageView carousel
                 SizedBox(
-                  height: 290,
+                  height: 280,
                   child: NotificationListener<ScrollNotification>(
                     onNotification: (notification) {
                       if (notification is ScrollStartNotification &&
@@ -127,7 +120,6 @@ class _ShopRecommendationsState extends State<ShopRecommendations> {
                     ),
                   ),
                 ),
-                // Dot indicators
                 Padding(
                   padding: const EdgeInsets.only(
                     bottom: AppSpacing.md,
@@ -150,10 +142,7 @@ class _ShopRecommendationsState extends State<ShopRecommendations> {
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.screenPadding,
           ),
-          child: Text(
-            'Svi suplementi',
-            style: AppTextStyles.headingSm.copyWith(color: Colors.white),
-          ),
+          child: Text('Svi suplementi', style: AppTextStyles.headingSm),
         ),
         const SizedBox(height: AppSpacing.md),
       ],
@@ -161,30 +150,25 @@ class _ShopRecommendationsState extends State<ShopRecommendations> {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CAROUSEL SLIDE
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _CarouselSlide extends StatelessWidget {
-  const _CarouselSlide({required this.rec, required this.onTap});
-
   final RecommendationResponse rec;
   final VoidCallback onTap;
 
+  const _CarouselSlide({required this.rec, required this.onTap});
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return InkWell(
       onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Image
           ClipRRect(
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppSpacing.radiusLg),
             ),
             child: SizedBox(
-              height: 180,
+              height: 172,
               width: double.infinity,
               child: rec.imageUrl != null
                   ? Image.network(
@@ -195,7 +179,6 @@ class _CarouselSlide extends StatelessWidget {
                   : _placeholder(),
             ),
           ),
-          // Info
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.md,
@@ -208,16 +191,14 @@ class _CarouselSlide extends StatelessWidget {
               children: [
                 Text(
                   rec.name,
-                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyBold,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
                   rec.categoryName,
-                  style: AppTextStyles.caption.copyWith(
-                    color: Colors.white.withValues(alpha: 0.6),
-                  ),
+                  style: AppTextStyles.caption,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -225,10 +206,10 @@ class _CarouselSlide extends StatelessWidget {
                 Text(
                   rec.recommendationReason,
                   style: AppTextStyles.caption.copyWith(
-                    color: AppColors.cyan,
-                    fontStyle: FontStyle.italic,
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w600,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -241,33 +222,28 @@ class _CarouselSlide extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      color: AppColors.surface,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(LucideIcons.package, color: AppColors.textDark, size: 32),
+        child: Icon(LucideIcons.package, color: AppColors.textMuted, size: 32),
       ),
     );
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// DOT INDICATOR
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _Dot extends StatelessWidget {
-  const _Dot({required this.isActive});
-
   final bool isActive;
+
+  const _Dot({required this.isActive});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 220),
       margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: isActive ? 20 : 6,
+      width: isActive ? 18 : 6,
       height: 6,
       decoration: BoxDecoration(
-        color: isActive ? AppColors.cyan : Colors.white.withValues(alpha: 0.25),
+        color: isActive ? AppColors.primary : AppColors.border,
         borderRadius: BorderRadius.circular(3),
       ),
     );

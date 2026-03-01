@@ -8,11 +8,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../providers/appointment_provider.dart';
+import 'shared/surface_card.dart';
 
-/// Appointments carousel with 3 slides:
-/// 1. Next upcoming appointment (or "no appointments" message)
-/// 2. Trainers — quick link to book
-/// 3. Nutritionists — quick link to book
 class HomeAppointmentsCarousel extends ConsumerStatefulWidget {
   const HomeAppointmentsCarousel({super.key});
 
@@ -29,9 +26,7 @@ class _HomeAppointmentsCarouselState
   @override
   void initState() {
     super.initState();
-    Future.microtask(() {
-      ref.read(myAppointmentsProvider.notifier).load();
-    });
+    Future.microtask(() => ref.read(myAppointmentsProvider.notifier).load());
   }
 
   @override
@@ -43,32 +38,26 @@ class _HomeAppointmentsCarouselState
   void _goTo(int page) {
     _pageController.animateToPage(
       page,
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final appointmentState = ref.watch(myAppointmentsProvider);
+    final state = ref.watch(myAppointmentsProvider);
     final now = DateTime.now();
-    final upcoming = appointmentState.items
-        .where((a) => a.appointmentDate.isAfter(now))
-        .toList()
-      ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
+    final upcoming =
+        state.items.where((a) => a.appointmentDate.isAfter(now)).toList()
+          ..sort((a, b) => a.appointmentDate.compareTo(b.appointmentDate));
     final nextAppointment = upcoming.isNotEmpty ? upcoming.first : null;
 
-    const slideColors = [AppColors.secondary, AppColors.success, AppColors.accent, AppColors.orange];
-    final tint = slideColors[_currentPage];
-
-    return GlassCard(
+    return SurfaceCard(
       padding: EdgeInsets.zero,
-      backgroundColor: tint.withValues(alpha: 0.15),
-      borderColor: tint.withValues(alpha: 0.3),
       child: Column(
         children: [
           SizedBox(
-            height: 200,
+            height: 196,
             child: Stack(
               children: [
                 PageView(
@@ -77,61 +66,54 @@ class _HomeAppointmentsCarouselState
                   children: [
                     _AppointmentSlide(appointment: nextAppointment),
                     _QuickLinkSlide(
+                      title: 'Treneri',
+                      subtitle: 'Zakazi trening sa trenerom',
                       icon: LucideIcons.dumbbell,
-                      iconColor: AppColors.success,
-                      label: 'Treneri',
-                      description: 'Zakazi trening sa trenerom',
-                      buttonLabel: 'Napravi termin',
-                      onButtonTap: () => context.push('/trainers'),
+                      color: AppColors.success,
+                      buttonLabel: 'Pogledaj trenere',
+                      onTap: () => context.push('/trainers'),
                     ),
                     _QuickLinkSlide(
+                      title: 'Nutricionisti',
+                      subtitle: 'Plan ishrane i konsultacije',
                       icon: LucideIcons.apple,
-                      iconColor: AppColors.accent,
-                      label: 'Nutricionisti',
-                      description: 'Zakazi konsultaciju',
-                      buttonLabel: 'Napravi termin',
-                      onButtonTap: () => context.push('/nutritionists'),
+                      color: AppColors.accent,
+                      buttonLabel: 'Pogledaj nutricioniste',
+                      onTap: () => context.push('/nutritionists'),
                     ),
                     _QuickLinkSlide(
+                      title: 'Seminari',
+                      subtitle: 'Radionice i edukacija',
                       icon: LucideIcons.graduationCap,
-                      iconColor: AppColors.orange,
-                      label: 'Seminari',
-                      description: 'Edukacija i radionice',
-                      buttonLabel: 'Pregled seminara',
-                      onButtonTap: () => context.push('/seminars'),
+                      color: AppColors.orange,
+                      buttonLabel: 'Svi seminari',
+                      onTap: () => context.push('/seminars'),
                     ),
                   ],
                 ),
-                // Left arrow
                 if (_currentPage > 0)
                   Positioned(
-                    left: 4,
+                    left: 8,
                     top: 0,
                     bottom: 0,
-                    child: Center(
-                      child: _ArrowButton(
-                        icon: Icons.chevron_left,
-                        onTap: () => _goTo(_currentPage - 1),
-                      ),
+                    child: _ArrowButton(
+                      icon: Icons.chevron_left,
+                      onTap: () => _goTo(_currentPage - 1),
                     ),
                   ),
-                // Right arrow
                 if (_currentPage < 3)
                   Positioned(
-                    right: 4,
+                    right: 8,
                     top: 0,
                     bottom: 0,
-                    child: Center(
-                      child: _ArrowButton(
-                        icon: Icons.chevron_right,
-                        onTap: () => _goTo(_currentPage + 1),
-                      ),
+                    child: _ArrowButton(
+                      icon: Icons.chevron_right,
+                      onTap: () => _goTo(_currentPage + 1),
                     ),
                   ),
               ],
             ),
           ),
-          // Dot indicators
           Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.md),
             child: Row(
@@ -148,127 +130,83 @@ class _HomeAppointmentsCarouselState
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SLIDE 1: NEXT APPOINTMENT
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _AppointmentSlide extends StatelessWidget {
-  const _AppointmentSlide({required this.appointment});
   final UserAppointmentResponse? appointment;
+
+  const _AppointmentSlide({required this.appointment});
 
   @override
   Widget build(BuildContext context) {
     final a = appointment;
-
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.huge,
-        vertical: AppSpacing.lg,
-      ),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
       child: Row(
         children: [
-          // Calendar icon area
           Container(
-            width: 110,
-            height: 110,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  AppColors.secondary.withValues(alpha: 0.3),
-                  AppColors.secondary.withValues(alpha: 0.05),
-                ],
-              ),
+              color: AppColors.secondary.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: AppColors.secondary.withValues(alpha: 0.3),
-                width: 2,
+                color: AppColors.secondary.withValues(alpha: 0.28),
               ),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: a != null
-                  ? [
+            child: a == null
+                ? const Icon(
+                    LucideIcons.calendarOff,
+                    color: AppColors.textMuted,
+                  )
+                : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       Text(
                         DateFormat('dd').format(a.appointmentDate),
-                        style: AppTextStyles.headingMd.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: AppTextStyles.headingMd,
                       ),
                       Text(
-                        DateFormat('MMM', 'bs').format(a.appointmentDate).toUpperCase(),
-                        style: AppTextStyles.caption.copyWith(
-                          color: AppColors.cyan,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ]
-                  : [
-                      const Icon(
-                        LucideIcons.calendarOff,
-                        color: AppColors.textMuted,
-                        size: 36,
+                        DateFormat(
+                          'MMM',
+                          'bs',
+                        ).format(a.appointmentDate).toUpperCase(),
+                        style: AppTextStyles.caption,
                       ),
                     ],
-            ),
+                  ),
           ),
-          const SizedBox(width: AppSpacing.xl),
-          // Info
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
+                Text('Sljedeci termin', style: AppTextStyles.headingSm),
+                const SizedBox(height: AppSpacing.xs),
                 Text(
-                  'Sljedeci termin',
-                  style: AppTextStyles.headingSm.copyWith(color: Colors.white),
+                  a != null
+                      ? (a.trainerName ??
+                            a.nutritionistName ??
+                            'Nije definisano')
+                      : 'Nemate zakazan termin',
+                  style: AppTextStyles.bodySm,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  a != null
+                      ? '${DateFormat('dd.MM.yyyy').format(a.appointmentDate)} u ${DateFormat('HH:mm').format(a.appointmentDate)}'
+                      : 'Rezervisi kroz tab Termine',
+                  style: AppTextStyles.caption,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                if (a != null) ...[
-                  Text(
-                    a.trainerName ?? a.nutritionistName ?? '',
-                    style: AppTextStyles.bodySm.copyWith(
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    '${DateFormat('dd.MM.yyyy').format(a.appointmentDate)} u ${DateFormat('HH:mm').format(a.appointmentDate)}',
+                InkWell(
+                  onTap: () => context.go('/appointments'),
+                  child: Text(
+                    'Otvori termine',
                     style: AppTextStyles.caption.copyWith(
-                      color: AppColors.cyan,
-                    ),
-                  ),
-                ] else ...[
-                  Text(
-                    'Nemate termina',
-                    style: AppTextStyles.bodySm.copyWith(
-                      color: Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-                const SizedBox(height: AppSpacing.md),
-                GestureDetector(
-                  onTap: () => context.push('/appointments'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs + 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                      border: Border.all(
-                        color: AppColors.secondary.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      'Moji termini',
-                      style: AppTextStyles.caption.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -281,96 +219,56 @@ class _AppointmentSlide extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SLIDE 2 & 3: QUICK LINK (Trainers / Nutritionists)
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _QuickLinkSlide extends StatelessWidget {
-  const _QuickLinkSlide({
-    required this.icon,
-    required this.iconColor,
-    required this.label,
-    required this.description,
-    required this.buttonLabel,
-    required this.onButtonTap,
-  });
-
+  final String title;
+  final String subtitle;
   final IconData icon;
-  final Color iconColor;
-  final String label;
-  final String description;
+  final Color color;
   final String buttonLabel;
-  final VoidCallback onButtonTap;
+  final VoidCallback onTap;
+
+  const _QuickLinkSlide({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.buttonLabel,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.huge,
-        vertical: AppSpacing.lg,
-      ),
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 12),
       child: Row(
         children: [
-          // Icon area
           Container(
-            width: 110,
-            height: 110,
+            width: 72,
+            height: 72,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  iconColor.withValues(alpha: 0.3),
-                  iconColor.withValues(alpha: 0.05),
-                ],
-              ),
-              border: Border.all(
-                color: iconColor.withValues(alpha: 0.3),
-                width: 2,
-              ),
+              color: color.withValues(alpha: 0.14),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: color.withValues(alpha: 0.3)),
             ),
-            child: Icon(icon, color: iconColor, size: 40),
+            child: Icon(icon, color: color, size: 30),
           ),
-          const SizedBox(width: AppSpacing.xl),
-          // Info
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
-              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  label,
-                  style: AppTextStyles.headingSm.copyWith(color: Colors.white),
-                ),
+                Text(title, style: AppTextStyles.headingSm),
+                const SizedBox(height: AppSpacing.xs),
+                Text(subtitle, style: AppTextStyles.bodySm),
                 const SizedBox(height: AppSpacing.sm),
-                Text(
-                  description,
-                  style: AppTextStyles.bodySm.copyWith(
-                    color: Colors.white.withValues(alpha: 0.7),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                GestureDetector(
-                  onTap: onButtonTap,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs + 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: iconColor.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-                      border: Border.all(
-                        color: iconColor.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Text(
-                      buttonLabel,
-                      style: AppTextStyles.caption.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
+                InkWell(
+                  onTap: onTap,
+                  child: Text(
+                    buttonLabel,
+                    style: AppTextStyles.caption.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                 ),
@@ -383,49 +281,48 @@ class _QuickLinkSlide extends StatelessWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SHARED WIDGETS
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _ArrowButton extends StatelessWidget {
-  const _ArrowButton({required this.icon, required this.onTap});
   final IconData icon;
   final VoidCallback onTap;
 
+  const _ArrowButton({required this.icon, required this.onTap});
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          shape: BoxShape.circle,
+    return Center(
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(99),
+        child: Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Icon(icon, size: 18, color: AppColors.textSecondary),
         ),
-        child:
-            Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: 18),
       ),
     );
   }
 }
 
 class _Dot extends StatelessWidget {
-  const _Dot({required this.isActive});
   final bool isActive;
+
+  const _Dot({required this.isActive});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOutCubic,
+      duration: const Duration(milliseconds: 220),
       margin: const EdgeInsets.symmetric(horizontal: 3),
-      width: isActive ? 20 : 6,
+      width: isActive ? 18 : 6,
       height: 6,
       decoration: BoxDecoration(
-        color:
-            isActive ? AppColors.cyan : Colors.white.withValues(alpha: 0.25),
-        borderRadius: BorderRadius.circular(3),
+        color: isActive ? AppColors.primary : AppColors.border,
+        borderRadius: BorderRadius.circular(4),
       ),
     );
   }

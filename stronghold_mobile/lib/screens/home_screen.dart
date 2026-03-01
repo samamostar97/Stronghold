@@ -4,17 +4,18 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import 'package:stronghold_core/stronghold_core.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
 import '../providers/auth_provider.dart';
+import '../providers/cart_provider.dart';
 import '../providers/notification_provider.dart';
 import '../providers/profile_provider.dart';
 import '../utils/image_utils.dart';
 import '../widgets/home_appointments_carousel.dart';
 import '../widgets/home_stats_carousel.dart';
+import '../widgets/shared/surface_card.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -27,59 +28,83 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
-    final name = user?.firstName ?? '';
+    final displayName = user?.displayName.trim() ?? '';
+    final name = displayName.isNotEmpty
+        ? displayName
+        : (user?.firstName ?? 'Clan');
     final imageUrl = user?.profileImageUrl;
     final unreadCount = ref.watch(userNotificationProvider).unreadCount;
+    final cartCount = ref.watch(cartProvider).itemCount;
     final progressAsync = ref.watch(userProgressProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 110),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: AppSpacing.sm),
-              // ── Header: Avatar | Greeting + Name | Bell ──
-              _header(name, imageUrl, unreadCount)
-                  .animate()
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve),
+              _header(
+                context,
+                name: name,
+                imageUrl: imageUrl,
+                unreadCount: unreadCount,
+                cartCount: cartCount,
+              ).animate().fadeIn(duration: Motion.smooth, curve: Motion.curve),
+              const SizedBox(height: AppSpacing.lg),
+              _heroBanner(context)
+                  .animate(delay: 80.ms)
+                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
+                  .slideY(
+                    begin: 0.04,
+                    end: 0,
+                    duration: Motion.smooth,
+                    curve: Motion.curve,
+                  ),
               const SizedBox(height: AppSpacing.xl),
-              // ── Stats label ──
-              Text('Moj napredak',
-                  style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+              _sectionHeader(
+                title: 'Napredak',
+                actionLabel: 'Detalji',
+                onTap: () => context.push('/progress'),
+              ),
               const SizedBox(height: AppSpacing.md),
-              // ── Stats Carousel ──
-              progressAsync.when(
-                loading: () => const SizedBox(
-                  height: 240,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: AppColors.primary,
+              progressAsync
+                  .when(
+                    loading: () => const SizedBox(
+                      height: 188,
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primary,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (progress) => HomeStatsCarousel(progress: progress),
-              )
-                  .animate(delay: 150.ms)
+                    error: (_, __) => SurfaceCard(
+                      child: Text(
+                        'Napredak trenutno nije dostupan. Pokusajte ponovo kasnije.',
+                        style: AppTextStyles.bodyMd,
+                      ),
+                    ),
+                    data: (progress) => HomeStatsCarousel(progress: progress),
+                  )
+                  .animate(delay: 160.ms)
                   .fadeIn(duration: Motion.smooth, curve: Motion.curve)
                   .slideY(
-                    begin: 0.06,
+                    begin: 0.04,
                     end: 0,
                     duration: Motion.smooth,
                     curve: Motion.curve,
                   ),
-              const SizedBox(height: AppSpacing.xxl),
-              // ── Appointments label ──
-              Text('Termini i Seminari',
-                  style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
+              const SizedBox(height: AppSpacing.xl),
+              _sectionHeader(
+                title: 'Plan treninga',
+                actionLabel: 'Svi termini',
+                onTap: () => context.go('/appointments'),
+              ),
               const SizedBox(height: AppSpacing.md),
-              // ── Appointments Carousel ──
               const HomeAppointmentsCarousel()
-                  .animate(delay: 300.ms)
+                  .animate(delay: 220.ms)
                   .fadeIn(duration: Motion.smooth, curve: Motion.curve)
                   .slideY(
                     begin: 0.04,
@@ -87,102 +112,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     duration: Motion.smooth,
                     curve: Motion.curve,
                   ),
-              const SizedBox(height: AppSpacing.xxl),
-              // ── Shop card ──
-              Text('Kupovina',
-                  style: AppTextStyles.headingSm.copyWith(color: Colors.white)),
-              const SizedBox(height: AppSpacing.md),
-              GlassCard(
-                padding: EdgeInsets.zero,
-                backgroundColor: AppColors.orange.withValues(alpha: 0.15),
-                borderColor: AppColors.orange.withValues(alpha: 0.3),
-                child: SizedBox(
-                  height: 200,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.huge,
-                      vertical: AppSpacing.lg,
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 110,
-                          height: 110,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                              colors: [
-                                AppColors.orange.withValues(alpha: 0.3),
-                                AppColors.orange.withValues(alpha: 0.05),
-                              ],
-                            ),
-                            border: Border.all(
-                              color: AppColors.orange.withValues(alpha: 0.3),
-                              width: 2,
-                            ),
-                          ),
-                          child: const Icon(LucideIcons.shoppingBag,
-                              color: AppColors.orange, size: 40),
-                        ),
-                        const SizedBox(width: AppSpacing.xl),
-                        Expanded(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Prodavnica',
-                                  style: AppTextStyles.headingSm
-                                      .copyWith(color: Colors.white)),
-                              const SizedBox(height: AppSpacing.sm),
-                              Text('Suplementi i dodaci',
-                                  style: AppTextStyles.bodySm.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.7),
-                                  )),
-                              const SizedBox(height: AppSpacing.md),
-                              GestureDetector(
-                                onTap: () => context.push('/shop'),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: AppSpacing.md,
-                                    vertical: AppSpacing.xs + 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.orange.withValues(alpha: 0.2),
-                                    borderRadius: BorderRadius.circular(
-                                        AppSpacing.radiusSm),
-                                    border: Border.all(
-                                      color: AppColors.orange
-                                          .withValues(alpha: 0.3),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Shop',
-                                    style: AppTextStyles.caption.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              )
-                  .animate(delay: 450.ms)
-                  .fadeIn(duration: Motion.smooth, curve: Motion.curve)
-                  .slideY(
-                    begin: 0.04,
-                    end: 0,
-                    duration: Motion.smooth,
-                    curve: Motion.curve,
-                  ),
-              const SizedBox(height: AppSpacing.xxl),
             ],
           ),
         ),
@@ -190,18 +119,22 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _header(String name, String? imageUrl, int unreadCount) {
-    final fullImageUrl =
-        imageUrl != null ? getFullImageUrl(imageUrl) : null;
+  Widget _header(
+    BuildContext context, {
+    required String name,
+    required String? imageUrl,
+    required int unreadCount,
+    required int cartCount,
+  }) {
+    final fullImageUrl = imageUrl != null ? getFullImageUrl(imageUrl) : null;
 
     return Row(
       children: [
-        // Avatar
         ClipRRect(
           borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
           child: SizedBox(
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             child: fullImageUrl != null && fullImageUrl.isNotEmpty
                 ? CachedNetworkImage(
                     imageUrl: fullImageUrl,
@@ -213,77 +146,217 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           ),
         ),
         const SizedBox(width: AppSpacing.md),
-        // Greeting + name
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _greeting(),
-                style: AppTextStyles.bodyMd,
-              ),
+              Text(_greeting(), style: AppTextStyles.bodySm),
+              const SizedBox(height: 2),
               Text(
                 name,
-                style: AppTextStyles.headingSm.copyWith(color: Colors.white),
                 overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.headingSm.copyWith(fontSize: 18),
               ),
             ],
           ),
         ),
-        // Notification bell
-        GestureDetector(
+        _headerActionButton(
+          icon: LucideIcons.bell,
+          badgeCount: unreadCount,
           onTap: () => context.push('/notifications'),
-          child: SizedBox(
-            width: 44,
-            height: 44,
-            child: Stack(
-              alignment: Alignment.center,
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: const Icon(
-                    LucideIcons.bell,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              if (unreadCount > 0)
-                Positioned(
-                  right: 2,
-                  top: 2,
-                  child: Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
-                      color: AppColors.danger,
-                      shape: BoxShape.circle,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 16,
-                      minHeight: 16,
-                    ),
-                    child: Text(
-                      unreadCount > 9 ? '9+' : '$unreadCount',
-                      style: AppTextStyles.caption.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 9,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        _headerActionButton(
+          icon: LucideIcons.shoppingCart,
+          badgeCount: cartCount,
+          onTap: () => context.push('/cart'),
+        ),
+      ],
+    );
+  }
+
+  Widget _heroBanner(BuildContext context) {
+    return SurfaceCard(
+      padding: EdgeInsets.zero,
+      color: Colors.white,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColors.primary.withValues(alpha: 0.12),
+              AppColors.cyan.withValues(alpha: 0.08),
             ],
           ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tvoj trening plan je spreman',
+                    style: AppTextStyles.headingSm,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    'Rezervisi termin ili pregledaj suplemente za ovu sedmicu.',
+                    style: AppTextStyles.bodySm,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Wrap(
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
+                    children: [
+                      _actionButton(
+                        label: 'Termini',
+                        icon: LucideIcons.calendarClock,
+                        onTap: () => context.go('/appointments'),
+                      ),
+                      _actionButton(
+                        label: 'Shop',
+                        icon: LucideIcons.shoppingBag,
+                        onTap: () => context.go('/shop'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Container(
+              width: 68,
+              height: 68,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const Icon(
+                LucideIcons.sparkles,
+                color: AppColors.primary,
+                size: 30,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _actionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: AppColors.primary),
+            const SizedBox(width: AppSpacing.xs),
+            Text(
+              label,
+              style: AppTextStyles.caption.copyWith(
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _sectionHeader({
+    required String title,
+    required String actionLabel,
+    required VoidCallback onTap,
+  }) {
+    return Row(
+      children: [
+        Expanded(child: Text(title, style: AppTextStyles.headingSm)),
+        InkWell(
+          onTap: onTap,
+          child: Text(
+            actionLabel,
+            style: AppTextStyles.bodySm.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
       ],
+    );
+  }
+
+  Widget _headerActionButton({
+    required IconData icon,
+    required int badgeCount,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Center(child: Icon(icon, size: 18, color: AppColors.textPrimary)),
+            if (badgeCount > 0)
+              Positioned(
+                right: 2,
+                top: 2,
+                child: Container(
+                  constraints: const BoxConstraints(
+                    minWidth: 14,
+                    minHeight: 14,
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 3,
+                    vertical: 1,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: AppColors.danger,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Text(
+                    badgeCount > 9 ? '9+' : '$badgeCount',
+                    style: AppTextStyles.caption.copyWith(
+                      color: Colors.white,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w700,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -292,13 +365,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final initials = parts.length >= 2
         ? '${parts.first[0]}${parts.last[0]}'.toUpperCase()
         : (parts.isNotEmpty && parts.first.isNotEmpty
-            ? parts.first[0].toUpperCase()
-            : '?');
+              ? parts.first[0].toUpperCase()
+              : '?');
 
     return Container(
-      decoration: const BoxDecoration(
-        gradient: AppColors.accentGradient,
-      ),
+      decoration: const BoxDecoration(gradient: AppColors.accentGradient),
       alignment: Alignment.center,
       child: Text(
         initials,

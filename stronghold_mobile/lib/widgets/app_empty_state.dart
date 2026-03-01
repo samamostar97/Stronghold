@@ -33,21 +33,27 @@ class AppEmptyState extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.primaryDim,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Icon(icon, size: 32, color: AppColors.primary),
             ),
             const SizedBox(height: AppSpacing.xl),
             Text(
               title,
-              style: AppTextStyles.headingSm.copyWith(color: Colors.white),
+              style: AppTextStyles.headingSm.copyWith(
+                color: AppColors.textPrimary,
+              ),
               textAlign: TextAlign.center,
             ),
             if (subtitle != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
                 subtitle!,
-                style: AppTextStyles.bodyMd.copyWith(color: Colors.white),
+                style: AppTextStyles.bodyMd.copyWith(
+                  color: AppColors.textSecondary,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
@@ -66,8 +72,9 @@ class AppEmptyState extends StatelessWidget {
                   ),
                   child: Text(
                     actionLabel!,
-                    style: AppTextStyles.buttonMd
-                        .copyWith(color: AppColors.background),
+                    style: AppTextStyles.buttonMd.copyWith(
+                      color: AppColors.background,
+                    ),
                   ),
                 ),
               ),

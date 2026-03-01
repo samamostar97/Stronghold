@@ -34,11 +34,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
       GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
       GoRoute(
-          path: '/forgot-password',
-          builder: (_, __) => const ForgotPasswordScreen()),
+        path: '/forgot-password',
+        builder: (_, __) => const ForgotPasswordScreen(),
+      ),
       GoRoute(
-          path: '/login-success',
-          builder: (_, __) => const LoginSuccessScreen()),
+        path: '/login-success',
+        builder: (_, __) => const LoginSuccessScreen(),
+      ),
 
       // ── Main app (with bottom nav shell) ──
       StatefulShellRoute.indexedStack(
@@ -46,25 +48,35 @@ final routerProvider = Provider<GoRouter>((ref) {
           return NavigationShellWrapper(navigationShell: navigationShell);
         },
         branches: [
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
-            GoRoute(
+          StatefulShellBranch(
+            routes: [
+              GoRoute(path: '/home', builder: (_, __) => const HomeScreen()),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/appointments',
+                builder: (_, __) => const AppointmentScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/shop',
-                builder: (_, __) => const SupplementShopScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
-                path: '/reviews',
-                builder: (_, __) => const ReviewHistoryScreen()),
-          ]),
-          StatefulShellBranch(routes: [
-            GoRoute(
+                builder: (_, __) => const SupplementShopScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/profile',
-                builder: (_, __) => const ProfileSettingsScreen()),
-          ]),
+                builder: (_, __) => const ProfileSettingsScreen(),
+              ),
+            ],
+          ),
         ],
       ),
 
@@ -75,15 +87,18 @@ final routerProvider = Provider<GoRouter>((ref) {
           supplement: state.extra as SupplementResponse,
         ),
       ),
+      GoRoute(path: '/cart', builder: (_, __) => const CartScreen()),
       GoRoute(path: '/checkout', builder: (_, __) => const CheckoutScreen()),
       GoRoute(path: '/orders', builder: (_, __) => const OrderHistoryScreen()),
+      GoRoute(
+        path: '/reviews',
+        builder: (_, __) => const ReviewHistoryScreen(),
+      ),
       GoRoute(path: '/address', builder: (_, __) => const AddressScreen()),
       GoRoute(
-          path: '/change-password',
-          builder: (_, __) => const ChangePasswordScreen()),
-      GoRoute(
-          path: '/appointments',
-          builder: (_, __) => const AppointmentScreen()),
+        path: '/change-password',
+        builder: (_, __) => const ChangePasswordScreen(),
+      ),
       GoRoute(
         path: '/book-appointment',
         builder: (_, state) {
@@ -95,21 +110,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(path: '/trainers', builder: (_, __) => const TrainerListScreen()),
       GoRoute(
-          path: '/trainers', builder: (_, __) => const TrainerListScreen()),
-      GoRoute(
-          path: '/nutritionists',
-          builder: (_, __) => const NutritionistListScreen()),
+        path: '/nutritionists',
+        builder: (_, __) => const NutritionistListScreen(),
+      ),
       GoRoute(path: '/seminars', builder: (_, __) => const SeminarScreen()),
       GoRoute(
-          path: '/notifications',
-          builder: (_, __) => const NotificationScreen()),
+        path: '/notifications',
+        builder: (_, __) => const NotificationScreen(),
+      ),
       GoRoute(path: '/faq', builder: (_, __) => const FaqScreen()),
       GoRoute(
-          path: '/leaderboard',
-          builder: (_, __) => const LeaderboardScreen()),
+        path: '/leaderboard',
+        builder: (_, __) => const LeaderboardScreen(),
+      ),
       GoRoute(
-          path: '/progress', builder: (_, __) => const UserProgressScreen()),
+        path: '/progress',
+        builder: (_, __) => const UserProgressScreen(),
+      ),
     ],
   );
 });

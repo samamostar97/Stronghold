@@ -5,6 +5,7 @@ import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../utils/image_utils.dart';
+import 'shared/surface_card.dart';
 
 class SupplementCard extends StatelessWidget {
   final SupplementResponse supplement;
@@ -20,7 +21,7 @@ class SupplementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GlassCard(
+    return SurfaceCard(
       onTap: onTap,
       padding: EdgeInsets.zero,
       child: Column(
@@ -43,46 +44,56 @@ class SupplementCard extends StatelessWidget {
               children: [
                 Text(
                   supplement.name,
-                  style: AppTextStyles.bodyBold.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyBold,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 2),
                 Text(
                   supplement.supplementCategoryName ?? '',
-                  style: AppTextStyles.caption.copyWith(color: Colors.white),
+                  style: AppTextStyles.caption,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: AppSpacing.sm),
-                Row(children: [
-                  Expanded(
-                    child: Text(
-                      '${supplement.price.toStringAsFixed(2)} KM',
-                      style: AppTextStyles.bodyBold
-                          .copyWith(color: AppColors.navyBlue, fontSize: 13),
-                    ),
-                  ),
-                  if (onAddToCart != null)
-                    GestureDetector(
-                      onTap: onAddToCart,
-                      child: Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryDim,
-                          borderRadius:
-                              BorderRadius.circular(AppSpacing.radiusSm),
-                          border: Border.all(color: AppColors.navyBlue.withValues(alpha: 0.4), width: 1.5),
-                        ),
-                        child: const Icon(
-                          LucideIcons.plus,
-                          color: AppColors.navyBlue,
-                          size: 16,
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${supplement.price.toStringAsFixed(2)} KM',
+                        style: AppTextStyles.bodyBold.copyWith(
+                          color: AppColors.primary,
+                          fontSize: 13,
                         ),
                       ),
                     ),
-                ]),
+                    if (onAddToCart != null)
+                      InkWell(
+                        onTap: onAddToCart,
+                        borderRadius: BorderRadius.circular(
+                          AppSpacing.radiusSm,
+                        ),
+                        child: Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusSm,
+                            ),
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: const Icon(
+                            LucideIcons.plus,
+                            color: AppColors.primary,
+                            size: 16,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -104,9 +115,9 @@ class SupplementCard extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      color: AppColors.surface,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(LucideIcons.package, color: AppColors.textDark, size: 28),
+        child: Icon(LucideIcons.package, color: AppColors.textMuted, size: 28),
       ),
     );
   }

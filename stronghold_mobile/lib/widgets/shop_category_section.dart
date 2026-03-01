@@ -7,8 +7,8 @@ import '../constants/app_text_styles.dart';
 import 'package:stronghold_core/stronghold_core.dart';
 import '../providers/supplement_provider.dart';
 import '../utils/image_utils.dart';
+import 'shared/surface_card.dart';
 
-/// A single category section: heading + horizontal scrollable supplement cards.
 class ShopCategorySection extends ConsumerWidget {
   const ShopCategorySection({
     super.key,
@@ -25,7 +25,9 @@ class ShopCategorySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final supplementsAsync = ref.watch(supplementsByCategoryProvider(category.id));
+    final supplementsAsync = ref.watch(
+      supplementsByCategoryProvider(category.id),
+    );
 
     return supplementsAsync.when(
       loading: () => _shimmerPlaceholder(),
@@ -35,7 +37,6 @@ class ShopCategorySection extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section header
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.screenPadding,
@@ -43,19 +44,15 @@ class ShopCategorySection extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      category.name,
-                      style: AppTextStyles.headingSm.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: Text(category.name, style: AppTextStyles.headingSm),
                   ),
-                  GestureDetector(
+                  InkWell(
                     onTap: onViewAll,
                     child: Text(
                       'Pogledaj sve',
                       style: AppTextStyles.bodySm.copyWith(
-                        color: AppColors.cyan,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -63,9 +60,8 @@ class ShopCategorySection extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
-            // Horizontal list
             SizedBox(
-              height: 200,
+              height: 206,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(
@@ -101,7 +97,7 @@ class ShopCategorySection extends ConsumerWidget {
             width: 120,
             height: 16,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.08),
+              color: AppColors.surfaceAlt,
               borderRadius: BorderRadius.circular(4),
             ),
           ),
@@ -116,7 +112,7 @@ class ShopCategorySection extends ConsumerWidget {
                   child: Container(
                     width: 150,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.05),
+                      color: AppColors.surfaceAlt,
                       borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
                     ),
                   ),
@@ -131,100 +127,97 @@ class ShopCategorySection extends ConsumerWidget {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SUPPLEMENT CARD (for horizontal category sections)
-// ─────────────────────────────────────────────────────────────────────────────
-
 class _CategorySupplementCard extends StatelessWidget {
+  final SupplementResponse supplement;
+  final VoidCallback onTap;
+  final VoidCallback onAddToCart;
+
   const _CategorySupplementCard({
     required this.supplement,
     required this.onTap,
     required this.onAddToCart,
   });
 
-  final SupplementResponse supplement;
-  final VoidCallback onTap;
-  final VoidCallback onAddToCart;
-
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: SizedBox(
-        width: 150,
-        child: GlassCard(
-          padding: EdgeInsets.zero,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppSpacing.radiusLg),
-                ),
-                child: SizedBox(
-                  height: 100,
-                  width: double.infinity,
-                  child: _image(),
-                ),
+    return SizedBox(
+      width: 152,
+      child: SurfaceCard(
+        onTap: onTap,
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppSpacing.radiusLg),
               ),
-              // Info
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.sm),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        supplement.name,
-                        style: AppTextStyles.bodySm.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+              child: SizedBox(
+                height: 104,
+                width: double.infinity,
+                child: _image(),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      supplement.name,
+                      style: AppTextStyles.bodySm.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '${supplement.price.toStringAsFixed(2)} KM',
+                            style: AppTextStyles.bodyBold.copyWith(
+                              color: AppColors.primary,
+                              fontSize: 13,
+                            ),
+                          ),
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const Spacer(),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '${supplement.price.toStringAsFixed(2)} KM',
-                              style: AppTextStyles.bodyBold.copyWith(
-                                color: AppColors.cyan,
-                                fontSize: 13,
-                              ),
-                            ),
+                        InkWell(
+                          onTap: onAddToCart,
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
                           ),
-                          GestureDetector(
-                            onTap: onAddToCart,
-                            child: Container(
-                              width: 28,
-                              height: 28,
-                              decoration: BoxDecoration(
-                                color: AppColors.cyan.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(
-                                  AppSpacing.radiusSm,
-                                ),
-                                border: Border.all(
-                                  color: AppColors.cyan.withValues(alpha: 0.3),
+                          child: Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.radiusSm,
+                              ),
+                              border: Border.all(
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.25,
                                 ),
                               ),
-                              child: const Icon(
-                                LucideIcons.plus,
-                                color: AppColors.cyan,
-                                size: 14,
-                              ),
+                            ),
+                            child: const Icon(
+                              LucideIcons.plus,
+                              color: AppColors.primary,
+                              size: 14,
                             ),
                           ),
-                        ],
-                      ),
-                    ],
-                  ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -243,9 +236,9 @@ class _CategorySupplementCard extends StatelessWidget {
 
   Widget _placeholder() {
     return Container(
-      color: AppColors.surface,
+      color: AppColors.surfaceAlt,
       child: const Center(
-        child: Icon(LucideIcons.package, color: AppColors.textDark, size: 24),
+        child: Icon(LucideIcons.package, color: AppColors.textMuted, size: 24),
       ),
     );
   }
