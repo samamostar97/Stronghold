@@ -6,6 +6,19 @@ class AdminActivityService {
 
   AdminActivityService(this._client);
 
+  Future<PagedResult<AdminActivityResponse>> getPaged(
+    AdminActivityQueryFilter filter,
+  ) async {
+    return _client.get<PagedResult<AdminActivityResponse>>(
+      _basePath,
+      queryParameters: filter.toQueryParameters(),
+      parser: (json) => PagedResult.fromJson(
+        json as Map<String, dynamic>,
+        (item) => AdminActivityResponse.fromJson(item),
+      ),
+    );
+  }
+
   Future<List<AdminActivityResponse>> getRecent({int count = 20}) async {
     return _client.get<List<AdminActivityResponse>>(
       '$_basePath/recent',

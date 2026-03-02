@@ -9,9 +9,8 @@ import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 import '../constants/app_text_styles.dart';
 import '../constants/motion.dart';
-import '../providers/admin_activity_provider.dart';
+import '../providers/admin_activity_paged_provider.dart';
 import '../providers/membership_payments_provider.dart';
-import '../widgets/dashboard/dashboard_admin_activity_feed.dart';
 import '../widgets/shared/chrome_tab_bar.dart';
 import '../widgets/shared/data_table_widgets.dart';
 import '../widgets/shared/error_animation.dart';
@@ -31,9 +30,11 @@ class AuditScreen extends ConsumerStatefulWidget {
 class _AuditScreenState extends ConsumerState<AuditScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final _searchController = TextEditingController();
+  final _paymentsSearchController = TextEditingController();
+  final _activitySearchController = TextEditingController();
   final _dateFormat = DateFormat('dd.MM.yyyy HH:mm');
-  String? _selectedOrderBy;
+  String? _paymentsOrderBy;
+  String? _activityOrderBy;
 
   static const _tabs = [
     (icon: LucideIcons.receipt, label: 'Uplate clanarina'),
@@ -46,22 +47,23 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(() => setState(() {}));
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await ref.read(membershipPaymentsProvider.notifier).load();
-      await ref.read(adminActivityProvider.notifier).load(count: 120);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(membershipPaymentsProvider.notifier).load();
+      ref.read(adminActivityPagedProvider.notifier).load();
     });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
+    _paymentsSearchController.dispose();
+    _activitySearchController.dispose();
     super.dispose();
   }
 
   Future<void> _undoActivity(int id) async {
     try {
-      await ref.read(adminActivityProvider.notifier).undo(id);
+      await ref.read(adminActivityPagedProvider.notifier).undo(id);
       if (mounted) {
         showSuccessAnimation(context, message: 'Undo uspjesno izvrsen.');
       }
@@ -78,7 +80,7 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
   @override
   Widget build(BuildContext context) {
     final paymentsState = ref.watch(membershipPaymentsProvider);
-    final activityState = ref.watch(adminActivityProvider);
+    final activityState = ref.watch(adminActivityPagedProvider);
 
     final pageAmount = paymentsState.items.fold<num>(
       0,
@@ -115,7 +117,7 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
                           ),
                           _MetricChip(
                             icon: LucideIcons.history,
-                            label: '${activityState.items.length} logova',
+                            label: '${activityState.totalCount} logova',
                           ),
                           SmallButton(
                             text: 'Izvjestaji',
@@ -141,31 +143,36 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
                         children: [
                           _MembershipPaymentsTab(
                             dateFormat: _dateFormat,
-                            searchController: _searchController,
-                            selectedOrderBy: _selectedOrderBy,
+                            searchController: _paymentsSearchController,
+                            selectedOrderBy: _paymentsOrderBy,
                             onSearchChanged: (value) {
                               ref
                                   .read(membershipPaymentsProvider.notifier)
                                   .setSearch(value.trim());
                             },
                             onSortChanged: (value) {
-                              setState(() => _selectedOrderBy = value);
+                              setState(() => _paymentsOrderBy = value);
                               ref
                                   .read(membershipPaymentsProvider.notifier)
                                   .setOrderBy(value);
                             },
                           ),
-                          DashboardAdminActivityFeed(
-                            items: activityState.items,
-                            isLoading: activityState.isLoading,
-                            undoInProgressIds: activityState.undoInProgressIds,
-                            error: activityState.error,
-                            onRetry: () => ref
-                                .read(adminActivityProvider.notifier)
-                                .load(count: 120),
+                          _AdminActivitiesTab(
+                            dateFormat: _dateFormat,
+                            searchController: _activitySearchController,
+                            selectedOrderBy: _activityOrderBy,
+                            onSearchChanged: (value) {
+                              ref
+                                  .read(adminActivityPagedProvider.notifier)
+                                  .setSearch(value.trim());
+                            },
+                            onSortChanged: (value) {
+                              setState(() => _activityOrderBy = value);
+                              ref
+                                  .read(adminActivityPagedProvider.notifier)
+                                  .setOrderBy(value);
+                            },
                             onUndo: _undoActivity,
-                            expand: true,
-                            embedded: true,
                           ),
                         ],
                       ),
@@ -461,6 +468,374 @@ class _SortDropdown extends StatelessWidget {
             DropdownMenuItem(
               value: 'packagenamedesc',
               child: Text('Paket (Z-A)'),
+            ),
+          ],
+          onChanged: onChanged,
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Admin Activities Tab (paged)
+// ---------------------------------------------------------------------------
+
+class _AdminActivitiesTab extends ConsumerWidget {
+  const _AdminActivitiesTab({
+    required this.dateFormat,
+    required this.searchController,
+    required this.selectedOrderBy,
+    required this.onSearchChanged,
+    required this.onSortChanged,
+    required this.onUndo,
+  });
+
+  final DateFormat dateFormat;
+  final TextEditingController searchController;
+  final String? selectedOrderBy;
+  final ValueChanged<String> onSearchChanged;
+  final ValueChanged<String?> onSortChanged;
+  final Future<void> Function(int id) onUndo;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(adminActivityPagedProvider);
+
+    if (state.isLoading && state.items.isEmpty) {
+      return const ShimmerTable(columnFlex: [1, 2, 4, 2, 2, 2]);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _ActivityFilters(
+          searchController: searchController,
+          selectedOrderBy: selectedOrderBy,
+          onSearchChanged: onSearchChanged,
+          onSortChanged: onSortChanged,
+          onRefresh: () =>
+              ref.read(adminActivityPagedProvider.notifier).load(),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        Expanded(
+          child: state.error != null && state.items.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Greska pri ucitavanju',
+                        style: AppTextStyles.cardTitle,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        state.error!,
+                        style: AppTextStyles.bodySecondary,
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 12),
+                      SmallButton(
+                        text: 'Pokusaj ponovo',
+                        color: AppColors.primary,
+                        onTap: () => ref
+                            .read(adminActivityPagedProvider.notifier)
+                            .load(),
+                      ),
+                    ],
+                  ),
+                )
+              : GenericDataTable<AdminActivityResponse>(
+                  items: state.items,
+                  emptyMessage: 'Nema aktivnosti.',
+                  columns: [
+                    ColumnDef<AdminActivityResponse>(
+                      label: 'Tip',
+                      flex: 2,
+                      cellBuilder: (a) {
+                        final isAdd =
+                            a.actionType.toLowerCase() == 'add';
+                        final color =
+                            isAdd ? AppColors.success : AppColors.warning;
+                        final icon =
+                            isAdd ? LucideIcons.plus : LucideIcons.trash2;
+                        return FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                decoration: BoxDecoration(
+                                  color: color.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(
+                                      AppSpacing.radiusSm),
+                                ),
+                                child: Icon(icon, size: 14, color: color),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                isAdd ? 'Dodano' : 'Obrisano',
+                                style: AppTextStyles.caption
+                                    .copyWith(color: color),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    ColumnDef.text(
+                      label: 'Opis',
+                      flex: 4,
+                      value: (a) => a.description,
+                      bold: true,
+                    ),
+                    ColumnDef.text(
+                      label: 'Admin',
+                      flex: 2,
+                      value: (a) => a.adminUsername,
+                    ),
+                    ColumnDef.text(
+                      label: 'Vrijeme',
+                      flex: 2,
+                      value: (a) =>
+                          dateFormat.format(DateTimeUtils.toLocal(a.createdAt)),
+                    ),
+                    ColumnDef<AdminActivityResponse>(
+                      label: 'Undo',
+                      flex: 2,
+                      cellBuilder: (a) {
+                        final isUndoing =
+                            state.undoInProgressIds.contains(a.id);
+                        final canUndo = a.canUndo && !a.isUndone;
+
+                        if (a.isUndone) {
+                          return _UndoBadge(
+                            text: 'Ponisteno',
+                            color: AppColors.success,
+                          );
+                        }
+                        if (canUndo) {
+                          final remaining = DateTimeUtils.toLocal(
+                            a.undoAvailableUntil,
+                          ).difference(DateTime.now());
+                          return Row(
+                            children: [
+                              SizedBox(
+                                height: 28,
+                                child: OutlinedButton(
+                                  onPressed: isUndoing
+                                      ? null
+                                      : () => onUndo(a.id),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.35),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: AppSpacing.sm,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                          AppSpacing.radiusSm),
+                                    ),
+                                  ),
+                                  child: isUndoing
+                                      ? const SizedBox(
+                                          width: 14,
+                                          height: 14,
+                                          child:
+                                              CircularProgressIndicator(
+                                                  strokeWidth: 2),
+                                        )
+                                      : Text(
+                                          'Undo (${remaining.inMinutes.clamp(0, 59)}m)',
+                                          style:
+                                              AppTextStyles.caption.copyWith(
+                                            color: AppColors.primary,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                            ],
+                          );
+                        }
+                        return _UndoBadge(
+                          text: 'Isteklo',
+                          color: AppColors.textMuted,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        PaginationControls(
+          currentPage: state.currentPage,
+          totalPages: state.totalPages,
+          totalCount: state.totalCount,
+          onPageChanged: (page) =>
+              ref.read(adminActivityPagedProvider.notifier).goToPage(page),
+        ),
+      ],
+    );
+  }
+}
+
+class _UndoBadge extends StatelessWidget {
+  const _UndoBadge({required this.text, required this.color});
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: 2,
+        ),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        ),
+        child: Text(
+          text,
+          style: AppTextStyles.caption.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActivityFilters extends StatelessWidget {
+  const _ActivityFilters({
+    required this.searchController,
+    required this.selectedOrderBy,
+    required this.onSearchChanged,
+    required this.onSortChanged,
+    required this.onRefresh,
+  });
+
+  final TextEditingController searchController;
+  final String? selectedOrderBy;
+  final ValueChanged<String> onSearchChanged;
+  final ValueChanged<String?> onSortChanged;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sort = _ActivitySortDropdown(
+          value: selectedOrderBy,
+          onChanged: onSortChanged,
+        );
+
+        if (constraints.maxWidth < 840) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SearchInput(
+                controller: searchController,
+                onSubmitted: onSearchChanged,
+                hintText: 'Pretraga po opisu ili adminu...',
+              ),
+              const SizedBox(height: AppSpacing.md),
+              sort,
+              const SizedBox(height: AppSpacing.md),
+              SmallButton(
+                text: 'Osvjezi',
+                color: AppColors.secondary,
+                onTap: onRefresh,
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(
+              child: SearchInput(
+                controller: searchController,
+                onSubmitted: onSearchChanged,
+                hintText: 'Pretraga po opisu ili adminu...',
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            sort,
+            const SizedBox(width: AppSpacing.md),
+            SmallButton(
+              text: 'Osvjezi',
+              color: AppColors.secondary,
+              onTap: onRefresh,
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ActivitySortDropdown extends StatelessWidget {
+  const _ActivitySortDropdown({required this.value, required this.onChanged});
+
+  final String? value;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: AppSpacing.smallRadius,
+        border: Border.all(color: AppColors.border),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String?>(
+          value: value,
+          hint: Text('Sort', style: AppTextStyles.bodySecondary),
+          dropdownColor: AppColors.surface,
+          style: AppTextStyles.bodySecondary,
+          icon: const Icon(
+            LucideIcons.arrowUpDown,
+            color: AppColors.textMuted,
+            size: 15,
+          ),
+          items: const [
+            DropdownMenuItem(value: null, child: Text('Zadano (najnovije)')),
+            DropdownMenuItem(
+              value: 'createdat',
+              child: Text('Datum (najstarije)'),
+            ),
+            DropdownMenuItem(value: 'admin', child: Text('Admin (A-Z)')),
+            DropdownMenuItem(
+              value: 'admindesc',
+              child: Text('Admin (Z-A)'),
+            ),
+            DropdownMenuItem(
+              value: 'actiontype',
+              child: Text('Tip akcije (A-Z)'),
+            ),
+            DropdownMenuItem(
+              value: 'actiontypedesc',
+              child: Text('Tip akcije (Z-A)'),
+            ),
+            DropdownMenuItem(
+              value: 'entitytype',
+              child: Text('Tip entiteta (A-Z)'),
+            ),
+            DropdownMenuItem(
+              value: 'entitytypedesc',
+              child: Text('Tip entiteta (Z-A)'),
             ),
           ],
           onChanged: onChanged,

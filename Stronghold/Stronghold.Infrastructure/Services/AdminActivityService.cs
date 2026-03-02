@@ -2,8 +2,8 @@ using System.Reflection;
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Features.AdminActivities.DTOs;
 using Stronghold.Application.IServices;
-using Stronghold.Core.Entities;
 using Stronghold.Application.Common;
+using Stronghold.Core.Entities;
 using Stronghold.Infrastructure.Data;
 
 namespace Stronghold.Infrastructure.Services;
@@ -121,6 +121,90 @@ public class AdminActivityService : IAdminActivityService
         }
 
         return result;
+    }
+
+    public async Task<PagedResult<AdminActivityResponse>> GetPagedAsync(
+        AdminActivityFilter filter, CancellationToken cancellationToken = default)
+    {
+        filter ??= new AdminActivityFilter();
+        var now = StrongholdTimeUtils.UtcNow;
+
+        var query = _context.AdminActivityLogs
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(filter.Search))
+        {
+            var search = filter.Search.Trim().ToLower();
+            query = query.Where(x =>
+                x.Description.ToLower().Contains(search) ||
+                x.AdminUsername.ToLower().Contains(search));
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.ActionType))
+        {
+            var actionType = filter.ActionType.Trim().ToLower();
+            query = query.Where(x => x.ActionType == actionType);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.EntityType))
+        {
+            var entityType = filter.EntityType.Trim();
+            query = query.Where(x => x.EntityType == entityType);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filter.OrderBy))
+        {
+            query = filter.OrderBy.Trim().ToLowerInvariant() switch
+            {
+                "createdat" => query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id),
+                "createdatdesc" => query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id),
+                "admin" => query.OrderBy(x => x.AdminUsername).ThenBy(x => x.Id),
+                "admindesc" => query.OrderByDescending(x => x.AdminUsername).ThenByDescending(x => x.Id),
+                "actiontype" => query.OrderBy(x => x.ActionType).ThenBy(x => x.Id),
+                "actiontypedesc" => query.OrderByDescending(x => x.ActionType).ThenByDescending(x => x.Id),
+                "entitytype" => query.OrderBy(x => x.EntityType).ThenBy(x => x.Id),
+                "entitytypedesc" => query.OrderByDescending(x => x.EntityType).ThenByDescending(x => x.Id),
+                _ => query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
+            };
+        }
+        else
+        {
+            query = query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id);
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var activities = await query
+            .Skip((filter.PageNumber - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .ToListAsync(cancellationToken);
+
+        var items = new List<AdminActivityResponse>(activities.Count);
+        foreach (var activity in activities)
+        {
+            var canUndo = await CanUndoActivityAsync(activity, now);
+            items.Add(new AdminActivityResponse
+            {
+                Id = activity.Id,
+                ActionType = activity.ActionType,
+                EntityType = activity.EntityType,
+                EntityId = activity.EntityId,
+                Description = activity.Description,
+                AdminUsername = activity.AdminUsername,
+                CreatedAt = activity.CreatedAt,
+                UndoAvailableUntil = activity.UndoAvailableUntil,
+                IsUndone = activity.IsUndone,
+                CanUndo = canUndo
+            });
+        }
+
+        return new PagedResult<AdminActivityResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = filter.PageNumber
+        };
     }
 
     public async Task<AdminActivityResponse> UndoAsync(int id, int adminUserId)
