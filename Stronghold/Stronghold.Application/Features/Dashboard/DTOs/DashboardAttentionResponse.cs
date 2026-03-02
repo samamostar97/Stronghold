@@ -4,5 +4,6 @@ public class DashboardAttentionResponse
 {
     public int PendingOrdersCount { get; set; }
     public int ExpiringMembershipsCount { get; set; }
+    public int LowStockSupplementsCount { get; set; }
     public int WindowDays { get; set; } = 7;
 }

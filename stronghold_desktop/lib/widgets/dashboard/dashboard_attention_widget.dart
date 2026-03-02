@@ -33,9 +33,7 @@ class DashboardAttentionWidget extends StatelessWidget {
     );
 
     Widget content;
-    if (state.isLoading &&
-        state.pendingOrdersCount == 0 &&
-        state.expiringMembershipsCount == 0) {
+    if (state.isLoading && state.totalCount == 0) {
       content = const Center(
         child: SizedBox(
           width: 24,
@@ -100,6 +98,14 @@ class DashboardAttentionWidget extends StatelessWidget {
             label: 'Clanarine isticu ove sedmice',
             count: state.expiringMembershipsCount,
             path: '/users',
+          ),
+        if (state.lowStockSupplementsCount > 0)
+          _AttentionItemData(
+            icon: LucideIcons.alertTriangle,
+            color: AppColors.warning,
+            label: 'Suplementi s niskim stanjem',
+            count: state.lowStockSupplementsCount,
+            path: '/supplements',
           ),
       ];
 

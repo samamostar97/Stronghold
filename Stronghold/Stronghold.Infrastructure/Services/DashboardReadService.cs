@@ -118,10 +118,16 @@ namespace Stronghold.Infrastructure.Services
                 .Where(m => !m.IsDeleted && m.StartDate <= now && m.EndDate > now && m.EndDate <= cutoff)
                 .CountAsync();
 
+            var lowStockSupplementsCount = await _context.Supplements
+                .AsNoTracking()
+                .Where(s => !s.IsDeleted && s.StockQuantity <= 5)
+                .CountAsync();
+
             return new DashboardAttentionResponse
             {
                 PendingOrdersCount = pendingOrdersCount,
                 ExpiringMembershipsCount = expiringMembershipsCount,
+                LowStockSupplementsCount = lowStockSupplementsCount,
                 WindowDays = days,
             };
         }

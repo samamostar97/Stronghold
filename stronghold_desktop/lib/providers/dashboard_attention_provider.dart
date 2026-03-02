@@ -5,21 +5,25 @@ import 'dashboard_provider.dart';
 class DashboardAttentionState {
   final int pendingOrdersCount;
   final int expiringMembershipsCount;
+  final int lowStockSupplementsCount;
   final bool isLoading;
   final String? error;
 
   const DashboardAttentionState({
     this.pendingOrdersCount = 0,
     this.expiringMembershipsCount = 0,
+    this.lowStockSupplementsCount = 0,
     this.isLoading = false,
     this.error,
   });
 
-  int get totalCount => pendingOrdersCount + expiringMembershipsCount;
+  int get totalCount =>
+      pendingOrdersCount + expiringMembershipsCount + lowStockSupplementsCount;
 
   DashboardAttentionState copyWith({
     int? pendingOrdersCount,
     int? expiringMembershipsCount,
+    int? lowStockSupplementsCount,
     bool? isLoading,
     String? error,
   }) {
@@ -27,6 +31,8 @@ class DashboardAttentionState {
       pendingOrdersCount: pendingOrdersCount ?? this.pendingOrdersCount,
       expiringMembershipsCount:
           expiringMembershipsCount ?? this.expiringMembershipsCount,
+      lowStockSupplementsCount:
+          lowStockSupplementsCount ?? this.lowStockSupplementsCount,
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -49,6 +55,7 @@ class DashboardAttentionNotifier
         state = state.copyWith(
           pendingOrdersCount: attention.pendingOrdersCount,
           expiringMembershipsCount: attention.expiringMembershipsCount,
+          lowStockSupplementsCount: attention.lowStockSupplementsCount,
           isLoading: false,
         );
       }
