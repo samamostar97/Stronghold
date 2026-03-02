@@ -109,18 +109,10 @@ class _LoginFormState extends State<LoginForm>
               Container(
                 padding: const EdgeInsets.all(36),
                 decoration: BoxDecoration(
-                  color: AppColors.deepBlue.withOpacity(0.55),
+                  color: AppColors.surface,
                   borderRadius: AppSpacing.cardRadius,
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.08),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 40,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
+                  border: Border.all(color: AppColors.border),
+                  boxShadow: AppColors.cardShadowStrong,
                 ),
                 child: Form(
                   key: _formKey,
@@ -129,8 +121,7 @@ class _LoginFormState extends State<LoginForm>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('Dobrodosli nazad',
-                              style: AppTextStyles.pageTitle
-                                  .copyWith(color: Colors.white))
+                              style: AppTextStyles.pageTitle)
                           .animate()
                           .fadeIn(
                               duration: Motion.smooth, curve: Motion.curve)
@@ -140,8 +131,7 @@ class _LoginFormState extends State<LoginForm>
                               duration: Motion.smooth),
                       const SizedBox(height: AppSpacing.sm),
                       Text('Prijavite se na administratorski panel',
-                              style: AppTextStyles.bodySecondary
-                                  .copyWith(color: AppColors.textMuted))
+                              style: AppTextStyles.bodySecondary)
                           .animate(delay: 100.ms)
                           .fadeIn(
                               duration: Motion.smooth, curve: Motion.curve),
@@ -174,6 +164,7 @@ class _LoginFormState extends State<LoginForm>
               Text('TheStronghold Admin v1.0.0',
                   style: AppTextStyles.caption
                       .copyWith(color: AppColors.textMuted)),
+
             ],
           ),
         ),
@@ -202,8 +193,7 @@ class _LoginFormState extends State<LoginForm>
               duration: Motion.dramatic,
               curve: Motion.curve),
       const SizedBox(height: AppSpacing.lg),
-      Text('TheStronghold',
-              style: AppTextStyles.heroTitle.copyWith(color: Colors.white))
+      Text('TheStronghold', style: AppTextStyles.heroTitle)
           .animate(delay: 200.ms)
           .fadeIn(duration: Motion.smooth, curve: Motion.curve)
           .slideY(begin: 0.2, end: 0, duration: Motion.smooth),
@@ -211,7 +201,7 @@ class _LoginFormState extends State<LoginForm>
       Text(
         'ADMINISTRATORSKI CENTAR',
         style: AppTextStyles.overline.copyWith(
-          color: AppColors.cyan,
+          color: AppColors.primary,
           letterSpacing: 3,
         ),
       )
@@ -221,7 +211,7 @@ class _LoginFormState extends State<LoginForm>
   }
 
   Widget _label(String text) =>
-      Text(text, style: AppTextStyles.overline.copyWith(color: AppColors.cyan));
+      Text(text, style: AppTextStyles.overline.copyWith(color: AppColors.primary));
 
   Widget _emailField() => _FocusGlowField(
         controller: _emailCtl,
@@ -256,9 +246,9 @@ class _LoginFormState extends State<LoginForm>
         child: Container(
           padding: const EdgeInsets.all(AppSpacing.md),
           decoration: BoxDecoration(
-            color: AppColors.danger.withOpacity(0.15),
+            color: AppColors.danger.withValues(alpha: 0.1),
             borderRadius: AppSpacing.badgeRadius,
-            border: Border.all(color: AppColors.danger.withOpacity(0.4)),
+            border: Border.all(color: AppColors.danger.withValues(alpha: 0.3)),
           ),
           child: Row(children: [
             const Icon(LucideIcons.alertCircle,
@@ -314,7 +304,7 @@ class _FocusGlowFieldState extends State<_FocusGlowField> {
         boxShadow: _focused
             ? [
                 BoxShadow(
-                  color: AppColors.electric.withOpacity(0.2),
+                  color: AppColors.primary.withValues(alpha: 0.12),
                   blurRadius: 16,
                 ),
               ]
@@ -326,21 +316,20 @@ class _FocusGlowFieldState extends State<_FocusGlowField> {
           controller: widget.controller,
           obscureText: widget.obscure,
           onFieldSubmitted: widget.onSubmitted,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: AppColors.textPrimary),
           validator: widget.validator,
           decoration: InputDecoration(
             hintText: widget.hint,
-            hintStyle: TextStyle(color: Colors.white.withOpacity(0.35)),
+            hintStyle: const TextStyle(color: AppColors.textMuted),
             filled: true,
-            fillColor: Colors.white.withOpacity(0.07),
+            fillColor: AppColors.surfaceAlt,
             contentPadding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.base, vertical: AppSpacing.base),
             prefixIcon:
                 Icon(widget.prefix, color: AppColors.textMuted, size: 18),
             suffixIcon: widget.suffix,
             enabledBorder: OutlineInputBorder(
-              borderSide:
-                  BorderSide(color: Colors.white.withOpacity(0.1)),
+              borderSide: const BorderSide(color: AppColors.border),
               borderRadius: AppSpacing.smallRadius,
             ),
             focusedBorder: OutlineInputBorder(
@@ -349,7 +338,7 @@ class _FocusGlowFieldState extends State<_FocusGlowField> {
             ),
             errorBorder: OutlineInputBorder(
               borderSide:
-                  BorderSide(color: AppColors.danger.withOpacity(0.5)),
+                  BorderSide(color: AppColors.danger.withValues(alpha: 0.5)),
               borderRadius: AppSpacing.smallRadius,
             ),
             focusedErrorBorder: OutlineInputBorder(
@@ -395,16 +384,16 @@ class _HoverLiftButtonState extends State<_HoverLiftButton> {
             gradient: LinearGradient(
               colors: widget.loading
                   ? [
-                      AppColors.electric.withOpacity(0.6),
-                      AppColors.cyan.withOpacity(0.6),
+                      AppColors.primary.withValues(alpha: 0.6),
+                      AppColors.secondary.withValues(alpha: 0.6),
                     ]
-                  : [AppColors.electric, AppColors.cyan],
+                  : [AppColors.primary, AppColors.secondary],
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.electric.withOpacity(
-                    _hover && !widget.loading ? 0.35 : 0.25),
-                blurRadius: _hover && !widget.loading ? 24 : 16,
+                color: AppColors.primary.withValues(
+                    alpha: _hover && !widget.loading ? 0.3 : 0.2),
+                blurRadius: _hover && !widget.loading ? 20 : 12,
                 offset: const Offset(0, 4),
               ),
             ],
