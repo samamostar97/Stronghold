@@ -207,7 +207,8 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         autofocus: true,
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: LayoutBuilder(
+          body: Stack(children: [
+            LayoutBuilder(
             builder: (context, constraints) {
               final collapsed = _userCollapse ?? constraints.maxWidth < 1180;
 
@@ -246,6 +247,12 @@ class _AdminShellState extends ConsumerState<AdminShell> {
               );
             },
           ),
+            const Positioned(
+              top: 4,
+              right: 4,
+              child: IgnorePointer(child: _ResolutionChip()),
+            ),
+          ]),
         ),
       ),
     );
@@ -294,7 +301,7 @@ class _ShellTopBar extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final narrow = constraints.maxWidth < 1040;
+          final narrow = constraints.maxWidth < 1100;
 
           final titleBlock = Row(
             children: [
@@ -356,9 +363,9 @@ class _ShellTopBar extends StatelessWidget {
 
           return Row(
             children: [
-              Expanded(child: titleBlock),
+              titleBlock,
               const SizedBox(width: 12),
-              Flexible(child: tools),
+              Expanded(child: tools),
             ],
           );
         },
@@ -613,6 +620,31 @@ class _UserChip extends StatelessWidget {
               color: AppColors.textMuted,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResolutionChip extends StatelessWidget {
+  const _ResolutionChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        '${size.width.toInt()} x ${size.height.toInt()}',
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.textMuted,
+          fontFamily: 'monospace',
+          fontSize: 11,
         ),
       ),
     );
