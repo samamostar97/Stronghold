@@ -16,42 +16,6 @@ class ReportsService {
     );
   }
 
-  /// Get inventory report (slow moving products) - legacy, all at once
-  Future<InventoryReportDTO> getInventoryReport({
-    int daysToAnalyze = 30,
-  }) async {
-    return _client.get<InventoryReportDTO>(
-      '/api/reports/inventory',
-      queryParameters: {'daysToAnalyze': daysToAnalyze.toString()},
-      parser: (json) => InventoryReportDTO.fromJson(json),
-    );
-  }
-
-  /// Get inventory summary (totals only, no products list)
-  Future<InventorySummaryDTO> getInventorySummary({
-    int daysToAnalyze = 30,
-  }) async {
-    return _client.get<InventorySummaryDTO>(
-      '/api/reports/inventory/summary',
-      queryParameters: {'daysToAnalyze': daysToAnalyze.toString()},
-      parser: (json) => InventorySummaryDTO.fromJson(json),
-    );
-  }
-
-  /// Get slow-moving products with pagination
-  Future<PagedResult<SlowMovingProductDTO>> getSlowMovingProductsPaged(
-    SlowMovingProductQueryFilter filter,
-  ) async {
-    return _client.get<PagedResult<SlowMovingProductDTO>>(
-      '/api/reports/inventory/slow-moving',
-      queryParameters: filter.toQueryParameters(),
-      parser: (json) => PagedResult.fromJson(
-        json,
-        (item) => SlowMovingProductDTO.fromJson(item),
-      ),
-    );
-  }
-
   /// Get membership popularity report
   Future<MembershipPopularityReportDTO> getMembershipPopularityReport({
     int days = 90,
