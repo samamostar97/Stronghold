@@ -10,4 +10,6 @@ public interface IReportExportService
     Task<byte[]> ExportVisitsToPdfAsync();
     Task<byte[]> ExportStaffToExcelAsync();
     Task<byte[]> ExportStaffToPdfAsync();
+    Task<byte[]> ExportMembershipPaymentsToExcelAsync();
+    Task<byte[]> ExportMembershipPaymentsToPdfAsync();
 }

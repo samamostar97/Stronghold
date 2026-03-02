@@ -21,4 +21,5 @@ public interface ISupplementRepository
     Task AddAsync(Supplement entity, CancellationToken cancellationToken = default);
     Task UpdateAsync(Supplement entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(Supplement entity, CancellationToken cancellationToken = default);
+    Task AddStockLogAsync(StockLog log, CancellationToken cancellationToken = default);
 }

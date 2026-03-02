@@ -18,6 +18,8 @@ public string? Description { get; set; }
 public int SupplementCategoryId { get; set; }
 
 public int SupplierId { get; set; }
+
+public int StockQuantity { get; set; }
 }
 
 public class CreateSupplementCommandHandler : IRequestHandler<CreateSupplementCommand, SupplementResponse>
@@ -58,7 +60,8 @@ public async Task<SupplementResponse> Handle(CreateSupplementCommand request, Ca
             Price = request.Price,
             Description = string.IsNullOrWhiteSpace(request.Description) ? null : request.Description.Trim(),
             SupplementCategoryId = request.SupplementCategoryId,
-            SupplierId = request.SupplierId
+            SupplierId = request.SupplierId,
+            StockQuantity = request.StockQuantity
         };
 
         await _supplementRepository.AddAsync(entity, cancellationToken);
@@ -80,6 +83,7 @@ private static SupplementResponse MapToResponse(Supplement supplement)
             SupplierId = supplement.SupplierId,
             SupplierName = supplement.Supplier?.Name ?? string.Empty,
             ImageUrl = supplement.SupplementImageUrl,
+            StockQuantity = supplement.StockQuantity,
             CreatedAt = supplement.CreatedAt
         };
     }
@@ -108,5 +112,9 @@ public class CreateSupplementCommandValidator : AbstractValidator<CreateSuppleme
 
         RuleFor(x => x.SupplierId)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.");
+
+        RuleFor(x => x.StockQuantity)
+            .GreaterThanOrEqualTo(0).WithMessage("{PropertyName} ne smije biti negativno.")
+            .LessThanOrEqualTo(99999).WithMessage("{PropertyName} ne smije biti vece od 99999.");
     }
     }

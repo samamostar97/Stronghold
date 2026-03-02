@@ -490,7 +490,9 @@ class _SupplementShopScreenState extends ConsumerState<SupplementShopScreen> {
                 return SupplementCard(
                   supplement: supplement,
                   onTap: () => _onSupplementTap(supplement),
-                  onAddToCart: () => _onAddToCart(supplement),
+                  onAddToCart: supplement.isInStock
+                      ? () => _onAddToCart(supplement)
+                      : null,
                 );
               },
               childCount:

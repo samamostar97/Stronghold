@@ -21,12 +21,17 @@ class CartNotifier extends StateNotifier<CartState> {
 
   /// Add item to cart
   void addItem(SupplementResponse supplement) {
+    if (!supplement.isInStock) return;
+
     final existingIndex = state.items.indexWhere(
       (item) => item.supplement.id == supplement.id,
     );
 
+    final stockLimit = supplement.stockQuantity;
+
     if (existingIndex >= 0) {
-      if (state.items[existingIndex].quantity < maxQuantity) {
+      final currentQty = state.items[existingIndex].quantity;
+      if (currentQty < maxQuantity && currentQty < stockLimit) {
         final newItems = List<CartItem>.from(state.items);
         newItems[existingIndex].quantity++;
         state = CartState(items: newItems);
@@ -50,6 +55,13 @@ class CartNotifier extends StateNotifier<CartState> {
       removeItem(supplementId);
       return;
     }
+
+    final existingItem = state.items.cast<CartItem?>().firstWhere(
+      (item) => item!.supplement.id == supplementId,
+      orElse: () => null,
+    );
+    final stockLimit = existingItem?.supplement.stockQuantity ?? maxQuantity;
+    if (quantity > stockLimit) quantity = stockLimit;
     if (quantity > maxQuantity) return;
 
     final existingIndex = state.items.indexWhere(

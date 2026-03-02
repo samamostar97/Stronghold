@@ -9,6 +9,9 @@ class SupplementResponse {
   final int supplierId;
   final String? supplierName;
   final String? imageUrl;
+  final int stockQuantity;
+
+  bool get isInStock => stockQuantity > 0;
 
   const SupplementResponse({
     required this.id,
@@ -20,6 +23,7 @@ class SupplementResponse {
     required this.supplierId,
     this.supplierName,
     this.imageUrl,
+    this.stockQuantity = 0,
   });
 
   factory SupplementResponse.fromJson(Map<String, dynamic> json) {
@@ -33,6 +37,7 @@ class SupplementResponse {
       supplierId: (json['supplierId'] ?? 0) as int,
       supplierName: json['supplierName'] as String?,
       imageUrl: json['imageUrl'] as String? ?? json['supplementImageUrl'] as String?,
+      stockQuantity: (json['stockQuantity'] ?? 0) as int,
     );
   }
 }

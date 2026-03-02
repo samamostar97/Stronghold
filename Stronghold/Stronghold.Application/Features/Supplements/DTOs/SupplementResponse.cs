@@ -16,6 +16,8 @@ public string SupplementCategoryName { get; set; } = string.Empty;
 
 public string SupplierName { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
+    public int StockQuantity { get; set; }
+    public bool IsInStock => StockQuantity > 0;
 
 public DateTime CreatedAt { get; set; }
 }

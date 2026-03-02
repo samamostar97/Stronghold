@@ -5,6 +5,7 @@ class CreateSupplementRequest {
   final String? description;
   final int supplementCategoryId;
   final int supplierId;
+  final int stockQuantity;
 
   const CreateSupplementRequest({
     required this.name,
@@ -12,6 +13,7 @@ class CreateSupplementRequest {
     this.description,
     required this.supplementCategoryId,
     required this.supplierId,
+    this.stockQuantity = 0,
   });
 
   Map<String, dynamic> toJson() => {
@@ -20,5 +22,6 @@ class CreateSupplementRequest {
         if (description != null) 'description': description,
         'supplementCategoryId': supplementCategoryId,
         'supplierId': supplierId,
+        'stockQuantity': stockQuantity,
       };
 }

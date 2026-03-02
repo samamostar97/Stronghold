@@ -65,6 +65,13 @@ public async Task<CheckoutResponse> Handle(CreateCheckoutPaymentIntentCommand re
             }
 
             var supplement = supplements.First(x => x.Id == item.SupplementId);
+
+            if (supplement.StockQuantity < item.Quantity)
+            {
+                throw new InvalidOperationException(
+                    $"Nedovoljna kolicina za '{supplement.Name}'. Na stanju: {supplement.StockQuantity}.");
+            }
+
             totalAmount += supplement.Price * item.Quantity;
         }
 

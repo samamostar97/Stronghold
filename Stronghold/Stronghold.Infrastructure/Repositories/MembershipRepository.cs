@@ -167,7 +167,13 @@ public class MembershipRepository : IMembershipRepository
             _ => baseQuery.OrderByDescending(x => x.PaymentDate).ThenByDescending(x => x.Id)
         };
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        var totalCount = await baseQuery.CountAsync(cancellationToken);
+        var totalAmount = await baseQuery.SumAsync(x => x.AmountPaid, cancellationToken);
+
+        var nowUtc = StrongholdTimeUtils.UtcNow;
+        var activeCount = await baseQuery
+            .CountAsync(x => x.StartDate <= nowUtc && x.EndDate > nowUtc, cancellationToken);
+
         var items = await query
             .Skip((filter.PageNumber - 1) * filter.PageSize)
             .Take(filter.PageSize)
@@ -177,7 +183,9 @@ public class MembershipRepository : IMembershipRepository
         {
             Items = items,
             TotalCount = totalCount,
-            PageNumber = filter.PageNumber
+            PageNumber = filter.PageNumber,
+            TotalAmount = totalAmount,
+            ActiveCount = activeCount,
         };
     }
 

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stronghold.Application.Common;
 using Stronghold.Application.Features.AdminActivities.Commands;
 using Stronghold.Application.Features.AdminActivities.Queries;
 using Stronghold.Application.Features.AdminActivities.DTOs;
@@ -17,6 +18,13 @@ public class AdminActivityController : ControllerBase
     public AdminActivityController(IMediator mediator)
     {
         _mediator = mediator;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<PagedResult<AdminActivityResponse>>> GetPaged([FromQuery] AdminActivityFilter filter)
+    {
+        var result = await _mediator.Send(new GetPagedAdminActivitiesQuery { Filter = filter });
+        return Ok(result);
     }
 
     [HttpGet("recent")]

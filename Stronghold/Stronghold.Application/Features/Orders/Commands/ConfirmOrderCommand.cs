@@ -59,18 +59,30 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
         if (supplements.Count != supplementIds.Count)
             throw new InvalidOperationException("Jedan ili vise suplementa ne postoji.");
 
-        // 4. Build & save order
+        // 4. Deduct stock
+        var stockItems = request.Items
+            .Select(x => (x.SupplementId, x.Quantity))
+            .ToList();
+
+        if (!await _orderRepository.DeductStockAsync(stockItems, cancellationToken))
+            throw new InvalidOperationException("Nedovoljna kolicina na stanju za jedan ili vise proizvoda.");
+
+        // 5. Build & save order
         var order = BuildOrder(userId, request.Items, supplements, paymentIntent);
         if (!await _orderRepository.TryAddAsync(order, cancellationToken))
+        {
+            await _orderRepository.RestoreStockAsync(stockItems, cancellationToken);
             throw new InvalidOperationException("Narudzba za ovu uplatu vec postoji.");
+        }
 
-        // 5. Side effects (non-critical)
+        // 6. Side effects (non-critical)
         var user = await _orderRepository.GetUserByIdAsync(userId, cancellationToken);
         await SendNotificationsAsync(userId, user, order);
+        await SendLowStockNotificationsAsync(request.Items, supplements);
         if (user is not null)
             await _orderEmailService.SendOrderConfirmationAsync(user, order, order.OrderItems.ToList(), supplements);
 
-        // 6. Map response
+        // 7. Map response
         return MapToResponse(order, supplements);
     }
 
@@ -161,6 +173,34 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, U
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Slanje korisnicke notifikacije za narudzbu {OrderId} nije uspjelo", order.Id);
+        }
+    }
+
+    private async Task SendLowStockNotificationsAsync(
+        List<CheckoutItem> items,
+        IReadOnlyList<Supplement> supplements)
+    {
+        const int lowStockThreshold = 5;
+        foreach (var item in items)
+        {
+            var supplement = supplements.First(x => x.Id == item.SupplementId);
+            var remaining = supplement.StockQuantity - item.Quantity;
+            if (remaining <= lowStockThreshold)
+            {
+                try
+                {
+                    await _notificationService.CreateAsync(
+                        "low_stock",
+                        "Nizak stock",
+                        $"Suplement '{supplement.Name}' ima samo {remaining} na stanju.",
+                        supplement.Id,
+                        "Supplement");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Low-stock notifikacija za suplement {SupplementId} nije uspjela", supplement.Id);
+                }
+            }
         }
     }
 

@@ -34,6 +34,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     Future.microtask(() {
       ref.read(myAppointmentsProvider.notifier).load();
       ref.read(seminarsProvider.notifier).load();
+      ref.read(userNotificationProvider.notifier).load();
     });
   }
 

@@ -9,6 +9,7 @@ public class Supplement : BaseEntity
     public int SupplementCategoryId { get; set; }
     public int SupplierId { get; set; }
     public string? SupplementImageUrl { get; set; }
+    public int StockQuantity { get; set; }
 
 
     // Navigation properties

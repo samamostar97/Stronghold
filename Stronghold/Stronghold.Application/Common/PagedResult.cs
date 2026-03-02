@@ -11,5 +11,11 @@ namespace Stronghold.Application.Common
         public List<T> Items { get; set; } = new();
         public int TotalCount { get; set; }
         public int PageNumber { get; set; }
+
+        /// <summary>Optional aggregate — total monetary amount across all pages.</summary>
+        public decimal? TotalAmount { get; set; }
+
+        /// <summary>Optional aggregate — count of "active" items across all pages.</summary>
+        public int? ActiveCount { get; set; }
     }
 }

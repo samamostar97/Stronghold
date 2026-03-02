@@ -10,6 +10,7 @@ import '../constants/app_text_styles.dart';
 import '../providers/notification_provider.dart';
 import '../widgets/shell/app_sidebar.dart';
 import '../widgets/shell/command_palette.dart';
+import '../widgets/shell/notification_popup.dart';
 import '../widgets/shared/success_animation.dart';
 
 const _idToPath = <String, String>{
@@ -206,7 +207,8 @@ class _AdminShellState extends ConsumerState<AdminShell> {
         autofocus: true,
         child: Scaffold(
           backgroundColor: AppColors.background,
-          body: LayoutBuilder(
+          body: Stack(children: [
+            LayoutBuilder(
             builder: (context, constraints) {
               final collapsed = _userCollapse ?? constraints.maxWidth < 1180;
 
@@ -245,6 +247,12 @@ class _AdminShellState extends ConsumerState<AdminShell> {
               );
             },
           ),
+            const Positioned(
+              top: 4,
+              right: 4,
+              child: IgnorePointer(child: _ResolutionChip()),
+            ),
+          ]),
         ),
       ),
     );
@@ -293,7 +301,7 @@ class _ShellTopBar extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final narrow = constraints.maxWidth < 1040;
+          final narrow = constraints.maxWidth < 1100;
 
           final titleBlock = Row(
             children: [
@@ -355,9 +363,9 @@ class _ShellTopBar extends StatelessWidget {
 
           return Row(
             children: [
-              Expanded(child: titleBlock),
+              titleBlock,
               const SizedBox(width: 12),
-              Flexible(child: tools),
+              Expanded(child: tools),
             ],
           );
         },
@@ -436,37 +444,120 @@ class _TopChipState extends State<_TopChip> {
   }
 }
 
-class _NotificationChip extends StatelessWidget {
+class _NotificationChip extends ConsumerStatefulWidget {
   const _NotificationChip({required this.unreadCount});
 
   final int unreadCount;
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+  ConsumerState<_NotificationChip> createState() => _NotificationChipState();
+}
+
+class _NotificationChipState extends ConsumerState<_NotificationChip> {
+  final _layerLink = LayerLink();
+  OverlayEntry? _overlayEntry;
+  bool _isOpen = false;
+
+  void _toggle() {
+    if (_isOpen) {
+      _close();
+    } else {
+      _open();
+    }
+  }
+
+  void _open() {
+    ref.read(notificationProvider.notifier).fetchRecent();
+
+    _overlayEntry = OverlayEntry(
+      builder: (_) => Stack(
         children: [
-          const Icon(
-            LucideIcons.bell,
-            size: 14,
-            color: AppColors.textSecondary,
+          GestureDetector(
+            behavior: HitTestBehavior.translucent,
+            onTap: _close,
+            child: const SizedBox.expand(),
           ),
-          const SizedBox(width: 6),
-          Text(
-            unreadCount > 99 ? '99+' : '$unreadCount',
-            style: AppTextStyles.caption.copyWith(
-              color: unreadCount > 0 ? AppColors.primary : AppColors.textMuted,
-              fontWeight: FontWeight.w700,
+          CompositedTransformFollower(
+            link: _layerLink,
+            targetAnchor: Alignment.bottomRight,
+            followerAnchor: Alignment.topRight,
+            offset: const Offset(0, 8),
+            child: Consumer(
+              builder: (context, ref, _) {
+                final state = ref.watch(notificationProvider);
+                return NotificationPopup(
+                  notifications: state.recent,
+                  isLoading: state.isLoading,
+                  onMarkAsRead: (id) =>
+                      ref.read(notificationProvider.notifier).markAsRead(id),
+                  onMarkAllAsRead: () =>
+                      ref.read(notificationProvider.notifier).markAllAsRead(),
+                  onTapNotification: (_) => _close(),
+                  onClose: _close,
+                );
+              },
             ),
           ),
         ],
+      ),
+    );
+
+    Overlay.of(context).insert(_overlayEntry!);
+    setState(() => _isOpen = true);
+  }
+
+  void _close() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    if (mounted) setState(() => _isOpen = false);
+  }
+
+  @override
+  void dispose() {
+    _overlayEntry?.remove();
+    _overlayEntry = null;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CompositedTransformTarget(
+      link: _layerLink,
+      child: GestureDetector(
+        onTap: _toggle,
+        child: MouseRegion(
+          cursor: SystemMouseCursors.click,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+              color: _isOpen ? AppColors.surfaceHover : AppColors.surface,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              border: Border.all(
+                color: _isOpen ? AppColors.primary : AppColors.border,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  LucideIcons.bell,
+                  size: 14,
+                  color: _isOpen ? AppColors.primary : AppColors.textSecondary,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  widget.unreadCount > 99 ? '99+' : '${widget.unreadCount}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: widget.unreadCount > 0
+                        ? AppColors.primary
+                        : AppColors.textMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -529,6 +620,31 @@ class _UserChip extends StatelessWidget {
               color: AppColors.textMuted,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ResolutionChip extends StatelessWidget {
+  const _ResolutionChip();
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceAlt,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Text(
+        '${size.width.toInt()} x ${size.height.toInt()}',
+        style: AppTextStyles.caption.copyWith(
+          color: AppColors.textMuted,
+          fontFamily: 'monospace',
+          fontSize: 11,
         ),
       ),
     );

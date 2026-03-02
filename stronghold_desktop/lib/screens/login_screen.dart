@@ -15,10 +15,10 @@ class LoginScreen extends StatelessWidget {
           decoration: const BoxDecoration(gradient: AppColors.heroGradient),
         ),
         // Particle network across the entire screen
-        const ParticleBackground(
-          particleColor: Color(0xFF38BDF8),
-          particleCount: 80,
-          connectDistance: 140,
+        ParticleBackground(
+          particleColor: AppColors.primary.withValues(alpha: 0.45),
+          particleCount: 60,
+          connectDistance: 120,
         ),
         // Login form centered
         const Center(child: LoginForm()),

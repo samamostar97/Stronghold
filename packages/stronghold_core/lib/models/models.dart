@@ -18,9 +18,9 @@ export 'filters/supplement_query_filter.dart';
 export 'filters/supplier_query_filter.dart';
 export 'filters/trainer_query_filter.dart';
 export 'filters/user_query_filter.dart';
-export 'filters/slow_moving_product_query_filter.dart';
 export 'filters/appointment_query_filter.dart';
 export 'filters/visit_query_filter.dart';
+export 'filters/admin_activity_query_filter.dart';
 
 // Requests
 export 'requests/assign_membership_request.dart';

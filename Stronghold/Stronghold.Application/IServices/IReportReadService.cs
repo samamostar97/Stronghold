@@ -11,4 +11,5 @@ public interface IReportReadService
     Task<PagedResult<SlowMovingProductResponse>> GetSlowMovingProductsPagedAsync(SlowMovingProductQueryFilter filter);
     Task<MembershipPopularityReportResponse> GetMembershipPopularityReportAsync(int days = 90);
     Task<StaffReportResponse> GetStaffReportAsync(int days = 30);
+    Task<List<MembershipPaymentExportItem>> GetAllMembershipPaymentsAsync();
 }

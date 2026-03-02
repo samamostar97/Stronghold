@@ -145,6 +145,8 @@ class _NotificationTile extends StatelessWidget {
         return LucideIcons.shoppingBag;
       case 'order_cancelled':
         return LucideIcons.xCircle;
+      case 'low_stock':
+        return LucideIcons.alertTriangle;
       default:
         return LucideIcons.bell;
     }
@@ -156,6 +158,8 @@ class _NotificationTile extends StatelessWidget {
         return AppColors.success;
       case 'order_cancelled':
         return AppColors.error;
+      case 'low_stock':
+        return AppColors.warning;
       default:
         return AppColors.primary;
     }

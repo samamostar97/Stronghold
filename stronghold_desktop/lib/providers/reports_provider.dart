@@ -126,6 +126,28 @@ class ExportOperationsNotifier extends StateNotifier<AsyncValue<void>> {
       rethrow;
     }
   }
+
+  Future<void> exportMembershipPaymentsToExcel(String savePath) async {
+    state = const AsyncValue.loading();
+    try {
+      await _service.exportMembershipPaymentsToExcel(savePath);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
+  Future<void> exportMembershipPaymentsToPdf(String savePath) async {
+    state = const AsyncValue.loading();
+    try {
+      await _service.exportMembershipPaymentsToPdf(savePath);
+      state = const AsyncValue.data(null);
+    } catch (e, st) {
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
 }
 
 /// Export operations provider

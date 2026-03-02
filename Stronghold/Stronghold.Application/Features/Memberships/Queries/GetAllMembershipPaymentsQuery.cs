@@ -48,7 +48,9 @@ public class GetAllMembershipPaymentsQueryHandler
                 IsActive = x.StartDate <= nowUtc && x.EndDate > nowUtc
             }).ToList(),
             TotalCount = page.TotalCount,
-            PageNumber = page.PageNumber
+            PageNumber = page.PageNumber,
+            TotalAmount = page.TotalAmount,
+            ActiveCount = page.ActiveCount,
         };
     }
 }
