@@ -180,7 +180,37 @@ public static class StrongholdDbContextDataSeed
 
     private static async Task SeedSupplementsAsync(StrongholdDbContext context)
     {
-        if (await context.Supplements.AnyAsync()) return;
+        if (await context.Supplements.AnyAsync())
+        {
+            // Fix stock after AddStockManagement migration set all to 0
+            var allZero = await context.Supplements.AllAsync(s => s.StockQuantity == 0);
+            if (allZero)
+            {
+                var stockMap = new Dictionary<string, int>
+                {
+                    ["Whey Protein Gold 2kg"] = 50, ["Casein Protein 1kg"] = 30,
+                    ["Vegan Protein Mix 1kg"] = 25, ["Whey Isolate 1kg"] = 40,
+                    ["Kreatin Monohidrat 500g"] = 60, ["Kreatin HCL 120 kapsula"] = 35,
+                    ["Kre-Alkalyn 120 kapsula"] = 20, ["BCAA 2:1:1 400g"] = 45,
+                    ["EAA 350g"] = 3, ["Glutamin 500g"] = 55,
+                    ["Beta Alanin 300g"] = 15, ["Multivitamin kompleks 60 tableta"] = 80,
+                    ["Vitamin D3 5000IU 120 kapsula"] = 70, ["Omega 3 120 kapsula"] = 65,
+                    ["ZMA 90 kapsula"] = 40, ["Magnezijum Citrat 120 tableta"] = 90,
+                    ["Pre-Workout Extreme 300g"] = 25, ["Pump Matrix 350g"] = 18,
+                    ["Nitric Oxide Booster 200g"] = 12, ["Mass Gainer 3kg"] = 30,
+                    ["Serious Mass 2.7kg"] = 22, ["Clean Gainer 2kg"] = 5,
+                    ["Weight Gainer Pro 4kg"] = 15,
+                };
+                var existing = await context.Supplements.ToListAsync();
+                foreach (var s in existing)
+                {
+                    if (stockMap.TryGetValue(s.Name, out var qty))
+                        s.StockQuantity = qty;
+                }
+                await context.SaveChangesAsync();
+            }
+            return;
+        }
 
         var categories = await context.SupplementCategories.ToListAsync();
         var suppliers = await context.Suppliers.ToListAsync();
