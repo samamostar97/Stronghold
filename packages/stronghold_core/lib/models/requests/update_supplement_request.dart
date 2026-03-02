@@ -5,6 +5,7 @@ class UpdateSupplementRequest {
   final String? description;
   final int? supplementCategoryId;
   final int? supplierId;
+  final int? stockQuantity;
 
   const UpdateSupplementRequest({
     this.name,
@@ -12,6 +13,7 @@ class UpdateSupplementRequest {
     this.description,
     this.supplementCategoryId,
     this.supplierId,
+    this.stockQuantity,
   });
 
   Map<String, dynamic> toJson() {
@@ -21,6 +23,7 @@ class UpdateSupplementRequest {
     if (description != null) map['description'] = description;
     if (supplementCategoryId != null) map['supplementCategoryId'] = supplementCategoryId;
     if (supplierId != null) map['supplierId'] = supplierId;
+    if (stockQuantity != null) map['stockQuantity'] = stockQuantity;
     return map;
   }
 }

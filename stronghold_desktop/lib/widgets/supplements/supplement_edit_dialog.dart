@@ -25,6 +25,7 @@ class _State extends ConsumerState<SupplementEditDialog> {
   late final TextEditingController _name;
   late final TextEditingController _price;
   late final TextEditingController _description;
+  late final TextEditingController _stockQuantity;
   SupplementCategoryResponse? _category;
   SupplierResponse? _supplier;
   String? _imagePath;
@@ -39,6 +40,8 @@ class _State extends ConsumerState<SupplementEditDialog> {
     _price = TextEditingController(text: widget.supplement.price.toString());
     _description =
         TextEditingController(text: widget.supplement.description ?? '');
+    _stockQuantity = TextEditingController(
+        text: widget.supplement.stockQuantity.toString());
     _currentImageUrl = widget.supplement.imageUrl;
   }
 
@@ -47,6 +50,7 @@ class _State extends ConsumerState<SupplementEditDialog> {
     _name.dispose();
     _price.dispose();
     _description.dispose();
+    _stockQuantity.dispose();
     super.dispose();
   }
 
@@ -81,6 +85,7 @@ class _State extends ConsumerState<SupplementEditDialog> {
             : _description.text.trim(),
         supplementCategoryId: _category!.id,
         supplierId: _supplier!.id,
+        stockQuantity: int.tryParse(_stockQuantity.text.trim()) ?? 0,
       );
       await ref
           .read(supplementListProvider.notifier)
@@ -153,6 +158,20 @@ class _State extends ConsumerState<SupplementEditDialog> {
                       label: 'Opis (opcionalno)',
                       maxLines: 3,
                       validator: Validators.description),
+                  const SizedBox(height: AppSpacing.lg),
+                  DialogTextField(
+                      controller: _stockQuantity,
+                      label: 'Kolicina na stanju',
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Obavezno polje';
+                        }
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n < 0) return 'Mora biti 0 ili vise';
+                        if (n > 99999) return 'Maksimalno 99999';
+                        return null;
+                      }),
                   const SizedBox(height: AppSpacing.lg),
                   categoriesAsync.when(
                     loading: () => const LinearProgressIndicator(),

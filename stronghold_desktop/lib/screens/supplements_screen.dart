@@ -94,9 +94,11 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
           onAdd: _addSupplement,
           searchHint: 'Pretrazi po nazivu, dobavljacu ili kategoriji...',
           addButtonText: '+ Dodaj suplement',
-          loadingColumnFlex: const [1, 2, 1, 2, 2, 2],
+          loadingColumnFlex: const [1, 2, 1, 1, 2, 2, 2],
           sortOptions: const [
-            SortOption(value: null, label: 'Zadano'),
+            SortOption(value: null, label: 'Zadano (stanje rastuce)'),
+            SortOption(value: 'stock', label: 'Stanje rastuce'),
+            SortOption(value: 'stockdesc', label: 'Stanje opadajuce'),
             SortOption(value: 'name', label: 'Naziv (A-Z)'),
             SortOption(value: 'namedesc', label: 'Naziv (Z-A)'),
             SortOption(value: 'category', label: 'Kategorija (A-Z)'),
@@ -129,6 +131,25 @@ class _SupplementsScreenState extends ConsumerState<SupplementsScreen> {
                 label: 'Cijena',
                 flex: 1,
                 value: (s) => '${s.price.toStringAsFixed(2)} KM',
+              ),
+              ColumnDef<SupplementResponse>(
+                label: 'Stanje',
+                flex: 1,
+                cellBuilder: (s) => Text(
+                  s.stockQuantity == 0
+                      ? 'Nema'
+                      : '${s.stockQuantity}',
+                  style: TextStyle(
+                    color: s.stockQuantity == 0
+                        ? AppColors.error
+                        : s.stockQuantity <= 5
+                            ? AppColors.warning
+                            : AppColors.textPrimary,
+                    fontWeight: s.stockQuantity <= 5
+                        ? FontWeight.w700
+                        : FontWeight.w400,
+                  ),
+                ),
               ),
               ColumnDef.text(
                 label: 'Kategorija',

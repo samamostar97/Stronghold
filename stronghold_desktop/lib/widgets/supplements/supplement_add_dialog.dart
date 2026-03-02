@@ -24,6 +24,7 @@ class _State extends ConsumerState<SupplementAddDialog> {
   final _name = TextEditingController();
   final _price = TextEditingController();
   final _description = TextEditingController();
+  final _stockQuantity = TextEditingController(text: '0');
   SupplementCategoryResponse? _category;
   SupplierResponse? _supplier;
   String? _imagePath;
@@ -34,6 +35,7 @@ class _State extends ConsumerState<SupplementAddDialog> {
     _name.dispose();
     _price.dispose();
     _description.dispose();
+    _stockQuantity.dispose();
     super.dispose();
   }
 
@@ -58,6 +60,7 @@ class _State extends ConsumerState<SupplementAddDialog> {
             : _description.text.trim(),
         supplementCategoryId: _category!.id,
         supplierId: _supplier!.id,
+        stockQuantity: int.tryParse(_stockQuantity.text.trim()) ?? 0,
       );
       final id =
           await ref.read(supplementListProvider.notifier).create(request);
@@ -125,6 +128,20 @@ class _State extends ConsumerState<SupplementAddDialog> {
                       label: 'Opis (opcionalno)',
                       maxLines: 3,
                       validator: Validators.description),
+                  const SizedBox(height: AppSpacing.lg),
+                  DialogTextField(
+                      controller: _stockQuantity,
+                      label: 'Kolicina na stanju',
+                      keyboardType: TextInputType.number,
+                      validator: (v) {
+                        if (v == null || v.trim().isEmpty) {
+                          return 'Obavezno polje';
+                        }
+                        final n = int.tryParse(v.trim());
+                        if (n == null || n < 0) return 'Mora biti 0 ili vise';
+                        if (n > 99999) return 'Maksimalno 99999';
+                        return null;
+                      }),
                   const SizedBox(height: AppSpacing.lg),
                   categoriesAsync.when(
                     loading: () => const LinearProgressIndicator(),
