@@ -21,6 +21,8 @@ public string? Description { get; set; }
 public int? SupplementCategoryId { get; set; }
 
 public int? SupplierId { get; set; }
+
+public int? StockQuantity { get; set; }
 }
 
 public class UpdateSupplementCommandHandler : IRequestHandler<UpdateSupplementCommand, SupplementResponse>
@@ -87,6 +89,21 @@ public async Task<SupplementResponse> Handle(UpdateSupplementCommand request, Ca
             supplement.SupplierId = request.SupplierId.Value;
         }
 
+        if (request.StockQuantity.HasValue && request.StockQuantity.Value != supplement.StockQuantity)
+        {
+            var stockLog = new StockLog
+            {
+                SupplementId = supplement.Id,
+                QuantityChange = request.StockQuantity.Value - supplement.StockQuantity,
+                QuantityBefore = supplement.StockQuantity,
+                QuantityAfter = request.StockQuantity.Value,
+                Reason = "manual_adjustment"
+            };
+
+            supplement.StockQuantity = request.StockQuantity.Value;
+            await _supplementRepository.AddStockLogAsync(stockLog, cancellationToken);
+        }
+
         await _supplementRepository.UpdateAsync(supplement, cancellationToken);
 
         var updated = await _supplementRepository.GetByIdAsync(supplement.Id, cancellationToken) ?? supplement;
@@ -106,6 +123,7 @@ private static SupplementResponse MapToResponse(Supplement supplement)
             SupplierId = supplement.SupplierId,
             SupplierName = supplement.Supplier?.Name ?? string.Empty,
             ImageUrl = supplement.SupplementImageUrl,
+            StockQuantity = supplement.StockQuantity,
             CreatedAt = supplement.CreatedAt
         };
     }
@@ -141,5 +159,10 @@ public class UpdateSupplementCommandValidator : AbstractValidator<UpdateSuppleme
         RuleFor(x => x.SupplierId)
             .GreaterThan(0).WithMessage("{PropertyName} mora biti vece od dozvoljene vrijednosti.")
             .When(x => x.SupplierId.HasValue);
+
+        RuleFor(x => x.StockQuantity)
+            .GreaterThanOrEqualTo(0).WithMessage("{PropertyName} ne smije biti negativno.")
+            .LessThanOrEqualTo(99999).WithMessage("{PropertyName} ne smije biti vece od 99999.")
+            .When(x => x.StockQuantity.HasValue);
     }
     }

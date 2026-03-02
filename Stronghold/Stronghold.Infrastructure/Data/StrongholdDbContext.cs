@@ -31,6 +31,7 @@ public class StrongholdDbContext : DbContext
     public DbSet<Address> Addresses => Set<Address>();
     public DbSet<ReminderDispatchLog> ReminderDispatchLogs => Set<ReminderDispatchLog>();
     public DbSet<AdminActivityLog> AdminActivityLogs => Set<AdminActivityLog>();
+    public DbSet<StockLog> StockLogs => Set<StockLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

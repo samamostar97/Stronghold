@@ -57,12 +57,14 @@ public class SupplementRepository : ISupplementRepository
                 "supplierdesc" => query.OrderByDescending(x => x.Supplier.Name).ThenByDescending(x => x.Id),
                 "createdat" => query.OrderBy(x => x.CreatedAt).ThenBy(x => x.Id),
                 "createdatdesc" => query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id),
-                _ => query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id)
+                "stock" => query.OrderBy(x => x.StockQuantity).ThenBy(x => x.Id),
+                "stockdesc" => query.OrderByDescending(x => x.StockQuantity).ThenByDescending(x => x.Id),
+                _ => query.OrderBy(x => x.StockQuantity).ThenBy(x => x.Id)
             };
         }
         else
         {
-            query = query.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.Id);
+            query = query.OrderBy(x => x.StockQuantity).ThenBy(x => x.Id);
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
@@ -165,6 +167,12 @@ public class SupplementRepository : ISupplementRepository
     {
         entity.IsDeleted = true;
         _context.Supplements.Update(entity);
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task AddStockLogAsync(StockLog log, CancellationToken cancellationToken = default)
+    {
+        await _context.StockLogs.AddAsync(log, cancellationToken);
         await _context.SaveChangesAsync(cancellationToken);
     }
 }

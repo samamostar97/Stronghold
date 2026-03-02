@@ -45,6 +45,7 @@ private static SupplementResponse MapToResponse(Supplement supplement)
             SupplierId = supplement.SupplierId,
             SupplierName = supplement.Supplier?.Name ?? string.Empty,
             ImageUrl = supplement.SupplementImageUrl,
+            StockQuantity = supplement.StockQuantity,
             CreatedAt = supplement.CreatedAt
         };
     }

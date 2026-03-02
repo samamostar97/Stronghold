@@ -48,6 +48,7 @@ private static SupplementResponse MapToResponse(Supplement supplement)
             SupplierId = supplement.SupplierId,
             SupplierName = supplement.Supplier?.Name ?? string.Empty,
             ImageUrl = supplement.SupplementImageUrl,
+            StockQuantity = supplement.StockQuantity,
             CreatedAt = supplement.CreatedAt
         };
     }
@@ -97,6 +98,8 @@ private static bool BeValidOrderBy(string? orderBy)
             "supplier" or
             "supplierdesc" or
             "createdat" or
-            "createdatdesc";
+            "createdatdesc" or
+            "stock" or
+            "stockdesc";
     }
     }
