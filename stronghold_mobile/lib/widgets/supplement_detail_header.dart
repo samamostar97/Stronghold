@@ -28,7 +28,15 @@ class SupplementDetailHeader extends StatelessWidget {
         const SizedBox(height: AppSpacing.xxl),
         Text(supplement.name, style: AppTextStyles.headingLg.copyWith(color: AppColors.textPrimary)),
         const SizedBox(height: AppSpacing.sm),
-        StatusPill(label: supplement.supplementCategoryName ?? '', color: AppColors.primary),
+        Wrap(
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xs,
+          children: [
+            StatusPill(label: supplement.supplementCategoryName ?? '', color: AppColors.primary),
+            if (!supplement.isInStock)
+              StatusPill(label: 'Nema na stanju', color: AppColors.danger),
+          ],
+        ),
         const SizedBox(height: AppSpacing.lg),
         Text(
           '${supplement.price.toStringAsFixed(2)} KM',

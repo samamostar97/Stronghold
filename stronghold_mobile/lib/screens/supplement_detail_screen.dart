@@ -94,26 +94,46 @@ class SupplementDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.screenPadding),
             child: SizedBox(
               width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  ref.read(cartProvider.notifier).addItem(supplement);
-                  showSuccessFeedback(
-                      context, '${supplement.name} dodano u korpu');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(48),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-                  ),
-                ),
-                icon: const Icon(LucideIcons.shoppingCart, size: 16),
-                label: Text(
-                  'DODAJ U KORPU',
-                  style: AppTextStyles.buttonMd.copyWith(color: Colors.white),
-                ),
-              ),
+              child: supplement.isInStock
+                  ? ElevatedButton.icon(
+                      onPressed: () {
+                        ref.read(cartProvider.notifier).addItem(supplement);
+                        showSuccessFeedback(
+                            context, '${supplement.name} dodano u korpu');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radiusMd),
+                        ),
+                      ),
+                      icon: const Icon(LucideIcons.shoppingCart, size: 16),
+                      label: Text(
+                        'DODAJ U KORPU',
+                        style:
+                            AppTextStyles.buttonMd.copyWith(color: Colors.white),
+                      ),
+                    )
+                  : Container(
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: AppColors.surfaceAlt,
+                        borderRadius:
+                            BorderRadius.circular(AppSpacing.radiusMd),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: Center(
+                        child: Text(
+                          'NEMA NA STANJU',
+                          style: AppTextStyles.buttonMd.copyWith(
+                            color: AppColors.textMuted,
+                          ),
+                        ),
+                      ),
+                    ),
             ),
           )
               .animate(delay: 300.ms)

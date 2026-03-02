@@ -73,7 +73,9 @@ class ShopCategorySection extends ConsumerWidget {
                 itemBuilder: (_, i) => _CategorySupplementCard(
                   supplement: supplements[i],
                   onTap: () => onSupplementTap(supplements[i]),
-                  onAddToCart: () => onAddToCart(supplements[i]),
+                  onAddToCart: supplements[i].isInStock
+                      ? () => onAddToCart(supplements[i])
+                      : null,
                 ),
               ),
             ),
@@ -130,12 +132,12 @@ class ShopCategorySection extends ConsumerWidget {
 class _CategorySupplementCard extends StatelessWidget {
   final SupplementResponse supplement;
   final VoidCallback onTap;
-  final VoidCallback onAddToCart;
+  final VoidCallback? onAddToCart;
 
   const _CategorySupplementCard({
     required this.supplement,
     required this.onTap,
-    required this.onAddToCart,
+    this.onAddToCart,
   });
 
   @override
@@ -185,32 +187,54 @@ class _CategorySupplementCard extends StatelessWidget {
                             ),
                           ),
                         ),
-                        InkWell(
-                          onTap: onAddToCart,
-                          borderRadius: BorderRadius.circular(
-                            AppSpacing.radiusSm,
-                          ),
-                          child: Container(
-                            width: 28,
-                            height: 28,
+                        if (onAddToCart != null)
+                          InkWell(
+                            onTap: onAddToCart,
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusSm,
+                            ),
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusSm,
+                                ),
+                                border: Border.all(
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.25,
+                                  ),
+                                ),
+                              ),
+                              child: const Icon(
+                                LucideIcons.plus,
+                                color: AppColors.primary,
+                                size: 14,
+                              ),
+                            ),
+                          )
+                        else if (!supplement.isInStock)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
+                              color: AppColors.danger.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(
                                 AppSpacing.radiusSm,
                               ),
-                              border: Border.all(
-                                color: AppColors.primary.withValues(
-                                  alpha: 0.25,
-                                ),
+                            ),
+                            child: Text(
+                              'Nema',
+                              style: AppTextStyles.caption.copyWith(
+                                color: AppColors.danger,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 9,
                               ),
                             ),
-                            child: const Icon(
-                              LucideIcons.plus,
-                              color: AppColors.primary,
-                              size: 14,
-                            ),
                           ),
-                        ),
                       ],
                     ),
                   ],

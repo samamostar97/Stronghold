@@ -91,6 +91,27 @@ class SupplementCard extends StatelessWidget {
                             size: 16,
                           ),
                         ),
+                      )
+                    else if (!supplement.isInStock)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.danger.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(
+                            AppSpacing.radiusSm,
+                          ),
+                        ),
+                        child: Text(
+                          'Nema',
+                          style: AppTextStyles.caption.copyWith(
+                            color: AppColors.danger,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10,
+                          ),
+                        ),
                       ),
                   ],
                 ),
