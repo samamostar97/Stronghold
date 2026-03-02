@@ -21,4 +21,6 @@ public interface IOrderRepository
     Task<bool> TryAddAsync(Order order, CancellationToken cancellationToken = default);
     Task UpdateAsync(Order order, CancellationToken cancellationToken = default);
     Task<User?> GetUserByIdAsync(int userId, CancellationToken cancellationToken = default);
+    Task<bool> DeductStockAsync(IReadOnlyList<(int SupplementId, int Quantity)> items, CancellationToken cancellationToken = default);
+    Task RestoreStockAsync(IReadOnlyList<(int SupplementId, int Quantity)> items, CancellationToken cancellationToken = default);
 }

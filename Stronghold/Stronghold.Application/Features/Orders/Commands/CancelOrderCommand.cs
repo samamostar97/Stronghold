@@ -67,6 +67,11 @@ public async Task<OrderResponse> Handle(CancelOrderCommand request, Cancellation
 
         await _orderRepository.UpdateAsync(order, cancellationToken);
 
+        var stockItems = order.OrderItems
+            .Select(x => (x.SupplementId, x.Quantity))
+            .ToList();
+        await _orderRepository.RestoreStockAsync(stockItems, cancellationToken);
+
         await SendCancellationEmailAsync(order);
 
         try

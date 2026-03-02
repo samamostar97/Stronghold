@@ -155,6 +155,80 @@ public class OrderRepository : IOrderRepository
             .FirstOrDefaultAsync(x => !x.IsDeleted && x.Id == userId, cancellationToken);
     }
 
+    public async Task<bool> DeductStockAsync(
+        IReadOnlyList<(int SupplementId, int Quantity)> items,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = items.Select(x => x.SupplementId).ToList();
+        var supplements = await _context.Supplements
+            .Where(x => ids.Contains(x.Id) && !x.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        if (supplements.Count != ids.Count)
+            return false;
+
+        foreach (var (supplementId, quantity) in items)
+        {
+            var supplement = supplements.First(x => x.Id == supplementId);
+            if (supplement.StockQuantity < quantity)
+                return false;
+        }
+
+        var now = Application.Common.StrongholdTimeUtils.UtcNow;
+        foreach (var (supplementId, quantity) in items)
+        {
+            var supplement = supplements.First(x => x.Id == supplementId);
+            var before = supplement.StockQuantity;
+            supplement.StockQuantity -= quantity;
+
+            _context.StockLogs.Add(new StockLog
+            {
+                SupplementId = supplementId,
+                QuantityChange = -quantity,
+                QuantityBefore = before,
+                QuantityAfter = supplement.StockQuantity,
+                Reason = "order_confirmed",
+                CreatedAt = now
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    public async Task RestoreStockAsync(
+        IReadOnlyList<(int SupplementId, int Quantity)> items,
+        CancellationToken cancellationToken = default)
+    {
+        var ids = items.Select(x => x.SupplementId).ToList();
+        var supplements = await _context.Supplements
+            .Where(x => ids.Contains(x.Id))
+            .IgnoreQueryFilters()
+            .ToListAsync(cancellationToken);
+
+        var now = Application.Common.StrongholdTimeUtils.UtcNow;
+        foreach (var (supplementId, quantity) in items)
+        {
+            var supplement = supplements.FirstOrDefault(x => x.Id == supplementId);
+            if (supplement == null) continue;
+
+            var before = supplement.StockQuantity;
+            supplement.StockQuantity += quantity;
+
+            _context.StockLogs.Add(new StockLog
+            {
+                SupplementId = supplementId,
+                QuantityChange = quantity,
+                QuantityBefore = before,
+                QuantityAfter = supplement.StockQuantity,
+                Reason = "order_cancelled",
+                CreatedAt = now
+            });
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+    }
+
     private IQueryable<Order> BuildDetailedQuery()
     {
         return _context.Orders
