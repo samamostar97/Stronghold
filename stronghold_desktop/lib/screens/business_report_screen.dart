@@ -35,6 +35,7 @@ class _BusinessReportScreenState extends ConsumerState<BusinessReportScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(() => setState(() {}));
   }
 
   @override
