@@ -726,5 +726,31 @@ namespace Stronghold.Infrastructure.Services
             };
         }
 
+        public async Task<List<MembershipPaymentExportItem>> GetAllMembershipPaymentsAsync()
+        {
+            var nowUtc = StrongholdTimeUtils.UtcNow;
+
+            var payments = await _context.MembershipPaymentHistory
+                .AsNoTracking()
+                .Include(p => p.User)
+                .Include(p => p.MembershipPackage)
+                .Where(p => !p.IsDeleted)
+                .OrderByDescending(p => p.PaymentDate)
+                .Select(p => new MembershipPaymentExportItem
+                {
+                    UserName = (p.User.FirstName + " " + p.User.LastName).Trim(),
+                    UserEmail = p.User.Email,
+                    PackageName = p.MembershipPackage != null ? p.MembershipPackage.PackageName : "",
+                    AmountPaid = p.AmountPaid,
+                    PaymentDate = p.PaymentDate,
+                    StartDate = p.StartDate,
+                    EndDate = p.EndDate,
+                    IsActive = p.StartDate <= nowUtc && p.EndDate > nowUtc,
+                })
+                .ToListAsync();
+
+            return payments;
+        }
+
     }
 }

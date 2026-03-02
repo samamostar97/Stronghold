@@ -127,6 +127,22 @@ namespace Stronghold.API.Controllers
             return File(fileBytes, "application/pdf", fileName);
         }
 
+        [HttpGet("membership-payments/export/excel")]
+        public async Task<IActionResult> ExportMembershipPaymentsToExcel()
+        {
+            var fileBytes = await _mediator.Send(new ExportMembershipPaymentsExcelQuery());
+            var fileName = $"Stronghold_Uplate_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.xlsx";
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpGet("membership-payments/export/pdf")]
+        public async Task<IActionResult> ExportMembershipPaymentsToPdf()
+        {
+            var fileBytes = await _mediator.Send(new ExportMembershipPaymentsPdfQuery());
+            var fileName = $"Stronghold_Uplate_{StrongholdTimeUtils.LocalNow:yyyyMMdd_HHmm}.pdf";
+            return File(fileBytes, "application/pdf", fileName);
+        }
+
         [HttpGet("activity")]
         public async Task<ActionResult<IReadOnlyList<ActivityFeedItemResponse>>> GetActivityFeed([FromQuery] int count = 20)
         {

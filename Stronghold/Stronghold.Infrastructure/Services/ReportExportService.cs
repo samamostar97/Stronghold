@@ -822,5 +822,160 @@ namespace Stronghold.Infrastructure.Services
 
             return document.GeneratePdf();
         }
+
+        public async Task<byte[]> ExportMembershipPaymentsToExcelAsync()
+        {
+            var payments = await _reportReadService.GetAllMembershipPaymentsAsync();
+            using var workbook = new XLWorkbook();
+            var worksheet = workbook.Worksheets.Add("Uplate Clanarina");
+
+            worksheet.Cell("A1").Value = "STRONGHOLD - Uplate Clanarina";
+            worksheet.Cell("A1").Style.Font.Bold = true;
+            worksheet.Cell("A1").Style.Font.FontSize = 16;
+            worksheet.Range("A1:D1").Merge();
+            worksheet.Cell("A2").Value = $"Datum generisanja: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}";
+            worksheet.Range("A2:D2").Merge();
+            worksheet.Cell("A3").Value = $"Ukupno uplata: {payments.Count}";
+            worksheet.Range("A3:D3").Merge();
+
+            // Summary
+            var totalRevenue = payments.Sum(p => p.AmountPaid);
+            var activeCount = payments.Count(p => p.IsActive);
+            worksheet.Cell("A5").Value = "PREGLED";
+            worksheet.Cell("A5").Style.Font.Bold = true;
+            worksheet.Cell("A6").Value = "Ukupni prihod:";
+            worksheet.Cell("B6").Value = $"{totalRevenue:F2} KM";
+            worksheet.Cell("A7").Value = "Aktivnih clanarina:";
+            worksheet.Cell("B7").Value = activeCount;
+
+            // Table header
+            var row = 9;
+            worksheet.Cell($"A{row}").Value = "TABELA UPLATA";
+            worksheet.Cell($"A{row}").Style.Font.Bold = true;
+
+            if (payments.Any())
+            {
+                row++;
+                var headers = new[] { "Korisnik", "Email", "Paket", "Iznos (KM)", "Datum uplate", "Pocetak", "Kraj", "Status" };
+                for (var c = 0; c < headers.Length; c++)
+                {
+                    var cell = worksheet.Cell(row, c + 1);
+                    cell.Value = headers[c];
+                    cell.Style.Font.Bold = true;
+                }
+
+                foreach (var p in payments)
+                {
+                    row++;
+                    worksheet.Cell(row, 1).Value = p.UserName;
+                    worksheet.Cell(row, 2).Value = p.UserEmail;
+                    worksheet.Cell(row, 3).Value = p.PackageName;
+                    worksheet.Cell(row, 4).Value = p.AmountPaid;
+                    worksheet.Cell(row, 5).Value = StrongholdTimeUtils.ToLocal(p.PaymentDate).ToString("dd.MM.yyyy HH:mm");
+                    worksheet.Cell(row, 6).Value = StrongholdTimeUtils.ToLocal(p.StartDate).ToString("dd.MM.yyyy");
+                    worksheet.Cell(row, 7).Value = StrongholdTimeUtils.ToLocal(p.EndDate).ToString("dd.MM.yyyy");
+                    worksheet.Cell(row, 8).Value = p.IsActive ? "Aktivna" : "Istekla";
+                }
+            }
+
+            worksheet.Columns().AdjustToContents();
+
+            using var stream = new MemoryStream();
+            workbook.SaveAs(stream);
+            return stream.ToArray();
+        }
+
+        public async Task<byte[]> ExportMembershipPaymentsToPdfAsync()
+        {
+            var payments = await _reportReadService.GetAllMembershipPaymentsAsync();
+            var totalRevenue = payments.Sum(p => p.AmountPaid);
+            var activeCount = payments.Count(p => p.IsActive);
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4.Landscape());
+                    page.Margin(40);
+                    page.DefaultTextStyle(x => x.FontSize(10));
+
+                    page.Header().Column(col =>
+                    {
+                        col.Item().Text("STRONGHOLD").Bold().FontSize(24).FontColor(Colors.Red.Darken2);
+                        col.Item().Text("Uplate Clanarina").FontSize(16).FontColor(Colors.Grey.Darken2);
+                        col.Item().PaddingTop(5).Text($"Datum: {StrongholdTimeUtils.LocalNow:dd.MM.yyyy HH:mm}  |  Ukupno uplata: {payments.Count}").FontSize(10).FontColor(Colors.Grey.Medium);
+                        col.Item().PaddingTop(10).LineHorizontal(1).LineColor(Colors.Grey.Lighten2);
+                    });
+
+                    page.Content().PaddingVertical(20).Column(col =>
+                    {
+                        // Summary
+                        col.Item().Text("Pregled").Bold().FontSize(14);
+                        col.Item().PaddingTop(10).Table(table =>
+                        {
+                            table.ColumnsDefinition(columns =>
+                            {
+                                columns.RelativeColumn(2);
+                                columns.RelativeColumn(1);
+                            });
+
+                            table.Cell().Text("Ukupni prihod:");
+                            table.Cell().Text($"{totalRevenue:F2} KM").Bold();
+                            table.Cell().Text("Aktivnih clanarina:");
+                            table.Cell().Text($"{activeCount}").Bold();
+                        });
+
+                        // Payments table
+                        if (payments.Any())
+                        {
+                            col.Item().PaddingTop(20).Text("Tabela uplata").Bold().FontSize(14);
+                            col.Item().PaddingTop(10).Table(table =>
+                            {
+                                table.ColumnsDefinition(columns =>
+                                {
+                                    columns.RelativeColumn(2);   // Korisnik
+                                    columns.RelativeColumn(2);   // Email
+                                    columns.RelativeColumn(2);   // Paket
+                                    columns.RelativeColumn(1);   // Iznos
+                                    columns.RelativeColumn(2);   // Datum uplate
+                                    columns.RelativeColumn(2);   // Period
+                                    columns.RelativeColumn(1);   // Status
+                                });
+
+                                table.Header(header =>
+                                {
+                                    header.Cell().Text("Korisnik").Bold();
+                                    header.Cell().Text("Email").Bold();
+                                    header.Cell().Text("Paket").Bold();
+                                    header.Cell().Text("Iznos (KM)").Bold();
+                                    header.Cell().Text("Datum uplate").Bold();
+                                    header.Cell().Text("Period").Bold();
+                                    header.Cell().Text("Status").Bold();
+                                });
+
+                                foreach (var p in payments)
+                                {
+                                    table.Cell().Text(p.UserName);
+                                    table.Cell().Text(p.UserEmail);
+                                    table.Cell().Text(p.PackageName);
+                                    table.Cell().Text($"{p.AmountPaid:F2}");
+                                    table.Cell().Text(StrongholdTimeUtils.ToLocal(p.PaymentDate).ToString("dd.MM.yyyy HH:mm"));
+                                    table.Cell().Text($"{StrongholdTimeUtils.ToLocal(p.StartDate):dd.MM.yyyy} - {StrongholdTimeUtils.ToLocal(p.EndDate):dd.MM.yyyy}");
+                                    table.Cell().Text(p.IsActive ? "Aktivna" : "Istekla");
+                                }
+                            });
+                        }
+                    });
+
+                    page.Footer().AlignCenter().Text(text =>
+                    {
+                        text.Span("Stronghold Gym (c) ").FontColor(Colors.Grey.Medium);
+                        text.Span($"{StrongholdTimeUtils.LocalNow.Year}").FontColor(Colors.Grey.Medium);
+                    });
+                });
+            });
+
+            return document.GeneratePdf();
+        }
     }
 }

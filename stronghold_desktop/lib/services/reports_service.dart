@@ -106,4 +106,22 @@ class ReportsService {
     final file = File(savePath);
     await file.writeAsBytes(bytes);
   }
+
+  /// Export membership payments to Excel
+  Future<void> exportMembershipPaymentsToExcel(String savePath) async {
+    final bytes = await _client.getBytes(
+      '/api/reports/membership-payments/export/excel',
+    );
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+  }
+
+  /// Export membership payments to PDF
+  Future<void> exportMembershipPaymentsToPdf(String savePath) async {
+    final bytes = await _client.getBytes(
+      '/api/reports/membership-payments/export/pdf',
+    );
+    final file = File(savePath);
+    await file.writeAsBytes(bytes);
+  }
 }
