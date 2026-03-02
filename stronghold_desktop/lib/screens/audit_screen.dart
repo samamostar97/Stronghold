@@ -82,11 +82,8 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
     final paymentsState = ref.watch(membershipPaymentsProvider);
     final activityState = ref.watch(adminActivityPagedProvider);
 
-    final pageAmount = paymentsState.items.fold<num>(
-      0,
-      (sum, payment) => sum + payment.amountPaid,
-    );
-    final activeCount = paymentsState.items.where((p) => p.isActive).length;
+    final totalAmount = paymentsState.data?.totalAmount ?? 0;
+    final activeCount = paymentsState.data?.activeCount ?? 0;
 
     return Padding(
       padding: AppSpacing.desktopPage,
@@ -109,7 +106,7 @@ class _AuditScreenState extends ConsumerState<AuditScreen>
                         children: [
                           _MetricChip(
                             icon: LucideIcons.banknote,
-                            label: '${pageAmount.toStringAsFixed(2)} KM',
+                            label: '${totalAmount.toStringAsFixed(2)} KM',
                           ),
                           _MetricChip(
                             icon: LucideIcons.badgeCheck,
