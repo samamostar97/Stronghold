@@ -60,6 +60,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrderItemRepository, OrderItemRepository>();
         services.AddScoped<IStripeService, StripeService>();
         services.AddScoped<IAppointmentRepository, AppointmentRepository>();
+        services.AddScoped<IReviewRepository, ReviewRepository>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 
