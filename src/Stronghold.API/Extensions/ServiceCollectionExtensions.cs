@@ -51,6 +51,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ILevelRepository, LevelRepository>();
         services.AddScoped<IGymVisitRepository, GymVisitRepository>();
         services.AddScoped<IFileService, FileService>();
+        services.AddScoped<IProductCategoryRepository, ProductCategoryRepository>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ICartItemRepository, CartItemRepository>();
+        services.AddScoped<IWishlistItemRepository, WishlistItemRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+        services.AddScoped<IStripeService, StripeService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 

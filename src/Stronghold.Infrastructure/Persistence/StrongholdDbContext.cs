@@ -14,6 +14,13 @@ public class StrongholdDbContext : DbContext
     public DbSet<UserMembership> UserMemberships => Set<UserMembership>();
     public DbSet<Level> Levels => Set<Level>();
     public DbSet<GymVisit> GymVisits => Set<GymVisit>();
+    public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<Product> Products => Set<Product>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
+    public DbSet<Order> Orders => Set<Order>();
+    public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

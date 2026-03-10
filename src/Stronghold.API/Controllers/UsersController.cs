@@ -13,6 +13,7 @@ using Stronghold.Application.Features.UserMemberships.AssignMembership;
 using Stronghold.Application.Features.UserMemberships.CancelMembership;
 using Stronghold.Application.Features.UserMemberships.GetUserMembership;
 using Stronghold.Application.Features.UserMemberships.GetMembershipHistory;
+using Stronghold.Application.Features.Orders.GetUserOrders;
 
 namespace Stronghold.API.Controllers;
 
@@ -115,6 +116,14 @@ public class UsersController : ControllerBase
 
     [HttpGet("{id:int}/membership-history")]
     public async Task<IActionResult> GetMembershipHistory(int id, [FromQuery] GetMembershipHistoryQuery query)
+    {
+        query.UserId = id;
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}/orders")]
+    public async Task<IActionResult> GetUserOrders(int id, [FromQuery] GetUserOrdersQuery query)
     {
         query.UserId = id;
         var result = await _mediator.Send(query);
