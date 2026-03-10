@@ -3,6 +3,8 @@ using Stronghold.Application.Common;
 
 namespace Stronghold.Application.Features.Products.GetProducts;
 
+[AuthorizeRole("Admin")]
+[AuthorizeRole("User")]
 public class GetProductsQuery : BaseQueryFilter, IRequest<PagedResult<ProductResponse>>
 {
     public int? CategoryId { get; set; }
