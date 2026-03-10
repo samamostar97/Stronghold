@@ -9,16 +9,22 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
 {
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IStaffRepository _staffRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ICurrentUserService _currentUserService;
+    private readonly INotificationService _notificationService;
 
     public CreateAppointmentCommandHandler(
         IAppointmentRepository appointmentRepository,
         IStaffRepository staffRepository,
-        ICurrentUserService currentUserService)
+        IUserRepository userRepository,
+        ICurrentUserService currentUserService,
+        INotificationService notificationService)
     {
         _appointmentRepository = appointmentRepository;
         _staffRepository = staffRepository;
+        _userRepository = userRepository;
         _currentUserService = currentUserService;
+        _notificationService = notificationService;
     }
 
     public async Task<AppointmentResponse> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -49,6 +55,13 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         await _appointmentRepository.SaveChangesAsync();
 
         appointment.Staff = staff;
+
+        var user = await _userRepository.GetByIdAsync(_currentUserService.UserId);
+        await _notificationService.CreateAppointmentNotificationAsync(
+            appointment.Id,
+            $"{user!.FirstName} {user.LastName}",
+            $"{staff.FirstName} {staff.LastName}");
+
         return AppointmentMappings.ToResponse(appointment);
     }
 }

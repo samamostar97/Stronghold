@@ -9,11 +9,16 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, O
 {
     private readonly IOrderRepository _orderRepository;
     private readonly IProductRepository _productRepository;
+    private readonly INotificationService _notificationService;
 
-    public ConfirmOrderCommandHandler(IOrderRepository orderRepository, IProductRepository productRepository)
+    public ConfirmOrderCommandHandler(
+        IOrderRepository orderRepository,
+        IProductRepository productRepository,
+        INotificationService notificationService)
     {
         _orderRepository = orderRepository;
         _productRepository = productRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<OrderResponse> Handle(ConfirmOrderCommand request, CancellationToken cancellationToken)
@@ -39,6 +44,8 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, O
         order.Status = OrderStatus.Confirmed;
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
+
+        await _notificationService.CreateOrderNotificationAsync(order.Id);
 
         return OrderMappings.ToResponse(order);
     }

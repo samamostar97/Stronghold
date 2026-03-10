@@ -10,15 +10,18 @@ public class AdminCreateAppointmentCommandHandler : IRequestHandler<AdminCreateA
     private readonly IAppointmentRepository _appointmentRepository;
     private readonly IUserRepository _userRepository;
     private readonly IStaffRepository _staffRepository;
+    private readonly INotificationService _notificationService;
 
     public AdminCreateAppointmentCommandHandler(
         IAppointmentRepository appointmentRepository,
         IUserRepository userRepository,
-        IStaffRepository staffRepository)
+        IStaffRepository staffRepository,
+        INotificationService notificationService)
     {
         _appointmentRepository = appointmentRepository;
         _userRepository = userRepository;
         _staffRepository = staffRepository;
+        _notificationService = notificationService;
     }
 
     public async Task<AppointmentResponse> Handle(AdminCreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -50,6 +53,12 @@ public class AdminCreateAppointmentCommandHandler : IRequestHandler<AdminCreateA
 
         appointment.User = user;
         appointment.Staff = staff;
+
+        await _notificationService.CreateAppointmentNotificationAsync(
+            appointment.Id,
+            $"{user.FirstName} {user.LastName}",
+            $"{staff.FirstName} {staff.LastName}");
+
         return AppointmentMappings.ToResponse(appointment);
     }
 }
