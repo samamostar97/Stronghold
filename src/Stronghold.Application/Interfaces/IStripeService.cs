@@ -1,3 +1,5 @@
+using Stronghold.Application.Features.Orders;
+
 namespace Stronghold.Application.Interfaces;
 
 public interface IStripeService

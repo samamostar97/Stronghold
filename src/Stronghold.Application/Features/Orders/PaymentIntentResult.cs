@@ -1,4 +1,4 @@
-namespace Stronghold.Application.Interfaces;
+namespace Stronghold.Application.Features.Orders;
 
 public class PaymentIntentResult
 {
