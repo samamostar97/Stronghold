@@ -1,0 +1,26 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 5147
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy csproj files and restore (cache layer)
+COPY src/Stronghold.Domain/Stronghold.Domain.csproj Stronghold.Domain/
+COPY src/Stronghold.Application/Stronghold.Application.csproj Stronghold.Application/
+COPY src/Stronghold.Infrastructure/Stronghold.Infrastructure.csproj Stronghold.Infrastructure/
+COPY src/Stronghold.API/Stronghold.API.csproj Stronghold.API/
+RUN dotnet restore Stronghold.API/Stronghold.API.csproj
+
+# Copy source and build
+COPY src/ .
+RUN dotnet publish Stronghold.API/Stronghold.API.csproj -c Release -o /app/publish --no-restore
+
+FROM base AS final
+WORKDIR /app
+COPY --from=build /app/publish .
+COPY .env .
+
+RUN mkdir -p /app/uploads
+ENV ASPNETCORE_URLS=http://+:5147
+ENTRYPOINT ["dotnet", "Stronghold.API.dll"]
