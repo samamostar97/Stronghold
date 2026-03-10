@@ -21,6 +21,7 @@ public class StrongholdDbContext : DbContext
     public DbSet<WishlistItem> WishlistItems => Set<WishlistItem>();
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+    public DbSet<Appointment> Appointments => Set<Appointment>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

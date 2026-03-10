@@ -7,6 +7,8 @@ using Stronghold.Application.Features.Staff.GetStaff;
 using Stronghold.Application.Features.Staff.GetStaffById;
 using Stronghold.Application.Features.Staff.UpdateStaff;
 using Stronghold.Application.Features.Staff.UpdateStaffImage;
+using Stronghold.Application.Features.Appointments.GetStaffAppointments;
+using Stronghold.Application.Features.Appointments.GetAvailableSlots;
 
 namespace Stronghold.API.Controllers;
 
@@ -69,6 +71,21 @@ public class StaffController : ControllerBase
         };
 
         var result = await _mediator.Send(command);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}/appointments")]
+    public async Task<IActionResult> GetStaffAppointments(int id, [FromQuery] GetStaffAppointmentsQuery query)
+    {
+        query.StaffId = id;
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("{id:int}/available-slots")]
+    public async Task<IActionResult> GetAvailableSlots(int id, [FromQuery] DateTime date)
+    {
+        var result = await _mediator.Send(new GetAvailableSlotsQuery { StaffId = id, Date = date });
         return Ok(result);
     }
 }
