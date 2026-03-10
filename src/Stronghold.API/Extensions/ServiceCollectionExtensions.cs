@@ -66,6 +66,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUndoService, UndoService>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IReportService, ReportService>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 

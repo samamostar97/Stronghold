@@ -1,4 +1,5 @@
 using DotNetEnv;
+using QuestPDF.Infrastructure;
 using Stronghold.API.Extensions;
 using Stronghold.API.Middleware;
 using Stronghold.Infrastructure.Persistence;
@@ -6,6 +7,9 @@ using Stronghold.Infrastructure.Persistence.Seeding;
 
 // Load .env
 Env.Load();
+
+// QuestPDF license
+QuestPDF.Settings.License = LicenseType.Community;
 
 var builder = WebApplication.CreateBuilder(args);
 
