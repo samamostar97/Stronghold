@@ -7,6 +7,8 @@ using Stronghold.Infrastructure.Persistence.Seeding;
 
 // Load .env (for local dev; in Docker env vars come from docker-compose)
 var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (!File.Exists(envPath))
+    envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", ".env");
 if (File.Exists(envPath))
     Env.Load(envPath);
 
