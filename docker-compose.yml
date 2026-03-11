@@ -40,7 +40,7 @@ services:
       dockerfile: Dockerfile.api
     container_name: stronghold-api
     ports:
-      - "5147:5147"
+      - "5272:5272"
     env_file:
       - .env
     environment:

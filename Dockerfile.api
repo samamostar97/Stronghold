@@ -1,6 +1,6 @@
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 5147
+EXPOSE 5272
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
@@ -22,5 +22,5 @@ WORKDIR /app
 COPY --from=build /app/publish .
 
 RUN mkdir -p /app/uploads
-ENV ASPNETCORE_URLS=http://+:5147
+ENV ASPNETCORE_URLS=http://+:5272
 ENTRYPOINT ["dotnet", "Stronghold.API.dll"]
