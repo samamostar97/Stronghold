@@ -14,6 +14,9 @@ import '../../features/gym/screens/visit_history_screen.dart';
 import '../../features/memberships/screens/active_memberships_screen.dart';
 import '../../features/memberships/screens/membership_history_screen.dart';
 import '../../features/memberships/screens/membership_packages_screen.dart';
+import '../../features/products/screens/products_screen.dart';
+import '../../features/products/screens/categories_screen.dart';
+import '../../features/products/screens/suppliers_screen.dart';
 import '../../features/users/screens/leaderboard_screen.dart';
 import '../../features/users/screens/users_screen.dart';
 import '../../shared/widgets/app_shell.dart';
@@ -142,19 +145,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/products',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Proizvodi'),
+              child: ProductsScreen(),
             ),
           ),
           GoRoute(
             path: '/products/categories',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Kategorije'),
+              child: CategoriesScreen(),
             ),
           ),
           GoRoute(
             path: '/products/suppliers',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Dobavljaci'),
+              child: SuppliersScreen(),
             ),
           ),
 
