@@ -4,6 +4,8 @@ using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Entities;
 using Stronghold.Domain.Enums;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Messaging;
+using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.Auth.Register;
 
@@ -13,17 +15,20 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
     private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IJwtService _jwtService;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly IMessagePublisher _messagePublisher;
 
     public RegisterCommandHandler(
         IUserRepository userRepository,
         IRefreshTokenRepository refreshTokenRepository,
         IJwtService jwtService,
-        IPasswordHasher passwordHasher)
+        IPasswordHasher passwordHasher,
+        IMessagePublisher messagePublisher)
     {
         _userRepository = userRepository;
         _refreshTokenRepository = refreshTokenRepository;
         _jwtService = jwtService;
         _passwordHasher = passwordHasher;
+        _messagePublisher = messagePublisher;
     }
 
     public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -64,6 +69,12 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 
         await _refreshTokenRepository.AddAsync(refreshToken);
         await _refreshTokenRepository.SaveChangesAsync();
+
+        await _messagePublisher.PublishAsync(QueueNames.UserRegistered, new UserRegisteredEvent
+        {
+            Email = user.Email,
+            FirstName = user.FirstName
+        });
 
         return new AuthResponse
         {

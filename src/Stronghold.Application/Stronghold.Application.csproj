@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stronghold.Domain\Stronghold.Domain.csproj" />
+    <ProjectReference Include="..\Stronghold.Messaging\Stronghold.Messaging.csproj" />
   </ItemGroup>
 
   <ItemGroup>

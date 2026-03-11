@@ -11,6 +11,7 @@ using Stronghold.Application.Interfaces;
 using Stronghold.Infrastructure.Persistence;
 using Stronghold.Infrastructure.Repositories;
 using Stronghold.Infrastructure.Services;
+using Stronghold.Messaging;
 
 namespace Stronghold.API.Extensions;
 
@@ -67,6 +68,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddSingleton<RabbitMqConnection>();
+        services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
         services.AddHttpContextAccessor();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
 

@@ -16,6 +16,24 @@ services:
       retries: 10
       start_period: 30s
 
+  stronghold-rabbitmq:
+    image: rabbitmq:3-management
+    container_name: stronghold-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
   stronghold-api:
     build:
       context: .
@@ -27,13 +45,33 @@ services:
       - .env
     environment:
       - DB_HOST=stronghold-db
+      - RABBITMQ_HOST=stronghold-rabbitmq
       - FILE_STORAGE_PATH=/app/uploads
     volumes:
       - api-uploads:/app/uploads
     depends_on:
       stronghold-db:
         condition: service_healthy
+      stronghold-rabbitmq:
+        condition: service_healthy
+
+  stronghold-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: stronghold-worker
+    env_file:
+      - .env
+    environment:
+      - DB_HOST=stronghold-db
+      - RABBITMQ_HOST=stronghold-rabbitmq
+    depends_on:
+      stronghold-db:
+        condition: service_healthy
+      stronghold-rabbitmq:
+        condition: service_healthy
 
 volumes:
   sqlserver-data:
+  rabbitmq-data:
   api-uploads:
