@@ -1,5 +1,8 @@
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../models/staff_response.dart';
@@ -25,6 +28,11 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
   late bool _isActive;
   bool _loading = false;
 
+  // Image
+  String? _selectedImagePath;
+  String? _selectedImageName;
+  bool _uploadingImage = false;
+
   bool get isEditing => widget.staff != null;
 
   @override
@@ -49,14 +57,29 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
     super.dispose();
   }
 
+  Future<void> _pickImage() async {
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['jpg', 'jpeg', 'png', 'webp'],
+    );
+    if (result != null && result.files.single.path != null) {
+      setState(() {
+        _selectedImagePath = result.files.single.path;
+        _selectedImageName = result.files.single.name;
+      });
+    }
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _loading = true);
     try {
       final repo = ref.read(staffRepositoryProvider);
+      StaffResponse savedStaff;
+
       if (isEditing) {
-        await repo.updateStaff(
+        savedStaff = await repo.updateStaff(
           id: widget.staff!.id,
           firstName: _firstName.text.trim(),
           lastName: _lastName.text.trim(),
@@ -67,13 +90,25 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
           isActive: _isActive,
         );
       } else {
-        await repo.createStaff(
+        savedStaff = await repo.createStaff(
           firstName: _firstName.text.trim(),
           lastName: _lastName.text.trim(),
           email: _email.text.trim(),
           phone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
           bio: _bio.text.trim().isEmpty ? null : _bio.text.trim(),
           staffType: _staffType,
+        );
+      }
+
+      // Upload image if selected
+      if (_selectedImagePath != null) {
+        setState(() {
+          _uploadingImage = true;
+        });
+        await repo.uploadProfileImage(
+          id: savedStaff.id,
+          filePath: _selectedImagePath!,
+          fileName: _selectedImageName!,
         );
       }
 
@@ -99,7 +134,12 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
         );
       }
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() {
+          _loading = false;
+          _uploadingImage = false;
+        });
+      }
     }
   }
 
@@ -137,6 +177,10 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
                 ),
                 const SizedBox(height: 20),
                 Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+                const SizedBox(height: 20),
+
+                // Profile image
+                Center(child: _buildImagePicker()),
                 const SizedBox(height: 20),
 
                 // Form fields
@@ -206,13 +250,23 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
                       ),
                     ),
                     child: _loading
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
+                        ? Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              if (_uploadingImage) ...[
+                                const SizedBox(width: 10),
+                                Text('Uploading slika...',
+                                    style: AppTextStyles.button),
+                              ],
+                            ],
                           )
                         : Text(
                             isEditing ? 'Sacuvaj izmjene' : 'Dodaj osoblje',
@@ -225,6 +279,74 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildImagePicker() {
+    final hasExistingImage = widget.staff?.profileImageUrl != null &&
+        widget.staff!.profileImageUrl!.isNotEmpty;
+    final hasSelectedImage = _selectedImagePath != null;
+
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Column(
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: hasSelectedImage
+                    ? AppColors.primary.withValues(alpha: 0.4)
+                    : Colors.white.withValues(alpha: 0.06),
+              ),
+            ),
+            child: hasSelectedImage
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(13),
+                    child: Image.file(
+                      File(_selectedImagePath!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, _, _) => _imageIcon(),
+                    ),
+                  )
+                : hasExistingImage
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(13),
+                        child: Image.network(
+                          '${ApiConstants.baseUrl.replaceAll('/api', '')}${widget.staff!.profileImageUrl!}',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) => _imageIcon(),
+                        ),
+                      )
+                    : _imageIcon(),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            hasSelectedImage
+                ? _selectedImageName!
+                : hasExistingImage
+                    ? 'Promijeni sliku'
+                    : 'Dodaj sliku',
+            style: AppTextStyles.bodySmall.copyWith(
+              fontSize: 11,
+              color: AppColors.primary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _imageIcon() {
+    return const Center(
+      child: Icon(
+        Icons.camera_alt_outlined,
+        color: AppColors.primary,
+        size: 28,
       ),
     );
   }

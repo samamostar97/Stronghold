@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../models/staff_response.dart';
@@ -89,7 +90,8 @@ class _StaffTableState extends State<StaffTable> {
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: Row(
                   children: [
-                    _HeaderCell('ID', width: 60),
+                    _HeaderCell('ID', width: 50),
+                    const SizedBox(width: 44), // Avatar
                     _HeaderCell('Ime i prezime', flex: 2),
                     _HeaderCell('Email', flex: 2),
                     _HeaderCell('Telefon', flex: 1),
@@ -139,7 +141,7 @@ class _StaffTableState extends State<StaffTable> {
                         child: Row(
                           children: [
                             SizedBox(
-                              width: 60,
+                              width: 50,
                               child: Text(
                                 '#${member.id}',
                                 style: AppTextStyles.bodyMedium.copyWith(
@@ -148,38 +150,20 @@ class _StaffTableState extends State<StaffTable> {
                                 ),
                               ),
                             ),
+
+                            // Avatar
+                            Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              child: _StaffAvatar(staff: member),
+                            ),
+
                             Expanded(
                               flex: 2,
-                              child: Row(
-                                children: [
-                                  Container(
-                                    width: 32,
-                                    height: 32,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Center(
-                                      child: Text(
-                                        '${member.firstName[0]}${member.lastName[0]}',
-                                        style: AppTextStyles.bodySmall.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 11,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      '${member.firstName} ${member.lastName}',
-                                      style: AppTextStyles.bodyMedium
-                                          .copyWith(fontSize: 13),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
+                              child: Text(
+                                '${member.firstName} ${member.lastName}',
+                                style: AppTextStyles.bodyMedium
+                                    .copyWith(fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
                             Expanded(
@@ -333,6 +317,55 @@ class _StaffTableState extends State<StaffTable> {
             ),
           ),
       ],
+    );
+  }
+}
+
+class _StaffAvatar extends StatelessWidget {
+  final StaffResponse staff;
+
+  const _StaffAvatar({required this.staff});
+
+  String get _imageUrl {
+    final base = ApiConstants.baseUrl.replaceAll('/api', '');
+    return '$base${staff.profileImageUrl}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (staff.profileImageUrl != null && staff.profileImageUrl!.isNotEmpty) {
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          _imageUrl,
+          width: 32,
+          height: 32,
+          fit: BoxFit.cover,
+          errorBuilder: (_, _, _) => _initialsAvatar(),
+        ),
+      );
+    }
+    return _initialsAvatar();
+  }
+
+  Widget _initialsAvatar() {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: AppColors.primary.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          '${staff.firstName[0]}${staff.lastName[0]}',
+          style: AppTextStyles.bodySmall.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w600,
+            fontSize: 11,
+          ),
+        ),
+      ),
     );
   }
 }

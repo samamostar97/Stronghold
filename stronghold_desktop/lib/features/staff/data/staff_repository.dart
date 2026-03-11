@@ -94,4 +94,23 @@ class StaffRepository {
       throw ApiException.fromDioException(e);
     }
   }
+
+  Future<StaffResponse> uploadProfileImage({
+    required int id,
+    required String filePath,
+    required String fileName,
+  }) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(filePath, filename: fileName),
+      });
+      final response = await _dio.put(
+        '/staff/$id/profile-image',
+        data: formData,
+      );
+      return StaffResponse.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
+  }
 }
