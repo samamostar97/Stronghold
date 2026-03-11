@@ -14,6 +14,8 @@ import '../../features/gym/screens/visit_history_screen.dart';
 import '../../features/memberships/screens/active_memberships_screen.dart';
 import '../../features/memberships/screens/membership_history_screen.dart';
 import '../../features/memberships/screens/membership_packages_screen.dart';
+import '../../features/users/screens/leaderboard_screen.dart';
+import '../../features/users/screens/users_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 import '../../shared/widgets/placeholder_page.dart';
 
@@ -72,13 +74,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/users',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Korisnici'),
+              child: UsersScreen(),
             ),
           ),
           GoRoute(
             path: '/users/leaderboard',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Rang Lista'),
+              child: LeaderboardScreen(),
             ),
           ),
 

@@ -115,13 +115,13 @@ class _StatsGrid extends StatelessWidget {
         icon: Icons.fitness_center_outlined,
         label: 'Trenutno u teretani',
         value: '${stats['activeGymVisits'] ?? 0}',
-        onTap: () => onNavigate('/users/visits'),
+        onTap: () => onNavigate('/gym'),
       ),
       StatCard(
         icon: Icons.card_membership_outlined,
-        label: 'Aktivne clanaroine',
+        label: 'Aktivne clanarine',
         value: '${stats['activeMemberships'] ?? 0}',
-        onTap: () => onNavigate('/users/packages'),
+        onTap: () => onNavigate('/memberships'),
       ),
       StatCard(
         icon: Icons.shopping_bag_outlined,
