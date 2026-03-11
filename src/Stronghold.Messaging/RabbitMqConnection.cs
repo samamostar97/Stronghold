@@ -32,7 +32,7 @@ public class RabbitMqConnection : IAsyncDisposable
                 Password = password
             };
 
-            for (var attempt = 1; attempt <= 5; attempt++)
+            for (var attempt = 1; attempt <= 2; attempt++)
             {
                 try
                 {
@@ -40,13 +40,13 @@ public class RabbitMqConnection : IAsyncDisposable
                     _channel = await _connection.CreateChannelAsync(cancellationToken: ct);
                     return _channel;
                 }
-                catch when (attempt < 5)
+                catch when (attempt < 2)
                 {
-                    await Task.Delay(2000, ct);
+                    await Task.Delay(1000, ct);
                 }
             }
 
-            throw new InvalidOperationException("Unable to connect to RabbitMQ after 5 attempts.");
+            throw new InvalidOperationException("Unable to connect to RabbitMQ after 2 attempts.");
         }
         finally
         {
