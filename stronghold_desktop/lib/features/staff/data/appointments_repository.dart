@@ -93,17 +93,4 @@ class AppointmentsRepository {
       throw ApiException.fromDioException(e);
     }
   }
-
-  Future<List<Map<String, dynamic>>> searchUsers(String search) async {
-    try {
-      final response = await _dio.get('/users', queryParameters: {
-        'search': search,
-        'pageSize': 10,
-      });
-      final data = response.data as Map<String, dynamic>;
-      return (data['items'] as List).cast<Map<String, dynamic>>();
-    } on DioException catch (e) {
-      throw ApiException.fromDioException(e);
-    }
-  }
 }

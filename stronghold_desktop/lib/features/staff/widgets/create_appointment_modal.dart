@@ -6,6 +6,7 @@ import '../../../core/constants/app_text_styles.dart';
 import '../models/staff_response.dart';
 import '../providers/appointments_provider.dart';
 import '../providers/staff_provider.dart';
+import '../../users/data/users_repository.dart';
 
 class CreateAppointmentModal extends ConsumerStatefulWidget {
   const CreateAppointmentModal({super.key});
@@ -78,7 +79,7 @@ class _CreateAppointmentModalState
     _userDebounce = Timer(const Duration(milliseconds: 400), () async {
       setState(() => _userSearching = true);
       try {
-        final repo = ref.read(appointmentsRepositoryProvider);
+        final repo = ref.read(usersRepositoryProvider);
         final results = await repo.searchUsers(value.trim());
         if (mounted) setState(() => _userResults = results);
       } catch (_) {}

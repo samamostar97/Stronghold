@@ -7,7 +7,7 @@ import '../data/membership_packages_repository.dart';
 import '../data/memberships_repository.dart';
 import '../models/membership_package_response.dart';
 import '../providers/memberships_provider.dart';
-import '../../staff/providers/appointments_provider.dart';
+import '../../users/data/users_repository.dart';
 
 class AssignMembershipModal extends ConsumerStatefulWidget {
   const AssignMembershipModal({super.key});
@@ -70,7 +70,7 @@ class _AssignMembershipModalState
     _userDebounce = Timer(const Duration(milliseconds: 400), () async {
       setState(() => _userSearching = true);
       try {
-        final repo = ref.read(appointmentsRepositoryProvider);
+        final repo = ref.read(usersRepositoryProvider);
         final results = await repo.searchUsers(value.trim());
         if (mounted) setState(() => _userResults = results);
       } catch (_) {}

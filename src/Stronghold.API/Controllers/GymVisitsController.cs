@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.Features.GymVisits.CheckIn;
 using Stronghold.Application.Features.GymVisits.CheckOut;
 using Stronghold.Application.Features.GymVisits.GetActiveGymVisits;
+using Stronghold.Application.Features.GymVisits.GetEligibleForCheckIn;
 using Stronghold.Application.Features.GymVisits.GetGymVisits;
 
 namespace Stronghold.API.Controllers;
@@ -43,6 +44,13 @@ public class GymVisitsController : ControllerBase
 
     [HttpGet]
     public async Task<IActionResult> GetGymVisits([FromQuery] GetGymVisitsQuery query)
+    {
+        var result = await _mediator.Send(query);
+        return Ok(result);
+    }
+
+    [HttpGet("eligible-members")]
+    public async Task<IActionResult> GetEligibleForCheckIn([FromQuery] GetEligibleForCheckInQuery query)
     {
         var result = await _mediator.Send(query);
         return Ok(result);
