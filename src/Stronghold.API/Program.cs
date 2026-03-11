@@ -5,8 +5,10 @@ using Stronghold.API.Middleware;
 using Stronghold.Infrastructure.Persistence;
 using Stronghold.Infrastructure.Persistence.Seeding;
 
-// Load .env
-Env.Load();
+// Load .env (for local dev; in Docker env vars come from docker-compose)
+var envPath = Path.Combine(Directory.GetCurrentDirectory(), ".env");
+if (File.Exists(envPath))
+    Env.Load(envPath);
 
 // QuestPDF license
 QuestPDF.Settings.License = LicenseType.Community;
