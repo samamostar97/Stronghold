@@ -9,6 +9,9 @@ import '../../features/orders/screens/order_history_screen.dart';
 import '../../features/staff/screens/staff_screen.dart';
 import '../../features/staff/screens/appointments_screen.dart';
 import '../../features/staff/screens/appointment_history_screen.dart';
+import '../../features/memberships/screens/active_memberships_screen.dart';
+import '../../features/memberships/screens/membership_history_screen.dart';
+import '../../features/memberships/screens/membership_packages_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 import '../../shared/widgets/placeholder_page.dart';
 
@@ -71,12 +74,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/users/packages',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Clanarinski Paketi'),
-            ),
-          ),
-          GoRoute(
             path: '/users/visits',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: PlaceholderPage(title: 'Posjete Teretani'),
@@ -86,6 +83,26 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/users/leaderboard',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: PlaceholderPage(title: 'Rang Lista'),
+            ),
+          ),
+
+          // Clanarine group
+          GoRoute(
+            path: '/memberships',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ActiveMembershipsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/memberships/history',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: MembershipHistoryScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/memberships/packages',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: MembershipPackagesScreen(),
             ),
           ),
 

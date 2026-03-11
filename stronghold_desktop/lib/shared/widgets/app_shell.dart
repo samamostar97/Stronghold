@@ -39,9 +39,18 @@ final sidebarItems = [
     route: '/users',
     tabs: [
       TabItem(label: 'Korisnici', route: '/users'),
-      TabItem(label: 'Clanarinski Paketi', route: '/users/packages'),
       TabItem(label: 'Posjete Teretani', route: '/users/visits'),
       TabItem(label: 'Rang Lista', route: '/users/leaderboard'),
+    ],
+  ),
+  const NavItem(
+    label: 'Clanarine',
+    icon: Icons.card_membership_outlined,
+    route: '/memberships',
+    tabs: [
+      TabItem(label: 'Aktivne clanarine', route: '/memberships'),
+      TabItem(label: 'Historija clanarina', route: '/memberships/history'),
+      TabItem(label: 'Paketi clanarina', route: '/memberships/packages'),
     ],
   ),
   const NavItem(
