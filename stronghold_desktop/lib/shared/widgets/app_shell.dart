@@ -39,8 +39,16 @@ final sidebarItems = [
     route: '/users',
     tabs: [
       TabItem(label: 'Korisnici', route: '/users'),
-      TabItem(label: 'Posjete Teretani', route: '/users/visits'),
       TabItem(label: 'Rang Lista', route: '/users/leaderboard'),
+    ],
+  ),
+  const NavItem(
+    label: 'Teretana',
+    icon: Icons.fitness_center_outlined,
+    route: '/gym',
+    tabs: [
+      TabItem(label: 'Trenutno u teretani', route: '/gym'),
+      TabItem(label: 'Historija posjeta', route: '/gym/history'),
     ],
   ),
   const NavItem(

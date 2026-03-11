@@ -9,6 +9,8 @@ import '../../features/orders/screens/order_history_screen.dart';
 import '../../features/staff/screens/staff_screen.dart';
 import '../../features/staff/screens/appointments_screen.dart';
 import '../../features/staff/screens/appointment_history_screen.dart';
+import '../../features/gym/screens/active_visits_screen.dart';
+import '../../features/gym/screens/visit_history_screen.dart';
 import '../../features/memberships/screens/active_memberships_screen.dart';
 import '../../features/memberships/screens/membership_history_screen.dart';
 import '../../features/memberships/screens/membership_packages_screen.dart';
@@ -74,15 +76,23 @@ final routerProvider = Provider<GoRouter>((ref) {
             ),
           ),
           GoRoute(
-            path: '/users/visits',
-            pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Posjete Teretani'),
-            ),
-          ),
-          GoRoute(
             path: '/users/leaderboard',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: PlaceholderPage(title: 'Rang Lista'),
+            ),
+          ),
+
+          // Teretana group
+          GoRoute(
+            path: '/gym',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: ActiveVisitsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/gym/history',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: VisitHistoryScreen(),
             ),
           ),
 
