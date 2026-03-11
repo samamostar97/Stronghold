@@ -9,6 +9,7 @@ using Stronghold.Application.Features.Users.GetMyProfile;
 using Stronghold.Application.Features.Users.UpdateMyProfile;
 using Stronghold.Application.Features.Users.UpdateProfileImage;
 using Stronghold.Application.Features.Users.UpdateUser;
+using Stronghold.Application.Features.Users.UpdateUserProfileImage;
 using Stronghold.Application.Features.UserMemberships.AssignMembership;
 using Stronghold.Application.Features.UserMemberships.CancelMembership;
 using Stronghold.Application.Features.UserMemberships.GetUserMembership;
@@ -65,6 +66,20 @@ public class UsersController : ControllerBase
     {
         await _mediator.Send(new DeleteUserCommand { Id = id });
         return NoContent();
+    }
+
+    [HttpPut("{id:int}/profile-image")]
+    public async Task<IActionResult> UpdateUserProfileImage(int id, IFormFile file)
+    {
+        var command = new UpdateUserProfileImageCommand
+        {
+            Id = id,
+            FileStream = file.OpenReadStream(),
+            FileName = file.FileName
+        };
+
+        var result = await _mediator.Send(command);
+        return Ok(result);
     }
 
     [HttpGet("me")]

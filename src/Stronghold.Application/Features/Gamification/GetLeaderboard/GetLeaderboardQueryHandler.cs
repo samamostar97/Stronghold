@@ -22,8 +22,18 @@ public class GetLeaderboardQueryHandler : IRequestHandler<GetLeaderboardQuery, P
         var levels = await _levelRepository.GetAllOrderedAsync();
 
         var query = _userRepository.Query()
-            .Where(u => u.Role == Role.User)
-            .OrderByDescending(u => u.XP);
+            .Where(u => u.Role == Role.User);
+
+        if (!string.IsNullOrWhiteSpace(request.Search))
+        {
+            var search = request.Search.ToLower();
+            query = query.Where(u =>
+                u.FirstName.ToLower().Contains(search) ||
+                u.LastName.ToLower().Contains(search) ||
+                u.Username.ToLower().Contains(search));
+        }
+
+        query = query.OrderByDescending(u => u.XP);
 
         var totalCount = await query.CountAsync(cancellationToken);
 

@@ -1,4 +1,5 @@
 using DotNetEnv;
+using Microsoft.Extensions.FileProviders;
 using QuestPDF.Infrastructure;
 using Stronghold.API.Extensions;
 using Stronghold.API.Middleware;
@@ -50,6 +51,18 @@ app.UseSwagger();
 app.UseSwaggerUI();
 
 app.UseCors();
+
+// Serve uploaded files (profile images, staff images, etc.)
+var uploadsPath = Environment.GetEnvironmentVariable("FILE_STORAGE_PATH") ?? "./uploads";
+var uploadsFullPath = Path.GetFullPath(uploadsPath);
+if (!Directory.Exists(uploadsFullPath))
+    Directory.CreateDirectory(uploadsFullPath);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsFullPath),
+    RequestPath = ""
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

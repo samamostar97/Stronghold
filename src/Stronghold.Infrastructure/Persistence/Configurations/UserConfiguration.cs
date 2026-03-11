@@ -20,7 +20,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.ProfileImageUrl).HasMaxLength(500);
         builder.Property(u => u.Role).HasConversion<string>().HasMaxLength(20);
 
-        builder.HasIndex(u => u.Username).IsUnique();
-        builder.HasIndex(u => u.Email).IsUnique();
+        builder.HasIndex(u => u.Username).IsUnique().HasFilter("IsDeleted = 0");
+        builder.HasIndex(u => u.Email).IsUnique().HasFilter("IsDeleted = 0");
     }
 }
