@@ -1,0 +1,165 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../features/auth/providers/auth_provider.dart';
+import '../../features/auth/screens/login_screen.dart';
+import '../../shared/widgets/app_shell.dart';
+import '../../shared/widgets/placeholder_page.dart';
+
+// Listenable that notifies GoRouter when auth state changes
+class _AuthNotifier extends ChangeNotifier {
+  bool _isAuthenticated = false;
+
+  bool get isAuthenticated => _isAuthenticated;
+
+  set isAuthenticated(bool value) {
+    if (_isAuthenticated != value) {
+      _isAuthenticated = value;
+      notifyListeners();
+    }
+  }
+}
+
+final _authNotifierProvider = Provider<_AuthNotifier>((ref) {
+  final notifier = _AuthNotifier();
+  ref.listen(authStateProvider, (prev, next) {
+    notifier.isAuthenticated = next.isAuthenticated;
+  });
+  return notifier;
+});
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final authNotifier = ref.read(_authNotifierProvider);
+
+  return GoRouter(
+    initialLocation: '/dashboard',
+    refreshListenable: authNotifier,
+    redirect: (context, state) {
+      final isLoggedIn = authNotifier.isAuthenticated;
+      final isLoginPage = state.uri.toString() == '/login';
+
+      if (!isLoggedIn && !isLoginPage) return '/login';
+      if (isLoggedIn && isLoginPage) return '/dashboard';
+      return null;
+    },
+    routes: [
+      GoRoute(
+        path: '/login',
+        builder: (context, state) => const LoginScreen(),
+      ),
+      ShellRoute(
+        builder: (context, state, child) => AppShell(child: child),
+        routes: [
+          GoRoute(
+            path: '/dashboard',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Kontrolna Ploca'),
+            ),
+          ),
+
+          // Korisnici group
+          GoRoute(
+            path: '/users',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Korisnici'),
+            ),
+          ),
+          GoRoute(
+            path: '/users/packages',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Clanarinski Paketi'),
+            ),
+          ),
+          GoRoute(
+            path: '/users/visits',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Posjete Teretani'),
+            ),
+          ),
+          GoRoute(
+            path: '/users/leaderboard',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Rang Lista'),
+            ),
+          ),
+
+          // Osoblje group
+          GoRoute(
+            path: '/staff',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Osoblje'),
+            ),
+          ),
+          GoRoute(
+            path: '/staff/appointments',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Termini'),
+            ),
+          ),
+
+          // Proizvodi group
+          GoRoute(
+            path: '/products',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Proizvodi'),
+            ),
+          ),
+          GoRoute(
+            path: '/products/categories',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Kategorije'),
+            ),
+          ),
+          GoRoute(
+            path: '/products/suppliers',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Dobavljaci'),
+            ),
+          ),
+
+          // Narudzbe
+          GoRoute(
+            path: '/orders',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Narudzbe'),
+            ),
+          ),
+
+          // Izvjestaji group
+          GoRoute(
+            path: '/reports',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Izvjestaji - Prihodi'),
+            ),
+          ),
+          GoRoute(
+            path: '/reports/users',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Izvjestaji - Korisnici'),
+            ),
+          ),
+          GoRoute(
+            path: '/reports/products',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Izvjestaji - Proizvodi'),
+            ),
+          ),
+          GoRoute(
+            path: '/reports/appointments',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Izvjestaji - Termini'),
+            ),
+          ),
+
+          // Evidencija
+          GoRoute(
+            path: '/audit',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: PlaceholderPage(title: 'Evidencija Promjena'),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
+});
