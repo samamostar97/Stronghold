@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/auth/screens/login_screen.dart';
+import '../../features/dashboard/screens/dashboard_screen.dart';
+import '../../features/orders/screens/orders_screen.dart';
+import '../../features/orders/screens/order_history_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 import '../../shared/widgets/placeholder_page.dart';
 
@@ -53,7 +56,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dashboard',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Kontrolna Ploca'),
+              child: DashboardScreen(),
             ),
           ),
 
@@ -121,7 +124,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/orders',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Narudzbe'),
+              child: OrdersScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/orders/history',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: OrderHistoryScreen(),
             ),
           ),
 

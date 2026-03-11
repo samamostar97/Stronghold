@@ -67,6 +67,10 @@ final sidebarItems = [
     label: 'Narudzbe',
     icon: Icons.shopping_bag_outlined,
     route: '/orders',
+    tabs: [
+      TabItem(label: 'Narudzbe', route: '/orders'),
+      TabItem(label: 'Historija narudzbi', route: '/orders/history'),
+    ],
   ),
   const NavItem(
     label: 'Izvjestaji',
@@ -97,7 +101,6 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   int _selectedIndex = 0;
-  int _prevSelectedIndex = 0;
   String? _prevRoute;
   // 0 = no transition, -1 = slide left, 1 = slide right
   int _slideDirection = 0;
@@ -145,7 +148,6 @@ class _AppShellState extends ConsumerState<AppShell> {
       _slideDirection = newTabIdx > prevTabIdx ? 1 : -1;
     }
 
-    _prevSelectedIndex = _selectedIndex;
     _selectedIndex = newIndex;
     _prevRoute = currentRoute;
 
@@ -484,7 +486,6 @@ class _PageTransitionState extends State<_PageTransition>
   late AnimationController _controller;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
-  String? _lastRouteKey;
 
   @override
   void initState() {
@@ -508,8 +509,6 @@ class _PageTransitionState extends State<_PageTransition>
   void didUpdateWidget(covariant _PageTransition oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.routeKey != oldWidget.routeKey) {
-      _lastRouteKey = widget.routeKey;
-
       if (widget.isSidebarNav) {
         _slideAnimation = Tween<Offset>(
           begin: Offset.zero,
