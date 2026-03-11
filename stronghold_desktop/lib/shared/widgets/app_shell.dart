@@ -51,6 +51,7 @@ final sidebarItems = [
     tabs: [
       TabItem(label: 'Osoblje', route: '/staff'),
       TabItem(label: 'Termini', route: '/staff/appointments'),
+      TabItem(label: 'Historija termina', route: '/staff/appointments/history'),
     ],
   ),
   const NavItem(
@@ -359,6 +360,14 @@ class _SidebarNavItem extends StatefulWidget {
 
 class _SidebarNavItemState extends State<_SidebarNavItem> {
   bool _hovering = false;
+
+  @override
+  void didUpdateWidget(covariant _SidebarNavItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isSelected != oldWidget.isSelected) {
+      _hovering = false;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

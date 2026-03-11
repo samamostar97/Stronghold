@@ -6,6 +6,9 @@ import '../../features/auth/screens/login_screen.dart';
 import '../../features/dashboard/screens/dashboard_screen.dart';
 import '../../features/orders/screens/orders_screen.dart';
 import '../../features/orders/screens/order_history_screen.dart';
+import '../../features/staff/screens/staff_screen.dart';
+import '../../features/staff/screens/appointments_screen.dart';
+import '../../features/staff/screens/appointment_history_screen.dart';
 import '../../shared/widgets/app_shell.dart';
 import '../../shared/widgets/placeholder_page.dart';
 
@@ -90,13 +93,19 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/staff',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Osoblje'),
+              child: StaffScreen(),
             ),
           ),
           GoRoute(
             path: '/staff/appointments',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Termini'),
+              child: AppointmentsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/staff/appointments/history',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: AppointmentHistoryScreen(),
             ),
           ),
 
