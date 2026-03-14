@@ -17,7 +17,7 @@ public class GetStaffAppointmentsQueryHandler : IRequestHandler<GetStaffAppointm
 
     public async Task<PagedResult<AppointmentResponse>> Handle(GetStaffAppointmentsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Appointment> query = _appointmentRepository.Query()
+        IQueryable<Appointment> query = _appointmentRepository.QueryAll()
             .Include(a => a.User)
             .Include(a => a.Staff)
             .Where(a => a.StaffId == request.StaffId)

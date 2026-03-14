@@ -23,7 +23,7 @@ public class ProductsReportQueryHandler : IRequestHandler<ProductsReportQuery, R
 
     public async Task<ReportResult> Handle(ProductsReportQuery request, CancellationToken cancellationToken)
     {
-        var orders = await _orderRepository.Query()
+        var orders = await _orderRepository.QueryAll()
             .Include(o => o.Items).ThenInclude(i => i.Product).ThenInclude(p => p.Category)
             .Where(o => o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Shipped)
             .Where(o => o.CreatedAt >= request.From && o.CreatedAt <= request.To)
@@ -44,7 +44,7 @@ public class ProductsReportQueryHandler : IRequestHandler<ProductsReportQuery, R
             .Take(20)
             .ToList();
 
-        var products = await _productRepository.Query()
+        var products = await _productRepository.QueryAll()
             .Include(p => p.Category)
             .OrderBy(p => p.StockQuantity)
             .ToListAsync(cancellationToken);

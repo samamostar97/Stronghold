@@ -26,6 +26,11 @@ public class AuditLogRepository : IAuditLogRepository
         return _dbSet.AsQueryable();
     }
 
+    public IQueryable<AuditLog> QueryAll()
+    {
+        return _dbSet.IgnoreQueryFilters().AsQueryable();
+    }
+
     public async Task AddAsync(AuditLog auditLog)
     {
         await _dbSet.AddAsync(auditLog);

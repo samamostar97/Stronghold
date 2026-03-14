@@ -17,7 +17,7 @@ public class GetAuditLogsQueryHandler : IRequestHandler<GetAuditLogsQuery, Paged
 
     public async Task<PagedResult<AuditLogResponse>> Handle(GetAuditLogsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<AuditLog> query = _auditLogRepository.Query()
+        IQueryable<AuditLog> query = _auditLogRepository.QueryAll()
             .Include(a => a.AdminUser);
 
         if (!string.IsNullOrWhiteSpace(request.EntityType))

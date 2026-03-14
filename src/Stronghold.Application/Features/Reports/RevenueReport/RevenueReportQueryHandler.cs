@@ -28,7 +28,7 @@ public class RevenueReportQueryHandler : IRequestHandler<RevenueReportQuery, Rep
             .Where(o => o.CreatedAt >= request.From && o.CreatedAt <= request.To)
             .ToListAsync(cancellationToken);
 
-        var memberships = await _membershipRepository.Query()
+        var memberships = await _membershipRepository.QueryAll()
             .Include(m => m.MembershipPackage)
             .Where(m => m.CreatedAt >= request.From && m.CreatedAt <= request.To)
             .ToListAsync(cancellationToken);

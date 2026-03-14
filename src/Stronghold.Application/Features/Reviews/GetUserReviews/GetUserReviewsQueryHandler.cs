@@ -16,7 +16,7 @@ public class GetUserReviewsQueryHandler : IRequestHandler<GetUserReviewsQuery, P
 
     public async Task<PagedResult<ReviewResponse>> Handle(GetUserReviewsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Domain.Entities.Review> query = _reviewRepository.Query()
+        IQueryable<Domain.Entities.Review> query = _reviewRepository.QueryAll()
             .Include(r => r.User)
             .Where(r => r.UserId == request.UserId);
 

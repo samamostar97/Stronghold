@@ -17,7 +17,7 @@ public class GetStaffReviewsQueryHandler : IRequestHandler<GetStaffReviewsQuery,
 
     public async Task<PagedResult<ReviewResponse>> Handle(GetStaffReviewsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Domain.Entities.Review> query = _reviewRepository.Query()
+        IQueryable<Domain.Entities.Review> query = _reviewRepository.QueryAll()
             .Include(r => r.User)
             .Include(r => r.Appointment)
             .Where(r => r.ReviewType == ReviewType.Appointment && r.Appointment!.StaffId == request.StaffId);

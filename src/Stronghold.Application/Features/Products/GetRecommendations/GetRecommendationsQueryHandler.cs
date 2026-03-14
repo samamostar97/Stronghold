@@ -28,7 +28,7 @@ public class GetRecommendationsQueryHandler : IRequestHandler<GetRecommendations
     {
         var userId = _currentUserService.UserId;
 
-        var userOrders = await _orderRepository.Query()
+        var userOrders = await _orderRepository.QueryAll()
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Where(o => o.UserId == userId && o.Status != OrderStatus.Pending)
             .ToListAsync(cancellationToken);
@@ -47,7 +47,7 @@ public class GetRecommendationsQueryHandler : IRequestHandler<GetRecommendations
                 .Distinct()
                 .ToList();
 
-            var recommendations = await _productRepository.Query()
+            var recommendations = await _productRepository.QueryAll()
                 .Include(p => p.Category)
                 .Include(p => p.Supplier)
                 .Where(p => purchasedCategoryIds.Contains(p.CategoryId)
@@ -68,7 +68,7 @@ public class GetRecommendationsQueryHandler : IRequestHandler<GetRecommendations
             .Take(10)
             .ToListAsync(cancellationToken);
 
-        var topSellers = await _productRepository.Query()
+        var topSellers = await _productRepository.QueryAll()
             .Include(p => p.Category)
             .Include(p => p.Supplier)
             .Where(p => topSellerIds.Contains(p.Id) && p.StockQuantity > 0)

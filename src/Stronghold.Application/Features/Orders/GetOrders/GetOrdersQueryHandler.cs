@@ -18,7 +18,7 @@ public class GetOrdersQueryHandler : IRequestHandler<GetOrdersQuery, PagedResult
 
     public async Task<PagedResult<OrderResponse>> Handle(GetOrdersQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Order> query = _orderRepository.Query()
+        IQueryable<Order> query = _orderRepository.QueryAll()
             .Include(o => o.User)
             .Include(o => o.Items).ThenInclude(i => i.Product);
 

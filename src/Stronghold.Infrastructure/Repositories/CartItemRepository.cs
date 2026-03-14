@@ -11,7 +11,7 @@ public class CartItemRepository : Repository<CartItem>, ICartItemRepository
 
     public async Task<List<CartItem>> GetByUserIdAsync(int userId)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(c => c.Product)
             .Where(c => c.UserId == userId)
             .ToListAsync();

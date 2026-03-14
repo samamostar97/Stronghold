@@ -16,7 +16,7 @@ public class GetGymVisitsQueryHandler : IRequestHandler<GetGymVisitsQuery, Paged
 
     public async Task<PagedResult<GymVisitResponse>> Handle(GetGymVisitsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Domain.Entities.GymVisit> query = _gymVisitRepository.Query()
+        IQueryable<Domain.Entities.GymVisit> query = _gymVisitRepository.QueryAll()
             .Include(v => v.User);
 
         if (request.UserId.HasValue)

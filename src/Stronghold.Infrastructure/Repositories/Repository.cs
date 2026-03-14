@@ -37,6 +37,11 @@ public class Repository<T> : IRepository<T> where T : BaseEntity
         return _dbSet.AsQueryable();
     }
 
+    public IQueryable<T> QueryAll()
+    {
+        return _dbSet.IgnoreQueryFilters().Where(e => !e.IsDeleted);
+    }
+
     public async Task AddAsync(T entity)
     {
         await _dbSet.AddAsync(entity);

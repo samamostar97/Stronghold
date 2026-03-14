@@ -15,7 +15,7 @@ public class GetActiveGymVisitsQueryHandler : IRequestHandler<GetActiveGymVisits
 
     public async Task<List<GymVisitResponse>> Handle(GetActiveGymVisitsQuery request, CancellationToken cancellationToken)
     {
-        var activeVisits = await _gymVisitRepository.Query()
+        var activeVisits = await _gymVisitRepository.QueryAll()
             .Include(v => v.User)
             .Where(v => v.CheckOutAt == null)
             .OrderByDescending(v => v.CheckInAt)

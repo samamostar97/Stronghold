@@ -19,7 +19,7 @@ public class MembershipRevenueReportQueryHandler : IRequestHandler<MembershipRev
 
     public async Task<ReportResult> Handle(MembershipRevenueReportQuery request, CancellationToken cancellationToken)
     {
-        var memberships = await _membershipRepository.Query()
+        var memberships = await _membershipRepository.QueryAll()
             .Include(m => m.User)
             .Include(m => m.MembershipPackage)
             .Where(m => m.CreatedAt >= request.From && m.CreatedAt <= request.To)

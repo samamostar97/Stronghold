@@ -17,7 +17,7 @@ public class GetProductReviewsQueryHandler : IRequestHandler<GetProductReviewsQu
 
     public async Task<PagedResult<ReviewResponse>> Handle(GetProductReviewsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Domain.Entities.Review> query = _reviewRepository.Query()
+        IQueryable<Domain.Entities.Review> query = _reviewRepository.QueryAll()
             .Include(r => r.User)
             .Where(r => r.ReviewType == ReviewType.Product && r.ProductId == request.ProductId);
 

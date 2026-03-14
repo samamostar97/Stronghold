@@ -11,7 +11,7 @@ public class GymVisitRepository : Repository<GymVisit>, IGymVisitRepository
 
     public async Task<GymVisit?> GetActiveByUserIdAsync(int userId)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(v => v.User)
             .FirstOrDefaultAsync(v => v.UserId == userId && v.CheckOutAt == null);
     }

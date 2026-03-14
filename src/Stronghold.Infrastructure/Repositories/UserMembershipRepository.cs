@@ -11,7 +11,7 @@ public class UserMembershipRepository : Repository<UserMembership>, IUserMembers
 
     public async Task<UserMembership?> GetActiveByUserIdAsync(int userId)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(m => m.User)
             .Include(m => m.MembershipPackage)
             .FirstOrDefaultAsync(m => m.UserId == userId && m.IsActive && m.EndDate > DateTime.UtcNow);
@@ -19,7 +19,7 @@ public class UserMembershipRepository : Repository<UserMembership>, IUserMembers
 
     public async Task<List<UserMembership>> GetHistoryByUserIdAsync(int userId)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(m => m.MembershipPackage)
             .Where(m => m.UserId == userId)
             .OrderByDescending(m => m.StartDate)

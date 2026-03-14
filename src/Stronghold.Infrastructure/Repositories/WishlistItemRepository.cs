@@ -11,7 +11,7 @@ public class WishlistItemRepository : Repository<WishlistItem>, IWishlistItemRep
 
     public async Task<List<WishlistItem>> GetByUserIdAsync(int userId)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(w => w.Product)
             .Where(w => w.UserId == userId)
             .OrderByDescending(w => w.CreatedAt)

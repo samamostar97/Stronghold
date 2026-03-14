@@ -18,7 +18,7 @@ public class OrderRevenueReportQueryHandler : IRequestHandler<OrderRevenueReport
 
     public async Task<ReportResult> Handle(OrderRevenueReportQuery request, CancellationToken cancellationToken)
     {
-        var orders = await _orderRepository.Query()
+        var orders = await _orderRepository.QueryAll()
             .Include(o => o.User)
             .Where(o => o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Shipped)
             .Where(o => o.CreatedAt >= request.From && o.CreatedAt <= request.To)

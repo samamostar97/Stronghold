@@ -29,7 +29,7 @@ public class GetDashboardActivityQueryHandler : IRequestHandler<GetDashboardActi
         var activities = new List<DashboardActivityResponse>();
 
         // Recent orders
-        var recentOrders = await _orderRepository.Query()
+        var recentOrders = await _orderRepository.QueryAll()
             .Include(o => o.User)
             .OrderByDescending(o => o.CreatedAt)
             .Take(request.Count)
@@ -42,7 +42,7 @@ public class GetDashboardActivityQueryHandler : IRequestHandler<GetDashboardActi
             .ToListAsync(cancellationToken);
 
         // Recent appointments
-        var recentAppointments = await _appointmentRepository.Query()
+        var recentAppointments = await _appointmentRepository.QueryAll()
             .Include(a => a.User)
             .Include(a => a.Staff)
             .OrderByDescending(a => a.CreatedAt)
@@ -69,7 +69,7 @@ public class GetDashboardActivityQueryHandler : IRequestHandler<GetDashboardActi
             .ToListAsync(cancellationToken);
 
         // Recent reviews
-        var recentReviews = await _reviewRepository.Query()
+        var recentReviews = await _reviewRepository.QueryAll()
             .Include(r => r.User)
             .Include(r => r.Product)
             .OrderByDescending(r => r.CreatedAt)

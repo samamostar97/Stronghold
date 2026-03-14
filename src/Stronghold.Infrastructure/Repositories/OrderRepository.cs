@@ -11,7 +11,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
 
     public async Task<Order?> GetByIdWithItemsAsync(int id)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(o => o.User)
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .FirstOrDefaultAsync(o => o.Id == id);
@@ -19,7 +19,7 @@ public class OrderRepository : Repository<Order>, IOrderRepository
 
     public async Task<List<Order>> GetByUserIdAsync(int userId)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Where(o => o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt)

@@ -19,7 +19,7 @@ public class GetMyOrdersQueryHandler : IRequestHandler<GetMyOrdersQuery, PagedRe
 
     public async Task<PagedResult<OrderResponse>> Handle(GetMyOrdersQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Order> query = _orderRepository.Query()
+        IQueryable<Order> query = _orderRepository.QueryAll()
             .Include(o => o.User)
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Where(o => o.UserId == _currentUserService.UserId);

@@ -11,7 +11,7 @@ public class ProductRepository : Repository<Product>, IProductRepository
 
     public async Task<Product?> GetByIdWithDetailsAsync(int id)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(p => p.Category)
             .Include(p => p.Supplier)
             .FirstOrDefaultAsync(p => p.Id == id);

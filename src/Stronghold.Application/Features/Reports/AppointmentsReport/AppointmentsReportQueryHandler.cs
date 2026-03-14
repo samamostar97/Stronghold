@@ -20,7 +20,7 @@ public class AppointmentsReportQueryHandler : IRequestHandler<AppointmentsReport
 
     public async Task<ReportResult> Handle(AppointmentsReportQuery request, CancellationToken cancellationToken)
     {
-        var appointments = await _appointmentRepository.Query()
+        var appointments = await _appointmentRepository.QueryAll()
             .Include(a => a.Staff)
             .Where(a => a.ScheduledAt >= request.From && a.ScheduledAt <= request.To)
             .ToListAsync(cancellationToken);

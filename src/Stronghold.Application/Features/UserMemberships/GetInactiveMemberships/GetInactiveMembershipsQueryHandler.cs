@@ -16,7 +16,7 @@ public class GetInactiveMembershipsQueryHandler : IRequestHandler<GetInactiveMem
 
     public async Task<PagedResult<UserMembershipResponse>> Handle(GetInactiveMembershipsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Domain.Entities.UserMembership> query = _membershipRepository.Query()
+        IQueryable<Domain.Entities.UserMembership> query = _membershipRepository.QueryAll()
             .Include(m => m.User)
             .Include(m => m.MembershipPackage);
 

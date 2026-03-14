@@ -24,7 +24,7 @@ public class GetMembershipHistoryQueryHandler : IRequestHandler<GetMembershipHis
         _ = await _userRepository.GetByIdAsync(request.UserId)
             ?? throw new NotFoundException("Korisnik", request.UserId);
 
-        IQueryable<Domain.Entities.UserMembership> query = _membershipRepository.Query()
+        IQueryable<Domain.Entities.UserMembership> query = _membershipRepository.QueryAll()
             .Include(m => m.User)
             .Include(m => m.MembershipPackage)
             .Where(m => m.UserId == request.UserId);

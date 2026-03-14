@@ -18,7 +18,7 @@ public class UpdateCartItemCommandHandler : IRequestHandler<UpdateCartItemComman
 
     public async Task<CartItemResponse> Handle(UpdateCartItemCommand request, CancellationToken cancellationToken)
     {
-        var cartItem = await _cartItemRepository.Query()
+        var cartItem = await _cartItemRepository.QueryAll()
             .Include(c => c.Product)
             .FirstOrDefaultAsync(c => c.Id == request.Id && c.UserId == _currentUserService.UserId, cancellationToken)
             ?? throw new NotFoundException("Stavka korpe", request.Id);

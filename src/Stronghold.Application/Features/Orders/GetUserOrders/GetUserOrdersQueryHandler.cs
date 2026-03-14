@@ -17,7 +17,7 @@ public class GetUserOrdersQueryHandler : IRequestHandler<GetUserOrdersQuery, Pag
 
     public async Task<PagedResult<OrderResponse>> Handle(GetUserOrdersQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Order> query = _orderRepository.Query()
+        IQueryable<Order> query = _orderRepository.QueryAll()
             .Include(o => o.User)
             .Include(o => o.Items).ThenInclude(i => i.Product)
             .Where(o => o.UserId == request.UserId)

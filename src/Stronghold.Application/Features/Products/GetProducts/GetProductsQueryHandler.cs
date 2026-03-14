@@ -17,7 +17,7 @@ public class GetProductsQueryHandler : IRequestHandler<GetProductsQuery, PagedRe
 
     public async Task<PagedResult<ProductResponse>> Handle(GetProductsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Product> query = _productRepository.Query()
+        IQueryable<Product> query = _productRepository.QueryAll()
             .Include(p => p.Category)
             .Include(p => p.Supplier);
 

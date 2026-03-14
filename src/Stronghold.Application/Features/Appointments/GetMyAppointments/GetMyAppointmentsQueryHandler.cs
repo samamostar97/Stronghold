@@ -19,7 +19,7 @@ public class GetMyAppointmentsQueryHandler : IRequestHandler<GetMyAppointmentsQu
 
     public async Task<PagedResult<AppointmentResponse>> Handle(GetMyAppointmentsQuery request, CancellationToken cancellationToken)
     {
-        IQueryable<Appointment> query = _appointmentRepository.Query()
+        IQueryable<Appointment> query = _appointmentRepository.QueryAll()
             .Include(a => a.User)
             .Include(a => a.Staff)
             .Where(a => a.UserId == _currentUserService.UserId)

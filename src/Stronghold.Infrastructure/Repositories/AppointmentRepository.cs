@@ -12,7 +12,7 @@ public class AppointmentRepository : Repository<Appointment>, IAppointmentReposi
 
     public async Task<Appointment?> GetByIdWithDetailsAsync(int id)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(a => a.User)
             .Include(a => a.Staff)
             .FirstOrDefaultAsync(a => a.Id == id);

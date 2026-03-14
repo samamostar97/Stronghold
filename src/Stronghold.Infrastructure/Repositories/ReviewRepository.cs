@@ -12,7 +12,7 @@ public class ReviewRepository : Repository<Review>, IReviewRepository
 
     public async Task<Review?> GetByIdWithDetailsAsync(int id)
     {
-        return await _dbSet
+        return await QueryAll()
             .Include(r => r.User)
             .Include(r => r.Product)
             .Include(r => r.Appointment)
