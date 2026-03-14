@@ -4,18 +4,32 @@ class ApiException implements Exception {
   final String message;
   final int? statusCode;
   final List<String> errors;
+  final Map<String, String> fieldErrors;
 
   ApiException({
     required this.message,
     this.statusCode,
     this.errors = const [],
+    this.fieldErrors = const {},
   });
 
   factory ApiException.fromDioException(DioException e) {
     if (e.response?.data is Map<String, dynamic>) {
       final data = e.response!.data as Map<String, dynamic>;
-      final errors = <String>[];
 
+      // Field-level errors
+      if (data['fieldErrors'] is Map) {
+        final fieldErrors = (data['fieldErrors'] as Map)
+            .map((k, v) => MapEntry(k.toString(), v.toString()));
+        return ApiException(
+          message: fieldErrors.values.first,
+          statusCode: e.response?.statusCode,
+          fieldErrors: fieldErrors,
+        );
+      }
+
+      // Legacy list errors
+      final errors = <String>[];
       if (data['errors'] is List) {
         errors.addAll((data['errors'] as List).map((e) => e.toString()));
       } else if (data['errors'] is String) {
@@ -34,6 +48,8 @@ class ApiException implements Exception {
       statusCode: e.response?.statusCode,
     );
   }
+
+  bool get hasFieldErrors => fieldErrors.isNotEmpty;
 
   static String _mapStatusCode(int? code) {
     switch (code) {

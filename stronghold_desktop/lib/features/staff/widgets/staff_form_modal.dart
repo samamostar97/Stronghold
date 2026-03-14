@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../core/network/api_exception.dart';
 import '../models/staff_response.dart';
 import '../providers/staff_provider.dart';
 
@@ -27,6 +28,8 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
   late String _staffType;
   late bool _isActive;
   bool _loading = false;
+  Map<String, String> _fieldErrors = {};
+  String? _errorMessage;
 
   // Image
   String? _selectedImagePath;
@@ -73,7 +76,11 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _fieldErrors = {};
+      _errorMessage = null;
+    });
     try {
       final repo = ref.read(staffRepositoryProvider);
       StaffResponse savedStaff;
@@ -126,12 +133,14 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          if (e is ApiException && e.hasFieldErrors) {
+            _fieldErrors = e.fieldErrors;
+            _formKey.currentState!.validate();
+          } else {
+            _errorMessage = e.toString();
+          }
+        });
       }
     } finally {
       if (mounted) {
@@ -186,17 +195,17 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
                 // Form fields
                 Row(
                   children: [
-                    Expanded(child: _buildField('Ime', _firstName, required: true)),
+                    Expanded(child: _buildField('Ime', _firstName, fieldKey: 'firstName', required: true)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildField('Prezime', _lastName, required: true)),
+                    Expanded(child: _buildField('Prezime', _lastName, fieldKey: 'lastName', required: true)),
                   ],
                 ),
                 const SizedBox(height: 14),
-                _buildField('Email', _email, required: true, keyboardType: TextInputType.emailAddress),
+                _buildField('Email', _email, fieldKey: 'email', required: true, keyboardType: TextInputType.emailAddress),
                 const SizedBox(height: 14),
-                _buildField('Telefon', _phone),
+                _buildField('Telefon', _phone, fieldKey: 'phone'),
                 const SizedBox(height: 14),
-                _buildField('Bio', _bio, maxLines: 3),
+                _buildField('Bio', _bio, fieldKey: 'bio', maxLines: 3),
                 const SizedBox(height: 14),
 
                 // Staff type
@@ -231,6 +240,28 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
                         activeThumbColor: AppColors.primary,
                       ),
                     ],
+                  ),
+                ],
+
+                // Error message
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
                 ],
 
@@ -354,6 +385,7 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
   Widget _buildField(
     String label,
     TextEditingController controller, {
+    String? fieldKey,
     bool required = false,
     TextInputType? keyboardType,
     int maxLines = 1,
@@ -368,9 +400,18 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           style: AppTextStyles.body.copyWith(fontSize: 13),
-          validator: required
-              ? (v) => v == null || v.trim().isEmpty ? 'Obavezno polje' : null
+          onChanged: fieldKey != null && _fieldErrors.containsKey(fieldKey)
+              ? (_) => setState(() => _fieldErrors.remove(fieldKey))
               : null,
+          validator: (v) {
+            if (required && (v == null || v.trim().isEmpty)) {
+              return 'Obavezno polje';
+            }
+            if (fieldKey != null && _fieldErrors.containsKey(fieldKey)) {
+              return _fieldErrors[fieldKey];
+            }
+            return null;
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.background,

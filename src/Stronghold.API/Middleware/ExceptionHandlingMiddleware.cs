@@ -27,9 +27,31 @@ public class ExceptionHandlingMiddleware
 
     private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
+        context.Response.ContentType = "application/json";
+
+        if (exception is ConflictException conflictEx && conflictEx.FieldErrors.Count > 0)
+        {
+            context.Response.StatusCode = 409;
+            var response = new { fieldErrors = conflictEx.FieldErrors, statusCode = 409 };
+            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            await context.Response.WriteAsync(json);
+            return;
+        }
+
+        if (exception is ValidationException validationEx)
+        {
+            context.Response.StatusCode = 400;
+            var fieldErrors = validationEx.Errors
+                .GroupBy(e => e.PropertyName)
+                .ToDictionary(g => ToCamelCase(g.Key), g => g.First().ErrorMessage);
+            var response = new { fieldErrors, statusCode = 400 };
+            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+            await context.Response.WriteAsync(json);
+            return;
+        }
+
         var (statusCode, errors) = exception switch
         {
-            ValidationException validationEx => (400, validationEx.Errors.Select(e => e.ErrorMessage).ToList()),
             InvalidOperationException => (400, new List<string> { exception.Message }),
             UnauthorizedAccessException => (401, new List<string> { exception.Message }),
             ForbiddenException => (403, new List<string> { exception.Message }),
@@ -39,12 +61,16 @@ public class ExceptionHandlingMiddleware
             _ => (500, new List<string> { "Došlo je do greške na serveru." })
         };
 
-        context.Response.ContentType = "application/json";
         context.Response.StatusCode = statusCode;
 
-        var response = new { errors, statusCode };
-        var json = JsonSerializer.Serialize(response, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        var errorResponse = new { errors, statusCode };
+        var errorJson = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase });
+        await context.Response.WriteAsync(errorJson);
+    }
 
-        await context.Response.WriteAsync(json);
+    private static string ToCamelCase(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return name;
+        return char.ToLowerInvariant(name[0]) + name[1..];
     }
 }
