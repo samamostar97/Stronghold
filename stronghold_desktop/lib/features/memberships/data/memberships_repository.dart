@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exception.dart';
 import '../models/user_membership_response.dart';
 
 class MembershipsRepository {
@@ -50,16 +51,24 @@ class MembershipsRepository {
     required int userId,
     required int membershipPackageId,
   }) async {
-    final response = await _dio.post(
-      '/users/$userId/membership',
-      data: {'membershipPackageId': membershipPackageId},
-    );
-    return UserMembershipResponse.fromJson(
-        response.data as Map<String, dynamic>);
+    try {
+      final response = await _dio.post(
+        '/users/$userId/membership',
+        data: {'membershipPackageId': membershipPackageId},
+      );
+      return UserMembershipResponse.fromJson(
+          response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
   }
 
   Future<void> cancelMembership({required int userId}) async {
-    await _dio.delete('/users/$userId/membership');
+    try {
+      await _dio.delete('/users/$userId/membership');
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
   }
 }
 

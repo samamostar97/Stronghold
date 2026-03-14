@@ -21,6 +21,7 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
   late final TextEditingController _phone;
   late final TextEditingController _website;
   bool _loading = false;
+  String? _errorMessage;
 
   bool get isEditing => widget.supplier != null;
 
@@ -45,7 +46,10 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
     try {
       final repo = ref.read(suppliersRepositoryProvider);
       if (isEditing) {
@@ -81,12 +85,9 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _errorMessage = e.toString();
+        });
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -142,6 +143,29 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
                 ),
                 const SizedBox(height: 14),
                 _buildField('Website', _website),
+
+                // Error message
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,

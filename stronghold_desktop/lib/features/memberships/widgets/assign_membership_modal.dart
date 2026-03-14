@@ -32,6 +32,7 @@ class _AssignMembershipModalState
   MembershipPackageResponse? _selectedPackage;
 
   bool _submitting = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -81,7 +82,10 @@ class _AssignMembershipModalState
   Future<void> _submit() async {
     if (_selectedUser == null || _selectedPackage == null) return;
 
-    setState(() => _submitting = true);
+    setState(() {
+      _submitting = true;
+      _errorMessage = null;
+    });
     try {
       final repo = ref.read(membershipsRepositoryProvider);
       await repo.assignMembership(
@@ -100,12 +104,9 @@ class _AssignMembershipModalState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _errorMessage = e.toString();
+        });
       }
     } finally {
       if (mounted) setState(() => _submitting = false);
@@ -364,6 +365,28 @@ class _AssignMembershipModalState
                       ],
                     ),
                   ),
+
+                // Error message
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
 
                 const SizedBox(height: 24),
 

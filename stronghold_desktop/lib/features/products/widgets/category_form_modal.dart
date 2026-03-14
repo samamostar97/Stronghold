@@ -19,6 +19,7 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
   late final TextEditingController _name;
   late final TextEditingController _description;
   bool _loading = false;
+  String? _errorMessage;
 
   bool get isEditing => widget.category != null;
 
@@ -40,7 +41,10 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
     try {
       final repo = ref.read(productCategoriesRepositoryProvider);
       if (isEditing) {
@@ -74,12 +78,9 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _errorMessage = e.toString();
+        });
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -125,6 +126,29 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
                 _buildField('Naziv', _name, required: true),
                 const SizedBox(height: 14),
                 _buildField('Opis', _description, maxLines: 3),
+
+                // Error message
+                if (_errorMessage != null) ...[
+                  const SizedBox(height: 14),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3)),
+                    ),
+                    child: Text(
+                      _errorMessage!,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: AppColors.error,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,

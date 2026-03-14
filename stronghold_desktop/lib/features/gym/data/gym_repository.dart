@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exception.dart';
 import '../models/eligible_member_response.dart';
 import '../models/gym_visit_response.dart';
 
@@ -54,12 +55,16 @@ class GymRepository {
   }
 
   Future<GymVisitResponse> checkIn({required int userId}) async {
-    final response = await _dio.post(
-      '/gym-visits/check-in',
-      data: {'userId': userId},
-    );
-    return GymVisitResponse.fromJson(
-        response.data as Map<String, dynamic>);
+    try {
+      final response = await _dio.post(
+        '/gym-visits/check-in',
+        data: {'userId': userId},
+      );
+      return GymVisitResponse.fromJson(
+          response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
   }
 
   Future<GymVisitResponse> checkOut({required int visitId}) async {

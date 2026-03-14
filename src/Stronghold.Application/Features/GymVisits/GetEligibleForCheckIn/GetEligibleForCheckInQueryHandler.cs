@@ -8,19 +8,29 @@ namespace Stronghold.Application.Features.GymVisits.GetEligibleForCheckIn;
 public class GetEligibleForCheckInQueryHandler : IRequestHandler<GetEligibleForCheckInQuery, PagedResult<EligibleMemberResponse>>
 {
     private readonly IUserMembershipRepository _membershipRepository;
+    private readonly IGymVisitRepository _gymVisitRepository;
 
-    public GetEligibleForCheckInQueryHandler(IUserMembershipRepository membershipRepository)
+    public GetEligibleForCheckInQueryHandler(
+        IUserMembershipRepository membershipRepository,
+        IGymVisitRepository gymVisitRepository)
     {
         _membershipRepository = membershipRepository;
+        _gymVisitRepository = gymVisitRepository;
     }
 
     public async Task<PagedResult<EligibleMemberResponse>> Handle(GetEligibleForCheckInQuery request, CancellationToken cancellationToken)
     {
+        // Get user IDs that are currently checked in (no check-out yet)
+        var checkedInUserIds = await _gymVisitRepository.Query()
+            .Where(v => v.CheckOutAt == null)
+            .Select(v => v.UserId)
+            .ToListAsync(cancellationToken);
+
         IQueryable<Domain.Entities.UserMembership> query = _membershipRepository.Query()
             .Include(m => m.User)
             .Include(m => m.MembershipPackage);
 
-        query = query.Where(m => m.IsActive && m.EndDate > DateTime.UtcNow);
+        query = query.Where(m => m.IsActive && m.EndDate > DateTime.UtcNow && !checkedInUserIds.Contains(m.UserId));
 
         if (!string.IsNullOrWhiteSpace(request.Search))
         {

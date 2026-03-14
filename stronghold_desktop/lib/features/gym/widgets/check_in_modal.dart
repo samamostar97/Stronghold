@@ -20,6 +20,7 @@ class _CheckInModalState extends ConsumerState<CheckInModal> {
   List<EligibleMemberResponse> _members = [];
   bool _loading = true;
   int? _checkingInUserId;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -58,7 +59,10 @@ class _CheckInModalState extends ConsumerState<CheckInModal> {
   }
 
   Future<void> _checkIn(EligibleMemberResponse member) async {
-    setState(() => _checkingInUserId = member.userId);
+    setState(() {
+      _checkingInUserId = member.userId;
+      _errorMessage = null;
+    });
     try {
       final repo = ref.read(gymRepositoryProvider);
       await repo.checkIn(userId: member.userId);
@@ -75,12 +79,9 @@ class _CheckInModalState extends ConsumerState<CheckInModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _errorMessage = e.toString();
+        });
       }
     } finally {
       if (mounted) setState(() => _checkingInUserId = null);
@@ -150,6 +151,28 @@ class _CheckInModalState extends ConsumerState<CheckInModal> {
                       const EdgeInsets.symmetric(horizontal: 12),
                 ),
               ),
+
+              // Error message
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 14),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                        color: AppColors.error.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    _errorMessage!,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.error,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 16),
 
