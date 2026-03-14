@@ -8,10 +8,10 @@ public static class GymVisitMappings
     {
         Id = visit.Id,
         UserId = visit.UserId,
-        UserFullName = visit.User != null
-            ? $"{visit.User.FirstName} {visit.User.LastName}"
-            : string.Empty,
-        Username = visit.User?.Username ?? string.Empty,
+        UserFullName = !string.IsNullOrEmpty(visit.UserFullName) ? visit.UserFullName
+            : visit.User != null ? $"{visit.User.FirstName} {visit.User.LastName}" : string.Empty,
+        Username = !string.IsNullOrEmpty(visit.Username) ? visit.Username
+            : visit.User?.Username ?? string.Empty,
         CheckInAt = visit.CheckInAt,
         CheckOutAt = visit.CheckOutAt,
         DurationMinutes = visit.DurationMinutes

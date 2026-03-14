@@ -12,6 +12,8 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
 
         builder.Property(oi => oi.Quantity).IsRequired();
         builder.Property(oi => oi.UnitPrice).IsRequired().HasColumnType("decimal(18,2)");
+        builder.Property(oi => oi.ProductName).IsRequired().HasMaxLength(200);
+        builder.Property(oi => oi.ProductImageUrl).HasMaxLength(500);
 
         builder.HasOne(oi => oi.Product)
             .WithMany()

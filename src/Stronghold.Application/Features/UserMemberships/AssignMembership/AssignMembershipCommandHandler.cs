@@ -42,7 +42,10 @@ public class AssignMembershipCommandHandler : IRequestHandler<AssignMembershipCo
         var membership = new UserMembership
         {
             UserId = request.UserId,
+            UserFullName = $"{user.FirstName} {user.LastName}",
             MembershipPackageId = request.MembershipPackageId,
+            PackageName = package.Name,
+            PackagePrice = package.Price,
             StartDate = now,
             EndDate = now.AddDays(30),
             IsActive = true

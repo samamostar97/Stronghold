@@ -10,9 +10,8 @@ public static class ReviewMappings
         {
             Id = review.Id,
             UserId = review.UserId,
-            UserName = review.User != null
-                ? $"{review.User.FirstName} {review.User.LastName}"
-                : string.Empty,
+            UserName = !string.IsNullOrEmpty(review.UserFullName) ? review.UserFullName
+                : review.User != null ? $"{review.User.FirstName} {review.User.LastName}" : string.Empty,
             Rating = review.Rating,
             Comment = review.Comment,
             ReviewType = review.ReviewType.ToString(),

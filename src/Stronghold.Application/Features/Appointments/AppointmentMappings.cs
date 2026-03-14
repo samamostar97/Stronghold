@@ -8,9 +8,11 @@ public static class AppointmentMappings
     {
         Id = appointment.Id,
         UserId = appointment.UserId,
-        UserName = appointment.User != null ? $"{appointment.User.FirstName} {appointment.User.LastName}" : string.Empty,
+        UserName = !string.IsNullOrEmpty(appointment.UserFullName) ? appointment.UserFullName
+            : appointment.User != null ? $"{appointment.User.FirstName} {appointment.User.LastName}" : string.Empty,
         StaffId = appointment.StaffId,
-        StaffName = appointment.Staff != null ? $"{appointment.Staff.FirstName} {appointment.Staff.LastName}" : string.Empty,
+        StaffName = !string.IsNullOrEmpty(appointment.StaffFullName) ? appointment.StaffFullName
+            : appointment.Staff != null ? $"{appointment.Staff.FirstName} {appointment.Staff.LastName}" : string.Empty,
         StaffType = appointment.Staff?.StaffType.ToString() ?? string.Empty,
         ScheduledAt = appointment.ScheduledAt,
         DurationMinutes = appointment.DurationMinutes,

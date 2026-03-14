@@ -10,6 +10,7 @@ public class ReviewConfiguration : IEntityTypeConfiguration<Review>
     {
         builder.HasKey(r => r.Id);
 
+        builder.Property(r => r.UserFullName).IsRequired().HasMaxLength(200);
         builder.Property(r => r.Rating).IsRequired();
         builder.Property(r => r.Comment).HasMaxLength(1000);
         builder.Property(r => r.ReviewType).IsRequired().HasConversion<string>().HasMaxLength(20);

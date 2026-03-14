@@ -10,6 +10,9 @@ public class UserMembershipConfiguration : IEntityTypeConfiguration<UserMembersh
     {
         builder.HasKey(m => m.Id);
 
+        builder.Property(m => m.UserFullName).IsRequired().HasMaxLength(200);
+        builder.Property(m => m.PackageName).IsRequired().HasMaxLength(200);
+        builder.Property(m => m.PackagePrice).IsRequired().HasColumnType("decimal(18,2)");
         builder.Property(m => m.StartDate).IsRequired();
         builder.Property(m => m.EndDate).IsRequired();
         builder.Property(m => m.IsActive).IsRequired();

@@ -10,6 +10,8 @@ public class AppointmentConfiguration : IEntityTypeConfiguration<Appointment>
     {
         builder.HasKey(a => a.Id);
 
+        builder.Property(a => a.UserFullName).IsRequired().HasMaxLength(200);
+        builder.Property(a => a.StaffFullName).IsRequired().HasMaxLength(200);
         builder.Property(a => a.ScheduledAt).IsRequired();
         builder.Property(a => a.DurationMinutes).IsRequired().HasDefaultValue(60);
         builder.Property(a => a.Status).IsRequired().HasConversion<string>().HasMaxLength(20);

@@ -43,7 +43,9 @@ public class AdminCreateAppointmentCommandHandler : IRequestHandler<AdminCreateA
         var appointment = new Appointment
         {
             UserId = request.UserId,
+            UserFullName = $"{user.FirstName} {user.LastName}",
             StaffId = request.StaffId,
+            StaffFullName = $"{staff.FirstName} {staff.LastName}",
             ScheduledAt = request.ScheduledAt,
             Notes = request.Notes
         };

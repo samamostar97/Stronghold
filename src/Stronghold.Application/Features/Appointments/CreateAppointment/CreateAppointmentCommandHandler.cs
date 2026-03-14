@@ -43,10 +43,15 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         if (hasConflict)
             throw new ConflictException("Odabrani termin je već zauzet.");
 
+        var user = await _userRepository.GetByIdAsync(_currentUserService.UserId)
+            ?? throw new NotFoundException("Korisnik", _currentUserService.UserId);
+
         var appointment = new Appointment
         {
             UserId = _currentUserService.UserId,
+            UserFullName = $"{user.FirstName} {user.LastName}",
             StaffId = request.StaffId,
+            StaffFullName = $"{staff.FirstName} {staff.LastName}",
             ScheduledAt = request.ScheduledAt,
             Notes = request.Notes
         };
@@ -54,12 +59,12 @@ public class CreateAppointmentCommandHandler : IRequestHandler<CreateAppointment
         await _appointmentRepository.AddAsync(appointment);
         await _appointmentRepository.SaveChangesAsync();
 
+        appointment.User = user;
         appointment.Staff = staff;
 
-        var user = await _userRepository.GetByIdAsync(_currentUserService.UserId);
         await _notificationService.CreateAppointmentNotificationAsync(
             appointment.Id,
-            $"{user!.FirstName} {user.LastName}",
+            $"{user.FirstName} {user.LastName}",
             $"{staff.FirstName} {staff.LastName}");
 
         return AppointmentMappings.ToResponse(appointment);

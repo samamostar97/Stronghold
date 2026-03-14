@@ -61,6 +61,7 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
         var order = new Order
         {
             UserId = userId,
+            UserFullName = $"{user.FirstName} {user.LastName}",
             TotalAmount = totalAmount,
             DeliveryAddress = deliveryAddress,
             Status = OrderStatus.Pending,
@@ -69,7 +70,9 @@ public class CreateOrderCommandHandler : IRequestHandler<CreateOrderCommand, Ord
             {
                 ProductId = ci.ProductId,
                 Quantity = ci.Quantity,
-                UnitPrice = ci.Product.Price
+                UnitPrice = ci.Product.Price,
+                ProductName = ci.Product.Name,
+                ProductImageUrl = ci.Product.ImageUrl
             }).ToList()
         };
 

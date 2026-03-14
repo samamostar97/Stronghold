@@ -12,17 +12,20 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
     private readonly IReviewRepository _reviewRepository;
     private readonly IOrderItemRepository _orderItemRepository;
     private readonly IAppointmentRepository _appointmentRepository;
+    private readonly IUserRepository _userRepository;
     private readonly ICurrentUserService _currentUserService;
 
     public CreateReviewCommandHandler(
         IReviewRepository reviewRepository,
         IOrderItemRepository orderItemRepository,
         IAppointmentRepository appointmentRepository,
+        IUserRepository userRepository,
         ICurrentUserService currentUserService)
     {
         _reviewRepository = reviewRepository;
         _orderItemRepository = orderItemRepository;
         _appointmentRepository = appointmentRepository;
+        _userRepository = userRepository;
         _currentUserService = currentUserService;
     }
 
@@ -60,9 +63,13 @@ public class CreateReviewCommandHandler : IRequestHandler<CreateReviewCommand, R
                 throw new ConflictException("Već ste ostavili recenziju za ovaj termin.");
         }
 
+        var user = await _userRepository.GetByIdAsync(userId)
+            ?? throw new NotFoundException("Korisnik", userId);
+
         var review = new Review
         {
             UserId = userId,
+            UserFullName = $"{user.FirstName} {user.LastName}",
             Rating = request.Rating,
             Comment = request.Comment,
             ReviewType = reviewType,

@@ -36,6 +36,8 @@ public class CheckInCommandHandler : IRequestHandler<CheckInCommand, GymVisitRes
         var visit = new GymVisit
         {
             UserId = request.UserId,
+            UserFullName = $"{user.FirstName} {user.LastName}",
+            Username = user.Username,
             CheckInAt = DateTime.UtcNow
         };
 

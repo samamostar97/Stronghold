@@ -6,6 +6,7 @@ public class Order : BaseEntity
 {
     public int UserId { get; set; }
     public User User { get; set; } = null!;
+    public string UserFullName { get; set; } = string.Empty;
     public decimal TotalAmount { get; set; }
     public string DeliveryAddress { get; set; } = string.Empty;
     public OrderStatus Status { get; set; } = OrderStatus.Pending;

@@ -10,6 +10,8 @@ public class GymVisitConfiguration : IEntityTypeConfiguration<GymVisit>
     {
         builder.HasKey(v => v.Id);
 
+        builder.Property(v => v.UserFullName).IsRequired().HasMaxLength(200);
+        builder.Property(v => v.Username).IsRequired().HasMaxLength(100);
         builder.Property(v => v.CheckInAt).IsRequired();
 
         builder.HasOne(v => v.User)
