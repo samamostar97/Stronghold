@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
@@ -28,6 +29,7 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
   int? _categoryId;
   int? _supplierId;
   bool _loading = false;
+  String? _errorMessage;
 
   // Image
   String? _selectedImagePath;
@@ -102,16 +104,16 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_categoryId == null || _supplierId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Odaberite kategoriju i dobavljaca.'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      setState(() {
+        _errorMessage = 'Odaberite kategoriju i dobavljaca.';
+      });
       return;
     }
 
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
     try {
       final repo = ref.read(productsRepositoryProvider);
       ProductResponse saved;
@@ -164,12 +166,9 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        setState(() {
+          _errorMessage = e.toString();
+        });
       }
     } finally {
       if (mounted) {
@@ -234,13 +233,31 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
                       Expanded(
                         child: _buildField('Cijena (KM)', _price,
                             required: true,
-                            keyboardType: TextInputType.number),
+                            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                            ],
+                            customValidator: (v) {
+                              final val = double.tryParse(v!);
+                              if (val == null) return 'Unesite ispravnu cijenu.';
+                              if (val <= 0) return 'Cijena mora biti veca od 0.';
+                              return null;
+                            }),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildField('Stanje', _stock,
                             required: true,
-                            keyboardType: TextInputType.number),
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                            ],
+                            customValidator: (v) {
+                              final val = int.tryParse(v!);
+                              if (val == null) return 'Unesite ispravan broj.';
+                              if (val < 0) return 'Stanje ne moze biti negativno.';
+                              return null;
+                            }),
                       ),
                     ],
                   ),
@@ -288,6 +305,28 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+
+                  // Error message
+                  if (_errorMessage != null) ...[
+                    const SizedBox(height: 14),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                            color: AppColors.error.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        _errorMessage!,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.error,
+                          fontSize: 12,
+                        ),
+                      ),
                     ),
                   ],
 
@@ -453,6 +492,8 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
     bool required = false,
     TextInputType? keyboardType,
     int maxLines = 1,
+    List<TextInputFormatter>? inputFormatters,
+    String? Function(String?)? customValidator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,11 +504,17 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
           controller: controller,
           keyboardType: keyboardType,
           maxLines: maxLines,
+          inputFormatters: inputFormatters,
           style: AppTextStyles.body.copyWith(fontSize: 13),
-          validator: required
-              ? (v) =>
-                  v == null || v.trim().isEmpty ? 'Obavezno polje' : null
-              : null,
+          validator: (v) {
+            if (required && (v == null || v.trim().isEmpty)) {
+              return 'Obavezno polje';
+            }
+            if (customValidator != null && v != null && v.trim().isNotEmpty) {
+              return customValidator(v.trim());
+            }
+            return null;
+          },
           decoration: InputDecoration(
             filled: true,
             fillColor: AppColors.background,
