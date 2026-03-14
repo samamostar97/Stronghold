@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/network/api_client.dart';
+import '../../../core/network/api_exception.dart';
 import '../models/membership_package_response.dart';
 
 class MembershipPackagesRepository {
@@ -62,7 +63,11 @@ class MembershipPackagesRepository {
   }
 
   Future<void> deletePackage(int id) async {
-    await _dio.delete('/membership-packages/$id');
+    try {
+      await _dio.delete('/membership-packages/$id');
+    } on DioException catch (e) {
+      throw ApiException.fromDioException(e);
+    }
   }
 }
 
