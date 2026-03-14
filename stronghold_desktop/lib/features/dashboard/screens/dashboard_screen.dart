@@ -3,6 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../gym/widgets/check_in_modal.dart';
+import '../../memberships/widgets/assign_membership_modal.dart';
+import '../../products/widgets/product_form_modal.dart';
+import '../../users/widgets/user_form_modal.dart';
 import '../providers/dashboard_provider.dart';
 import '../widgets/stat_card.dart';
 import '../widgets/quick_action_card.dart';
@@ -209,28 +213,40 @@ class _QuickActionsGrid extends StatelessWidget {
         icon: Icons.login_rounded,
         label: 'Check-in korisnika',
         onTap: () {
-          // TODO: open check-in modal
+          showDialog(
+            context: context,
+            builder: (_) => const CheckInModal(),
+          );
         },
       ),
       QuickActionCard(
         icon: Icons.person_add_outlined,
         label: 'Dodaj korisnika',
         onTap: () {
-          // TODO: open add user modal
+          showDialog(
+            context: context,
+            builder: (_) => const UserFormModal(),
+          );
         },
       ),
       QuickActionCard(
-        icon: Icons.check_circle_outline,
-        label: 'Odobri termin',
+        icon: Icons.card_membership_outlined,
+        label: 'Dodaj clanarinu',
         onTap: () {
-          // TODO: open approve appointment modal
+          showDialog(
+            context: context,
+            builder: (_) => const AssignMembershipModal(),
+          );
         },
       ),
       QuickActionCard(
         icon: Icons.add_box_outlined,
         label: 'Dodaj proizvod',
         onTap: () {
-          // TODO: open add product modal
+          showDialog(
+            context: context,
+            builder: (_) => const ProductFormModal(),
+          );
         },
       ),
     ];
