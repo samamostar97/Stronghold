@@ -16,9 +16,21 @@ public class CreateStaffCommandHandler : IRequestHandler<CreateStaffCommand, Sta
 
     public async Task<StaffResponse> Handle(CreateStaffCommand request, CancellationToken cancellationToken)
     {
+        var fieldErrors = new Dictionary<string, string>();
+
         var existingByEmail = await _staffRepository.GetByEmailAsync(request.Email);
         if (existingByEmail != null)
-            throw new ConflictException("Email je već registrovan.");
+            fieldErrors["email"] = "Email je već registrovan.";
+
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var existingByPhone = await _staffRepository.GetByPhoneAsync(request.Phone);
+            if (existingByPhone != null)
+                fieldErrors["phone"] = "Broj telefona je već registrovan.";
+        }
+
+        if (fieldErrors.Count > 0)
+            throw new ConflictException(fieldErrors);
 
         var staff = new Domain.Entities.Staff
         {

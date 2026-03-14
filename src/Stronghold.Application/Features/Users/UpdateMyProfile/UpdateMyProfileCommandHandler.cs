@@ -20,6 +20,16 @@ public class UpdateMyProfileCommandHandler : IRequestHandler<UpdateMyProfileComm
         var user = await _userRepository.GetByIdAsync(_currentUserService.UserId)
             ?? throw new NotFoundException("Korisnik", _currentUserService.UserId);
 
+        if (!string.IsNullOrWhiteSpace(request.Phone) && user.Phone != request.Phone)
+        {
+            var existingByPhone = await _userRepository.GetByPhoneAsync(request.Phone);
+            if (existingByPhone != null)
+                throw new ConflictException(new Dictionary<string, string>
+                {
+                    ["phone"] = "Broj telefona je već registrovan."
+                });
+        }
+
         user.FirstName = request.FirstName;
         user.LastName = request.LastName;
         user.Phone = request.Phone;

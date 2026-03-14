@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Stronghold.Infrastructure.Persistence;
 
@@ -11,9 +12,11 @@ using Stronghold.Infrastructure.Persistence;
 namespace Stronghold.Infrastructure.Migrations
 {
     [DbContext(typeof(StrongholdDbContext))]
-    partial class StrongholdDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260314131007_AddUniquePhoneIndex")]
+    partial class AddUniquePhoneIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -602,10 +605,6 @@ namespace Stronghold.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique();
-
-                    b.HasIndex("Phone")
-                        .IsUnique()
-                        .HasFilter("IsDeleted = 0 AND Phone IS NOT NULL");
 
                     b.ToTable("Staff");
                 });

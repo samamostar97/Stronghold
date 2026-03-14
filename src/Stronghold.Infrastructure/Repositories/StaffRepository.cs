@@ -13,4 +13,9 @@ public class StaffRepository : Repository<Staff>, IStaffRepository
     {
         return await _dbSet.FirstOrDefaultAsync(s => s.Email == email);
     }
+
+    public async Task<Staff?> GetByPhoneAsync(string phone)
+    {
+        return await _dbSet.FirstOrDefaultAsync(s => s.Phone == phone);
+    }
 }

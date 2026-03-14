@@ -19,12 +19,24 @@ public class UpdateStaffCommandHandler : IRequestHandler<UpdateStaffCommand, Sta
         var staff = await _staffRepository.GetByIdAsync(request.Id)
             ?? throw new NotFoundException("Osoblje", request.Id);
 
+        var fieldErrors = new Dictionary<string, string>();
+
         if (staff.Email != request.Email)
         {
             var existingByEmail = await _staffRepository.GetByEmailAsync(request.Email);
             if (existingByEmail != null)
-                throw new ConflictException("Email je već registrovan.");
+                fieldErrors["email"] = "Email je već registrovan.";
         }
+
+        if (!string.IsNullOrWhiteSpace(request.Phone) && staff.Phone != request.Phone)
+        {
+            var existingByPhone = await _staffRepository.GetByPhoneAsync(request.Phone);
+            if (existingByPhone != null)
+                fieldErrors["phone"] = "Broj telefona je već registrovan.";
+        }
+
+        if (fieldErrors.Count > 0)
+            throw new ConflictException(fieldErrors);
 
         staff.FirstName = request.FirstName;
         staff.LastName = request.LastName;

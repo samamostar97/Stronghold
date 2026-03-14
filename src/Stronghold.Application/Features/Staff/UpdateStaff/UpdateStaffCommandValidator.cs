@@ -23,7 +23,9 @@ public class UpdateStaffCommandValidator : AbstractValidator<UpdateStaffCommand>
             .MaximumLength(200).WithMessage("Email ne smije biti duži od 200 karaktera.");
 
         RuleFor(x => x.Phone)
-            .MaximumLength(20).WithMessage("Broj telefona ne smije biti duži od 20 karaktera.");
+            .MaximumLength(20).WithMessage("Broj telefona ne smije biti duži od 20 karaktera.")
+            .Matches(@"^\+?[0-9\s\-]{7,20}$").WithMessage("Neispravan format broja telefona.")
+            .When(x => !string.IsNullOrWhiteSpace(x.Phone));
 
         RuleFor(x => x.Bio)
             .MaximumLength(1000).WithMessage("Biografija ne smije biti duža od 1000 karaktera.");

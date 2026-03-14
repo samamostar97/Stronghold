@@ -22,5 +22,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
 
         builder.HasIndex(u => u.Username).IsUnique().HasFilter("IsDeleted = 0");
         builder.HasIndex(u => u.Email).IsUnique().HasFilter("IsDeleted = 0");
+        builder.HasIndex(u => u.Phone).IsUnique().HasFilter("IsDeleted = 0 AND Phone IS NOT NULL");
     }
 }

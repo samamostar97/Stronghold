@@ -5,4 +5,5 @@ namespace Stronghold.Application.Interfaces;
 public interface IStaffRepository : IRepository<Staff>
 {
     Task<Staff?> GetByEmailAsync(string email);
+    Task<Staff?> GetByPhoneAsync(string phone);
 }

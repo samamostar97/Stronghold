@@ -33,13 +33,25 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 
     public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
+        var fieldErrors = new Dictionary<string, string>();
+
         var existingByUsername = await _userRepository.GetByUsernameAsync(request.Username);
         if (existingByUsername != null)
-            throw new ConflictException("Korisničko ime je već zauzeto.");
+            fieldErrors["username"] = "Korisničko ime je već zauzeto.";
 
         var existingByEmail = await _userRepository.GetByEmailAsync(request.Email);
         if (existingByEmail != null)
-            throw new ConflictException("Email je već registrovan.");
+            fieldErrors["email"] = "Email je već registrovan.";
+
+        if (!string.IsNullOrWhiteSpace(request.Phone))
+        {
+            var existingByPhone = await _userRepository.GetByPhoneAsync(request.Phone);
+            if (existingByPhone != null)
+                fieldErrors["phone"] = "Broj telefona je već registrovan.";
+        }
+
+        if (fieldErrors.Count > 0)
+            throw new ConflictException(fieldErrors);
 
         var user = new User
         {
