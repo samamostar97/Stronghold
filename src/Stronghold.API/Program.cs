@@ -43,6 +43,7 @@ using (var scope = app.Services.CreateScope())
     await context.Database.EnsureCreatedAsync();
     await AdminSeeder.SeedAsync(context);
     await LevelSeeder.SeedAsync(context);
+    await DataSeeder.SeedAsync(context);
 }
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();

@@ -21,6 +21,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 
-RUN mkdir -p /app/uploads
+# Copy seed images into the container
+COPY src/Stronghold.API/uploads/ /app/uploads/
 ENV ASPNETCORE_URLS=http://+:5272
 ENTRYPOINT ["dotnet", "Stronghold.API.dll"]
