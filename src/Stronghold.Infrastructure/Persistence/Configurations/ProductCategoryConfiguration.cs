@@ -13,6 +13,6 @@ public class ProductCategoryConfiguration : IEntityTypeConfiguration<ProductCate
         builder.Property(c => c.Name).IsRequired().HasMaxLength(200);
         builder.Property(c => c.Description).HasMaxLength(500);
 
-        builder.HasIndex(c => c.Name).IsUnique();
+        builder.HasIndex(c => c.Name).IsUnique().HasFilter("IsDeleted = 0");
     }
 }

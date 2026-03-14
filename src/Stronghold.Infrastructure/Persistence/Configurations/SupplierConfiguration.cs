@@ -15,6 +15,6 @@ public class SupplierConfiguration : IEntityTypeConfiguration<Supplier>
         builder.Property(s => s.Phone).HasMaxLength(20);
         builder.Property(s => s.Website).HasMaxLength(500);
 
-        builder.HasIndex(s => s.Email).IsUnique();
+        builder.HasIndex(s => s.Email).IsUnique().HasFilter("IsDeleted = 0");
     }
 }
