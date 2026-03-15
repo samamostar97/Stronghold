@@ -25,6 +25,9 @@ public class UndoDeleteCommandHandler : IRequestHandler<UndoDeleteCommand, Unit>
 
         await _undoService.UndoDeleteAsync(auditLog.EntityType, auditLog.EntityId);
 
+        auditLog.CanUndoUntil = DateTime.UtcNow;
+        await _auditLogRepository.SaveChangesAsync();
+
         return Unit.Value;
     }
 }
