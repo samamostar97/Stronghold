@@ -20,8 +20,11 @@ import '../../features/products/screens/suppliers_screen.dart';
 import '../../features/users/screens/leaderboard_screen.dart';
 import '../../features/users/screens/users_screen.dart';
 import '../../features/audit_logs/screens/audit_logs_screen.dart';
+import '../../features/reports/screens/revenue_report_screen.dart';
+import '../../features/reports/screens/users_report_screen.dart';
+import '../../features/reports/screens/products_report_screen.dart';
+import '../../features/reports/screens/appointments_report_screen.dart';
 import '../../shared/widgets/app_shell.dart';
-import '../../shared/widgets/placeholder_page.dart';
 
 // Listenable that notifies GoRouter when auth state changes
 class _AuthNotifier extends ChangeNotifier {
@@ -180,25 +183,25 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/reports',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Izvjestaji - Prihodi'),
+              child: RevenueReportScreen(),
             ),
           ),
           GoRoute(
             path: '/reports/users',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Izvjestaji - Korisnici'),
+              child: UsersReportScreen(),
             ),
           ),
           GoRoute(
             path: '/reports/products',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Izvjestaji - Proizvodi'),
+              child: ProductsReportScreen(),
             ),
           ),
           GoRoute(
             path: '/reports/appointments',
             pageBuilder: (context, state) => const NoTransitionPage(
-              child: PlaceholderPage(title: 'Izvjestaji - Termini'),
+              child: AppointmentsReportScreen(),
             ),
           ),
 

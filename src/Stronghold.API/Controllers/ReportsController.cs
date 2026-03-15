@@ -1,6 +1,8 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Stronghold.Application.Features.Reports;
 using Stronghold.Application.Features.Reports.AppointmentsReport;
 using Stronghold.Application.Features.Reports.MembershipRevenueReport;
 using Stronghold.Application.Features.Reports.OrderRevenueReport;
@@ -25,6 +27,11 @@ public class ReportsController : ControllerBase
     [HttpGet("revenue")]
     public async Task<IActionResult> GetRevenueReport([FromQuery] RevenueReportQuery query)
     {
+        if (IsJsonFormat(query.Format))
+        {
+            var data = await _mediator.Send(new RevenueReportDataQuery { From = query.From, To = query.To });
+            return Ok(data);
+        }
         var result = await _mediator.Send(query);
         return File(result.FileContent, result.ContentType, result.FileName);
     }
@@ -32,6 +39,11 @@ public class ReportsController : ControllerBase
     [HttpGet("revenue/orders")]
     public async Task<IActionResult> GetOrderRevenueReport([FromQuery] OrderRevenueReportQuery query)
     {
+        if (IsJsonFormat(query.Format))
+        {
+            var data = await _mediator.Send(new OrderRevenueReportDataQuery { From = query.From, To = query.To });
+            return Ok(data);
+        }
         var result = await _mediator.Send(query);
         return File(result.FileContent, result.ContentType, result.FileName);
     }
@@ -39,6 +51,11 @@ public class ReportsController : ControllerBase
     [HttpGet("revenue/memberships")]
     public async Task<IActionResult> GetMembershipRevenueReport([FromQuery] MembershipRevenueReportQuery query)
     {
+        if (IsJsonFormat(query.Format))
+        {
+            var data = await _mediator.Send(new MembershipRevenueReportDataQuery { From = query.From, To = query.To });
+            return Ok(data);
+        }
         var result = await _mediator.Send(query);
         return File(result.FileContent, result.ContentType, result.FileName);
     }
@@ -46,6 +63,11 @@ public class ReportsController : ControllerBase
     [HttpGet("users")]
     public async Task<IActionResult> GetUsersReport([FromQuery] UsersReportQuery query)
     {
+        if (IsJsonFormat(query.Format))
+        {
+            var data = await _mediator.Send(new UsersReportDataQuery { From = query.From, To = query.To });
+            return Ok(data);
+        }
         var result = await _mediator.Send(query);
         return File(result.FileContent, result.ContentType, result.FileName);
     }
@@ -53,6 +75,11 @@ public class ReportsController : ControllerBase
     [HttpGet("products")]
     public async Task<IActionResult> GetProductsReport([FromQuery] ProductsReportQuery query)
     {
+        if (IsJsonFormat(query.Format))
+        {
+            var data = await _mediator.Send(new ProductsReportDataQuery { From = query.From, To = query.To });
+            return Ok(data);
+        }
         var result = await _mediator.Send(query);
         return File(result.FileContent, result.ContentType, result.FileName);
     }
@@ -60,7 +87,15 @@ public class ReportsController : ControllerBase
     [HttpGet("appointments")]
     public async Task<IActionResult> GetAppointmentsReport([FromQuery] AppointmentsReportQuery query)
     {
+        if (IsJsonFormat(query.Format))
+        {
+            var data = await _mediator.Send(new AppointmentsReportDataQuery { From = query.From, To = query.To });
+            return Ok(data);
+        }
         var result = await _mediator.Send(query);
         return File(result.FileContent, result.ContentType, result.FileName);
     }
+
+    private static bool IsJsonFormat(string format) =>
+        string.Equals(format, "json", StringComparison.OrdinalIgnoreCase);
 }
