@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/product_response.dart';
 import '../models/product_category_response.dart';
 import '../models/supplier_response.dart';
@@ -155,14 +156,9 @@ class _ProductFormModalState extends ConsumerState<ProductFormModal> {
       ref.invalidate(productsListProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing
-                ? 'Proizvod uspjesno azuriran.'
-                : 'Proizvod uspjesno dodan.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, isEditing
+            ? 'Proizvod uspjesno azuriran.'
+            : 'Proizvod uspjesno dodan.');
       }
     } catch (e) {
       if (mounted) {

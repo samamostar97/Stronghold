@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/membership_packages_repository.dart';
 import '../models/membership_package_response.dart';
 import '../providers/membership_packages_provider.dart';
@@ -70,23 +71,13 @@ class _PackageFormModalState extends ConsumerState<PackageFormModal> {
       ref.invalidate(membershipPackagesListProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing
-                ? 'Paket uspjesno azuriran.'
-                : 'Paket uspjesno kreiran.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, isEditing
+            ? 'Paket uspjesno azuriran.'
+            : 'Paket uspjesno kreiran.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppSnackbar.error(context, 'Greska: $e');
       }
     } finally {
       if (mounted) setState(() => _loading = false);

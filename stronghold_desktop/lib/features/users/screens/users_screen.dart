@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/users_repository.dart';
 import '../models/user_response.dart';
 import '../providers/users_provider.dart';
@@ -76,22 +77,11 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 await repo.deleteUser(user.id);
                 ref.invalidate(usersListProvider);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          '${user.firstName} ${user.lastName} je obrisan/a.'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppSnackbar.success(context, '${user.firstName} ${user.lastName} je obrisan/a.');
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Greska: $e'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
+                  AppSnackbar.error(context, 'Greska: $e');
                 }
               }
             },

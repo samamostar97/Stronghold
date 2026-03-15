@@ -6,6 +6,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/staff_response.dart';
 import '../providers/staff_provider.dart';
 
@@ -122,14 +123,9 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
       ref.invalidate(staffListProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing
-                ? 'Osoblje uspjesno azurirano.'
-                : 'Osoblje uspjesno dodano.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, isEditing
+            ? 'Osoblje uspjesno azurirano.'
+            : 'Osoblje uspjesno dodano.');
       }
     } catch (e) {
       if (mounted) {

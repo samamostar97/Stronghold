@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/staff_response.dart';
 import '../providers/staff_provider.dart';
 import '../widgets/staff_table.dart';
@@ -76,22 +77,11 @@ class _StaffScreenState extends ConsumerState<StaffScreen> {
                 await repo.deleteStaff(staff.id);
                 ref.invalidate(staffListProvider);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          '${staff.firstName} ${staff.lastName} je obrisan/a.'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppSnackbar.success(context, '${staff.firstName} ${staff.lastName} je obrisan/a.');
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Greska: $e'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
+                  AppSnackbar.error(context, 'Greska: $e');
                 }
               }
             },

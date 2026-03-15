@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/audit_log_response.dart';
 import '../providers/audit_logs_provider.dart';
 
@@ -78,24 +79,15 @@ class _AuditLogDetailModalState extends ConsumerState<AuditLogDetailModal> {
       ref.invalidate(auditLogsProvider);
       if (mounted) {
         navigator.pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text(
-              '${_entityTypeLabel(widget.log.entityType)} #${widget.log.entityId} je uspjesno vracen.',
-            ),
-            backgroundColor: AppColors.success,
-          ),
+        AppSnackbar.successWithMessenger(
+          messenger,
+          '${_entityTypeLabel(widget.log.entityType)} #${widget.log.entityId} je uspjesno vracen.',
         );
       }
     } catch (e) {
       if (mounted) {
         navigator.pop();
-        messenger.showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppSnackbar.errorWithMessenger(messenger, 'Greska: $e');
       }
     } finally {
       if (mounted) setState(() => _loading = false);

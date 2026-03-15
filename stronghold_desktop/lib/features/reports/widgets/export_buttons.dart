@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../providers/reports_provider.dart';
 
 class ExportButtons extends ConsumerStatefulWidget {
@@ -65,21 +66,11 @@ class _ExportButtonsState extends ConsumerState<ExportButtons> {
       await file.writeAsBytes(response.data as List<int>);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Izvjestaj sacuvan: ${file.path}'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, 'Izvjestaj sacuvan: ${file.path}');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska pri exportu: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppSnackbar.error(context, 'Greska pri exportu: $e');
       }
     } finally {
       if (mounted) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/product_category_response.dart';
 import '../providers/products_provider.dart';
 import '../widgets/category_form_modal.dart';
@@ -50,21 +51,11 @@ class CategoriesScreen extends ConsumerWidget {
                 await repo.deleteCategory(category.id);
                 ref.invalidate(categoriesListProvider);
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('"${category.name}" je obrisana.'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppSnackbar.success(context, '"${category.name}" je obrisana.');
                 }
               } catch (e) {
                 if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Greska: $e'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
+                  AppSnackbar.error(context, 'Greska: $e');
                 }
               }
             },

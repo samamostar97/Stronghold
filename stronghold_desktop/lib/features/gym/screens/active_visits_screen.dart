@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/gym_repository.dart';
 import '../models/gym_visit_response.dart';
 import '../providers/gym_provider.dart';
@@ -57,22 +58,11 @@ class _ActiveVisitsScreenState extends ConsumerState<ActiveVisitsScreen> {
                 ref.invalidate(activeVisitsProvider);
                 ref.invalidate(visitHistoryProvider);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          '${visit.userFullName} uspjesno odjavljen/a.'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppSnackbar.success(context, '${visit.userFullName} uspjesno odjavljen/a.');
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Greska: $e'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
+                  AppSnackbar.error(context, 'Greska: $e');
                 }
               }
             },

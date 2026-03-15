@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/memberships_repository.dart';
 import '../models/user_membership_response.dart';
 import '../providers/memberships_provider.dart';
@@ -67,21 +68,11 @@ class _ActiveMembershipsScreenState
                 ref.invalidate(activeMembershipsProvider);
                 ref.invalidate(membershipHistoryProvider);
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Clanarina uspjesno ukinuta.'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                  AppSnackbar.success(context, 'Clanarina uspjesno ukinuta.');
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Greska: $e'),
-                      backgroundColor: AppColors.error,
-                    ),
-                  );
+                  AppSnackbar.error(context, 'Greska: $e');
                 }
               }
             },

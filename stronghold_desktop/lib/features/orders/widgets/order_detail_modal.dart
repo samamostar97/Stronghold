@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/order_response.dart';
 import '../providers/orders_provider.dart';
 
@@ -52,21 +53,11 @@ class _OrderDetailModalState extends ConsumerState<OrderDetailModal> {
       ref.invalidate(orderHistoryProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Narudzba #${widget.order.id} je potvrdjenja.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, 'Narudzba #${widget.order.id} je potvrdjenja.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppSnackbar.error(context, 'Greska: $e');
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -82,21 +73,11 @@ class _OrderDetailModalState extends ConsumerState<OrderDetailModal> {
       ref.invalidate(orderHistoryProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Narudzba #${widget.order.id} je poslana na dostavu.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, 'Narudzba #${widget.order.id} je poslana na dostavu.');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Greska: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        AppSnackbar.error(context, 'Greska: $e');
       }
     } finally {
       if (mounted) setState(() => _loading = false);

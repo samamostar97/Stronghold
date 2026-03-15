@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/membership_packages_repository.dart';
 import '../data/memberships_repository.dart';
 import '../models/membership_package_response.dart';
@@ -95,12 +96,7 @@ class _AssignMembershipModalState
       ref.invalidate(activeMembershipsProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Clanarina uspjesno dodijeljena.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, 'Clanarina uspjesno dodijeljena.');
       }
     } catch (e) {
       if (mounted) {

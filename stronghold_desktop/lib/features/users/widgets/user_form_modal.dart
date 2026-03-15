@@ -6,6 +6,7 @@ import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/users_repository.dart';
 import '../models/user_response.dart';
 import '../providers/users_provider.dart';
@@ -125,14 +126,9 @@ class _UserFormModalState extends ConsumerState<UserFormModal> {
       ref.invalidate(usersListProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing
-                ? 'Korisnik uspjesno azuriran.'
-                : 'Korisnik uspjesno dodan.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, isEditing
+            ? 'Korisnik uspjesno azuriran.'
+            : 'Korisnik uspjesno dodan.');
       }
     } catch (e) {
       if (mounted) {

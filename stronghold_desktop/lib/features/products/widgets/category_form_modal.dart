@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/product_category_response.dart';
 import '../providers/products_provider.dart';
 
@@ -67,14 +68,9 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
       ref.invalidate(categoriesListProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing
-                ? 'Kategorija uspjesno azurirana.'
-                : 'Kategorija uspjesno dodana.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, isEditing
+            ? 'Kategorija uspjesno azurirana.'
+            : 'Kategorija uspjesno dodana.');
       }
     } catch (e) {
       if (mounted) {

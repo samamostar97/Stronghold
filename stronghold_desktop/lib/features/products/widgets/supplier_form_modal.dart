@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../models/supplier_response.dart';
 import '../providers/products_provider.dart';
 
@@ -74,14 +75,9 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
       ref.invalidate(suppliersListProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isEditing
-                ? 'Dobavljac uspjesno azuriran.'
-                : 'Dobavljac uspjesno dodan.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, isEditing
+            ? 'Dobavljac uspjesno azuriran.'
+            : 'Dobavljac uspjesno dodan.');
       }
     } catch (e) {
       if (mounted) {

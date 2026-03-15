@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
+import '../../../shared/widgets/app_snackbar.dart';
 import '../data/gym_repository.dart';
 import '../models/eligible_member_response.dart';
 import '../providers/gym_provider.dart';
@@ -69,13 +70,7 @@ class _CheckInModalState extends ConsumerState<CheckInModal> {
       ref.invalidate(activeVisitsProvider);
       if (mounted) {
         Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content:
-                Text('${member.userFullName} uspjesno prijavljen/a.'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppSnackbar.success(context, '${member.userFullName} uspjesno prijavljen/a.');
       }
     } catch (e) {
       if (mounted) {
