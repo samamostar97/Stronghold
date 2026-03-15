@@ -15,6 +15,19 @@ _RevenueReportData _$RevenueReportDataFromJson(Map<String, dynamic> json) =>
       totalRevenue: (json['totalRevenue'] as num).toDouble(),
       orderCount: (json['orderCount'] as num).toInt(),
       membershipCount: (json['membershipCount'] as num).toInt(),
+      orderItems:
+          (json['orderItems'] as List<dynamic>?)
+              ?.map((e) => OrderRevenueItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      membershipItems:
+          (json['membershipItems'] as List<dynamic>?)
+              ?.map(
+                (e) =>
+                    MembershipRevenueItem.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$RevenueReportDataToJson(_RevenueReportData instance) =>
@@ -26,6 +39,8 @@ Map<String, dynamic> _$RevenueReportDataToJson(_RevenueReportData instance) =>
       'totalRevenue': instance.totalRevenue,
       'orderCount': instance.orderCount,
       'membershipCount': instance.membershipCount,
+      'orderItems': instance.orderItems,
+      'membershipItems': instance.membershipItems,
     };
 
 _OrderRevenueReportData _$OrderRevenueReportDataFromJson(

@@ -23,14 +23,18 @@ public class RevenueReportQueryHandler : IRequestHandler<RevenueReportQuery, Rep
 
     public async Task<ReportResult> Handle(RevenueReportQuery request, CancellationToken cancellationToken)
     {
-        var orders = await _orderRepository.Query()
+        var orders = await _orderRepository.QueryAll()
+            .Include(o => o.User)
             .Where(o => o.Status == OrderStatus.Confirmed || o.Status == OrderStatus.Shipped)
             .Where(o => o.CreatedAt >= request.From && o.CreatedAt <= request.To)
+            .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(cancellationToken);
 
         var memberships = await _membershipRepository.QueryAll()
+            .Include(m => m.User)
             .Include(m => m.MembershipPackage)
             .Where(m => m.CreatedAt >= request.From && m.CreatedAt <= request.To)
+            .OrderByDescending(m => m.CreatedAt)
             .ToListAsync(cancellationToken);
 
         var orderRevenue = orders.Sum(o => o.TotalAmount);
@@ -44,7 +48,24 @@ public class RevenueReportQueryHandler : IRequestHandler<RevenueReportQuery, Rep
             MembershipRevenue = membershipRevenue,
             TotalRevenue = orderRevenue + membershipRevenue,
             OrderCount = orders.Count,
-            MembershipCount = memberships.Count
+            MembershipCount = memberships.Count,
+            OrderItems = orders.Select(o => new OrderRevenueItem
+            {
+                OrderId = o.Id,
+                UserName = !string.IsNullOrEmpty(o.UserFullName) ? o.UserFullName : $"{o.User.FirstName} {o.User.LastName}",
+                TotalAmount = o.TotalAmount,
+                Status = o.Status.ToString(),
+                CreatedAt = o.CreatedAt
+            }).ToList(),
+            MembershipItems = memberships.Select(m => new MembershipRevenueItem
+            {
+                MembershipId = m.Id,
+                UserName = !string.IsNullOrEmpty(m.UserFullName) ? m.UserFullName : $"{m.User.FirstName} {m.User.LastName}",
+                PackageName = !string.IsNullOrEmpty(m.PackageName) ? m.PackageName : m.MembershipPackage?.Name ?? "-",
+                Price = m.PackagePrice > 0 ? m.PackagePrice : m.MembershipPackage?.Price ?? 0,
+                StartDate = m.StartDate,
+                EndDate = m.EndDate
+            }).ToList()
         };
 
         return request.Format.ToLower() == "excel"

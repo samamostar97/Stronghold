@@ -9,6 +9,8 @@ public class RevenueReportData
     public decimal TotalRevenue { get; set; }
     public int OrderCount { get; set; }
     public int MembershipCount { get; set; }
+    public List<OrderRevenueItem> OrderItems { get; set; } = new();
+    public List<MembershipRevenueItem> MembershipItems { get; set; } = new();
 }
 
 public class OrderRevenueReportData

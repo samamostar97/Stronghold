@@ -29,8 +29,6 @@ class RevenueReportScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final range = ref.watch(revenueDateRangeProvider);
     final revenueAsync = ref.watch(revenueReportProvider);
-    final ordersAsync = ref.watch(orderRevenueReportProvider);
-    final membershipsAsync = ref.watch(membershipRevenueReportProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(28),
@@ -62,86 +60,83 @@ class RevenueReportScreen extends ConsumerWidget {
 
           const SizedBox(height: 24),
 
-          // Summary stats
           revenueAsync.when(
             loading: () => _buildLoading(),
             error: (e, _) => _buildError(ref),
-            data: (data) => Row(
+            data: (data) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: ReportStatCard(
-                    label: 'Ukupni prihodi',
-                    value: '${data.totalRevenue.toStringAsFixed(2)} KM',
-                    icon: Icons.account_balance_wallet_outlined,
-                    color: AppColors.success,
-                  ),
+                // Summary stats
+                Row(
+                  children: [
+                    Expanded(
+                      child: ReportStatCard(
+                        label: 'Ukupni prihodi',
+                        value: '${data.totalRevenue.toStringAsFixed(2)} KM',
+                        icon: Icons.account_balance_wallet_outlined,
+                        color: AppColors.success,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ReportStatCard(
+                        label: 'Prihodi od narudzbi',
+                        value: '${data.orderRevenue.toStringAsFixed(2)} KM',
+                        icon: Icons.shopping_bag_outlined,
+                        color: AppColors.info,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ReportStatCard(
+                        label: 'Prihodi od clanarina',
+                        value: '${data.membershipRevenue.toStringAsFixed(2)} KM',
+                        icon: Icons.card_membership_outlined,
+                        color: AppColors.warning,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ReportStatCard(
-                    label: 'Prihodi od narudzbi',
-                    value: '${data.orderRevenue.toStringAsFixed(2)} KM',
-                    icon: Icons.shopping_bag_outlined,
-                    color: AppColors.info,
-                  ),
+
+                const SizedBox(height: 32),
+
+                // Orders table
+                Text('Narudzbe', style: AppTextStyles.h3),
+                const SizedBox(height: 12),
+                _buildTable(
+                  headers: ['ID', 'Korisnik', 'Iznos', 'Status', 'Datum'],
+                  rows: data.orderItems
+                      .map((o) => [
+                            '#${o.orderId}',
+                            o.userName,
+                            '${o.totalAmount.toStringAsFixed(2)} KM',
+                            _statusLabel(o.status),
+                            _formatDate(o.createdAt),
+                          ])
+                      .toList(),
+                  emptyMessage: 'Nema narudzbi u odabranom periodu',
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ReportStatCard(
-                    label: 'Prihodi od clanarina',
-                    value: '${data.membershipRevenue.toStringAsFixed(2)} KM',
-                    icon: Icons.card_membership_outlined,
-                    color: AppColors.warning,
-                  ),
+
+                const SizedBox(height: 32),
+
+                // Memberships table
+                Text('Clanarine', style: AppTextStyles.h3),
+                const SizedBox(height: 12),
+                _buildTable(
+                  headers: ['ID', 'Korisnik', 'Paket', 'Cijena', 'Pocetak', 'Kraj'],
+                  rows: data.membershipItems
+                      .map((m) => [
+                            '#${m.membershipId}',
+                            m.userName,
+                            m.packageName,
+                            '${m.price.toStringAsFixed(2)} KM',
+                            _formatDate(m.startDate),
+                            _formatDate(m.endDate),
+                          ])
+                      .toList(),
+                  emptyMessage: 'Nema clanarina u odabranom periodu',
                 ),
               ],
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Orders table
-          Text('Narudzbe', style: AppTextStyles.h3),
-          const SizedBox(height: 12),
-          ordersAsync.when(
-            loading: () => _buildLoading(),
-            error: (e, _) => _buildError(ref),
-            data: (data) => _buildTable(
-              headers: ['ID', 'Korisnik', 'Iznos', 'Status', 'Datum'],
-              rows: data.items
-                  .map((o) => [
-                        '#${o.orderId}',
-                        o.userName,
-                        '${o.totalAmount.toStringAsFixed(2)} KM',
-                        _statusLabel(o.status),
-                        _formatDate(o.createdAt),
-                      ])
-                  .toList(),
-              emptyMessage: 'Nema narudzbi u odabranom periodu',
-            ),
-          ),
-
-          const SizedBox(height: 32),
-
-          // Memberships table
-          Text('Clanarine', style: AppTextStyles.h3),
-          const SizedBox(height: 12),
-          membershipsAsync.when(
-            loading: () => _buildLoading(),
-            error: (e, _) => _buildError(ref),
-            data: (data) => _buildTable(
-              headers: ['ID', 'Korisnik', 'Paket', 'Cijena', 'Pocetak', 'Kraj'],
-              rows: data.items
-                  .map((m) => [
-                        '#${m.membershipId}',
-                        m.userName,
-                        m.packageName,
-                        '${m.price.toStringAsFixed(2)} KM',
-                        _formatDate(m.startDate),
-                        _formatDate(m.endDate),
-                      ])
-                  .toList(),
-              emptyMessage: 'Nema clanarina u odabranom periodu',
             ),
           ),
         ],
@@ -178,11 +173,7 @@ class RevenueReportScreen extends ConsumerWidget {
       ),
       child: Center(
         child: TextButton(
-          onPressed: () {
-            ref.invalidate(revenueReportProvider);
-            ref.invalidate(orderRevenueReportProvider);
-            ref.invalidate(membershipRevenueReportProvider);
-          },
+          onPressed: () => ref.invalidate(revenueReportProvider),
           child: Text('Pokusaj ponovo',
               style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary)),
         ),

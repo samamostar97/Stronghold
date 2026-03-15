@@ -14,6 +14,8 @@ abstract class RevenueReportData with _$RevenueReportData {
     required double totalRevenue,
     required int orderCount,
     required int membershipCount,
+    @Default([]) List<OrderRevenueItem> orderItems,
+    @Default([]) List<MembershipRevenueItem> membershipItems,
   }) = _RevenueReportData;
 
   factory RevenueReportData.fromJson(Map<String, dynamic> json) =>

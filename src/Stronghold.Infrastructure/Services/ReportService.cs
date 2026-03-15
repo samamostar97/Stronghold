@@ -20,6 +20,79 @@ public class ReportService : IReportService
             container.Item().Text($"Ukupni prihod: {data.TotalRevenue:N2} KM").SemiBold().FontSize(14);
             container.Item().PaddingTop(5).Text($"Prihod od narudžbi: {data.OrderRevenue:N2} KM ({data.OrderCount} narudžbi)");
             container.Item().Text($"Prihod od članarina: {data.MembershipRevenue:N2} KM ({data.MembershipCount} članarina)");
+
+            // Orders table
+            if (data.OrderItems.Count > 0)
+            {
+                container.Item().PaddingTop(20).Text("Narudžbe").SemiBold().FontSize(12);
+                container.Item().PaddingTop(5).Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(50);
+                        columns.RelativeColumn(2);
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCellStyle).Text("#");
+                        header.Cell().Element(HeaderCellStyle).Text("Korisnik");
+                        header.Cell().Element(HeaderCellStyle).Text("Iznos (KM)");
+                        header.Cell().Element(HeaderCellStyle).Text("Status");
+                        header.Cell().Element(HeaderCellStyle).Text("Datum");
+                    });
+
+                    foreach (var item in data.OrderItems)
+                    {
+                        table.Cell().Element(CellStyle).Text(item.OrderId.ToString());
+                        table.Cell().Element(CellStyle).Text(item.UserName);
+                        table.Cell().Element(CellStyle).Text($"{item.TotalAmount:N2}");
+                        table.Cell().Element(CellStyle).Text(item.Status);
+                        table.Cell().Element(CellStyle).Text(item.CreatedAt.ToString(DateFormat));
+                    }
+                });
+            }
+
+            // Memberships table
+            if (data.MembershipItems.Count > 0)
+            {
+                container.Item().PaddingTop(20).Text("Članarine").SemiBold().FontSize(12);
+                container.Item().PaddingTop(5).Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(50);
+                        columns.RelativeColumn(2);
+                        columns.RelativeColumn(2);
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                        columns.RelativeColumn();
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCellStyle).Text("#");
+                        header.Cell().Element(HeaderCellStyle).Text("Korisnik");
+                        header.Cell().Element(HeaderCellStyle).Text("Paket");
+                        header.Cell().Element(HeaderCellStyle).Text("Cijena (KM)");
+                        header.Cell().Element(HeaderCellStyle).Text("Početak");
+                        header.Cell().Element(HeaderCellStyle).Text("Kraj");
+                    });
+
+                    foreach (var item in data.MembershipItems)
+                    {
+                        table.Cell().Element(CellStyle).Text(item.MembershipId.ToString());
+                        table.Cell().Element(CellStyle).Text(item.UserName);
+                        table.Cell().Element(CellStyle).Text(item.PackageName);
+                        table.Cell().Element(CellStyle).Text($"{item.Price:N2}");
+                        table.Cell().Element(CellStyle).Text(item.StartDate.ToString(DateFormat));
+                        table.Cell().Element(CellStyle).Text(item.EndDate.ToString(DateFormat));
+                    }
+                });
+            }
         });
 
         return new ReportResult
@@ -57,6 +130,55 @@ public class ReportService : IReportService
         ws.Cell(7, 1).Style.Font.Bold = true;
         ws.Cell(7, 2).Value = data.TotalRevenue;
         ws.Cell(7, 2).Style.Font.Bold = true;
+
+        // Orders sheet
+        if (data.OrderItems.Count > 0)
+        {
+            var wsOrders = workbook.Worksheets.Add("Narudžbe");
+            wsOrders.Cell(1, 1).Value = "Narudžbe";
+            wsOrders.Cell(1, 1).Style.Font.Bold = true;
+            wsOrders.Cell(1, 1).Style.Font.FontSize = 14;
+
+            var orderHeaders = new[] { "#", "Korisnik", "Iznos (KM)", "Status", "Datum" };
+            WriteExcelHeaders(wsOrders, 3, orderHeaders);
+
+            for (int i = 0; i < data.OrderItems.Count; i++)
+            {
+                var row = 4 + i;
+                var item = data.OrderItems[i];
+                wsOrders.Cell(row, 1).Value = item.OrderId;
+                wsOrders.Cell(row, 2).Value = item.UserName;
+                wsOrders.Cell(row, 3).Value = item.TotalAmount;
+                wsOrders.Cell(row, 4).Value = item.Status;
+                wsOrders.Cell(row, 5).Value = item.CreatedAt.ToString(DateFormat);
+            }
+            wsOrders.Columns().AdjustToContents();
+        }
+
+        // Memberships sheet
+        if (data.MembershipItems.Count > 0)
+        {
+            var wsMemberships = workbook.Worksheets.Add("Članarine");
+            wsMemberships.Cell(1, 1).Value = "Članarine";
+            wsMemberships.Cell(1, 1).Style.Font.Bold = true;
+            wsMemberships.Cell(1, 1).Style.Font.FontSize = 14;
+
+            var membershipHeaders = new[] { "#", "Korisnik", "Paket", "Cijena (KM)", "Početak", "Kraj" };
+            WriteExcelHeaders(wsMemberships, 3, membershipHeaders);
+
+            for (int i = 0; i < data.MembershipItems.Count; i++)
+            {
+                var row = 4 + i;
+                var item = data.MembershipItems[i];
+                wsMemberships.Cell(row, 1).Value = item.MembershipId;
+                wsMemberships.Cell(row, 2).Value = item.UserName;
+                wsMemberships.Cell(row, 3).Value = item.PackageName;
+                wsMemberships.Cell(row, 4).Value = item.Price;
+                wsMemberships.Cell(row, 5).Value = item.StartDate.ToString(DateFormat);
+                wsMemberships.Cell(row, 6).Value = item.EndDate.ToString(DateFormat);
+            }
+            wsMemberships.Columns().AdjustToContents();
+        }
 
         ws.Columns().AdjustToContents();
 

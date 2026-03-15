@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$RevenueReportData {
 
- DateTime get from; DateTime get to; double get orderRevenue; double get membershipRevenue; double get totalRevenue; int get orderCount; int get membershipCount;
+ DateTime get from; DateTime get to; double get orderRevenue; double get membershipRevenue; double get totalRevenue; int get orderCount; int get membershipCount; List<OrderRevenueItem> get orderItems; List<MembershipRevenueItem> get membershipItems;
 /// Create a copy of RevenueReportData
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $RevenueReportDataCopyWith<RevenueReportData> get copyWith => _$RevenueReportDat
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is RevenueReportData&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.orderRevenue, orderRevenue) || other.orderRevenue == orderRevenue)&&(identical(other.membershipRevenue, membershipRevenue) || other.membershipRevenue == membershipRevenue)&&(identical(other.totalRevenue, totalRevenue) || other.totalRevenue == totalRevenue)&&(identical(other.orderCount, orderCount) || other.orderCount == orderCount)&&(identical(other.membershipCount, membershipCount) || other.membershipCount == membershipCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is RevenueReportData&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.orderRevenue, orderRevenue) || other.orderRevenue == orderRevenue)&&(identical(other.membershipRevenue, membershipRevenue) || other.membershipRevenue == membershipRevenue)&&(identical(other.totalRevenue, totalRevenue) || other.totalRevenue == totalRevenue)&&(identical(other.orderCount, orderCount) || other.orderCount == orderCount)&&(identical(other.membershipCount, membershipCount) || other.membershipCount == membershipCount)&&const DeepCollectionEquality().equals(other.orderItems, orderItems)&&const DeepCollectionEquality().equals(other.membershipItems, membershipItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,to,orderRevenue,membershipRevenue,totalRevenue,orderCount,membershipCount);
+int get hashCode => Object.hash(runtimeType,from,to,orderRevenue,membershipRevenue,totalRevenue,orderCount,membershipCount,const DeepCollectionEquality().hash(orderItems),const DeepCollectionEquality().hash(membershipItems));
 
 @override
 String toString() {
-  return 'RevenueReportData(from: $from, to: $to, orderRevenue: $orderRevenue, membershipRevenue: $membershipRevenue, totalRevenue: $totalRevenue, orderCount: $orderCount, membershipCount: $membershipCount)';
+  return 'RevenueReportData(from: $from, to: $to, orderRevenue: $orderRevenue, membershipRevenue: $membershipRevenue, totalRevenue: $totalRevenue, orderCount: $orderCount, membershipCount: $membershipCount, orderItems: $orderItems, membershipItems: $membershipItems)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $RevenueReportDataCopyWith<$Res>  {
   factory $RevenueReportDataCopyWith(RevenueReportData value, $Res Function(RevenueReportData) _then) = _$RevenueReportDataCopyWithImpl;
 @useResult
 $Res call({
- DateTime from, DateTime to, double orderRevenue, double membershipRevenue, double totalRevenue, int orderCount, int membershipCount
+ DateTime from, DateTime to, double orderRevenue, double membershipRevenue, double totalRevenue, int orderCount, int membershipCount, List<OrderRevenueItem> orderItems, List<MembershipRevenueItem> membershipItems
 });
 
 
@@ -65,7 +65,7 @@ class _$RevenueReportDataCopyWithImpl<$Res>
 
 /// Create a copy of RevenueReportData
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? to = null,Object? orderRevenue = null,Object? membershipRevenue = null,Object? totalRevenue = null,Object? orderCount = null,Object? membershipCount = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? from = null,Object? to = null,Object? orderRevenue = null,Object? membershipRevenue = null,Object? totalRevenue = null,Object? orderCount = null,Object? membershipCount = null,Object? orderItems = null,Object? membershipItems = null,}) {
   return _then(_self.copyWith(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as DateTime,to: null == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
@@ -74,7 +74,9 @@ as double,membershipRevenue: null == membershipRevenue ? _self.membershipRevenue
 as double,totalRevenue: null == totalRevenue ? _self.totalRevenue : totalRevenue // ignore: cast_nullable_to_non_nullable
 as double,orderCount: null == orderCount ? _self.orderCount : orderCount // ignore: cast_nullable_to_non_nullable
 as int,membershipCount: null == membershipCount ? _self.membershipCount : membershipCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,orderItems: null == orderItems ? _self.orderItems : orderItems // ignore: cast_nullable_to_non_nullable
+as List<OrderRevenueItem>,membershipItems: null == membershipItems ? _self.membershipItems : membershipItems // ignore: cast_nullable_to_non_nullable
+as List<MembershipRevenueItem>,
   ));
 }
 
@@ -159,10 +161,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime from,  DateTime to,  double orderRevenue,  double membershipRevenue,  double totalRevenue,  int orderCount,  int membershipCount)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DateTime from,  DateTime to,  double orderRevenue,  double membershipRevenue,  double totalRevenue,  int orderCount,  int membershipCount,  List<OrderRevenueItem> orderItems,  List<MembershipRevenueItem> membershipItems)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _RevenueReportData() when $default != null:
-return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_that.totalRevenue,_that.orderCount,_that.membershipCount);case _:
+return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_that.totalRevenue,_that.orderCount,_that.membershipCount,_that.orderItems,_that.membershipItems);case _:
   return orElse();
 
 }
@@ -180,10 +182,10 @@ return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime from,  DateTime to,  double orderRevenue,  double membershipRevenue,  double totalRevenue,  int orderCount,  int membershipCount)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DateTime from,  DateTime to,  double orderRevenue,  double membershipRevenue,  double totalRevenue,  int orderCount,  int membershipCount,  List<OrderRevenueItem> orderItems,  List<MembershipRevenueItem> membershipItems)  $default,) {final _that = this;
 switch (_that) {
 case _RevenueReportData():
-return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_that.totalRevenue,_that.orderCount,_that.membershipCount);case _:
+return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_that.totalRevenue,_that.orderCount,_that.membershipCount,_that.orderItems,_that.membershipItems);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -200,10 +202,10 @@ return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime from,  DateTime to,  double orderRevenue,  double membershipRevenue,  double totalRevenue,  int orderCount,  int membershipCount)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DateTime from,  DateTime to,  double orderRevenue,  double membershipRevenue,  double totalRevenue,  int orderCount,  int membershipCount,  List<OrderRevenueItem> orderItems,  List<MembershipRevenueItem> membershipItems)?  $default,) {final _that = this;
 switch (_that) {
 case _RevenueReportData() when $default != null:
-return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_that.totalRevenue,_that.orderCount,_that.membershipCount);case _:
+return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_that.totalRevenue,_that.orderCount,_that.membershipCount,_that.orderItems,_that.membershipItems);case _:
   return null;
 
 }
@@ -215,7 +217,7 @@ return $default(_that.from,_that.to,_that.orderRevenue,_that.membershipRevenue,_
 @JsonSerializable()
 
 class _RevenueReportData implements RevenueReportData {
-  const _RevenueReportData({required this.from, required this.to, required this.orderRevenue, required this.membershipRevenue, required this.totalRevenue, required this.orderCount, required this.membershipCount});
+  const _RevenueReportData({required this.from, required this.to, required this.orderRevenue, required this.membershipRevenue, required this.totalRevenue, required this.orderCount, required this.membershipCount, final  List<OrderRevenueItem> orderItems = const [], final  List<MembershipRevenueItem> membershipItems = const []}): _orderItems = orderItems,_membershipItems = membershipItems;
   factory _RevenueReportData.fromJson(Map<String, dynamic> json) => _$RevenueReportDataFromJson(json);
 
 @override final  DateTime from;
@@ -225,6 +227,20 @@ class _RevenueReportData implements RevenueReportData {
 @override final  double totalRevenue;
 @override final  int orderCount;
 @override final  int membershipCount;
+ final  List<OrderRevenueItem> _orderItems;
+@override@JsonKey() List<OrderRevenueItem> get orderItems {
+  if (_orderItems is EqualUnmodifiableListView) return _orderItems;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_orderItems);
+}
+
+ final  List<MembershipRevenueItem> _membershipItems;
+@override@JsonKey() List<MembershipRevenueItem> get membershipItems {
+  if (_membershipItems is EqualUnmodifiableListView) return _membershipItems;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableListView(_membershipItems);
+}
+
 
 /// Create a copy of RevenueReportData
 /// with the given fields replaced by the non-null parameter values.
@@ -239,16 +255,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RevenueReportData&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.orderRevenue, orderRevenue) || other.orderRevenue == orderRevenue)&&(identical(other.membershipRevenue, membershipRevenue) || other.membershipRevenue == membershipRevenue)&&(identical(other.totalRevenue, totalRevenue) || other.totalRevenue == totalRevenue)&&(identical(other.orderCount, orderCount) || other.orderCount == orderCount)&&(identical(other.membershipCount, membershipCount) || other.membershipCount == membershipCount));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _RevenueReportData&&(identical(other.from, from) || other.from == from)&&(identical(other.to, to) || other.to == to)&&(identical(other.orderRevenue, orderRevenue) || other.orderRevenue == orderRevenue)&&(identical(other.membershipRevenue, membershipRevenue) || other.membershipRevenue == membershipRevenue)&&(identical(other.totalRevenue, totalRevenue) || other.totalRevenue == totalRevenue)&&(identical(other.orderCount, orderCount) || other.orderCount == orderCount)&&(identical(other.membershipCount, membershipCount) || other.membershipCount == membershipCount)&&const DeepCollectionEquality().equals(other._orderItems, _orderItems)&&const DeepCollectionEquality().equals(other._membershipItems, _membershipItems));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,from,to,orderRevenue,membershipRevenue,totalRevenue,orderCount,membershipCount);
+int get hashCode => Object.hash(runtimeType,from,to,orderRevenue,membershipRevenue,totalRevenue,orderCount,membershipCount,const DeepCollectionEquality().hash(_orderItems),const DeepCollectionEquality().hash(_membershipItems));
 
 @override
 String toString() {
-  return 'RevenueReportData(from: $from, to: $to, orderRevenue: $orderRevenue, membershipRevenue: $membershipRevenue, totalRevenue: $totalRevenue, orderCount: $orderCount, membershipCount: $membershipCount)';
+  return 'RevenueReportData(from: $from, to: $to, orderRevenue: $orderRevenue, membershipRevenue: $membershipRevenue, totalRevenue: $totalRevenue, orderCount: $orderCount, membershipCount: $membershipCount, orderItems: $orderItems, membershipItems: $membershipItems)';
 }
 
 
@@ -259,7 +275,7 @@ abstract mixin class _$RevenueReportDataCopyWith<$Res> implements $RevenueReport
   factory _$RevenueReportDataCopyWith(_RevenueReportData value, $Res Function(_RevenueReportData) _then) = __$RevenueReportDataCopyWithImpl;
 @override @useResult
 $Res call({
- DateTime from, DateTime to, double orderRevenue, double membershipRevenue, double totalRevenue, int orderCount, int membershipCount
+ DateTime from, DateTime to, double orderRevenue, double membershipRevenue, double totalRevenue, int orderCount, int membershipCount, List<OrderRevenueItem> orderItems, List<MembershipRevenueItem> membershipItems
 });
 
 
@@ -276,7 +292,7 @@ class __$RevenueReportDataCopyWithImpl<$Res>
 
 /// Create a copy of RevenueReportData
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? to = null,Object? orderRevenue = null,Object? membershipRevenue = null,Object? totalRevenue = null,Object? orderCount = null,Object? membershipCount = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? from = null,Object? to = null,Object? orderRevenue = null,Object? membershipRevenue = null,Object? totalRevenue = null,Object? orderCount = null,Object? membershipCount = null,Object? orderItems = null,Object? membershipItems = null,}) {
   return _then(_RevenueReportData(
 from: null == from ? _self.from : from // ignore: cast_nullable_to_non_nullable
 as DateTime,to: null == to ? _self.to : to // ignore: cast_nullable_to_non_nullable
@@ -285,7 +301,9 @@ as double,membershipRevenue: null == membershipRevenue ? _self.membershipRevenue
 as double,totalRevenue: null == totalRevenue ? _self.totalRevenue : totalRevenue // ignore: cast_nullable_to_non_nullable
 as double,orderCount: null == orderCount ? _self.orderCount : orderCount // ignore: cast_nullable_to_non_nullable
 as int,membershipCount: null == membershipCount ? _self.membershipCount : membershipCount // ignore: cast_nullable_to_non_nullable
-as int,
+as int,orderItems: null == orderItems ? _self._orderItems : orderItems // ignore: cast_nullable_to_non_nullable
+as List<OrderRevenueItem>,membershipItems: null == membershipItems ? _self._membershipItems : membershipItems // ignore: cast_nullable_to_non_nullable
+as List<MembershipRevenueItem>,
   ));
 }
 
