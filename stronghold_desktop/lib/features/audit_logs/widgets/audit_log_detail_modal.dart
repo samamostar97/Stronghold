@@ -70,13 +70,15 @@ class _AuditLogDetailModalState extends ConsumerState<AuditLogDetailModal> {
 
   Future<void> _undoDelete() async {
     setState(() => _loading = true);
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     try {
       final repo = ref.read(auditLogsRepositoryProvider);
       await repo.undoDelete(widget.log.id);
       ref.invalidate(auditLogsProvider);
       if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
+        navigator.pop();
+        messenger.showSnackBar(
           SnackBar(
             content: Text(
               '${_entityTypeLabel(widget.log.entityType)} #${widget.log.entityId} je uspjesno vracen.',
@@ -87,7 +89,8 @@ class _AuditLogDetailModalState extends ConsumerState<AuditLogDetailModal> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        navigator.pop();
+        messenger.showSnackBar(
           SnackBar(
             content: Text('Greska: $e'),
             backgroundColor: AppColors.error,
