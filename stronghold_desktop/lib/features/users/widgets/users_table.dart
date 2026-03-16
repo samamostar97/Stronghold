@@ -53,7 +53,6 @@ class _UsersTableState extends State<UsersTable> {
                     _HeaderCell('Username', flex: 1),
                     _HeaderCell('Email', flex: 2),
                     _HeaderCell('Telefon', flex: 1),
-                    _HeaderCell('Clanarina', width: 100),
                     _HeaderCell('Level', width: 70),
                     const SizedBox(width: 80), // Actions
                   ],
@@ -149,31 +148,6 @@ class _UsersTableState extends State<UsersTable> {
                               user.phone ?? '-',
                               style: AppTextStyles.bodySmall
                                   .copyWith(fontSize: 12),
-                            ),
-                          ),
-
-                          // Membership status
-                          SizedBox(
-                            width: 100,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppColors.textSecondary
-                                    .withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                '-',
-                                textAlign: TextAlign.center,
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 11,
-                                ),
-                              ),
                             ),
                           ),
 
