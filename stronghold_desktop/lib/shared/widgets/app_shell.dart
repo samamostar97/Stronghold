@@ -5,6 +5,7 @@ import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_text_styles.dart';
 import '../../features/auth/providers/auth_provider.dart';
 import '../../features/notifications/providers/notification_provider.dart';
+import '../../features/notifications/widgets/notification_panel.dart';
 
 class NavItem {
   final String label;
@@ -762,16 +763,37 @@ class _NotificationBell extends StatelessWidget {
 
     return Stack(
       children: [
-        IconButton(
-          onPressed: () {
-            // TODO: open notifications panel
-          },
-          icon: const Icon(
-            Icons.notifications_outlined,
-            color: AppColors.textSecondary,
-            size: 20,
+        Builder(
+          builder: (buttonContext) => IconButton(
+            onPressed: () {
+              final renderBox =
+                  buttonContext.findRenderObject() as RenderBox;
+              final offset = renderBox.localToGlobal(Offset.zero);
+              final size = renderBox.size;
+
+              showDialog(
+                context: buttonContext,
+                barrierColor: Colors.transparent,
+                builder: (_) => Stack(
+                  children: [
+                    Positioned(
+                      top: offset.dy + size.height + 4,
+                      right: MediaQuery.of(buttonContext).size.width -
+                          offset.dx -
+                          size.width,
+                      child: const NotificationPanel(),
+                    ),
+                  ],
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.notifications_outlined,
+              color: AppColors.textSecondary,
+              size: 20,
+            ),
+            tooltip: 'Notifikacije',
           ),
-          tooltip: 'Notifikacije',
         ),
         if (count > 0)
           Positioned(
