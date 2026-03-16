@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -129,6 +130,9 @@ class _PackageFormModalState extends ConsumerState<PackageFormModal> {
                       required: true,
                       keyboardType:
                           const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                      ],
                       validator: (v) {
                     if (v == null || v.trim().isEmpty) return 'Obavezno polje';
                     final parsed = double.tryParse(v.trim());
@@ -181,6 +185,7 @@ class _PackageFormModalState extends ConsumerState<PackageFormModal> {
     TextEditingController controller, {
     bool required = false,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
@@ -192,6 +197,7 @@ class _PackageFormModalState extends ConsumerState<PackageFormModal> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           maxLines: maxLines,
           style: AppTextStyles.body.copyWith(fontSize: 13),
           validator: validator ??

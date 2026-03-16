@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../core/utils/phone_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
@@ -228,7 +230,11 @@ class _UserFormModalState extends ConsumerState<UserFormModal> {
                     children: [
                       Expanded(
                           child: _buildField('Telefon', _phone,
-                              fieldKey: 'phone')),
+                              fieldKey: 'phone',
+                              keyboardType: TextInputType.phone,
+                              inputFormatters: [
+                                PhoneInputFormatter(),
+                              ])),
                       const SizedBox(width: 12),
                       Expanded(
                           child: _buildField('Adresa', _address,
@@ -383,6 +389,7 @@ class _UserFormModalState extends ConsumerState<UserFormModal> {
     String? fieldKey,
     bool required = false,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     int maxLines = 1,
     bool obscure = false,
   }) {
@@ -394,6 +401,7 @@ class _UserFormModalState extends ConsumerState<UserFormModal> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           maxLines: maxLines,
           obscureText: obscure,
           style: AppTextStyles.body.copyWith(fontSize: 13),

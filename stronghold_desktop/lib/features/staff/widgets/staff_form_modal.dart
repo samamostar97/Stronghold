@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../core/utils/phone_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/api_constants.dart';
 import '../../../core/constants/app_colors.dart';
@@ -199,7 +201,12 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
                 const SizedBox(height: 14),
                 _buildField('Email', _email, fieldKey: 'email', required: true, keyboardType: TextInputType.emailAddress),
                 const SizedBox(height: 14),
-                _buildField('Telefon', _phone, fieldKey: 'phone'),
+                _buildField('Telefon', _phone,
+                    fieldKey: 'phone',
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      PhoneInputFormatter(),
+                    ]),
                 const SizedBox(height: 14),
                 _buildField('Bio', _bio, fieldKey: 'bio', maxLines: 3),
                 const SizedBox(height: 14),
@@ -384,6 +391,7 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
     String? fieldKey,
     bool required = false,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
     int maxLines = 1,
   }) {
     return Column(
@@ -394,6 +402,7 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           maxLines: maxLines,
           style: AppTextStyles.body.copyWith(fontSize: 13),
           onChanged: fieldKey != null && _fieldErrors.containsKey(fieldKey)

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../../../core/utils/phone_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_text_styles.dart';
@@ -134,7 +136,12 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
                         child: _buildField('Email', _email,
                             keyboardType: TextInputType.emailAddress)),
                     const SizedBox(width: 12),
-                    Expanded(child: _buildField('Telefon', _phone)),
+                    Expanded(
+                        child: _buildField('Telefon', _phone,
+                            keyboardType: TextInputType.phone,
+                            inputFormatters: [
+                          PhoneInputFormatter(),
+                        ])),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -202,6 +209,7 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
     TextEditingController controller, {
     bool required = false,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -211,6 +219,7 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
+          inputFormatters: inputFormatters,
           style: AppTextStyles.body.copyWith(fontSize: 13),
           validator: required
               ? (v) =>
