@@ -125,9 +125,7 @@ class _StaffTableState extends State<StaffTable> {
                     onEnter: (_) => setState(() => _hoveredRow = index),
                     onExit: (_) => setState(() => _hoveredRow = null),
                     child: GestureDetector(
-                      onTap: () {
-                        // TODO: open staff detail modal
-                      },
+                      onTap: () {},
                       child: Container(
                         decoration: BoxDecoration(
                           color: isHovered
