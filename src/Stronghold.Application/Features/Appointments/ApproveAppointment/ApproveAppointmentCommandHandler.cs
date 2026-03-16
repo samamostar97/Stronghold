@@ -2,8 +2,8 @@ using MediatR;
 using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Enums;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Application.Common;
 using Stronghold.Messaging;
-using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.Appointments.ApproveAppointment;
 
@@ -32,13 +32,7 @@ public class ApproveAppointmentCommandHandler : IRequestHandler<ApproveAppointme
         _appointmentRepository.Update(appointment);
         await _appointmentRepository.SaveChangesAsync();
 
-        await _messagePublisher.PublishAsync(QueueNames.AppointmentApproved, new AppointmentApprovedEvent
-        {
-            Email = appointment.User.Email,
-            FirstName = appointment.User.FirstName,
-            StaffName = $"{appointment.Staff.FirstName} {appointment.Staff.LastName}",
-            ScheduledAt = appointment.ScheduledAt
-        });
+        await _messagePublisher.PublishAsync(QueueNames.EmailNotifications, EmailTemplates.AppointmentApproved(appointment.User.Email, appointment.User.FirstName, $"{appointment.Staff.FirstName} {appointment.Staff.LastName}", appointment.ScheduledAt));
 
         return AppointmentMappings.ToResponse(appointment);
     }

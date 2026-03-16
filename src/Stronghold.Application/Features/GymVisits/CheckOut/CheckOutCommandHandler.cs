@@ -1,8 +1,8 @@
 using MediatR;
 using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Application.Common;
 using Stronghold.Messaging;
-using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.GymVisits.CheckOut;
 
@@ -59,12 +59,7 @@ public class CheckOutCommandHandler : IRequestHandler<CheckOutCommand, GymVisitR
 
         if (newLevel != null && user.Level != oldLevel)
         {
-            await _messagePublisher.PublishAsync(QueueNames.UserLevelUp, new UserLevelUpEvent
-            {
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LevelName = newLevel.Name
-            });
+            await _messagePublisher.PublishAsync(QueueNames.EmailNotifications, EmailTemplates.LevelUp(user.Email, user.FirstName, newLevel.Name));
         }
 
         visit.User = user;

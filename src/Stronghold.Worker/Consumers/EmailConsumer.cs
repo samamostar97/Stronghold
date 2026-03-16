@@ -4,23 +4,21 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Stronghold.Application.Interfaces;
+using Stronghold.Messaging;
 
-namespace Stronghold.Messaging;
+namespace Stronghold.Worker.Consumers;
 
-public abstract class BaseConsumer<T> : BackgroundService
+public class EmailConsumer : BackgroundService
 {
     private readonly RabbitMqConnection _connection;
     private readonly IServiceProvider _serviceProvider;
 
-    protected abstract string QueueName { get; }
-
-    protected BaseConsumer(RabbitMqConnection connection, IServiceProvider serviceProvider)
+    public EmailConsumer(RabbitMqConnection connection, IServiceProvider serviceProvider)
     {
         _connection = connection;
         _serviceProvider = serviceProvider;
     }
-
-    protected abstract Task HandleAsync(T message, IServiceProvider scopedServices, CancellationToken ct);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -42,7 +40,7 @@ public abstract class BaseConsumer<T> : BackgroundService
         if (channel == null) return;
 
         await channel.QueueDeclareAsync(
-            queue: QueueName,
+            queue: QueueNames.EmailNotifications,
             durable: true,
             exclusive: false,
             autoDelete: false,
@@ -57,12 +55,13 @@ public abstract class BaseConsumer<T> : BackgroundService
             try
             {
                 var body = Encoding.UTF8.GetString(ea.Body.ToArray());
-                var message = JsonSerializer.Deserialize<T>(body);
+                var message = JsonSerializer.Deserialize<EmailMessage>(body);
 
                 if (message != null)
                 {
                     using var scope = _serviceProvider.CreateScope();
-                    await HandleAsync(message, scope.ServiceProvider, stoppingToken);
+                    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+                    await emailService.SendAsync(message.To, message.Subject, message.Body);
                 }
 
                 await channel.BasicAckAsync(ea.DeliveryTag, multiple: false, stoppingToken);
@@ -73,9 +72,8 @@ public abstract class BaseConsumer<T> : BackgroundService
             }
         };
 
-        await channel.BasicConsumeAsync(queue: QueueName, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
+        await channel.BasicConsumeAsync(queue: QueueNames.EmailNotifications, autoAck: false, consumer: consumer, cancellationToken: stoppingToken);
 
-        // Keep the service running
         await Task.Delay(Timeout.Infinite, stoppingToken);
     }
 }

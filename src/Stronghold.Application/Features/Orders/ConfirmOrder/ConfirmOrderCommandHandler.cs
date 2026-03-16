@@ -2,8 +2,8 @@ using MediatR;
 using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Enums;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Application.Common;
 using Stronghold.Messaging;
-using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.Orders.ConfirmOrder;
 
@@ -52,13 +52,7 @@ public class ConfirmOrderCommandHandler : IRequestHandler<ConfirmOrderCommand, O
 
         await _notificationService.CreateOrderNotificationAsync(order.Id);
 
-        await _messagePublisher.PublishAsync(QueueNames.OrderConfirmed, new OrderConfirmedEvent
-        {
-            Email = order.User.Email,
-            FirstName = order.User.FirstName,
-            OrderId = order.Id,
-            TotalAmount = order.TotalAmount
-        });
+        await _messagePublisher.PublishAsync(QueueNames.EmailNotifications, EmailTemplates.OrderConfirmed(order.User.Email, order.User.FirstName, order.Id, order.TotalAmount));
 
         return OrderMappings.ToResponse(order);
     }

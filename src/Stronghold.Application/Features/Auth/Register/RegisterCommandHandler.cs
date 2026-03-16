@@ -4,8 +4,8 @@ using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Entities;
 using Stronghold.Domain.Enums;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Application.Common;
 using Stronghold.Messaging;
-using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.Auth.Register;
 
@@ -82,11 +82,7 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
         await _refreshTokenRepository.AddAsync(refreshToken);
         await _refreshTokenRepository.SaveChangesAsync();
 
-        await _messagePublisher.PublishAsync(QueueNames.UserRegistered, new UserRegisteredEvent
-        {
-            Email = user.Email,
-            FirstName = user.FirstName
-        });
+        await _messagePublisher.PublishAsync(QueueNames.EmailNotifications, EmailTemplates.Welcome(user.Email, user.FirstName));
 
         return new AuthResponse
         {

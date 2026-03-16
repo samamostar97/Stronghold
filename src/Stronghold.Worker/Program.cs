@@ -5,7 +5,6 @@ using Stronghold.Infrastructure.Persistence;
 using Stronghold.Infrastructure.Services;
 using Stronghold.Messaging;
 using Stronghold.Worker.Consumers;
-using Stronghold.Worker.ScheduledJobs;
 
 var envPath = Path.Combine(AppContext.BaseDirectory, ".env");
 if (File.Exists(envPath))
@@ -31,20 +30,8 @@ builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 // Email
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Consumers
-builder.Services.AddHostedService<UserRegisteredConsumer>();
-builder.Services.AddHostedService<OrderConfirmedConsumer>();
-builder.Services.AddHostedService<OrderShippedConsumer>();
-builder.Services.AddHostedService<AppointmentApprovedConsumer>();
-builder.Services.AddHostedService<AppointmentRejectedConsumer>();
-builder.Services.AddHostedService<MembershipAssignedConsumer>();
-builder.Services.AddHostedService<MembershipExpiredConsumer>();
-builder.Services.AddHostedService<AppointmentExpiredConsumer>();
-builder.Services.AddHostedService<UserLevelUpConsumer>();
-
-// Scheduled Jobs
-builder.Services.AddHostedService<MembershipExpiryJob>();
-builder.Services.AddHostedService<ExpiredAppointmentJob>();
+// Consumer
+builder.Services.AddHostedService<EmailConsumer>();
 
 var host = builder.Build();
 host.Run();

@@ -1,6 +1,7 @@
 using DotNetEnv;
 using Microsoft.Extensions.FileProviders;
 using QuestPDF.Infrastructure;
+using Stronghold.API.BackgroundJobs;
 using Stronghold.API.Extensions;
 using Stronghold.API.Middleware;
 using Stronghold.Infrastructure.Persistence;
@@ -25,6 +26,10 @@ builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices();
 builder.Services.AddJwtAuthentication();
 builder.Services.AddSwaggerServices();
+
+// Background Jobs
+builder.Services.AddHostedService<MembershipExpiryJob>();
+builder.Services.AddHostedService<ExpiredAppointmentJob>();
 
 builder.Services.AddCors(options =>
 {

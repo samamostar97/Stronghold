@@ -2,8 +2,8 @@ using MediatR;
 using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Enums;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Application.Common;
 using Stronghold.Messaging;
-using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.Orders.ShipOrder;
 
@@ -32,12 +32,7 @@ public class ShipOrderCommandHandler : IRequestHandler<ShipOrderCommand, OrderRe
         _orderRepository.Update(order);
         await _orderRepository.SaveChangesAsync();
 
-        await _messagePublisher.PublishAsync(QueueNames.OrderShipped, new OrderShippedEvent
-        {
-            Email = order.User.Email,
-            FirstName = order.User.FirstName,
-            OrderId = order.Id
-        });
+        await _messagePublisher.PublishAsync(QueueNames.EmailNotifications, EmailTemplates.OrderShipped(order.User.Email, order.User.FirstName, order.Id));
 
         return OrderMappings.ToResponse(order);
     }

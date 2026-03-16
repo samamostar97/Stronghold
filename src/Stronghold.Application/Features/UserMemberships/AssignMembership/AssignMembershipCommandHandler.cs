@@ -2,8 +2,8 @@ using MediatR;
 using Stronghold.Application.Interfaces;
 using Stronghold.Domain.Entities;
 using Stronghold.Domain.Exceptions;
+using Stronghold.Application.Common;
 using Stronghold.Messaging;
-using Stronghold.Messaging.Events;
 
 namespace Stronghold.Application.Features.UserMemberships.AssignMembership;
 
@@ -57,13 +57,7 @@ public class AssignMembershipCommandHandler : IRequestHandler<AssignMembershipCo
         membership.User = user;
         membership.MembershipPackage = package;
 
-        await _messagePublisher.PublishAsync(QueueNames.MembershipAssigned, new MembershipAssignedEvent
-        {
-            Email = user.Email,
-            FirstName = user.FirstName,
-            PackageName = package.Name,
-            EndDate = membership.EndDate
-        });
+        await _messagePublisher.PublishAsync(QueueNames.EmailNotifications, EmailTemplates.MembershipAssigned(user.Email, user.FirstName, package.Name, membership.EndDate));
 
         return UserMembershipMappings.ToResponse(membership);
     }
