@@ -229,7 +229,7 @@ class _UserFormModalState extends ConsumerState<UserFormModal> {
                   Row(
                     children: [
                       Expanded(
-                          child: _buildField('Telefon', _phone,
+                          child: _buildField('Telefon (opcionalno)', _phone,
                               fieldKey: 'phone',
                               keyboardType: TextInputType.phone,
                               inputFormatters: [
@@ -237,7 +237,7 @@ class _UserFormModalState extends ConsumerState<UserFormModal> {
                               ])),
                       const SizedBox(width: 12),
                       Expanded(
-                          child: _buildField('Adresa', _address,
+                          child: _buildField('Adresa (opcionalno)', _address,
                               fieldKey: 'address')),
                     ],
                   ),

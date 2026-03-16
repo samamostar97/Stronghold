@@ -121,7 +121,7 @@ class _CategoryFormModalState extends ConsumerState<CategoryFormModal> {
                 const SizedBox(height: 20),
                 _buildField('Naziv', _name, required: true),
                 const SizedBox(height: 14),
-                _buildField('Opis', _description, maxLines: 3),
+                _buildField('Opis (opcionalno)', _description, maxLines: 3),
 
                 // Error message
                 if (_errorMessage != null) ...[

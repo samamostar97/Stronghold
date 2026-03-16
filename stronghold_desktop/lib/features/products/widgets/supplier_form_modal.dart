@@ -133,11 +133,11 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
                 Row(
                   children: [
                     Expanded(
-                        child: _buildField('Email', _email,
+                        child: _buildField('Email (opcionalno)', _email,
                             keyboardType: TextInputType.emailAddress)),
                     const SizedBox(width: 12),
                     Expanded(
-                        child: _buildField('Telefon', _phone,
+                        child: _buildField('Telefon (opcionalno)', _phone,
                             keyboardType: TextInputType.phone,
                             inputFormatters: [
                           PhoneInputFormatter(),
@@ -145,7 +145,7 @@ class _SupplierFormModalState extends ConsumerState<SupplierFormModal> {
                   ],
                 ),
                 const SizedBox(height: 14),
-                _buildField('Website', _website),
+                _buildField('Website (opcionalno)', _website),
 
                 // Error message
                 if (_errorMessage != null) ...[

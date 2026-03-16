@@ -201,14 +201,14 @@ class _StaffFormModalState extends ConsumerState<StaffFormModal> {
                 const SizedBox(height: 14),
                 _buildField('Email', _email, fieldKey: 'email', required: true, keyboardType: TextInputType.emailAddress),
                 const SizedBox(height: 14),
-                _buildField('Telefon', _phone,
+                _buildField('Telefon (opcionalno)', _phone,
                     fieldKey: 'phone',
                     keyboardType: TextInputType.phone,
                     inputFormatters: [
                       PhoneInputFormatter(),
                     ]),
                 const SizedBox(height: 14),
-                _buildField('Bio', _bio, fieldKey: 'bio', maxLines: 3),
+                _buildField('Bio (opcionalno)', _bio, fieldKey: 'bio', maxLines: 3),
                 const SizedBox(height: 14),
 
                 // Staff type

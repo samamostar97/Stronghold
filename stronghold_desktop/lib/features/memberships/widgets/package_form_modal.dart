@@ -124,7 +124,7 @@ class _PackageFormModalState extends ConsumerState<PackageFormModal> {
 
                   _buildField('Naziv', _name, required: true),
                   const SizedBox(height: 14),
-                  _buildField('Opis', _description, maxLines: 3),
+                  _buildField('Opis (opcionalno)', _description, maxLines: 3),
                   const SizedBox(height: 14),
                   _buildField('Cijena (KM)', _price,
                       required: true,
