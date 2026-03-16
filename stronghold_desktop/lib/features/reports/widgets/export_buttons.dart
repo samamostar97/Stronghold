@@ -84,6 +84,9 @@ class _ExportButtonsState extends ConsumerState<ExportButtons> {
 
   @override
   Widget build(BuildContext context) {
+    final range = ref.watch(widget.dateRangeProvider);
+    final invalidRange = range.to.isBefore(range.from);
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -91,6 +94,7 @@ class _ExportButtonsState extends ConsumerState<ExportButtons> {
           label: 'PDF',
           icon: Icons.picture_as_pdf_outlined,
           loading: _loadingPdf,
+          disabled: invalidRange,
           onTap: () => _export('pdf'),
         ),
         const SizedBox(width: 8),
@@ -98,6 +102,7 @@ class _ExportButtonsState extends ConsumerState<ExportButtons> {
           label: 'Excel',
           icon: Icons.table_chart_outlined,
           loading: _loadingExcel,
+          disabled: invalidRange,
           onTap: () => _export('excel'),
         ),
       ],
@@ -109,12 +114,14 @@ class _ExportButton extends StatefulWidget {
   final String label;
   final IconData icon;
   final bool loading;
+  final bool disabled;
   final VoidCallback onTap;
 
   const _ExportButton({
     required this.label,
     required this.icon,
     required this.loading,
+    this.disabled = false,
     required this.onTap,
   });
 
@@ -127,46 +134,52 @@ class _ExportButtonState extends State<_ExportButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = widget.disabled || widget.loading;
+    final color = isDisabled ? AppColors.textSecondary : AppColors.primary;
+
     return MouseRegion(
       onEnter: (_) => setState(() => _hovering = true),
       onExit: (_) => setState(() => _hovering = false),
       child: GestureDetector(
-        onTap: widget.loading ? null : widget.onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: _hovering
-                ? AppColors.primary.withValues(alpha: 0.08)
-                : AppColors.sidebar,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.2),
+        onTap: isDisabled ? null : widget.onTap,
+        child: Opacity(
+          opacity: isDisabled ? 0.4 : 1.0,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: !isDisabled && _hovering
+                  ? AppColors.primary.withValues(alpha: 0.08)
+                  : AppColors.sidebar,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: color.withValues(alpha: 0.2),
+              ),
             ),
-          ),
-          child: widget.loading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: AppColors.primary,
-                  ),
-                )
-              : Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(widget.icon, color: AppColors.primary, size: 16),
-                    const SizedBox(width: 6),
-                    Text(
-                      widget.label,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        fontSize: 12,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
+            child: widget.loading
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: color,
                     ),
-                  ],
-                ),
+                  )
+                : Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(widget.icon, color: color, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        widget.label,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          fontSize: 12,
+                          color: color,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
