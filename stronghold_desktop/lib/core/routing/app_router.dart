@@ -20,6 +20,8 @@ import '../../features/products/screens/suppliers_screen.dart';
 import '../../features/users/screens/leaderboard_screen.dart';
 import '../../features/users/screens/users_screen.dart';
 import '../../features/audit_logs/screens/audit_logs_screen.dart';
+import '../../features/seminars/screens/seminars_screen.dart';
+import '../../features/seminars/screens/seminar_history_screen.dart';
 import '../../features/reports/screens/revenue_report_screen.dart';
 import '../../features/reports/screens/users_report_screen.dart';
 import '../../features/reports/screens/products_report_screen.dart';
@@ -202,6 +204,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: '/reports/appointments',
             pageBuilder: (context, state) => const NoTransitionPage(
               child: AppointmentsReportScreen(),
+            ),
+          ),
+
+          // Seminari
+          GoRoute(
+            path: '/seminars',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: SeminarsScreen(),
+            ),
+          ),
+          GoRoute(
+            path: '/seminars/history',
+            pageBuilder: (context, state) => const NoTransitionPage(
+              child: SeminarHistoryScreen(),
             ),
           ),
 

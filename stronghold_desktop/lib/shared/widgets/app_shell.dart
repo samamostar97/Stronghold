@@ -103,6 +103,15 @@ final sidebarItems = [
     ],
   ),
   const NavItem(
+    label: 'Seminari',
+    icon: Icons.school_outlined,
+    route: '/seminars',
+    tabs: [
+      TabItem(label: 'Seminari', route: '/seminars'),
+      TabItem(label: 'Historija', route: '/seminars/history'),
+    ],
+  ),
+  const NavItem(
     label: 'Evidencija',
     icon: Icons.history_outlined,
     route: '/audit',
