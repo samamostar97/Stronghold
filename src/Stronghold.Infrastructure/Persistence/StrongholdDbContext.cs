@@ -25,6 +25,8 @@ public class StrongholdDbContext : DbContext
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<Seminar> Seminars => Set<Seminar>();
+    public DbSet<SeminarRegistration> SeminarRegistrations => Set<SeminarRegistration>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

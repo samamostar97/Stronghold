@@ -40,6 +40,9 @@ public class UndoService : IUndoService
             case "Review":
                 await RestoreEntityAsync<Review>(entityId);
                 break;
+            case "Seminar":
+                await RestoreEntityAsync<Seminar>(entityId);
+                break;
             default:
                 throw new InvalidOperationException($"Nepoznat tip entiteta: {entityType}");
         }

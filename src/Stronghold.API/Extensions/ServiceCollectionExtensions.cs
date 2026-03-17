@@ -68,6 +68,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IReportService, ReportService>();
+        services.AddScoped<ISeminarRepository, SeminarRepository>();
+        services.AddScoped<ISeminarRegistrationRepository, SeminarRegistrationRepository>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddSingleton<RabbitMqConnection>();
         services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
