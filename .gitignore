@@ -9,7 +9,7 @@
 *.user
 *.userosscache
 *.sln.docstates
-*.env
+# NAPOMENA: .env se NAMJERNO commita (krajnja osoba mora imati sve vrijednosti da pokrene projekat)
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -427,3 +427,17 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# AI / agent files - nikad ne commitati
+.claude/
+CLAUDE.md
+AGENT_GUIDE.md
+.cursor/
+.cursorrules
+.aider*
+.copilot/
+*.agent.md
+
+# Radni dokumenti predmeta (prijava, upute) - ne idu u repo
+RSII_Upute_za_izradu_seminarskog_rada_2025_26.pdf
+Stronghold_Prijava_Seminarski_RS2.pdf
