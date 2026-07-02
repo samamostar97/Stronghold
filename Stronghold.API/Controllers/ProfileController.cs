@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Stronghold.Application.DTOs.Profile;
+using Stronghold.Application.DTOs.Progress;
 using Stronghold.Application.DTOs.Users;
 using Stronghold.Application.Interfaces;
 
@@ -15,10 +16,12 @@ namespace Stronghold.API.Controllers;
 public class ProfileController : ControllerBase
 {
     private readonly IProfileService _profileService;
+    private readonly IProgressService _progressService;
 
-    public ProfileController(IProfileService profileService)
+    public ProfileController(IProfileService profileService, IProgressService progressService)
     {
         _profileService = profileService;
+        _progressService = progressService;
     }
 
     [HttpGet]
@@ -38,6 +41,13 @@ public class ProfileController : ControllerBase
     {
         await _profileService.ChangePasswordAsync(request);
         return NoContent();
+    }
+
+    /// <summary>XP, nivo i analitika napretka trenutno prijavljenog clana.</summary>
+    [HttpGet("progress")]
+    public async Task<ActionResult<ProgressResponse>> GetProgress()
+    {
+        return Ok(await _progressService.GetMyProgressAsync());
     }
 
     [HttpGet("image")]
