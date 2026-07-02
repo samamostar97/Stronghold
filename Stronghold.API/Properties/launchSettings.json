@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "http": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "launchUrl": "swagger",
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "CONNECTION_STRING": "Server=localhost,1433;Database=210378;User Id=sa;Password=Stronghold123!;TrustServerCertificate=True",
+        "JWT_KEY": "dev-jwt-kljuc-za-lokalni-razvoj-minimalno-64-znaka-1234567890abcdef"
+      }
+    }
+  }
+}
