@@ -1,0 +1,71 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: stronghold-sqlserver
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SQL_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqldata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -C -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" -b"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: stronghold-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: Stronghold.API/Dockerfile
+    container_name: stronghold-api
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      CONNECTION_STRING: Server=sqlserver,1433;Database=${SQL_DATABASE};User Id=sa;Password=${SQL_PASSWORD};TrustServerCertificate=True
+      JWT_KEY: ${JWT_KEY}
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+    ports:
+      - "5000:8080"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Stronghold.Worker/Dockerfile
+    container_name: stronghold-worker
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_PORT: "5672"
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  sqldata:
