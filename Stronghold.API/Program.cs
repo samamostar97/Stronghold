@@ -1,11 +1,13 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Stronghold.API.Middleware;
 using Stronghold.Application.Common;
+using Stronghold.Application.Interfaces;
 using Stronghold.Infrastructure.Data;
+using Stronghold.Infrastructure.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,15 +21,19 @@ builder.Services.AddDbContext<StrongholdDbContext>(options => options.UseSqlServ
 
 builder.Services.AddControllers();
 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,
-            ValidIssuer = JwtConstants.Issuer,
+            ValidIssuer = AuthConstants.Issuer,
             ValidateAudience = true,
-            ValidAudience = JwtConstants.Audience,
+            ValidAudience = AuthConstants.Audience,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
@@ -82,3 +88,4 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.Run();
+
