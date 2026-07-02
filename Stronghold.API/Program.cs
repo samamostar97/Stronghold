@@ -6,6 +6,7 @@ using Microsoft.OpenApi.Models;
 using Stronghold.API.Middleware;
 using Stronghold.Application.Common;
 using Stronghold.Application.Interfaces;
+using Stronghold.Infrastructure;
 using Stronghold.Infrastructure.Data;
 using Stronghold.Infrastructure.Services;
 
@@ -21,9 +22,14 @@ builder.Services.AddDbContext<StrongholdDbContext>(options => options.UseSqlServ
 
 builder.Services.AddControllers();
 
+MapsterConfig.Register();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ICityService, CityService>();
+builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
