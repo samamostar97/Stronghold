@@ -26,6 +26,10 @@ public class ExceptionHandlingMiddleware
         {
             await WriteErrorAsync(context, StatusCodes.Status404NotFound, ex.Message);
         }
+        catch (UnauthorizedException ex)
+        {
+            await WriteErrorAsync(context, StatusCodes.Status401Unauthorized, ex.Message);
+        }
         catch (BusinessException ex)
         {
             await WriteErrorAsync(context, StatusCodes.Status400BadRequest, ex.Message);
