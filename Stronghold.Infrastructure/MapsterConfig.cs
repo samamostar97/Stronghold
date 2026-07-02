@@ -1,4 +1,6 @@
 using Mapster;
+using Microsoft.EntityFrameworkCore;
+using Stronghold.Application.DTOs.GymVisits;
 using Stronghold.Application.DTOs.Memberships;
 using Stronghold.Application.DTOs.Payments;
 using Stronghold.Application.DTOs.Users;
@@ -24,6 +26,12 @@ public static class MapsterConfig
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
                 src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+
+        TypeAdapterConfig<GymVisit, GymVisitResponse>.NewConfig()
+            .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)
+            .Map(dest => dest.Username, src => src.User.Username)
+            .Map(dest => dest.DurationMinutes,
+                src => EF.Functions.DateDiffMinute(src.CheckInAt, src.CheckOutAt ?? DateTime.UtcNow));
 
         TypeAdapterConfig<Payment, PaymentResponse>.NewConfig()
             .Map(dest => dest.UserId, src => src.Membership.UserId)
