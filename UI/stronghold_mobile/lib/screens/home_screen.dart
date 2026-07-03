@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/notifications_provider.dart';
 import '../providers/profile_provider.dart';
+import 'leaderboard_screen.dart';
 import 'notifications_screen.dart';
 
 /// Pocetni ekran - pregled informacija clana, XP napredak i notifikacije.
@@ -34,6 +35,13 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Stronghold'),
         actions: [
+          IconButton(
+            tooltip: 'Rang lista',
+            icon: const Icon(Icons.emoji_events_outlined),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+            ),
+          ),
           IconButton(
             tooltip: 'Notifikacije',
             icon: Badge(

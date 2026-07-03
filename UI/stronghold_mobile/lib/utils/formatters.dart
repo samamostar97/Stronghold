@@ -21,4 +21,12 @@ class Formatters {
         'Cancelled' => 'Otkazano',
         _ => status,
       };
+
+  static String appointmentStatus(String status) => switch (status) {
+        'Pending' => 'Na čekanju',
+        'Confirmed' => 'Potvrđen',
+        'Completed' => 'Održan',
+        'Cancelled' => 'Otkazan',
+        _ => status,
+      };
 }

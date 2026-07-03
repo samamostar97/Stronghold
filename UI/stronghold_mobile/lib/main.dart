@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'providers/appointments_provider.dart';
 import 'providers/auth_provider.dart';
 import 'providers/cart_provider.dart';
+import 'providers/faq_provider.dart';
+import 'providers/leaderboard_provider.dart';
 import 'providers/notifications_provider.dart';
 import 'providers/orders_provider.dart';
 import 'providers/profile_provider.dart';
+import 'providers/seminars_provider.dart';
 import 'providers/shop_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/shell_screen.dart';
@@ -25,6 +29,10 @@ void main() {
         ChangeNotifierProvider(create: (_) => ShopProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => OrdersProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => AppointmentsProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => SeminarsProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => LeaderboardProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => FaqProvider(apiClient)),
       ],
       child: const StrongholdMobileApp(),
     ),
