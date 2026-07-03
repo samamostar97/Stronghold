@@ -7,5 +7,7 @@ namespace Stronghold.Application.Interfaces;
 public interface ICurrentUserService
 {
     int UserId { get; }
+    /// <summary>Null van HTTP konteksta (seed, pozadinski poslovi) - bez izuzetka.</summary>
+    int? UserIdOrNull { get; }
     bool IsAdmin { get; }
 }

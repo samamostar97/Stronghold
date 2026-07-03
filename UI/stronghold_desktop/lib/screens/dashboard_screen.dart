@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reports_provider.dart';
+import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 
 /// Pocetni ekran - kljucne brojke i najnovije narudzbe.
@@ -46,9 +47,46 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _ => status,
       };
 
+  String _actionLabel(String action) => switch (action) {
+        'Create' => 'dodao',
+        'Update' => 'izmijenio',
+        'Delete' => 'obrisao',
+        _ => action,
+      };
+
+  String _entityLabel(String entityName) => switch (entityName) {
+        'City' => 'grad',
+        'MembershipPackage' => 'paket',
+        'SupplementCategory' => 'kategoriju',
+        'Supplier' => 'dobavljača',
+        'Supplement' => 'suplement',
+        'Faq' => 'FAQ pitanje',
+        'StaffMember' => 'osoblje',
+        'Seminar' => 'seminar',
+        _ => entityName,
+      };
+
+  Future<void> _undo(int id) async {
+    try {
+      await context.read<ReportsProvider>().undoActivity(id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Akcija je poništena.')),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.message), backgroundColor: Colors.red.shade700),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final dashboard = context.watch<ReportsProvider>().dashboard;
+    final provider = context.watch<ReportsProvider>();
+    final dashboard = provider.dashboard;
 
     if (dashboard == null) {
       return const Center(child: CircularProgressIndicator());
@@ -102,6 +140,50 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           ]),
                       ],
                     ),
+                  ),
+          ),
+          const SizedBox(height: 24),
+          Text('Nedavne aktivnosti', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          Card(
+            child: provider.activities.isEmpty
+                ? const Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Center(child: Text('Još nema zabilježenih aktivnosti.')),
+                  )
+                : Column(
+                    children: [
+                      for (final activity in provider.activities)
+                        ListTile(
+                          dense: true,
+                          leading: Icon(switch (activity.action) {
+                            'Create' => Icons.add_circle_outline,
+                            'Update' => Icons.edit_outlined,
+                            _ => Icons.delete_outline,
+                          }),
+                          title: Text(
+                            '${activity.performedByName} je '
+                            '${_actionLabel(activity.action)} '
+                            '${_entityLabel(activity.entityName)}'
+                            '${activity.entityDisplay != null ? ' "${activity.entityDisplay}"' : ''}',
+                          ),
+                          subtitle: Text(Formatters.dateTime(activity.timestamp)),
+                          trailing: activity.canUndo
+                              ? TextButton.icon(
+                                  icon: const Icon(Icons.undo, size: 18),
+                                  label: const Text('Poništi'),
+                                  onPressed: () => _undo(activity.id),
+                                )
+                              : const Tooltip(
+                                  message:
+                                      'Undo je moguć samo 1 sat nakon akcije',
+                                  child: TextButton(
+                                    onPressed: null,
+                                    child: Text('Poništi'),
+                                  ),
+                                ),
+                        ),
+                    ],
                   ),
           ),
         ],

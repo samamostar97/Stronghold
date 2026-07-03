@@ -244,6 +244,7 @@ public class StrongholdDbContext : DbContext
         modelBuilder.Entity<ActivityLog>(entity =>
         {
             entity.Property(l => l.EntityName).HasMaxLength(80).IsRequired();
+            entity.Property(l => l.EntityDisplay).HasMaxLength(200);
             entity.HasOne(l => l.PerformedBy)
                 .WithMany()
                 .HasForeignKey(l => l.PerformedByUserId)

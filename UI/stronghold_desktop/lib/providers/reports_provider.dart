@@ -21,10 +21,28 @@ class ReportsProvider extends ChangeNotifier {
   MembershipReport? get memberships => _memberships;
   List<LeaderboardEntry> get leaderboard => _leaderboard;
 
+  List<ActivityLogEntry> _activities = [];
+
+  List<ActivityLogEntry> get activities => _activities;
+
   Future<void> loadDashboard() async {
-    final data = await _api.get('/api/reports/dashboard') as Map<String, dynamic>;
-    _dashboard = Dashboard.fromJson(data);
+    // dashboard i nedavne aktivnosti se ucitavaju paralelno
+    final results = await Future.wait([
+      _api.get('/api/reports/dashboard'),
+      _api.get('/api/activity-logs', query: {'page': '1', 'pageSize': '8'}),
+    ]);
+    _dashboard = Dashboard.fromJson(results[0] as Map<String, dynamic>);
+    _activities = PagedResult.fromJson(
+      results[1] as Map<String, dynamic>,
+      ActivityLogEntry.fromJson,
+    ).items;
     notifyListeners();
+  }
+
+  /// Undo akcije u roku 1h - backend validira rok i vrstu zapisa.
+  Future<void> undoActivity(int id) async {
+    await _api.post('/api/activity-logs/$id/undo');
+    await loadDashboard();
   }
 
   Future<void> loadReports() async {

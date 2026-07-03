@@ -28,5 +28,14 @@ public class CurrentUserService : ICurrentUserService
         }
     }
 
+    public int? UserIdOrNull
+    {
+        get
+        {
+            var value = _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            return int.TryParse(value, out var userId) ? userId : null;
+        }
+    }
+
     public bool IsAdmin => _httpContextAccessor.HttpContext?.User.IsInRole(Roles.Admin) ?? false;
 }
