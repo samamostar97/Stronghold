@@ -3,7 +3,10 @@ import 'package:provider/provider.dart';
 
 import '../providers/reports_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_chip.dart';
+import '../widgets/stretch_scroll.dart';
 
 /// Pocetni ekran - kljucne brojke i najnovije narudzbe.
 class DashboardScreen extends StatefulWidget {
@@ -26,13 +29,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Expanded(
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
+          padding: const EdgeInsets.all(18),
+          child: Row(
             children: [
-              Icon(icon, size: 32),
-              const SizedBox(height: 8),
-              Text(value, style: Theme.of(context).textTheme.headlineMedium),
-              Text(label, textAlign: TextAlign.center),
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: AppTheme.navyTint,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 22, color: AppTheme.navy),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      value,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.textPrimary,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      label,
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -119,8 +151,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     padding: EdgeInsets.all(24),
                     child: Center(child: Text('Još nema narudžbi.')),
                   )
-                : SizedBox(
-                    width: double.infinity,
+                : StretchScroll(
                     child: DataTable(
                       columns: const [
                         DataColumn(label: Text('Broj')),
@@ -136,7 +167,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             DataCell(Text(order.userFullName)),
                             DataCell(Text(Formatters.dateTime(order.createdAt))),
                             DataCell(Text(Formatters.money(order.totalAmount))),
-                            DataCell(Text(_statusLabel(order.status))),
+                            DataCell(StatusChip(
+                              label: _statusLabel(order.status),
+                              tone: switch (order.status) {
+                                'Delivered' => StatusTone.success,
+                                'Cancelled' => StatusTone.danger,
+                                _ => StatusTone.warning,
+                              },
+                            )),
                           ]),
                       ],
                     ),
@@ -156,11 +194,23 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       for (final activity in provider.activities)
                         ListTile(
                           dense: true,
-                          leading: Icon(switch (activity.action) {
-                            'Create' => Icons.add_circle_outline,
-                            'Update' => Icons.edit_outlined,
-                            _ => Icons.delete_outline,
-                          }),
+                          leading: Container(
+                            width: 34,
+                            height: 34,
+                            decoration: BoxDecoration(
+                              color: AppTheme.navyTint,
+                              borderRadius: BorderRadius.circular(9),
+                            ),
+                            child: Icon(
+                              switch (activity.action) {
+                                'Create' => Icons.add_circle_outline,
+                                'Update' => Icons.edit_outlined,
+                                _ => Icons.delete_outline,
+                              },
+                              size: 17,
+                              color: AppTheme.navy,
+                            ),
+                          ),
                           title: Text(
                             '${activity.performedByName} je '
                             '${_actionLabel(activity.action)} '
