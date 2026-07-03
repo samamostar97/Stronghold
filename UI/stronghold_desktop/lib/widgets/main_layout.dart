@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/check_in_screen.dart';
 import '../screens/cities_screen.dart';
+import '../screens/memberships_screen.dart';
 import '../screens/packages_screen.dart';
+import '../screens/payments_screen.dart';
 import '../screens/users_screen.dart';
 
 class _NavItem {
@@ -35,9 +38,12 @@ class _MainLayoutState extends State<MainLayout> {
   static const List<_NavSection> _sections = [
     _NavSection('Upravljanje', [
       _NavItem('Korisnici', Icons.people_outline, UsersScreen()),
+      _NavItem('Članarine', Icons.card_membership_outlined, MembershipsScreen()),
+      _NavItem('Uplate', Icons.payments_outlined, PaymentsScreen()),
+      _NavItem('Check-in', Icons.login_outlined, CheckInScreen()),
     ]),
     _NavSection('Sadržaj', [
-      _NavItem('Paketi članarina', Icons.card_membership_outlined, PackagesScreen()),
+      _NavItem('Paketi članarina', Icons.inventory_2_outlined, PackagesScreen()),
       _NavItem('Gradovi', Icons.location_city_outlined, CitiesScreen()),
     ]),
   ];

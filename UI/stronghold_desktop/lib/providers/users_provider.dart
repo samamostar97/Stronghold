@@ -57,6 +57,15 @@ class UsersProvider extends ChangeNotifier {
     await load();
   }
 
+  /// Za dropdown-e na drugim formama (dodjela clanarine i sl.).
+  Future<List<User>> loadAll() async {
+    final data = await _api.get('/api/users', query: {
+      'page': '1',
+      'pageSize': '100',
+    }) as Map<String, dynamic>;
+    return PagedResult.fromJson(data, User.fromJson).items;
+  }
+
   /// URL slike korisnika - slika se servira preko zasebnog endpointa.
   Uri imageUri(int userId) => _api.buildUri('/api/users/$userId/image');
 

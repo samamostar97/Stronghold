@@ -3,8 +3,11 @@ import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
 import 'providers/cities_provider.dart';
+import 'providers/memberships_provider.dart';
 import 'providers/packages_provider.dart';
+import 'providers/payments_provider.dart';
 import 'providers/users_provider.dart';
+import 'providers/visits_provider.dart';
 import 'screens/login_screen.dart';
 import 'utils/api_client.dart';
 import 'widgets/main_layout.dart';
@@ -20,6 +23,9 @@ void main() {
         ChangeNotifierProvider(create: (_) => CitiesProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => PackagesProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => UsersProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => MembershipsProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => PaymentsProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => VisitsProvider(apiClient)),
       ],
       child: const StrongholdDesktopApp(),
     ),
