@@ -44,4 +44,21 @@ public class AuthController : ControllerBase
         await _authService.LogoutAsync(request);
         return NoContent();
     }
+
+    /// <summary>Salje kod za reset na e-mail - odgovor ne otkriva postoji li nalog.</summary>
+    [HttpPost("forgot-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest request)
+    {
+        await _authService.ForgotPasswordAsync(request);
+        return NoContent();
+    }
+
+    [HttpPost("reset-password")]
+    [AllowAnonymous]
+    public async Task<IActionResult> ResetPassword(ResetPasswordRequest request)
+    {
+        await _authService.ResetPasswordAsync(request);
+        return NoContent();
+    }
 }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Auth;
+using Stronghold.Application.DTOs.Messaging;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Interfaces;
 using Stronghold.Core.Entities;
@@ -20,12 +21,18 @@ public class AuthService : IAuthService
 {
     private readonly StrongholdDbContext _db;
     private readonly ICurrentUserService _currentUser;
+    private readonly IEmailPublisher _emailPublisher;
     private readonly string _jwtKey;
 
-    public AuthService(StrongholdDbContext db, ICurrentUserService currentUser, IConfiguration configuration)
+    public AuthService(
+        StrongholdDbContext db,
+        ICurrentUserService currentUser,
+        IEmailPublisher emailPublisher,
+        IConfiguration configuration)
     {
         _db = db;
         _currentUser = currentUser;
+        _emailPublisher = emailPublisher;
         // environment varijabla se cita jednom u konstruktoru
         _jwtKey = configuration["JWT_KEY"]
             ?? throw new InvalidOperationException("Environment varijabla JWT_KEY nije postavljena.");
@@ -99,6 +106,58 @@ public class AuthService : IAuthService
         {
             stored.RevokedAt = DateTime.UtcNow;
         }
+        await _db.SaveChangesAsync();
+    }
+
+    public async Task ForgotPasswordAsync(ForgotPasswordRequest request)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+        // odgovor je uvijek isti - ne otkriva se da li nalog postoji
+        if (user == null)
+        {
+            return;
+        }
+
+        // 6-cifreni kod iz kriptografskog generatora; u bazi samo hash + istek
+        var code = (RandomNumberGenerator.GetInt32(0, 1_000_000)).ToString("D6");
+        var salt = PasswordHasher.GenerateSalt();
+        _db.PasswordResetTokens.Add(new PasswordResetToken
+        {
+            UserId = user.Id,
+            CodeSalt = salt,
+            CodeHash = PasswordHasher.Hash(code, salt),
+            CreatedAt = DateTime.UtcNow,
+            ExpiresAt = DateTime.UtcNow.AddMinutes(15)
+        });
+        await _db.SaveChangesAsync();
+
+        _emailPublisher.Publish(new EmailMessage
+        {
+            To = user.Email,
+            Subject = "Stronghold - kod za reset lozinke",
+            Body = $"Poštovani {user.FirstName},\n\nvaš kod za reset lozinke je: {code}\n" +
+                   "Kod vrijedi 15 minuta. Ako niste tražili reset, ignorišite ovu poruku.\n\nVaš Stronghold"
+        });
+    }
+
+    public async Task ResetPasswordAsync(ResetPasswordRequest request)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.Email == request.Email)
+            ?? throw new BusinessException("Kod nije ispravan ili je istekao.");
+
+        var now = DateTime.UtcNow;
+        var tokens = await _db.PasswordResetTokens
+            .Where(t => t.UserId == user.Id && t.UsedAt == null && t.ExpiresAt > now)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+
+        var token = tokens.FirstOrDefault(t =>
+            PasswordHasher.Verify(request.Code, t.CodeSalt, t.CodeHash))
+            ?? throw new BusinessException("Kod nije ispravan ili je istekao.");
+
+        token.UsedAt = now;
+        user.PasswordSalt = PasswordHasher.GenerateSalt();
+        user.PasswordHash = PasswordHasher.Hash(request.NewPassword, user.PasswordSalt);
         await _db.SaveChangesAsync();
     }
 

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../utils/api_client.dart';
+import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -118,6 +119,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                     child: const Text('Nemate nalog? Registrujte se'),
+                  ),
+                  TextButton(
+                    onPressed: loading
+                        ? null
+                        : () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ForgotPasswordScreen(),
+                              ),
+                            ),
+                    child: const Text('Zaboravili ste lozinku?'),
                   ),
                 ],
               ),
