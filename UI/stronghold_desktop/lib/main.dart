@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
-import 'screens/home_screen.dart';
+import 'providers/cities_provider.dart';
+import 'providers/packages_provider.dart';
+import 'providers/users_provider.dart';
 import 'screens/login_screen.dart';
 import 'utils/api_client.dart';
+import 'widgets/main_layout.dart';
 
 void main() {
   final apiClient = ApiClient();
@@ -14,6 +17,9 @@ void main() {
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => CitiesProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => PackagesProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => UsersProvider(apiClient)),
       ],
       child: const StrongholdDesktopApp(),
     ),
@@ -34,7 +40,7 @@ class StrongholdDesktopApp extends StatelessWidget {
       ),
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) =>
-            auth.isLoggedIn ? const HomeScreen() : const LoginScreen(),
+            auth.isLoggedIn ? const MainLayout() : const LoginScreen(),
       ),
     );
   }
