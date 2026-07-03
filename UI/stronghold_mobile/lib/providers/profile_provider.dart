@@ -13,10 +13,14 @@ class ProfileProvider extends ChangeNotifier {
 
   UserProfile? _profile;
   Progress? _progress;
+  int? _gymOccupancy;
   bool _loading = false;
 
   UserProfile? get profile => _profile;
   Progress? get progress => _progress;
+
+  /// Broj clanova koji su trenutno u teretani (kartica na pocetnoj).
+  int? get gymOccupancy => _gymOccupancy;
   bool get loading => _loading;
 
   Future<void> load() async {
@@ -27,9 +31,12 @@ class ProfileProvider extends ChangeNotifier {
       final results = await Future.wait([
         _api.get('/api/profile'),
         _api.get('/api/profile/progress'),
+        _api.get('/api/gym-visits/occupancy'),
       ]);
       _profile = UserProfile.fromJson(results[0] as Map<String, dynamic>);
       _progress = Progress.fromJson(results[1] as Map<String, dynamic>);
+      _gymOccupancy =
+          (results[2] as Map<String, dynamic>)['currentCount'] as int;
     } finally {
       _loading = false;
       notifyListeners();

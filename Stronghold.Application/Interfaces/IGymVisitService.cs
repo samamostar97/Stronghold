@@ -11,4 +11,7 @@ public interface IGymVisitService : IService<GymVisitResponse, GymVisitSearch>
 
     /// <summary>Clanovi sa aktivnom clanarinom koji trenutno nisu u teretani - za modal brzog check-ina.</summary>
     Task<PagedResult<UserResponse>> GetEligibleUsersAsync(UserSearch search);
+
+    /// <summary>Broj clanova koji su trenutno u teretani - kartica na mobile pocetnoj.</summary>
+    Task<GymOccupancyResponse> GetOccupancyAsync();
 }

@@ -80,6 +80,12 @@ public class GymVisitService : BaseService<GymVisit, GymVisitResponse, GymVisitS
         return await GetByIdAsync(visitId);
     }
 
+    public async Task<GymOccupancyResponse> GetOccupancyAsync()
+    {
+        var count = await Db.GymVisits.CountAsync(v => v.CheckOutAt == null);
+        return new GymOccupancyResponse { CurrentCount = count };
+    }
+
     public async Task<PagedResult<UserResponse>> GetEligibleUsersAsync(UserSearch search)
     {
         var now = DateTime.UtcNow;

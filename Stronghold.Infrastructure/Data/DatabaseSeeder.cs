@@ -210,8 +210,11 @@ public static class DatabaseSeeder
         AddVisits(adnan, 50, 20, 3);
         AddVisits(merima, 40, 10, 2);
 
-        // mobile je trenutno u teretani (ekran "trenutno u teretani")
+        // trenutno u teretani (desktop "trenutno u teretani" + mobile kartica "Stanje u teretani")
         visits.Add(new GymVisit { User = mobile, CheckInAt = now.AddHours(-1), CheckOutAt = null });
+        visits.Add(new GymVisit { User = tarik, CheckInAt = now.AddMinutes(-45), CheckOutAt = null });
+        visits.Add(new GymVisit { User = lejla, CheckInAt = now.AddMinutes(-25), CheckOutAt = null });
+        visits.Add(new GymVisit { User = sara, CheckInAt = now.AddMinutes(-10), CheckOutAt = null });
         db.GymVisits.AddRange(visits);
 
         // ---------- Kategorije suplemenata ----------
