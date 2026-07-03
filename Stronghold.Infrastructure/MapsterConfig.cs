@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.DTOs.GymVisits;
 using Stronghold.Application.DTOs.Memberships;
 using Stronghold.Application.DTOs.Payments;
+using Stronghold.Application.DTOs.Seminars;
+using Stronghold.Application.DTOs.StaffMembers;
 using Stronghold.Application.DTOs.Supplements;
 using Stronghold.Application.DTOs.Users;
 using Stronghold.Core.Entities;
@@ -27,6 +29,18 @@ public static class MapsterConfig
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
                 src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+
+        TypeAdapterConfig<StaffMember, StaffMemberResponse>.NewConfig()
+            .Map(dest => dest.StaffType, src => src.StaffType.ToString())
+            .Map(dest => dest.HasImage, src => src.ImageData != null);
+
+        TypeAdapterConfig<Seminar, SeminarResponse>.NewConfig()
+            .Map(dest => dest.RegisteredCount, src => src.Registrations.Count)
+            .Map(dest => dest.RemainingCapacity, src => src.MaxCapacity - src.Registrations.Count);
+
+        TypeAdapterConfig<SeminarRegistration, SeminarRegistrationResponse>.NewConfig()
+            .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)
+            .Map(dest => dest.Username, src => src.User.Username);
 
         TypeAdapterConfig<Supplement, SupplementResponse>.NewConfig()
             .Map(dest => dest.CategoryName, src => src.Category.Name)
