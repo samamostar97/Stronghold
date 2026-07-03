@@ -5,6 +5,7 @@ using Stronghold.Application.DTOs.GymVisits;
 using Stronghold.Application.DTOs.Memberships;
 using Stronghold.Application.DTOs.Notifications;
 using Stronghold.Application.DTOs.Orders;
+using Stronghold.Application.DTOs.Reviews;
 using Stronghold.Application.DTOs.Payments;
 using Stronghold.Application.DTOs.Seminars;
 using Stronghold.Application.DTOs.StaffMembers;
@@ -32,6 +33,10 @@ public static class MapsterConfig
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
                 src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+
+        TypeAdapterConfig<Review, ReviewResponse>.NewConfig()
+            .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)
+            .Map(dest => dest.SupplementName, src => src.Supplement.Name);
 
         TypeAdapterConfig<Notification, NotificationResponse>.NewConfig()
             .Map(dest => dest.Type, src => src.Type.ToString());

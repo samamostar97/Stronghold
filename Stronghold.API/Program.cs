@@ -44,6 +44,8 @@ builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IReviewService, ReviewService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
