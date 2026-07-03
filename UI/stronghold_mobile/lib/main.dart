@@ -2,11 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'providers/auth_provider.dart';
-import 'screens/home_screen.dart';
+import 'providers/cart_provider.dart';
+import 'providers/notifications_provider.dart';
+import 'providers/orders_provider.dart';
+import 'providers/profile_provider.dart';
+import 'providers/shop_provider.dart';
 import 'screens/login_screen.dart';
+import 'screens/shell_screen.dart';
 import 'utils/api_client.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   final apiClient = ApiClient();
 
   runApp(
@@ -14,6 +20,11 @@ void main() {
       providers: [
         Provider<ApiClient>.value(value: apiClient),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => ProfileProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => NotificationsProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => ShopProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => OrdersProvider(apiClient)),
       ],
       child: const StrongholdMobileApp(),
     ),
@@ -34,7 +45,7 @@ class StrongholdMobileApp extends StatelessWidget {
       ),
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) =>
-            auth.isLoggedIn ? const HomeScreen() : const LoginScreen(),
+            auth.isLoggedIn ? const ShellScreen() : const LoginScreen(),
       ),
     );
   }

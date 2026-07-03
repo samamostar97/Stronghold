@@ -1,5 +1,6 @@
 package ba.stronghold.stronghold_mobile
 
-import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.android.FlutterFragmentActivity
 
-class MainActivity : FlutterActivity()
+// FlutterFragmentActivity je preduslov za Stripe PaymentSheet
+class MainActivity : FlutterFragmentActivity()
