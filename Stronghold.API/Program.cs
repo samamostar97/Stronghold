@@ -40,6 +40,7 @@ builder.Services.AddScoped<ISupplementService, SupplementService>();
 builder.Services.AddScoped<IStaffMemberService, StaffMemberService>();
 builder.Services.AddScoped<ISeminarService, SeminarService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
+builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

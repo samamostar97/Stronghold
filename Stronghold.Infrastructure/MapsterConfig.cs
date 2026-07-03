@@ -1,5 +1,6 @@
 using Mapster;
 using Microsoft.EntityFrameworkCore;
+using Stronghold.Application.DTOs.Appointments;
 using Stronghold.Application.DTOs.GymVisits;
 using Stronghold.Application.DTOs.Memberships;
 using Stronghold.Application.DTOs.Payments;
@@ -29,6 +30,14 @@ public static class MapsterConfig
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
                 src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+
+        TypeAdapterConfig<Appointment, AppointmentResponse>.NewConfig()
+            .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)
+            .Map(dest => dest.StaffFullName, src => src.StaffMember.FirstName + " " + src.StaffMember.LastName)
+            .Map(dest => dest.StaffType, src => src.StaffMember.StaffType.ToString())
+            .Map(dest => dest.Status, src => src.Status.ToString())
+            .Map(dest => dest.CancelledBy,
+                src => src.CancelledBy != null ? src.CancelledBy.ToString() : null);
 
         TypeAdapterConfig<StaffMember, StaffMemberResponse>.NewConfig()
             .Map(dest => dest.StaffType, src => src.StaffType.ToString())
