@@ -4,6 +4,9 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../screens/appointments_screen.dart';
 import '../screens/categories_screen.dart';
+import '../screens/dashboard_screen.dart';
+import '../screens/leaderboard_screen.dart';
+import '../screens/reports_screen.dart';
 import '../screens/check_in_screen.dart';
 import '../screens/cities_screen.dart';
 import '../screens/faq_screen.dart';
@@ -45,6 +48,11 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   // sekcije se popunjavaju kako ekrani nastaju - bez mrtvih linkova
   static const List<_NavSection> _sections = [
+    _NavSection('Analitika', [
+      _NavItem('Dashboard', Icons.dashboard_outlined, DashboardScreen()),
+      _NavItem('Biznis report', Icons.assessment_outlined, ReportsScreen()),
+      _NavItem('Leaderboard', Icons.emoji_events_outlined, LeaderboardScreen()),
+    ]),
     _NavSection('Upravljanje', [
       _NavItem('Korisnici', Icons.people_outline, UsersScreen()),
       _NavItem('Članarine', Icons.card_membership_outlined, MembershipsScreen()),

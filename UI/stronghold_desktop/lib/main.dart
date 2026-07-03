@@ -10,6 +10,7 @@ import 'providers/memberships_provider.dart';
 import 'providers/orders_provider.dart';
 import 'providers/packages_provider.dart';
 import 'providers/payments_provider.dart';
+import 'providers/reports_provider.dart';
 import 'providers/reviews_provider.dart';
 import 'providers/seminars_provider.dart';
 import 'providers/staff_provider.dart';
@@ -44,6 +45,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => OrdersProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => ReviewsProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => FaqProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => ReportsProvider(apiClient)),
       ],
       child: const StrongholdDesktopApp(),
     ),
