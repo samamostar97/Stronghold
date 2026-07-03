@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../models/appointment.dart';
 import '../providers/appointments_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_chip.dart';
 import 'book_appointment_screen.dart';
 
 class AppointmentsScreen extends StatefulWidget {
@@ -23,11 +25,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
-  Color _statusColor(String status) => switch (status) {
-        'Confirmed' => Colors.green.shade700,
-        'Completed' => Colors.blueGrey,
-        'Cancelled' => Theme.of(context).colorScheme.error,
-        _ => Colors.orange.shade800,
+  StatusTone _statusTone(String status) => switch (status) {
+        'Confirmed' => StatusTone.success,
+        'Completed' => StatusTone.neutral,
+        'Cancelled' => StatusTone.danger,
+        _ => StatusTone.warning,
       };
 
   bool _canCancel(Appointment appointment) {
@@ -72,7 +74,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   autofocus: true,
                   decoration: const InputDecoration(
                     labelText: 'Razlog otkazivanja',
-                    border: OutlineInputBorder(),
                   ),
                   maxLines: 2,
                   validator: (v) => v == null || v.trim().isEmpty
@@ -148,27 +149,41 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       final appointment = provider.appointments[index];
                       return Card(
                         child: ListTile(
-                          leading: Icon(
-                            appointment.staffType == 'Trainer'
-                                ? Icons.fitness_center
-                                : Icons.restaurant_menu,
+                          leading: Container(
+                            width: 42,
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: AppTheme.navyTint,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Icon(
+                              appointment.staffType == 'Trainer'
+                                  ? Icons.fitness_center
+                                  : Icons.restaurant_menu,
+                              size: 22,
+                              color: AppTheme.navy,
+                            ),
                           ),
-                          title: Text(appointment.staffFullName),
+                          title: Text(
+                            appointment.staffFullName,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
                                 '${Formatters.date(appointment.date)} u ${appointment.startHour}:00',
                               ),
-                              Text(
-                                Formatters.appointmentStatus(appointment.status),
-                                style: TextStyle(
-                                  color: _statusColor(appointment.status),
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              const SizedBox(height: 4),
+                              StatusChip(
+                                label: Formatters.appointmentStatus(
+                                    appointment.status),
+                                tone: _statusTone(appointment.status),
                               ),
-                              if (appointment.cancellationReason != null)
+                              if (appointment.cancellationReason != null) ...[
+                                const SizedBox(height: 4),
                                 Text('Razlog: ${appointment.cancellationReason}'),
+                              ],
                             ],
                           ),
                           trailing: _canCancel(appointment)
