@@ -72,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       const SizedBox(height: 32),
                       TextFormField(
                         controller: _usernameController,
+                        autofocus: true,
                         decoration: const InputDecoration(
                           labelText: 'Korisničko ime ili e-mail',
                           prefixIcon: Icon(Icons.person_outline),
