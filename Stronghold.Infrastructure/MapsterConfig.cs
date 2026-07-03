@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.DTOs.GymVisits;
 using Stronghold.Application.DTOs.Memberships;
 using Stronghold.Application.DTOs.Payments;
+using Stronghold.Application.DTOs.Supplements;
 using Stronghold.Application.DTOs.Users;
 using Stronghold.Core.Entities;
 
@@ -26,6 +27,13 @@ public static class MapsterConfig
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
                 src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+
+        TypeAdapterConfig<Supplement, SupplementResponse>.NewConfig()
+            .Map(dest => dest.CategoryName, src => src.Category.Name)
+            .Map(dest => dest.SupplierName, src => src.Supplier.Name)
+            .Map(dest => dest.HasImage, src => src.ImageData != null)
+            .Map(dest => dest.AverageRating, src => src.Reviews.Average(r => (double?)r.Rating) ?? 0)
+            .Map(dest => dest.ReviewCount, src => src.Reviews.Count);
 
         TypeAdapterConfig<GymVisit, GymVisitResponse>.NewConfig()
             .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)

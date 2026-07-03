@@ -36,6 +36,7 @@ builder.Services.AddScoped<IGymVisitService, GymVisitService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<ISupplementCategoryService, SupplementCategoryService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<ISupplementService, SupplementService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
