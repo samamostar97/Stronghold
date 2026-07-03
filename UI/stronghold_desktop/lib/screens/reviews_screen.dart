@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/reviews_provider.dart';
 import '../utils/formatters.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 /// Pregled recenzija - pretraga po korisniku ili suplementu.
 class ReviewsScreen extends StatefulWidget {
@@ -60,7 +62,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga (korisnik ili suplement)',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -74,11 +75,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.reviews.isEmpty
-                  ? const Center(child: Text('Nema recenzija za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema recenzija za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Korisnik')),

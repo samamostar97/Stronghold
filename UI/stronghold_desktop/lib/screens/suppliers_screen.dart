@@ -6,6 +6,8 @@ import '../providers/suppliers_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -82,7 +84,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Naziv dobavljača',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) => v == null || v.trim().isEmpty
                         ? 'Unesite naziv dobavljača.'
@@ -93,7 +94,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     controller: emailController,
                     decoration: const InputDecoration(
                       labelText: 'Kontakt e-mail',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
@@ -110,7 +110,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                     controller: phoneController,
                     decoration: const InputDecoration(
                       labelText: 'Kontakt telefon',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) {
                       if (v == null || v.trim().isEmpty) {
@@ -201,7 +200,6 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po nazivu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -221,11 +219,10 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.suppliers.isEmpty
-                  ? const Center(child: Text('Nema dobavljača za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema dobavljača za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Naziv')),

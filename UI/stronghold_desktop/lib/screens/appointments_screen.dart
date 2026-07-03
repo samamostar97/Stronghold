@@ -10,6 +10,9 @@ import '../providers/users_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/status_chip.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class AppointmentsScreen extends StatefulWidget {
   const AppointmentsScreen({super.key});
@@ -53,11 +56,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     );
   }
 
-  Color _statusColor(String status) => switch (status) {
-        'Confirmed' => Colors.green.shade700,
-        'Completed' => Colors.blueGrey,
-        'Cancelled' => Theme.of(context).colorScheme.error,
-        _ => Colors.orange.shade800,
+  StatusTone _statusTone(String status) => switch (status) {
+        'Confirmed' => StatusTone.success,
+        'Completed' => StatusTone.info,
+        'Cancelled' => StatusTone.danger,
+        _ => StatusTone.warning,
       };
 
   Future<void> _openAddDialog() async {
@@ -117,7 +120,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       initialValue: selectedMember,
                       decoration: const InputDecoration(
                         labelText: 'Član',
-                        border: OutlineInputBorder(),
                       ),
                       items: [
                         for (final member in members)
@@ -136,7 +138,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       initialValue: selectedStaff,
                       decoration: const InputDecoration(
                         labelText: 'Trener / nutricionista',
-                        border: OutlineInputBorder(),
                       ),
                       items: [
                         for (final member in staff)
@@ -281,7 +282,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                   autofocus: true,
                   decoration: const InputDecoration(
                     labelText: 'Razlog otkazivanja',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? 'Unesite razlog otkazivanja.'
@@ -353,7 +353,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po članu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -412,11 +411,10 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.appointments.isEmpty
-                  ? const Center(child: Text('Nema termina za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema termina za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Član')),
@@ -438,41 +436,42 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                         ? 'Otkazao: ${appointment.cancelledBy == 'Admin' ? 'administrator' : 'član'}'
                                             '${appointment.cancellationReason != null ? ' - ${appointment.cancellationReason}' : ''}'
                                         : '',
-                                    child: Text(
-                                      _statusLabels[appointment.status] ??
+                                    child: StatusChip(
+                                      label: _statusLabels[appointment.status] ??
                                           appointment.status,
-                                      style: TextStyle(
-                                        color: _statusColor(appointment.status),
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                      tone: _statusTone(appointment.status),
                                     ),
                                   )),
                                   DataCell(Row(children: [
                                     if (appointment.status == 'Pending')
-                                      TextButton(
+                                      IconButton(
+                                        tooltip: 'Potvrdi termin',
+                                        icon: const Icon(
+                                            Icons.check_circle_outline),
                                         onPressed: () => _changeStatus(
                                             appointment.id,
                                             context
                                                 .read<AppointmentsProvider>()
                                                 .confirm,
                                             'Termin je potvrđen.'),
-                                        child: const Text('Potvrdi'),
                                       ),
                                     if (appointment.status == 'Confirmed')
-                                      TextButton(
+                                      IconButton(
+                                        tooltip: 'Označi kao održan',
+                                        icon: const Icon(Icons.task_alt),
                                         onPressed: () => _changeStatus(
                                             appointment.id,
                                             context
                                                 .read<AppointmentsProvider>()
                                                 .complete,
                                             'Termin je označen kao održan.'),
-                                        child: const Text('Održan'),
                                       ),
                                     if (appointment.status == 'Pending' ||
                                         appointment.status == 'Confirmed')
-                                      TextButton(
+                                      IconButton(
+                                        tooltip: 'Otkaži termin',
+                                        icon: const Icon(Icons.cancel_outlined),
                                         onPressed: () => _cancel(appointment),
-                                        child: const Text('Otkaži'),
                                       ),
                                   ])),
                                 ]),

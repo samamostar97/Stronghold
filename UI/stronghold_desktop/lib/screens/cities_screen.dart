@@ -5,6 +5,8 @@ import '../providers/cities_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 /// CRUD ekran za gradove (referentna tabela) - template za ostale CRUD ekrane.
 class CitiesScreen extends StatefulWidget {
@@ -72,7 +74,6 @@ class _CitiesScreenState extends State<CitiesScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Naziv grada',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (value) => value == null || value.trim().isEmpty
                         ? 'Unesite naziv grada.'
@@ -151,7 +152,6 @@ class _CitiesScreenState extends State<CitiesScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po nazivu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) => provider.load(page: 1, searchName: value.trim()),
@@ -170,11 +170,10 @@ class _CitiesScreenState extends State<CitiesScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.cities.isEmpty
-                  ? const Center(child: Text('Nema gradova za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema gradova za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Naziv')),

@@ -11,6 +11,8 @@ import '../providers/users_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -164,7 +166,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           autofocus: true,
                           decoration: const InputDecoration(
                             labelText: 'Ime',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) => v == null || v.trim().isEmpty
                               ? 'Unesite ime.'
@@ -177,7 +178,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           controller: lastNameController,
                           decoration: const InputDecoration(
                             labelText: 'Prezime',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) => v == null || v.trim().isEmpty
                               ? 'Unesite prezime.'
@@ -191,7 +191,6 @@ class _UsersScreenState extends State<UsersScreen> {
                         controller: usernameController,
                         decoration: const InputDecoration(
                           labelText: 'Korisničko ime',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
@@ -211,7 +210,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           controller: emailController,
                           decoration: const InputDecoration(
                             labelText: 'E-mail',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
@@ -230,7 +228,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           controller: phoneController,
                           decoration: const InputDecoration(
                             labelText: 'Telefon',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
@@ -251,7 +248,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           controller: streetController,
                           decoration: const InputDecoration(
                             labelText: 'Ulica i broj (opcionalno)',
-                            border: OutlineInputBorder(),
                           ),
                         ),
                       ),
@@ -261,7 +257,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           initialValue: selectedCityId,
                           decoration: const InputDecoration(
                             labelText: 'Grad (opcionalno)',
-                            border: OutlineInputBorder(),
                           ),
                           items: [
                             const DropdownMenuItem<int>(
@@ -283,7 +278,6 @@ class _UsersScreenState extends State<UsersScreen> {
                         obscureText: true,
                         decoration: const InputDecoration(
                           labelText: 'Lozinka',
-                          border: OutlineInputBorder(),
                         ),
                         validator: (v) {
                           if (v == null || v.isEmpty) return 'Unesite lozinku.';
@@ -310,7 +304,6 @@ class _UsersScreenState extends State<UsersScreen> {
                           obscureText: true,
                           decoration: const InputDecoration(
                             labelText: 'Nova lozinka',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             if (!changePassword) return null;
@@ -445,7 +438,6 @@ class _UsersScreenState extends State<UsersScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga (ime, prezime, korisničko ime)',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -465,11 +457,10 @@ class _UsersScreenState extends State<UsersScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.users.isEmpty
-                  ? const Center(child: Text('Nema korisnika za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema korisnika za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Slika')),
@@ -490,9 +481,10 @@ class _UsersScreenState extends State<UsersScreen> {
                                   DataCell(Text(user.email)),
                                   DataCell(Text(user.phone)),
                                   DataCell(Row(children: [
-                                    TextButton(
+                                    IconButton(
+                                      tooltip: 'Detalji',
+                                      icon: const Icon(Icons.visibility_outlined),
                                       onPressed: () => _showDetails(user),
-                                      child: const Text('Detalji'),
                                     ),
                                     IconButton(
                                       tooltip: 'Izmijeni',

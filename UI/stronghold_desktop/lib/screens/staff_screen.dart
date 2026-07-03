@@ -9,6 +9,8 @@ import '../providers/staff_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 /// Jedan ekran za trenere (staffType=0) i nutricioniste (staffType=1) -
 /// UI ih prikazuje kao dva odvojena navigaciona itema.
@@ -113,7 +115,6 @@ class _StaffScreenState extends State<StaffScreen> {
                           autofocus: true,
                           decoration: const InputDecoration(
                             labelText: 'Ime',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) =>
                               v == null || v.trim().isEmpty ? 'Unesite ime.' : null,
@@ -125,7 +126,6 @@ class _StaffScreenState extends State<StaffScreen> {
                           controller: lastNameController,
                           decoration: const InputDecoration(
                             labelText: 'Prezime',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) => v == null || v.trim().isEmpty
                               ? 'Unesite prezime.'
@@ -140,7 +140,6 @@ class _StaffScreenState extends State<StaffScreen> {
                           controller: emailController,
                           decoration: const InputDecoration(
                             labelText: 'E-mail',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
@@ -159,7 +158,6 @@ class _StaffScreenState extends State<StaffScreen> {
                           controller: phoneController,
                           decoration: const InputDecoration(
                             labelText: 'Telefon',
-                            border: OutlineInputBorder(),
                           ),
                           validator: (v) {
                             if (v == null || v.trim().isEmpty) {
@@ -181,7 +179,6 @@ class _StaffScreenState extends State<StaffScreen> {
                           initialValue: workStart,
                           decoration: const InputDecoration(
                             labelText: 'Početak radnog vremena',
-                            border: OutlineInputBorder(),
                           ),
                           items: [
                             for (var hour = 6; hour <= 20; hour++)
@@ -197,7 +194,6 @@ class _StaffScreenState extends State<StaffScreen> {
                           initialValue: workEnd,
                           decoration: const InputDecoration(
                             labelText: 'Kraj radnog vremena',
-                            border: OutlineInputBorder(),
                           ),
                           items: [
                             for (var hour = 7; hour <= 23; hour++)
@@ -216,7 +212,6 @@ class _StaffScreenState extends State<StaffScreen> {
                       controller: biographyController,
                       decoration: const InputDecoration(
                         labelText: 'Biografija',
-                        border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
                       validator: (v) => v == null || v.trim().isEmpty
@@ -327,7 +322,6 @@ class _StaffScreenState extends State<StaffScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga (ime, prezime)',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) => provider.load(widget.staffType,
@@ -347,11 +341,10 @@ class _StaffScreenState extends State<StaffScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.staff.isEmpty
-                  ? const Center(child: Text('Nema zapisa za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema zapisa za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Slika')),

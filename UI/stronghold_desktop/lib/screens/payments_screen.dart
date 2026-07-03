@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../providers/payments_provider.dart';
 import '../utils/formatters.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 /// Historija svih uplata clanarina u sistemu.
 class PaymentsScreen extends StatefulWidget {
@@ -46,7 +48,6 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po članu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -60,11 +61,10 @@ class _PaymentsScreenState extends State<PaymentsScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.payments.isEmpty
-                  ? const Center(child: Text('Nema uplata za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema uplata za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Datum')),

@@ -7,6 +7,9 @@ import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/status_chip.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
@@ -50,10 +53,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  Color _statusColor(String status) => switch (status) {
-        'Delivered' => Colors.green.shade700,
-        'Cancelled' => Theme.of(context).colorScheme.error,
-        _ => Colors.orange.shade800,
+  StatusTone _statusTone(String status) => switch (status) {
+        'Delivered' => StatusTone.success,
+        'Cancelled' => StatusTone.danger,
+        _ => StatusTone.warning,
       };
 
   void _showDetails(Order order) {
@@ -191,7 +194,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                   autofocus: true,
                   decoration: const InputDecoration(
                     labelText: 'Razlog otkazivanja',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? 'Unesite razlog otkazivanja.'
@@ -268,7 +270,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po kupcu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -296,11 +297,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.orders.isEmpty
-                  ? const Center(child: Text('Nema narudžbi za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema narudžbi za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Broj')),
@@ -319,26 +319,28 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       Text(Formatters.dateTime(order.createdAt))),
                                   DataCell(
                                       Text(Formatters.money(order.totalAmount))),
-                                  DataCell(Text(
-                                    _statusLabels[order.status] ?? order.status,
-                                    style: TextStyle(
-                                      color: _statusColor(order.status),
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                  DataCell(StatusChip(
+                                    label: _statusLabels[order.status] ??
+                                        order.status,
+                                    tone: _statusTone(order.status),
                                   )),
                                   DataCell(Row(children: [
-                                    TextButton(
+                                    IconButton(
+                                      tooltip: 'Detalji',
+                                      icon: const Icon(Icons.visibility_outlined),
                                       onPressed: () => _showDetails(order),
-                                      child: const Text('Detalji'),
                                     ),
                                     if (order.status == 'Processing') ...[
-                                      TextButton(
+                                      IconButton(
+                                        tooltip: 'Označi kao dostavljeno',
+                                        icon: const Icon(
+                                            Icons.local_shipping_outlined),
                                         onPressed: () => _deliver(order),
-                                        child: const Text('Isporučeno'),
                                       ),
-                                      TextButton(
+                                      IconButton(
+                                        tooltip: 'Otkaži uz povrat novca',
+                                        icon: const Icon(Icons.cancel_outlined),
                                         onPressed: () => _cancel(order),
-                                        child: const Text('Otkaži'),
                                       ),
                                     ],
                                   ])),

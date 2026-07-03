@@ -9,6 +9,9 @@ import '../providers/users_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/status_chip.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class MembershipsScreen extends StatefulWidget {
   const MembershipsScreen({super.key});
@@ -82,7 +85,6 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                     initialValue: selectedUserId,
                     decoration: const InputDecoration(
                       labelText: 'Član',
-                      border: OutlineInputBorder(),
                     ),
                     items: [
                       for (final member in members)
@@ -99,7 +101,6 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                     initialValue: selectedPackageId,
                     decoration: const InputDecoration(
                       labelText: 'Paket članarine',
-                      border: OutlineInputBorder(),
                     ),
                     items: [
                       for (final package in packages)
@@ -194,7 +195,6 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Razlog ukidanja',
-                      border: OutlineInputBorder(),
                     ),
                     maxLines: 2,
                     validator: (value) => value == null || value.trim().isEmpty
@@ -286,25 +286,13 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
 
   Widget _statusChip(Membership membership) {
     if (membership.isRevoked) {
-      return Chip(
-        label: const Text('Ukinuta'),
-        backgroundColor: Colors.orange.shade100,
-        visualDensity: VisualDensity.compact,
-      );
+      return const StatusChip(label: 'Ukinuta', tone: StatusTone.warning);
     }
     if (membership.isActive) {
       // aktivne clanarine su vizuelno naglasene
-      return Chip(
-        label: const Text('Aktivna'),
-        backgroundColor: Colors.green.shade100,
-        visualDensity: VisualDensity.compact,
-      );
+      return const StatusChip(label: 'Aktivna', tone: StatusTone.success);
     }
-    return Chip(
-      label: const Text('Istekla'),
-      backgroundColor: Colors.grey.shade300,
-      visualDensity: VisualDensity.compact,
-    );
+    return const StatusChip(label: 'Istekla', tone: StatusTone.neutral);
   }
 
   @override
@@ -323,7 +311,6 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po članu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -350,11 +337,10 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.memberships.isEmpty
-                  ? const Center(child: Text('Nema članarina za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema članarina za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Član')),
@@ -373,24 +359,20 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                                   DataCell(Text(Formatters.date(membership.endDate))),
                                   DataCell(_statusChip(membership)),
                                   DataCell(Row(children: [
-                                    TextButton(
+                                    IconButton(
+                                      tooltip: 'Historija uplata',
+                                      icon: const Icon(Icons.receipt_long_outlined),
                                       onPressed: () => _showUserPayments(membership),
-                                      child: const Text('Uplate'),
                                     ),
-                                    if (membership.isActive)
-                                      TextButton(
-                                        onPressed: () => _openRevokeDialog(membership),
-                                        child: const Text('Ukini'),
-                                      )
-                                    else
-                                      const Tooltip(
-                                        message:
-                                            'Samo aktivna članarina se može ukinuti',
-                                        child: TextButton(
-                                          onPressed: null,
-                                          child: Text('Ukini'),
-                                        ),
-                                      ),
+                                    IconButton(
+                                      tooltip: membership.isActive
+                                          ? 'Ukini članarinu'
+                                          : 'Samo aktivna članarina se može ukinuti',
+                                      icon: const Icon(Icons.cancel_outlined),
+                                      onPressed: membership.isActive
+                                          ? () => _openRevokeDialog(membership)
+                                          : null,
+                                    ),
                                   ])),
                                 ]),
                             ],

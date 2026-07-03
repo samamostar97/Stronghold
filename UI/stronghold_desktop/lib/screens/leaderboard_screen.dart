@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/reports_provider.dart';
+import '../widgets/stretch_scroll.dart';
 
 /// Rangiranje clanova po XP-u i broju posjeta (top lista - bez parametra pretrage).
 class LeaderboardScreen extends StatefulWidget {
@@ -30,8 +31,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
     return Card(
       child: SingleChildScrollView(
-        child: SizedBox(
-          width: double.infinity,
+        child: StretchScroll(
           child: DataTable(
             columns: const [
               DataColumn(label: Text('Rang')),
