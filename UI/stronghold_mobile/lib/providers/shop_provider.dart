@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/paged_result.dart';
+import '../models/recommended_supplement.dart';
 import '../models/supplement.dart';
 import '../utils/api_client.dart';
 
@@ -10,6 +11,7 @@ class ShopProvider extends ChangeNotifier {
   ShopProvider(this._api);
 
   List<Supplement> _supplements = [];
+  List<RecommendedSupplement> _recommended = [];
   int _totalCount = 0;
   int _page = 1;
   final int _pageSize = 20;
@@ -18,6 +20,7 @@ class ShopProvider extends ChangeNotifier {
   bool _loading = false;
 
   List<Supplement> get supplements => _supplements;
+  List<RecommendedSupplement> get recommended => _recommended;
   int get totalCount => _totalCount;
   int get page => _page;
   int get pageSize => _pageSize;
@@ -47,6 +50,20 @@ class ShopProvider extends ChangeNotifier {
     } finally {
       _loading = false;
       notifyListeners();
+    }
+  }
+
+  /// "Preporuceno za tebe" - content-based preporuke sa objasnjenjem.
+  Future<void> loadRecommended() async {
+    try {
+      final data = await _api.get('/api/supplements/recommended') as List;
+      _recommended = data
+          .map((item) =>
+              RecommendedSupplement.fromJson(item as Map<String, dynamic>))
+          .toList();
+      notifyListeners();
+    } on ApiException {
+      // preporuke nisu kriticne - prodavnica radi i bez njih
     }
   }
 

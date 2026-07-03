@@ -9,6 +9,7 @@ import 'providers/leaderboard_provider.dart';
 import 'providers/notifications_provider.dart';
 import 'providers/orders_provider.dart';
 import 'providers/profile_provider.dart';
+import 'providers/reviews_provider.dart';
 import 'providers/seminars_provider.dart';
 import 'providers/shop_provider.dart';
 import 'screens/login_screen.dart';
@@ -33,6 +34,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => SeminarsProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => LeaderboardProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => FaqProvider(apiClient)),
+        ChangeNotifierProvider(create: (_) => ReviewsProvider(apiClient)),
       ],
       child: const StrongholdMobileApp(),
     ),
