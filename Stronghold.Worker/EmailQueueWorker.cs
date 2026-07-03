@@ -1,19 +1,23 @@
 using System.Text;
+using System.Text.Json;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using Stronghold.Application.Common;
+using Stronghold.Application.DTOs.Messaging;
 
 namespace Stronghold.Worker;
 
 /// <summary>
-/// Slusa RabbitMQ queue za e-mail poruke. Konekcija je singleton (jedna po zivotu servisa),
-/// a uspostavlja se sa eksponencijalnim backoff-om jer RabbitMQ u Dockeru
-/// moze krenuti kasnije od workera.
+/// Slusa RabbitMQ queue i salje stvarne e-mailove (FIFO). Konekcija je singleton
+/// (jedna po zivotu servisa), uspostavlja se sa eksponencijalnim backoff-om,
+/// a neuspjelo slanje se ponavlja 1s -> 2s -> 4s -> 8s prije odustajanja.
 /// </summary>
 public class EmailQueueWorker : BackgroundService
 {
-    public const string QueueName = "stronghold.emails";
+    private const int MaxSendAttempts = 4;
 
     private readonly ILogger<EmailQueueWorker> _logger;
+    private readonly EmailSender _emailSender;
     private readonly string _host;
     private readonly int _port;
     private readonly string _username;
@@ -22,9 +26,10 @@ public class EmailQueueWorker : BackgroundService
     private IConnection? _connection;
     private IModel? _channel;
 
-    public EmailQueueWorker(ILogger<EmailQueueWorker> logger, IConfiguration configuration)
+    public EmailQueueWorker(ILogger<EmailQueueWorker> logger, EmailSender emailSender, IConfiguration configuration)
     {
         _logger = logger;
+        _emailSender = emailSender;
         // environment varijable se citaju jednom u konstruktoru
         _host = configuration["RABBITMQ_HOST"]
             ?? throw new InvalidOperationException("Environment varijabla RABBITMQ_HOST nije postavljena.");
@@ -45,23 +50,53 @@ public class EmailQueueWorker : BackgroundService
             var body = Encoding.UTF8.GetString(eventArgs.Body.ToArray());
             try
             {
-                // Faza 15 ovdje dodaje stvarno slanje e-mailova preko SMTP-a
-                _logger.LogInformation("Primljena poruka sa queue-a: {Body}", body);
+                var message = JsonSerializer.Deserialize<EmailMessage>(body)
+                    ?? throw new JsonException("Poruka je prazna.");
+                await SendWithRetryAsync(message, stoppingToken);
                 _channel!.BasicAck(eventArgs.DeliveryTag, multiple: false);
+            }
+            catch (JsonException ex)
+            {
+                _logger.LogError(ex, "Nevalidna poruka na queue-u, odbacuje se: {Body}", body);
+                _channel!.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: false);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Greska pri obradi poruke: {Body}", body);
-                _channel!.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: true);
+                _logger.LogError(ex, "Slanje e-maila nije uspjelo nakon {Attempts} pokusaja: {Body}",
+                    MaxSendAttempts, body);
+                _channel!.BasicNack(eventArgs.DeliveryTag, multiple: false, requeue: false);
             }
-            await Task.CompletedTask;
         };
 
-        _channel.BasicConsume(queue: QueueName, autoAck: false, consumer: consumer);
-        _logger.LogInformation("Worker slusa queue '{Queue}' na {Host}:{Port}.", QueueName, _host, _port);
+        _channel.BasicConsume(queue: MessagingConstants.EmailQueue, autoAck: false, consumer: consumer);
+        _logger.LogInformation("Worker slusa queue '{Queue}' na {Host}:{Port}.",
+            MessagingConstants.EmailQueue, _host, _port);
 
         // drzi servis zivim dok se host ne ugasi
         await Task.Delay(Timeout.Infinite, stoppingToken);
+    }
+
+    private async Task SendWithRetryAsync(EmailMessage message, CancellationToken stoppingToken)
+    {
+        var delay = TimeSpan.FromSeconds(1);
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await _emailSender.SendAsync(message, stoppingToken);
+                _logger.LogInformation("E-mail poslan (za: {To}, tema: {Subject}).",
+                    message.To, message.Subject);
+                return;
+            }
+            catch (Exception ex) when (attempt < MaxSendAttempts)
+            {
+                _logger.LogWarning("Slanje e-maila nije uspjelo ({Message}) - pokusaj {Attempt}/{Max} za {Delay}s.",
+                    ex.Message, attempt, MaxSendAttempts, delay.TotalSeconds);
+                await Task.Delay(delay, stoppingToken);
+                // eksponencijalni backoff: 1s -> 2s -> 4s -> 8s
+                delay *= 2;
+            }
+        }
     }
 
     private async Task ConnectWithRetryAsync(CancellationToken stoppingToken)
@@ -82,7 +117,8 @@ public class EmailQueueWorker : BackgroundService
             {
                 _connection = factory.CreateConnection();
                 _channel = _connection.CreateModel();
-                _channel.QueueDeclare(queue: QueueName, durable: true, exclusive: false, autoDelete: false);
+                _channel.QueueDeclare(queue: MessagingConstants.EmailQueue,
+                    durable: true, exclusive: false, autoDelete: false);
                 _channel.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
                 _logger.LogInformation("Povezan na RabbitMQ ({Host}:{Port}).", _host, _port);
                 return;

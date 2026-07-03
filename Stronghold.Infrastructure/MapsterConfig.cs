@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.DTOs.Appointments;
 using Stronghold.Application.DTOs.GymVisits;
 using Stronghold.Application.DTOs.Memberships;
+using Stronghold.Application.DTOs.Notifications;
 using Stronghold.Application.DTOs.Orders;
 using Stronghold.Application.DTOs.Payments;
 using Stronghold.Application.DTOs.Seminars;
@@ -31,6 +32,9 @@ public static class MapsterConfig
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
                 src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+
+        TypeAdapterConfig<Notification, NotificationResponse>.NewConfig()
+            .Map(dest => dest.Type, src => src.Type.ToString());
 
         TypeAdapterConfig<Order, OrderResponse>.NewConfig()
             .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)

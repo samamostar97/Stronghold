@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.DTOs.Memberships;
+using Stronghold.Application.DTOs.Messaging;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Interfaces;
 using Stronghold.Core.Entities;
@@ -10,8 +11,11 @@ namespace Stronghold.Infrastructure.Services;
 
 public class MembershipService : BaseService<Membership, MembershipResponse, MembershipSearch>, IMembershipService
 {
-    public MembershipService(StrongholdDbContext db) : base(db)
+    private readonly IEmailPublisher _emailPublisher;
+
+    public MembershipService(StrongholdDbContext db, IEmailPublisher emailPublisher) : base(db)
     {
+        _emailPublisher = emailPublisher;
     }
 
     protected override IQueryable<Membership> ApplyFilter(IQueryable<Membership> query, MembershipSearch search)
@@ -67,7 +71,24 @@ public class MembershipService : BaseService<Membership, MembershipResponse, Mem
         membership.Payments.Add(new Payment { Amount = package.Price, PaidAt = now });
 
         Db.Memberships.Add(membership);
+        Db.Notifications.Add(new Notification
+        {
+            UserId = user.Id,
+            Title = "Uplata evidentirana",
+            Message = $"Uplata od {package.Price:F2} KM je evidentirana - članarina " +
+                      $"\"{package.Name}\" vrijedi do {membership.EndDate:dd.MM.yyyy}.",
+            Type = NotificationType.PaymentConfirmed,
+            CreatedAt = now
+        });
         await Db.SaveChangesAsync();
+
+        _emailPublisher.Publish(new EmailMessage
+        {
+            To = user.Email,
+            Subject = "Stronghold - članarina aktivirana",
+            Body = $"Poštovani {user.FirstName},\n\nvaša uplata od {package.Price:F2} KM je evidentirana. " +
+                   $"Članarina \"{package.Name}\" vrijedi do {membership.EndDate:dd.MM.yyyy}.\n\nVaš Stronghold"
+        });
         return await GetByIdAsync(membership.Id);
     }
 

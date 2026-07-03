@@ -61,11 +61,18 @@ services:
       dockerfile: Stronghold.Worker/Dockerfile
     container_name: stronghold-worker
     environment:
+      CONNECTION_STRING: Server=sqlserver,1433;Database=${SQL_DATABASE};User Id=sa;Password=${SQL_PASSWORD};TrustServerCertificate=True
       RABBITMQ_HOST: rabbitmq
       RABBITMQ_PORT: "5672"
       RABBITMQ_USER: ${RABBITMQ_USER}
       RABBITMQ_PASS: ${RABBITMQ_PASS}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_PORT: ${SMTP_PORT}
+      SMTP_EMAIL: ${SMTP_EMAIL}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
     depends_on:
+      sqlserver:
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
 

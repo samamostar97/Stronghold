@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Stripe;
 using Stronghold.Application.Common;
+using Stronghold.Application.DTOs.Messaging;
 using Stronghold.Application.DTOs.Orders;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Interfaces;
@@ -18,6 +19,7 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
     private const string Currency = "bam";
 
     private readonly ICurrentUserService _currentUser;
+    private readonly IEmailPublisher _emailPublisher;
     private readonly ILogger<OrderService> _logger;
     private readonly StripeClient _stripe;
     private readonly string _publishableKey;
@@ -25,10 +27,12 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
     public OrderService(
         StrongholdDbContext db,
         ICurrentUserService currentUser,
+        IEmailPublisher emailPublisher,
         IConfiguration configuration,
         ILogger<OrderService> logger) : base(db)
     {
         _currentUser = currentUser;
+        _emailPublisher = emailPublisher;
         _logger = logger;
         // environment varijable se citaju jednom u konstruktoru
         var secretKey = configuration["STRIPE_SECRET_KEY"]
@@ -178,8 +182,28 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         order.TotalAmount = order.Items.Sum(i => i.UnitPrice * i.Quantity);
 
         Db.Orders.Add(order);
+        Db.Notifications.Add(new Notification
+        {
+            UserId = userId,
+            Title = "Plaćanje uspješno",
+            Message = $"Vaša narudžba od {order.TotalAmount:F2} KM je plaćena i u obradi je.",
+            Type = NotificationType.PaymentConfirmed,
+            CreatedAt = DateTime.UtcNow
+        });
         await Db.SaveChangesAsync();
         await transaction.CommitAsync();
+
+        var buyer = await Db.Users.FindAsync(userId);
+        if (buyer != null)
+        {
+            _emailPublisher.Publish(new EmailMessage
+            {
+                To = buyer.Email,
+                Subject = "Stronghold - narudžba zaprimljena",
+                Body = $"Poštovani {buyer.FirstName},\n\nvaša narudžba #{order.Id} u iznosu od " +
+                       $"{order.TotalAmount:F2} KM je uspješno plaćena i u obradi je.\n\nVaš Stronghold"
+            });
+        }
 
         _logger.LogInformation("Narudzba {OrderId} kreirana nakon potvrde placanja {IntentId}.",
             order.Id, intent.Id);
@@ -210,11 +234,37 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         order.Status = OrderStatus.Delivered;
         order.StatusChangedAt = DateTime.UtcNow;
         order.StatusChangedByUserId = _currentUser.UserId;
+        Db.Notifications.Add(new Notification
+        {
+            UserId = order.UserId,
+            Title = "Narudžba dostavljena",
+            Message = $"Vaša narudžba #{order.Id} je dostavljena. Prijatno korištenje!",
+            Type = NotificationType.OrderStatusChanged,
+            CreatedAt = DateTime.UtcNow
+        });
         await Db.SaveChangesAsync();
 
-        // Faza 15: e-mail korisniku preko RabbitMQ - do tada log
+        await PublishOrderStatusEmailAsync(order,
+            "Stronghold - narudžba dostavljena",
+            $"vaša narudžba #{order.Id} je dostavljena. Prijatno korištenje!");
+
         _logger.LogInformation("Narudzba {OrderId} oznacena kao dostavljena.", id);
         return await GetByIdAsync(id);
+    }
+
+    private async Task PublishOrderStatusEmailAsync(Order order, string subject, string message)
+    {
+        var user = await Db.Users.FindAsync(order.UserId);
+        if (user == null)
+        {
+            return;
+        }
+        _emailPublisher.Publish(new EmailMessage
+        {
+            To = user.Email,
+            Subject = subject,
+            Body = $"Poštovani {user.FirstName},\n\n{message}\n\nVaš Stronghold"
+        });
     }
 
     public async Task<OrderResponse> CancelAsync(int id, OrderCancelRequest request)
@@ -257,7 +307,21 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         order.StatusChangedAt = DateTime.UtcNow;
         order.StatusChangedByUserId = _currentUser.UserId;
         order.CancellationReason = request.Reason;
+        Db.Notifications.Add(new Notification
+        {
+            UserId = order.UserId,
+            Title = "Narudžba otkazana",
+            Message = $"Vaša narudžba #{order.Id} je otkazana ({request.Reason}). " +
+                      "Novac je vraćen na vašu karticu.",
+            Type = NotificationType.OrderStatusChanged,
+            CreatedAt = DateTime.UtcNow
+        });
         await Db.SaveChangesAsync();
+
+        await PublishOrderStatusEmailAsync(order,
+            "Stronghold - narudžba otkazana",
+            $"vaša narudžba #{order.Id} je otkazana (razlog: {request.Reason}). " +
+            "Puni iznos je vraćen na vašu karticu.");
 
         _logger.LogInformation("Narudzba {OrderId} otkazana uz Stripe refund.", id);
         return await GetByIdAsync(id);
