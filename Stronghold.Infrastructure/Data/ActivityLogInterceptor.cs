@@ -48,9 +48,11 @@ public class ActivityLogInterceptor : SaveChangesInterceptor
     {
         var context = eventData.Context;
         var userId = _currentUser.UserIdOrNull;
-        if (context == null || _suppressed || userId == null)
+        if (context == null || _suppressed || userId == null || !_currentUser.IsAdmin)
         {
-            // seed i pozadinski poslovi nemaju prijavljenog korisnika - ne loguju se
+            // seed i pozadinski poslovi nemaju prijavljenog korisnika - ne loguju se.
+            // clanovi ne rade CRUD nad ovim entitetima; njihove izmjene su nuspojave
+            // poslovnih operacija (npr. kupovina smanjuje zalihe) i ne idu u aktivnosti
             return base.SavingChangesAsync(eventData, result, cancellationToken);
         }
 
