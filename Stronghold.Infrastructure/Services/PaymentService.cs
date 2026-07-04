@@ -17,6 +17,14 @@ public class PaymentService : BaseService<Payment, PaymentResponse, PaymentSearc
         {
             query = query.Where(p => p.Membership.UserId == search.UserId);
         }
+        if (!string.IsNullOrWhiteSpace(search.Text))
+        {
+            var text = search.Text.Trim();
+            query = query.Where(p =>
+                p.Membership.User.FirstName.Contains(text) ||
+                p.Membership.User.LastName.Contains(text) ||
+                p.Membership.User.Username.Contains(text));
+        }
         if (search.From.HasValue)
         {
             query = query.Where(p => p.PaidAt >= search.From);
