@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import '../models/city.dart';
 import '../providers/profile_provider.dart';
 import '../utils/api_client.dart';
+import 'faq_screen.dart';
+import 'orders_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -67,6 +69,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: const Icon(Icons.lock_outline),
                   label: const Text('Promijeni lozinku'),
                   onPressed: () => _openChangePassword(context),
+                ),
+                const SizedBox(height: 24),
+                const Divider(),
+                ListTile(
+                  leading: const Icon(Icons.receipt_long_outlined),
+                  title: const Text('Moje narudžbe'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const OrdersScreen()),
+                  ),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.help_outline),
+                  title: const Text('Česta pitanja'),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const FaqScreen()),
+                  ),
                 ),
               ],
             ),
