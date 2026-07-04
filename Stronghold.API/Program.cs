@@ -25,6 +25,7 @@ builder.Services.AddControllers();
 MapsterConfig.Register();
 
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddSingleton<IEmailPublisher, RabbitMqEmailPublisher>();
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -42,6 +43,7 @@ builder.Services.AddScoped<ISeminarService, SeminarService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

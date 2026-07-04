@@ -2,6 +2,7 @@ using Mapster;
 using Microsoft.EntityFrameworkCore;
 using Stronghold.Application.Common;
 using Stronghold.Application.DTOs.Appointments;
+using Stronghold.Application.DTOs.Messaging;
 using Stronghold.Application.Exceptions;
 using Stronghold.Application.Interfaces;
 using Stronghold.Core.Entities;
@@ -23,10 +24,15 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
     };
 
     private readonly ICurrentUserService _currentUser;
+    private readonly IEmailPublisher _emailPublisher;
 
-    public AppointmentService(StrongholdDbContext db, ICurrentUserService currentUser) : base(db)
+    public AppointmentService(
+        StrongholdDbContext db,
+        ICurrentUserService currentUser,
+        IEmailPublisher emailPublisher) : base(db)
     {
         _currentUser = currentUser;
+        _emailPublisher = emailPublisher;
     }
 
     protected override IQueryable<Appointment> ApplyFilter(IQueryable<Appointment> query, AppointmentSearch search)
@@ -99,6 +105,8 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
     {
         var appointment = await GetEntityAsync(id);
         ChangeStatus(appointment, AppointmentStatus.Confirmed);
+        AddStatusNotification(appointment, "Termin potvrđen",
+            $"Vaš termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 je potvrđen.");
         await Db.SaveChangesAsync();
         return await GetByIdAsync(id);
     }
@@ -124,8 +132,23 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         ChangeStatus(appointment, AppointmentStatus.Cancelled);
         appointment.CancelledBy = _currentUser.IsAdmin ? CancellationActor.Admin : CancellationActor.User;
         appointment.CancellationReason = request.Reason;
+        AddStatusNotification(appointment, "Termin otkazan",
+            $"Termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 je otkazan " +
+            $"(razlog: {request.Reason}).");
         await Db.SaveChangesAsync();
         return await GetByIdAsync(id);
+    }
+
+    private void AddStatusNotification(Appointment appointment, string title, string message)
+    {
+        Db.Notifications.Add(new Notification
+        {
+            UserId = appointment.UserId,
+            Title = title,
+            Message = message,
+            Type = NotificationType.AppointmentStatusChanged,
+            CreatedAt = DateTime.UtcNow
+        });
     }
 
     private async Task<AppointmentResponse> CreateInternalAsync(int userId, int staffMemberId, DateOnly date, int startHour)
@@ -163,6 +186,19 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         {
             // unique indeks (staff, datum, sat) je uhvatio istovremeni booking istog slota
             throw new BusinessException("Odabrana satnica je upravo zauzeta. Odaberite drugu.");
+        }
+
+        // e-mail treneru/nutricionisti o novom zakazanom terminu
+        var staff = await Db.StaffMembers.FindAsync(staffMemberId);
+        if (staff != null)
+        {
+            _emailPublisher.Publish(new EmailMessage
+            {
+                To = staff.Email,
+                Subject = "Stronghold - novi zakazani termin",
+                Body = $"Poštovani {staff.FirstName},\n\nčlan {user.FirstName} {user.LastName} je zakazao " +
+                       $"termin {date:dd.MM.yyyy}. u {startHour}:00.\n\nVaš Stronghold"
+            });
         }
         return await GetByIdAsync(appointment.Id);
     }
