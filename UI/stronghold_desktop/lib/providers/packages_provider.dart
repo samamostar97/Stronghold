@@ -42,6 +42,15 @@ class PackagesProvider extends ChangeNotifier {
     }
   }
 
+  /// Za dropdown pri dodjeli clanarine.
+  Future<List<MembershipPackage>> loadAll() async {
+    final data = await _api.get('/api/membership-packages', query: {
+      'page': '1',
+      'pageSize': '100',
+    }) as Map<String, dynamic>;
+    return PagedResult.fromJson(data, MembershipPackage.fromJson).items;
+  }
+
   Future<void> insert(Map<String, dynamic> body) async {
     await _api.post('/api/membership-packages', body: body);
     await load(page: 1);
