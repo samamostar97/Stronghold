@@ -13,6 +13,7 @@ public class StrongholdDbContext : DbContext
     public DbSet<User> Users => Set<User>();
     public DbSet<City> Cities => Set<City>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
     public DbSet<MembershipPackage> MembershipPackages => Set<MembershipPackage>();
     public DbSet<Membership> Memberships => Set<Membership>();
     public DbSet<Payment> Payments => Set<Payment>();
@@ -65,6 +66,16 @@ public class StrongholdDbContext : DbContext
             entity.HasIndex(t => t.Token).IsUnique();
             entity.HasOne(t => t.User)
                 .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(t => t.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.Property(t => t.CodeHash).HasMaxLength(200).IsRequired();
+            entity.Property(t => t.CodeSalt).HasMaxLength(200).IsRequired();
+            entity.HasOne(t => t.User)
+                .WithMany()
                 .HasForeignKey(t => t.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
