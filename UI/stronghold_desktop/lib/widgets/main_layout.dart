@@ -2,11 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../screens/appointments_screen.dart';
+import '../screens/categories_screen.dart';
 import '../screens/check_in_screen.dart';
 import '../screens/cities_screen.dart';
+import '../screens/faq_screen.dart';
 import '../screens/memberships_screen.dart';
+import '../screens/orders_screen.dart';
 import '../screens/packages_screen.dart';
 import '../screens/payments_screen.dart';
+import '../screens/reviews_screen.dart';
+import '../screens/seminars_screen.dart';
+import '../screens/staff_screen.dart';
+import '../screens/suppliers_screen.dart';
+import '../screens/supplements_screen.dart';
 import '../screens/users_screen.dart';
 
 class _NavItem {
@@ -42,7 +51,23 @@ class _MainLayoutState extends State<MainLayout> {
       _NavItem('Uplate', Icons.payments_outlined, PaymentsScreen()),
       _NavItem('Check-in', Icons.login_outlined, CheckInScreen()),
     ]),
+    _NavSection('Osoblje', [
+      _NavItem('Treneri', Icons.fitness_center_outlined,
+          StaffScreen(staffType: 0, singularLabel: 'trener')),
+      _NavItem('Nutricionisti', Icons.restaurant_menu_outlined,
+          StaffScreen(staffType: 1, singularLabel: 'nutricionista')),
+      _NavItem('Termini', Icons.event_outlined, AppointmentsScreen()),
+    ]),
+    _NavSection('Prodavnica', [
+      _NavItem('Suplementi', Icons.medication_outlined, SupplementsScreen()),
+      _NavItem('Kategorije', Icons.category_outlined, CategoriesScreen()),
+      _NavItem('Dobavljači', Icons.local_shipping_outlined, SuppliersScreen()),
+      _NavItem('Narudžbe', Icons.receipt_long_outlined, OrdersScreen()),
+    ]),
     _NavSection('Sadržaj', [
+      _NavItem('Seminari', Icons.school_outlined, SeminarsScreen()),
+      _NavItem('Recenzije', Icons.reviews_outlined, ReviewsScreen()),
+      _NavItem('FAQ', Icons.help_outline, FaqScreen()),
       _NavItem('Paketi članarina', Icons.inventory_2_outlined, PackagesScreen()),
       _NavItem('Gradovi', Icons.location_city_outlined, CitiesScreen()),
     ]),
