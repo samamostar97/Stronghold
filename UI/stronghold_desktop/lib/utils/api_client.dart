@@ -50,6 +50,15 @@ class ApiClient {
 
   Future<dynamic> delete(String path) => _send('DELETE', path);
 
+  /// Preuzimanje binarnih fajlova (PDF/Excel izvjestaji).
+  Future<List<int>> getBytes(String path) async {
+    final response = await http.get(buildUri(path), headers: authHeaders());
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      return response.bodyBytes;
+    }
+    throw ApiException(response.statusCode, _extractMessage(response));
+  }
+
   Uri buildUri(String path, [Map<String, String>? query]) =>
       Uri.parse('$baseUrl$path').replace(queryParameters: query);
 
