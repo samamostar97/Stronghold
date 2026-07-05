@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../models/order.dart';
 import '../providers/orders_provider.dart';
+import '../providers/reviews_provider.dart';
+import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 
 /// Historija narudzbi - master lista, detalji stavki se sire po narudzbi.
@@ -17,8 +19,96 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => context.read<OrdersProvider>().load(page: 1),
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrdersProvider>().load(page: 1);
+      context.read<ReviewsProvider>().loadMine();
+    });
+  }
+
+  Future<void> _openReviewDialog(OrderItem item) async {
+    int rating = 5;
+    final commentController = TextEditingController();
+    String? serverError;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Expanded(child: Text('Ocijenite: ${item.supplementName}')),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (var star = 1; star <= 5; star++)
+                    IconButton(
+                      icon: Icon(
+                        star <= rating ? Icons.star : Icons.star_border,
+                        color: Colors.amber,
+                        size: 32,
+                      ),
+                      onPressed: () => setDialogState(() => rating = star),
+                    ),
+                ],
+              ),
+              TextField(
+                controller: commentController,
+                decoration: const InputDecoration(
+                  labelText: 'Komentar (opcionalno)',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+              if (serverError != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  serverError!,
+                  style: TextStyle(color: Theme.of(dialogContext).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Odustani'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                try {
+                  await context.read<ReviewsProvider>().create(
+                        supplementId: item.supplementId,
+                        rating: rating,
+                        comment: commentController.text.trim().isEmpty
+                            ? null
+                            : commentController.text.trim(),
+                      );
+                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content:
+                              Text('Recenzija za "${item.supplementName}" je sačuvana.')),
+                    );
+                  }
+                } on ApiException catch (e) {
+                  setDialogState(() => serverError = e.message);
+                }
+              },
+              child: const Text('Sačuvaj ocjenu'),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -51,6 +141,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Widget _orderCard(Order order) {
+    final reviews = context.watch<ReviewsProvider>();
+
     return Card(
       child: ExpansionTile(
         title: Text('Narudžba #${order.id}'),
@@ -79,7 +171,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
               title: Text(item.supplementName),
               subtitle: Text(
                   '${Formatters.money(item.unitPrice)} x ${item.quantity}'),
-              trailing: Text(Formatters.money(item.unitPrice * item.quantity)),
+              trailing: order.status != 'Delivered'
+                  ? Text(Formatters.money(item.unitPrice * item.quantity))
+                  // recenzija samo za dostavljeno; jedna po proizvodu
+                  : reviews.hasReviewed(item.supplementId)
+                      ? const Chip(
+                          avatar: Icon(Icons.star, size: 16, color: Colors.amber),
+                          label: Text('Ocijenjeno'),
+                          visualDensity: VisualDensity.compact,
+                        )
+                      : TextButton.icon(
+                          icon: const Icon(Icons.star_border, size: 18),
+                          label: const Text('Ocijeni'),
+                          onPressed: () => _openReviewDialog(item),
+                        ),
             ),
         ],
       ),
