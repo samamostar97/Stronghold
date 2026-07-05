@@ -18,7 +18,10 @@ var connectionString = builder.Configuration["CONNECTION_STRING"]
 var jwtKey = builder.Configuration["JWT_KEY"]
     ?? throw new InvalidOperationException("Environment varijabla JWT_KEY nije postavljena.");
 
-builder.Services.AddDbContext<StrongholdDbContext>(options => options.UseSqlServer(connectionString));
+builder.Services.AddScoped<ActivityLogInterceptor>();
+builder.Services.AddDbContext<StrongholdDbContext>((serviceProvider, options) =>
+    options.UseSqlServer(connectionString)
+        .AddInterceptors(serviceProvider.GetRequiredService<ActivityLogInterceptor>()));
 
 builder.Services.AddControllers();
 
@@ -47,6 +50,7 @@ builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<IActivityLogService, ActivityLogService>();
 builder.Services.AddScoped<IProfileService, ProfileService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

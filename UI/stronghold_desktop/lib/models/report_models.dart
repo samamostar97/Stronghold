@@ -216,6 +216,37 @@ class WeeklyVisitCount {
       );
 }
 
+class ActivityLogEntry {
+  final int id;
+  final String entityName;
+  final String? entityDisplay;
+  final String action;
+  final String performedByName;
+  final DateTime timestamp;
+  final bool canUndo;
+
+  ActivityLogEntry({
+    required this.id,
+    required this.entityName,
+    this.entityDisplay,
+    required this.action,
+    required this.performedByName,
+    required this.timestamp,
+    required this.canUndo,
+  });
+
+  factory ActivityLogEntry.fromJson(Map<String, dynamic> json) =>
+      ActivityLogEntry(
+        id: json['id'] as int,
+        entityName: json['entityName'] as String,
+        entityDisplay: json['entityDisplay'] as String?,
+        action: json['action'] as String,
+        performedByName: json['performedByName'] as String,
+        timestamp: DateTime.parse(json['timestamp'] as String),
+        canUndo: json['canUndo'] as bool,
+      );
+}
+
 class LeaderboardEntry {
   final int rank;
   final String fullName;
