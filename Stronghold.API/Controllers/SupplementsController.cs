@@ -13,10 +13,22 @@ public class SupplementsController : BaseCrudController<SupplementResponse, Supp
     SupplementUpsertRequest, SupplementUpsertRequest>
 {
     private readonly ISupplementService _supplementService;
+    private readonly IRecommendationService _recommendationService;
 
-    public SupplementsController(ISupplementService supplementService) : base(supplementService)
+    public SupplementsController(
+        ISupplementService supplementService,
+        IRecommendationService recommendationService) : base(supplementService)
     {
         _supplementService = supplementService;
+        _recommendationService = recommendationService;
+    }
+
+    // "Preporučeno za tebe" - content-based preporuke sa objasnjenjem.
+    [HttpGet("recommended")]
+    [Authorize(Roles = Roles.GymMember)]
+    public async Task<ActionResult<List<RecommendedSupplementResponse>>> GetRecommended()
+    {
+        return Ok(await _recommendationService.GetForCurrentUserAsync());
     }
 
     [Authorize(Roles = Roles.Admin)]
