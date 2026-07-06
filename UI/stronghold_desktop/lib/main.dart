@@ -20,6 +20,7 @@ import 'providers/users_provider.dart';
 import 'providers/visits_provider.dart';
 import 'screens/login_screen.dart';
 import 'utils/api_client.dart';
+import 'utils/app_theme.dart';
 import 'widgets/main_layout.dart';
 
 void main() {
@@ -60,10 +61,7 @@ class StrongholdDesktopApp extends StatelessWidget {
     return MaterialApp(
       title: 'Stronghold',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A5F)),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light(),
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) =>
             auth.isLoggedIn ? const MainLayout() : const LoginScreen(),
