@@ -7,6 +7,8 @@ import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class SeminarsScreen extends StatefulWidget {
   const SeminarsScreen({super.key});
@@ -80,7 +82,6 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Tema seminara',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) => v == null || v.trim().isEmpty
                         ? 'Unesite temu seminara.'
@@ -91,7 +92,6 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                     controller: speakerController,
                     decoration: const InputDecoration(
                       labelText: 'Predavač',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) => v == null || v.trim().isEmpty
                         ? 'Unesite ime predavača.'
@@ -127,7 +127,6 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                         initialValue: selectedHour,
                         decoration: const InputDecoration(
                           labelText: 'Satnica',
-                          border: OutlineInputBorder(),
                           isDense: true,
                         ),
                         items: [
@@ -144,7 +143,6 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                     controller: capacityController,
                     decoration: const InputDecoration(
                       labelText: 'Maksimalan broj učesnika',
-                      border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                     validator: (v) {
@@ -288,7 +286,6 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga (tema, predavač)',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -308,11 +305,10 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.seminars.isEmpty
-                  ? const Center(child: Text('Nema seminara za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema seminara za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Tema')),
@@ -336,9 +332,10 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                                   DataCell(Text(
                                       '${seminar.registeredCount}/${seminar.maxCapacity}')),
                                   DataCell(Row(children: [
-                                    TextButton(
+                                    IconButton(
+                                      tooltip: 'Učesnici',
+                                      icon: const Icon(Icons.group_outlined),
                                       onPressed: () => _showRegistrations(seminar),
-                                      child: const Text('Učesnici'),
                                     ),
                                     IconButton(
                                       tooltip: 'Izmijeni',

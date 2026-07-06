@@ -14,6 +14,8 @@ import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class SupplementsScreen extends StatefulWidget {
   const SupplementsScreen({super.key});
@@ -105,7 +107,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                       autofocus: true,
                       decoration: const InputDecoration(
                         labelText: 'Naziv',
-                        border: OutlineInputBorder(),
                       ),
                       validator: (v) => v == null || v.trim().isEmpty
                           ? 'Unesite naziv suplementa.'
@@ -118,7 +119,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                           controller: priceController,
                           decoration: const InputDecoration(
                             labelText: 'Cijena (KM)',
-                            border: OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) {
@@ -137,7 +137,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                           controller: stockController,
                           decoration: const InputDecoration(
                             labelText: 'Stanje zaliha (kom)',
-                            border: OutlineInputBorder(),
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) {
@@ -157,7 +156,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                           initialValue: categoryId,
                           decoration: const InputDecoration(
                             labelText: 'Kategorija',
-                            border: OutlineInputBorder(),
                           ),
                           items: [
                             for (final SupplementCategory category in categories)
@@ -176,7 +174,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                           initialValue: supplierId,
                           decoration: const InputDecoration(
                             labelText: 'Dobavljač',
-                            border: OutlineInputBorder(),
                           ),
                           items: [
                             for (final Supplier supplier in suppliers)
@@ -195,7 +192,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                       controller: descriptionController,
                       decoration: const InputDecoration(
                         labelText: 'Opis',
-                        border: OutlineInputBorder(),
                       ),
                       maxLines: 3,
                       validator: (v) => v == null || v.trim().isEmpty
@@ -305,7 +301,6 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po nazivu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -325,11 +320,10 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.supplements.isEmpty
-                  ? const Center(child: Text('Nema suplemenata za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema suplemenata za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Slika')),

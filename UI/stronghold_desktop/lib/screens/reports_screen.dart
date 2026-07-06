@@ -8,6 +8,7 @@ import '../models/report_models.dart';
 import '../providers/reports_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
+import '../widgets/stretch_scroll.dart';
 
 /// Biznis report: tabovi Prihodi / Inventar / Clanarine, svaki sa PDF i Excel exportom.
 class ReportsScreen extends StatefulWidget {
@@ -247,8 +248,7 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
         const SizedBox(height: 12),
         Card(
-          child: SizedBox(
-            width: double.infinity,
+          child: StretchScroll(
             child: DataTable(
               columns: const [
                 DataColumn(label: Text('Proizvod')),

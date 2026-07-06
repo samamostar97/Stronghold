@@ -6,6 +6,8 @@ import '../providers/categories_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
+import '../widgets/empty_state.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({super.key});
@@ -77,7 +79,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Naziv kategorije',
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) => v == null || v.trim().isEmpty
                         ? 'Unesite naziv kategorije.'
@@ -88,7 +89,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     controller: descriptionController,
                     decoration: const InputDecoration(
                       labelText: 'Opis',
-                      border: OutlineInputBorder(),
                     ),
                     maxLines: 2,
                     validator: (v) => v == null || v.trim().isEmpty
@@ -173,7 +173,6 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga po nazivu',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -193,11 +192,10 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.categories.isEmpty
-                  ? const Center(child: Text('Nema kategorija za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema kategorija za prikaz.')
                   : Card(
                       child: SingleChildScrollView(
-                        child: SizedBox(
-                          width: double.infinity,
+                        child: StretchScroll(
                           child: DataTable(
                             columns: const [
                               DataColumn(label: Text('Naziv')),

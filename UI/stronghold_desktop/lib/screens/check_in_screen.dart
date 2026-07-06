@@ -6,6 +6,7 @@ import '../providers/visits_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/stretch_scroll.dart';
 
 class CheckInScreen extends StatefulWidget {
   const CheckInScreen({super.key});
@@ -64,7 +65,6 @@ class _CheckInScreenState extends State<CheckInScreen> {
                   decoration: const InputDecoration(
                     labelText: 'Pretraga člana',
                     prefixIcon: Icon(Icons.search),
-                    border: OutlineInputBorder(),
                     isDense: true,
                   ),
                   onSubmitted: (value) async {
@@ -211,8 +211,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
           Expanded(
             child: Card(
               child: SingleChildScrollView(
-                child: SizedBox(
-                  width: double.infinity,
+                child: StretchScroll(
                   child: DataTable(
                     columns: const [
                       DataColumn(label: Text('Član')),

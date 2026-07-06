@@ -6,6 +6,7 @@ import '../providers/faq_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/empty_state.dart';
 
 class FaqScreen extends StatefulWidget {
   const FaqScreen({super.key});
@@ -75,7 +76,6 @@ class _FaqScreenState extends State<FaqScreen> {
                     autofocus: true,
                     decoration: const InputDecoration(
                       labelText: 'Pitanje',
-                      border: OutlineInputBorder(),
                     ),
                     maxLines: 2,
                     validator: (v) =>
@@ -86,7 +86,6 @@ class _FaqScreenState extends State<FaqScreen> {
                     controller: answerController,
                     decoration: const InputDecoration(
                       labelText: 'Odgovor',
-                      border: OutlineInputBorder(),
                     ),
                     maxLines: 4,
                     validator: (v) =>
@@ -170,7 +169,6 @@ class _FaqScreenState extends State<FaqScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Pretraga',
                   prefixIcon: Icon(Icons.search),
-                  border: OutlineInputBorder(),
                   isDense: true,
                 ),
                 onSubmitted: (value) =>
@@ -190,7 +188,7 @@ class _FaqScreenState extends State<FaqScreen> {
           child: provider.loading
               ? const Center(child: CircularProgressIndicator())
               : provider.items.isEmpty
-                  ? const Center(child: Text('Nema pitanja za prikaz.'))
+                  ? const EmptyState(icon: Icons.inbox_outlined, message: 'Nema pitanja za prikaz.')
                   : Card(
                       child: ListView.separated(
                         itemCount: provider.items.length,
