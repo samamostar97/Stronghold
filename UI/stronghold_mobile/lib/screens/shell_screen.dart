@@ -13,12 +13,19 @@ import 'shop_screen.dart';
 class ShellScreen extends StatefulWidget {
   const ShellScreen({super.key});
 
+  /// Prebacivanje na drugi tab iz child ekrana (npr. Pocetna -> Termini).
+  static void switchTab(BuildContext context, int index) {
+    context.findAncestorStateOfType<_ShellScreenState>()?._selectTab(index);
+  }
+
   @override
   State<ShellScreen> createState() => _ShellScreenState();
 }
 
 class _ShellScreenState extends State<ShellScreen> {
   int _selectedIndex = 0;
+
+  void _selectTab(int index) => setState(() => _selectedIndex = index);
 
   static const _screens = [
     HomeScreen(),
