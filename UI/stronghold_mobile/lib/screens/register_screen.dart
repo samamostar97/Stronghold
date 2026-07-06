@@ -77,7 +77,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _firstNameController,
                   decoration: const InputDecoration(
                     labelText: 'Ime',
-                    border: OutlineInputBorder(),
                   ),
                   textInputAction: TextInputAction.next,
                   validator: (value) =>
@@ -88,7 +87,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _lastNameController,
                   decoration: const InputDecoration(
                     labelText: 'Prezime',
-                    border: OutlineInputBorder(),
                   ),
                   textInputAction: TextInputAction.next,
                   validator: (value) =>
@@ -99,7 +97,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _usernameController,
                   decoration: const InputDecoration(
                     labelText: 'Korisničko ime',
-                    border: OutlineInputBorder(),
                   ),
                   textInputAction: TextInputAction.next,
                   validator: (value) {
@@ -117,7 +114,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'E-mail',
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   textInputAction: TextInputAction.next,
@@ -136,7 +132,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _phoneController,
                   decoration: const InputDecoration(
                     labelText: 'Telefon',
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
@@ -155,7 +150,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _passwordController,
                   decoration: const InputDecoration(
                     labelText: 'Lozinka',
-                    border: OutlineInputBorder(),
                   ),
                   obscureText: true,
                   textInputAction: TextInputAction.next,
@@ -174,7 +168,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _confirmPasswordController,
                   decoration: const InputDecoration(
                     labelText: 'Potvrdite lozinku',
-                    border: OutlineInputBorder(),
                   ),
                   obscureText: true,
                   onFieldSubmitted: (_) => _submit(),

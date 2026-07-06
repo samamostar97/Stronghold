@@ -6,6 +6,7 @@ import '../providers/orders_provider.dart';
 import '../providers/reviews_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_chip.dart';
 
 /// Historija narudzbi - master lista, detalji stavki se sire po narudzbi.
 class OrdersScreen extends StatefulWidget {
@@ -64,7 +65,6 @@ class _OrdersScreenState extends State<OrdersScreen> {
                 controller: commentController,
                 decoration: const InputDecoration(
                   labelText: 'Komentar (opcionalno)',
-                  border: OutlineInputBorder(),
                 ),
                 maxLines: 3,
               ),
@@ -112,10 +112,10 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  Color _statusColor(BuildContext context, String status) => switch (status) {
-        'Delivered' => Colors.green.shade700,
-        'Cancelled' => Theme.of(context).colorScheme.error,
-        _ => Colors.orange.shade800,
+  StatusTone _statusTone(String status) => switch (status) {
+        'Delivered' => StatusTone.success,
+        'Cancelled' => StatusTone.danger,
+        _ => StatusTone.warning,
       };
 
   @override
@@ -156,11 +156,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
           children: [
             Text(
               Formatters.money(order.totalAmount),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            Text(
-              Formatters.orderStatus(order.status),
-              style: TextStyle(color: _statusColor(context, order.status)),
+            const SizedBox(height: 4),
+            StatusChip(
+              label: Formatters.orderStatus(order.status),
+              tone: _statusTone(order.status),
             ),
           ],
         ),

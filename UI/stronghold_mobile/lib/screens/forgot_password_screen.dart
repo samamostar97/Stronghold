@@ -107,7 +107,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   decoration: const InputDecoration(
                     labelText: 'E-mail',
                     prefixIcon: Icon(Icons.email_outlined),
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
@@ -127,7 +126,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Kod iz e-maila (6 cifara)',
                       prefixIcon: Icon(Icons.pin_outlined),
-                      border: OutlineInputBorder(),
                     ),
                     keyboardType: TextInputType.number,
                     maxLength: 6,
@@ -142,7 +140,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Nova lozinka',
                       prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) {
                       if (v == null || v.isEmpty) return 'Unesite novu lozinku.';
@@ -159,7 +156,6 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Potvrdite novu lozinku',
                       prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(),
                     ),
                     validator: (v) => v != _passwordController.text
                         ? 'Lozinke se ne podudaraju.'

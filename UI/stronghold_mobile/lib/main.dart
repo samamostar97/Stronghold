@@ -15,6 +15,7 @@ import 'providers/shop_provider.dart';
 import 'screens/login_screen.dart';
 import 'screens/shell_screen.dart';
 import 'utils/api_client.dart';
+import 'utils/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,10 +50,7 @@ class StrongholdMobileApp extends StatelessWidget {
     return MaterialApp(
       title: 'Stronghold',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF1E3A5F)),
-        useMaterial3: true,
-      ),
+      theme: AppTheme.light(),
       home: Consumer<AuthProvider>(
         builder: (context, auth, _) =>
             auth.isLoggedIn ? const ShellScreen() : const LoginScreen(),

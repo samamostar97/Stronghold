@@ -132,7 +132,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'Trenutna lozinka',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) =>
                       v == null || v.isEmpty ? 'Unesite trenutnu lozinku.' : null,
@@ -143,7 +142,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'Nova lozinka',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) {
                     if (v == null || v.isEmpty) return 'Unesite novu lozinku.';
@@ -159,7 +157,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   obscureText: true,
                   decoration: const InputDecoration(
                     labelText: 'Potvrdite novu lozinku',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) =>
                       v != newController.text ? 'Lozinke se ne podudaraju.' : null,
@@ -311,7 +308,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _firstNameController,
                   decoration: const InputDecoration(
                     labelText: 'Ime',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'Unesite ime.' : null,
@@ -321,7 +317,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _lastNameController,
                   decoration: const InputDecoration(
                     labelText: 'Prezime',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) =>
                       v == null || v.trim().isEmpty ? 'Unesite prezime.' : null,
@@ -331,7 +326,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _emailController,
                   decoration: const InputDecoration(
                     labelText: 'E-mail',
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.emailAddress,
                   validator: (v) {
@@ -349,7 +343,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _phoneController,
                   decoration: const InputDecoration(
                     labelText: 'Telefon',
-                    border: OutlineInputBorder(),
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (v) {
@@ -367,7 +360,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _streetController,
                   decoration: const InputDecoration(
                     labelText: 'Ulica i broj',
-                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -375,7 +367,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   initialValue: _selectedCityId,
                   decoration: const InputDecoration(
                     labelText: 'Grad',
-                    border: OutlineInputBorder(),
                   ),
                   items: [
                     const DropdownMenuItem<int>(value: null, child: Text('Bez grada')),

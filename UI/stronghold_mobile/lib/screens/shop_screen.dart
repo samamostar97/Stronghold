@@ -5,6 +5,7 @@ import '../models/recommended_supplement.dart';
 import '../models/supplement.dart';
 import '../providers/cart_provider.dart';
 import '../providers/shop_provider.dart';
+import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
 import 'cart_screen.dart';
 import 'supplement_details_screen.dart';
@@ -66,7 +67,6 @@ class _ShopScreenState extends State<ShopScreen> {
               decoration: const InputDecoration(
                 labelText: 'Pretraga proizvoda',
                 prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
                 isDense: true,
               ),
               onSubmitted: (value) =>
@@ -136,6 +136,12 @@ class _ShopScreenState extends State<ShopScreen> {
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      margin: const EdgeInsets.only(right: 10),
+      // tanki navy border izdvaja preporuke od ostalih kartica
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(color: AppTheme.navy.withValues(alpha: 0.45)),
+      ),
       child: InkWell(
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
@@ -156,14 +162,15 @@ class _ShopScreenState extends State<ShopScreen> {
                         fit: BoxFit.cover,
                       )
                     : Container(
-                        color:
-                            Theme.of(context).colorScheme.surfaceContainerHighest,
-                        child:
-                            const Center(child: Icon(Icons.image_not_supported)),
+                        color: AppTheme.navyTint,
+                        child: const Center(
+                          child: Icon(Icons.fitness_center,
+                              color: AppTheme.navy, size: 32),
+                        ),
                       ),
               ),
               Padding(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -173,12 +180,17 @@ class _ShopScreenState extends State<ShopScreen> {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
+                    const SizedBox(height: 2),
                     // objasnjenje ZASTO se proizvod preporucuje
                     Text(
                       recommended.reason,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        color: AppTheme.textSecondary,
+                      ),
                     ),
                   ],
                 ),
@@ -195,6 +207,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
     return Card(
       clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
       child: InkWell(
         onTap: () => Navigator.of(context).push(
           MaterialPageRoute(
@@ -213,12 +226,15 @@ class _ShopScreenState extends State<ShopScreen> {
                       fit: BoxFit.cover,
                     )
                   : Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      child: const Center(child: Icon(Icons.image_not_supported)),
+                      color: AppTheme.navyTint,
+                      child: const Center(
+                        child: Icon(Icons.fitness_center,
+                            color: AppTheme.navy, size: 32),
+                      ),
                     ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -228,20 +244,53 @@ class _ShopScreenState extends State<ShopScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 14, color: Colors.amber),
-                      Text(
-                        supplement.reviewCount > 0
-                            ? ' ${supplement.averageRating.toStringAsFixed(1)}'
-                            : ' -',
-                        style: Theme.of(context).textTheme.labelSmall,
+                      // ocjena kao mala tinted plocica
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppTheme.navyTint,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded,
+                                size: 13, color: AppTheme.warning),
+                            const SizedBox(width: 2),
+                            Text(
+                              supplement.reviewCount > 0
+                                  ? supplement.averageRating.toStringAsFixed(1)
+                                  : '-',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       const Spacer(),
-                      Text(
-                        Formatters.money(supplement.price),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      // cijena kao navy pill
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.navy,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          Formatters.money(supplement.price),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ],
                   ),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/notifications_provider.dart';
+import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
 
 class NotificationsScreen extends StatelessWidget {
@@ -46,17 +47,30 @@ class NotificationsScreen extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final notification = provider.notifications[index];
                   return ListTile(
-                    leading: Icon(
-                      _iconFor(notification.type),
-                      color: notification.isRead
-                          ? null
-                          : Theme.of(context).colorScheme.primary,
+                    tileColor: notification.isRead ? null : Colors.white,
+                    leading: Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: notification.isRead
+                            ? AppTheme.background
+                            : AppTheme.navyTint,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        _iconFor(notification.type),
+                        size: 20,
+                        color: notification.isRead
+                            ? AppTheme.textSecondary
+                            : AppTheme.navy,
+                      ),
                     ),
                     title: Text(
                       notification.title,
                       style: TextStyle(
-                        fontWeight:
-                            notification.isRead ? FontWeight.normal : FontWeight.bold,
+                        fontWeight: notification.isRead
+                            ? FontWeight.w600
+                            : FontWeight.w800,
                       ),
                     ),
                     subtitle: Column(

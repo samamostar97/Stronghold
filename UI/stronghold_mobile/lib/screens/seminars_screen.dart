@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../models/seminar.dart';
 import '../providers/seminars_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_chip.dart';
 
 class SeminarsScreen extends StatefulWidget {
   const SeminarsScreen({super.key});
@@ -68,26 +70,32 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                             children: [
                               Text(seminar.topic,
                                   style: Theme.of(context).textTheme.titleMedium),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 8),
                               Row(children: [
-                                const Icon(Icons.person_outline, size: 16),
-                                const SizedBox(width: 4),
+                                const Icon(Icons.person_outline,
+                                    size: 16, color: AppTheme.textSecondary),
+                                const SizedBox(width: 6),
                                 Text(seminar.speaker),
                               ]),
+                              const SizedBox(height: 2),
                               Row(children: [
-                                const Icon(Icons.event, size: 16),
-                                const SizedBox(width: 4),
+                                const Icon(Icons.event,
+                                    size: 16, color: AppTheme.textSecondary),
+                                const SizedBox(width: 6),
                                 Text(Formatters.dateTime(seminar.scheduledAt)),
                               ]),
+                              const SizedBox(height: 2),
                               Row(children: [
-                                const Icon(Icons.group_outlined, size: 16),
-                                const SizedBox(width: 4),
+                                const Icon(Icons.group_outlined,
+                                    size: 16, color: AppTheme.textSecondary),
+                                const SizedBox(width: 6),
                                 Text(
                                   'Preostalo mjesta: ${seminar.remainingCapacity}/${seminar.maxCapacity}',
                                   style: TextStyle(
                                     color: full
                                         ? Theme.of(context).colorScheme.error
                                         : null,
+                                    fontWeight: full ? FontWeight.w600 : null,
                                   ),
                                 ),
                               ]),
@@ -95,11 +103,9 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: seminar.isCurrentUserRegistered
-                                    ? Chip(
-                                        avatar: Icon(Icons.check,
-                                            size: 18,
-                                            color: Colors.green.shade700),
-                                        label: const Text('Prijavljeni ste'),
+                                    ? const StatusChip(
+                                        label: 'Prijavljeni ste',
+                                        tone: StatusTone.success,
                                       )
                                     : Tooltip(
                                         message: full

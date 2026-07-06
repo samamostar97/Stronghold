@@ -173,7 +173,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   controller: _streetController,
                   decoration: const InputDecoration(
                     labelText: 'Ulica i broj',
-                    border: OutlineInputBorder(),
                   ),
                   validator: (v) => v == null || v.trim().isEmpty
                       ? 'Unesite ulicu i broj za dostavu.'
@@ -184,7 +183,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   initialValue: _selectedCityId,
                   decoration: const InputDecoration(
                     labelText: 'Grad',
-                    border: OutlineInputBorder(),
                   ),
                   items: [
                     for (final city in _cities)

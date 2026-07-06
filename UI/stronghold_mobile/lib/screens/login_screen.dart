@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/app_theme.dart';
 import 'forgot_password_screen.dart';
 import 'register_screen.dart';
 
@@ -54,12 +55,28 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.fitness_center, size: 64),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Stronghold',
+                  Center(
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: AppTheme.navy,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Icon(Icons.fitness_center,
+                          size: 32, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  const Text(
+                    'STRONGHOLD',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.2,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   TextFormField(
@@ -68,7 +85,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Korisničko ime ili e-mail',
                       prefixIcon: Icon(Icons.person_outline),
-                      border: OutlineInputBorder(),
                     ),
                     textInputAction: TextInputAction.next,
                     validator: (value) => value == null || value.trim().isEmpty
@@ -81,7 +97,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Lozinka',
                       prefixIcon: Icon(Icons.lock_outline),
-                      border: OutlineInputBorder(),
                     ),
                     obscureText: true,
                     onFieldSubmitted: (_) => _submit(),
