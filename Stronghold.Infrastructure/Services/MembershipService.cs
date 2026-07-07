@@ -40,6 +40,26 @@ public class MembershipService : BaseService<Membership, MembershipResponse, Mem
         return query.OrderByDescending(m => m.EndDate);
     }
 
+    public async Task<ActiveMembershipInfo> GetActiveForUserAsync(int userId)
+    {
+        var now = DateTime.UtcNow;
+        // isti filter kao produzenje u AssignAsync - najkasniji istek neukinute clanarine
+        var current = await Db.Memberships.AsNoTracking()
+            .Where(m => m.UserId == userId && !m.IsRevoked && m.EndDate > now)
+            .OrderByDescending(m => m.EndDate)
+            .Select(m => new { PackageName = m.Package.Name, m.EndDate })
+            .FirstOrDefaultAsync();
+
+        return current == null
+            ? new ActiveMembershipInfo()
+            : new ActiveMembershipInfo
+            {
+                HasActive = true,
+                PackageName = current.PackageName,
+                EndDate = current.EndDate
+            };
+    }
+
     public async Task<MembershipResponse> AssignAsync(MembershipAssignRequest request)
     {
         var user = await Db.Users.FindAsync(request.UserId)

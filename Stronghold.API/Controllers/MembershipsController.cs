@@ -31,6 +31,13 @@ public class MembershipsController : ControllerBase
         return Ok(await _membershipService.GetByIdAsync(id));
     }
 
+    // Aktivna clanarina clana - upozorenje pri evidenciji nove uplate.
+    [HttpGet("user/{userId}/active")]
+    public async Task<ActionResult<ActiveMembershipInfo>> GetActiveForUser(int userId)
+    {
+        return Ok(await _membershipService.GetActiveForUserAsync(userId));
+    }
+
     // Dodjela clanarine = evidencija uplate (aktivira ili produzava clanarinu).
     [HttpPost]
     public async Task<ActionResult<MembershipResponse>> Assign(MembershipAssignRequest request)

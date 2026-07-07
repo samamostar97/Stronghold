@@ -8,4 +8,7 @@ public interface IMembershipService : IService<MembershipResponse, MembershipSea
     Task<MembershipResponse> AssignAsync(MembershipAssignRequest request);
 
     Task<MembershipResponse> RevokeAsync(int id, MembershipRevokeRequest request);
+
+    // Aktivna clanarina korisnika (od koje bi nova uplata krenula), ako postoji.
+    Task<ActiveMembershipInfo> GetActiveForUserAsync(int userId);
 }
