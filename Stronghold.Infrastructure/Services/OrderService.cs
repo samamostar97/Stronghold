@@ -21,6 +21,7 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailPublisher _emailPublisher;
     private readonly ILogger<OrderService> _logger;
+    private readonly ActivityLogInterceptor _activityLogInterceptor;
     private readonly StripeClient _stripe;
     private readonly string _publishableKey;
 
@@ -29,11 +30,13 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         ICurrentUserService currentUser,
         IEmailPublisher emailPublisher,
         IConfiguration configuration,
-        ILogger<OrderService> logger) : base(db)
+        ILogger<OrderService> logger,
+        ActivityLogInterceptor activityLogInterceptor) : base(db)
     {
         _currentUser = currentUser;
         _emailPublisher = emailPublisher;
         _logger = logger;
+        _activityLogInterceptor = activityLogInterceptor;
         // environment varijable se citaju jednom u konstruktoru
         var secretKey = configuration["STRIPE_SECRET_KEY"]
             ?? throw new InvalidOperationException("Environment varijabla STRIPE_SECRET_KEY nije postavljena.");
@@ -158,6 +161,8 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         var items = ParseItemsMetadata(intent.Metadata["items"]);
         var lines = await BuildOrderLinesAsync(items);
 
+        // promjena zaliha je dio poslovne operacije, ne CRUD - ne ide u nedavne aktivnosti/undo
+        using var suppression = _activityLogInterceptor.Suppress();
         await using var transaction = await Db.Database.BeginTransactionAsync();
 
         var order = new Order
@@ -293,7 +298,8 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             throw new BusinessException("Povrat novca nije uspio - narudžba nije otkazana. Pokušajte ponovo.");
         }
 
-        // otkazivanje vraca zalihe
+        // otkazivanje vraca zalihe - poslovna operacija, ne CRUD (bez nedavnih aktivnosti/undo)
+        using var suppression = _activityLogInterceptor.Suppress();
         var supplementIds = order.Items.Select(i => i.SupplementId).ToList();
         var supplements = await Db.Supplements
             .Where(s => supplementIds.Contains(s.Id))
