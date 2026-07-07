@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/city.dart';
 import '../providers/profile_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/validators.dart';
 import 'faq_screen.dart';
 import 'orders_screen.dart';
 
@@ -221,7 +222,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _saving = false;
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-  static final _phoneRegex = RegExp(r'^[0-9+\-\/\s]{6,30}$');
 
   @override
   void initState() {
@@ -343,17 +343,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   controller: _phoneController,
                   decoration: const InputDecoration(
                     labelText: 'Telefon',
+                    hintText: '061-123-456',
                   ),
                   keyboardType: TextInputType.phone,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Unesite broj telefona.';
-                    }
-                    if (!_phoneRegex.hasMatch(v.trim())) {
-                      return 'Unesite validan broj telefona u formatu: 061-123-456';
-                    }
-                    return null;
-                  },
+                  inputFormatters: [PhoneInputFormatter()],
+                  validator: Validators.phone,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(

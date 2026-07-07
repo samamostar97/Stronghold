@@ -10,6 +10,7 @@ import '../providers/cities_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../providers/users_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/validators.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/stretch_scroll.dart';
@@ -137,7 +138,6 @@ class _UsersScreenState extends State<UsersScreen> {
     String? serverError;
 
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    final phoneRegex = RegExp(r'^[0-9+\-\/\s]{6,30}$');
 
     await showDialog<void>(
       context: context,
@@ -232,16 +232,10 @@ class _UsersScreenState extends State<UsersScreen> {
                           controller: phoneController,
                           decoration: const InputDecoration(
                             labelText: 'Telefon',
+                            hintText: '061-123-456',
                           ),
-                          validator: (v) {
-                            if (v == null || v.trim().isEmpty) {
-                              return 'Unesite broj telefona.';
-                            }
-                            if (!phoneRegex.hasMatch(v.trim())) {
-                              return 'Unesite validan broj telefona u formatu: 061-123-456';
-                            }
-                            return null;
-                          },
+                          inputFormatters: [PhoneInputFormatter()],
+                          validator: Validators.phone,
                         ),
                       ),
                     ]),

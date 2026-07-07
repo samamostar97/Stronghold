@@ -23,7 +23,7 @@ public class RegisterRequest
     public string Email { get; set; } = null!;
 
     [Required(ErrorMessage = "Unesite broj telefona.")]
-    [RegularExpression(@"^[0-9+\-\/\s]{6,30}$", ErrorMessage = "Unesite validan broj telefona u formatu: 061-123-456")]
+    [RegularExpression(@"^0\d{2}-\d{3}-\d{3,4}$", ErrorMessage = "Unesite broj telefona u formatu: 061-123-456")]
     public string Phone { get; set; } = null!;
 
     [Required(ErrorMessage = "Unesite lozinku.")]
