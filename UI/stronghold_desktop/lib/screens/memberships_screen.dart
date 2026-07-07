@@ -332,6 +332,10 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
     if (membership.isRevoked) {
       return const StatusChip(label: 'Ukinuta', tone: StatusTone.warning);
     }
+    if (membership.isUpcoming) {
+      // placeno produzenje koje jos nije pocelo
+      return const StatusChip(label: 'Zakazana', tone: StatusTone.info);
+    }
     if (membership.isActive) {
       // aktivne clanarine su vizuelno naglasene
       return const StatusChip(label: 'Aktivna', tone: StatusTone.success);
@@ -409,11 +413,13 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                                       onPressed: () => _showUserPayments(membership),
                                     ),
                                     IconButton(
-                                      tooltip: membership.isActive
+                                      tooltip: membership.isActive ||
+                                              membership.isUpcoming
                                           ? 'Ukini članarinu'
-                                          : 'Samo aktivna članarina se može ukinuti',
+                                          : 'Samo aktivna ili zakazana članarina se može ukinuti',
                                       icon: const Icon(Icons.cancel_outlined),
-                                      onPressed: membership.isActive
+                                      onPressed: membership.isActive ||
+                                              membership.isUpcoming
                                           ? () => _openRevokeDialog(membership)
                                           : null,
                                     ),
