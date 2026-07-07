@@ -8,6 +8,7 @@ import '../models/supplement.dart';
 import '../models/supplement_category.dart';
 import '../models/supplier.dart';
 import '../providers/categories_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/suppliers_provider.dart';
 import '../providers/supplements_provider.dart';
 import '../utils/api_client.dart';
@@ -30,9 +31,12 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => context.read<SupplementsProvider>().load(page: 1, searchText: ''),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final intent =
+          context.read<NavigationProvider>().takeIntent(NavTarget.supplements);
+      context.read<SupplementsProvider>().load(page: 1, searchText: '');
+      if (intent?.action == 'create') _openForm();
+    });
   }
 
   @override

@@ -7,6 +7,7 @@ import 'providers/categories_provider.dart';
 import 'providers/cities_provider.dart';
 import 'providers/faq_provider.dart';
 import 'providers/memberships_provider.dart';
+import 'providers/navigation_provider.dart';
 import 'providers/orders_provider.dart';
 import 'providers/packages_provider.dart';
 import 'providers/payments_provider.dart';
@@ -30,6 +31,7 @@ void main() {
     MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: apiClient),
+        ChangeNotifierProvider(create: (_) => NavigationProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => CitiesProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => PackagesProvider(apiClient)),

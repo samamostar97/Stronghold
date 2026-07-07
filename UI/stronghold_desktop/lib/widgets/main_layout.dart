@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../screens/appointments_screen.dart';
 import '../screens/categories_screen.dart';
 import '../screens/check_in_screen.dart';
@@ -26,8 +27,9 @@ class _NavItem {
   final String label;
   final IconData icon;
   final Widget screen;
+  final NavTarget? target;
 
-  const _NavItem(this.label, this.icon, this.screen);
+  const _NavItem(this.label, this.icon, this.screen, [this.target]);
 }
 
 class _NavSection {
@@ -55,10 +57,13 @@ class _MainLayoutState extends State<MainLayout> {
       _NavItem('Leaderboard', Icons.emoji_events_outlined, LeaderboardScreen()),
     ]),
     _NavSection('Upravljanje', [
-      _NavItem('Korisnici', Icons.people_outline, UsersScreen()),
-      _NavItem('Članarine', Icons.card_membership_outlined, MembershipsScreen()),
-      _NavItem('Uplate', Icons.payments_outlined, PaymentsScreen()),
-      _NavItem('Check-in', Icons.login_outlined, CheckInScreen()),
+      _NavItem('Korisnici', Icons.people_outline, UsersScreen(), NavTarget.users),
+      _NavItem('Članarine', Icons.card_membership_outlined, MembershipsScreen(),
+          NavTarget.memberships),
+      _NavItem('Uplate', Icons.payments_outlined, PaymentsScreen(),
+          NavTarget.payments),
+      _NavItem('Check-in', Icons.login_outlined, CheckInScreen(),
+          NavTarget.checkIn),
     ]),
     _NavSection('Osoblje', [
       _NavItem('Treneri', Icons.fitness_center_outlined,
@@ -68,10 +73,12 @@ class _MainLayoutState extends State<MainLayout> {
       _NavItem('Termini', Icons.event_outlined, AppointmentsScreen()),
     ]),
     _NavSection('Prodavnica', [
-      _NavItem('Suplementi', Icons.medication_outlined, SupplementsScreen()),
+      _NavItem('Suplementi', Icons.medication_outlined, SupplementsScreen(),
+          NavTarget.supplements),
       _NavItem('Kategorije', Icons.category_outlined, CategoriesScreen()),
       _NavItem('Dobavljači', Icons.local_shipping_outlined, SuppliersScreen()),
-      _NavItem('Narudžbe', Icons.receipt_long_outlined, OrdersScreen()),
+      _NavItem('Narudžbe', Icons.receipt_long_outlined, OrdersScreen(),
+          NavTarget.orders),
     ]),
     _NavSection('Sadržaj', [
       _NavItem('Seminari', Icons.school_outlined, SeminarsScreen()),
@@ -84,6 +91,38 @@ class _MainLayoutState extends State<MainLayout> {
 
   int _selectedSection = 0;
   int _selectedItem = 0;
+  late final NavigationProvider _nav;
+
+  @override
+  void initState() {
+    super.initState();
+    _nav = context.read<NavigationProvider>();
+    _nav.addListener(_handleNavRequest);
+  }
+
+  @override
+  void dispose() {
+    _nav.removeListener(_handleNavRequest);
+    super.dispose();
+  }
+
+  // programska navigacija (npr. brze akcije sa dashboarda)
+  void _handleNavRequest() {
+    final target = _nav.pendingTarget;
+    if (target == null) return;
+    for (var s = 0; s < _sections.length; s++) {
+      for (var i = 0; i < _sections[s].items.length; i++) {
+        if (_sections[s].items[i].target == target) {
+          _nav.confirmTarget();
+          setState(() {
+            _selectedSection = s;
+            _selectedItem = i;
+          });
+          return;
+        }
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
