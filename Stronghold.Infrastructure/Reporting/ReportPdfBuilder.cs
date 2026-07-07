@@ -54,19 +54,29 @@ public static class ReportPdfBuilder
                 table.ColumnsDefinition(columns =>
                 {
                     columns.RelativeColumn(3);
+                    columns.RelativeColumn(2);
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
                     columns.RelativeColumn();
                     columns.RelativeColumn();
                 });
                 table.Header(header =>
                 {
                     header.Cell().Element(HeaderCell).Text("Proizvod");
+                    header.Cell().Element(HeaderCell).Text("Kategorija");
                     header.Cell().Element(HeaderCell).Text("Prodano (kom)");
+                    header.Cell().Element(HeaderCell).Text("Udio (%)");
+                    header.Cell().Element(HeaderCell).Text("Ocjena");
                     header.Cell().Element(HeaderCell).Text("Prihod (KM)");
                 });
                 foreach (var product in report.TopProducts)
                 {
                     table.Cell().Element(BodyCell).Text(product.Name);
+                    table.Cell().Element(BodyCell).Text(product.CategoryName);
                     table.Cell().Element(BodyCell).Text($"{product.QuantitySold}");
+                    table.Cell().Element(BodyCell).Text($"{product.RevenueShare:F1}");
+                    table.Cell().Element(BodyCell).Text(
+                        product.AverageRating == null ? "-" : $"{product.AverageRating:F1}");
                     table.Cell().Element(BodyCell).Text($"{product.Revenue:F2}");
                 }
             });
@@ -78,19 +88,24 @@ public static class ReportPdfBuilder
         return Build("Izvještaj o inventaru", column =>
         {
             column.Item().Text(
-                $"Ukupna vrijednost zaliha: {report.TotalValue:F2} KM   " +
-                $"Artikala sa niskim zalihama: {report.LowStockCount}")
+                $"Ukupno artikala: {report.TotalItems}   " +
+                $"Bez zaliha: {report.OutOfStockCount}   " +
+                $"Artikala sa niskim zalihama: {report.LowStockCount}   " +
+                $"Ukupna vrijednost zaliha: {report.TotalValue:F2} KM")
                 .SemiBold();
-            column.Item().PaddingTop(12).Table(table =>
+            // 8 kolona - uzi font i pazljivo dimenzionisane sirine da brojevi ne lome red
+            column.Item().PaddingTop(12).DefaultTextStyle(t => t.FontSize(9)).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn(2);
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
+                    columns.RelativeColumn(2.6f);
+                    columns.RelativeColumn(1.6f);
+                    columns.RelativeColumn(1.6f);
+                    columns.RelativeColumn(0.9f);
+                    columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(1f);
+                    columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(1.6f);
                 });
                 table.Header(header =>
                 {
@@ -98,8 +113,10 @@ public static class ReportPdfBuilder
                     header.Cell().Element(HeaderCell).Text("Kategorija");
                     header.Cell().Element(HeaderCell).Text("Dobavljač");
                     header.Cell().Element(HeaderCell).Text("Zalihe");
+                    header.Cell().Element(HeaderCell).Text("Prodano (30 d)");
                     header.Cell().Element(HeaderCell).Text("Cijena");
                     header.Cell().Element(HeaderCell).Text("Vrijednost");
+                    header.Cell().Element(HeaderCell).Text("Status");
                 });
                 foreach (var item in report.Items)
                 {
@@ -107,8 +124,10 @@ public static class ReportPdfBuilder
                     table.Cell().Element(BodyCell).Text(item.CategoryName);
                     table.Cell().Element(BodyCell).Text(item.SupplierName);
                     table.Cell().Element(BodyCell).Text($"{item.StockQuantity}");
+                    table.Cell().Element(BodyCell).Text($"{item.SoldLast30Days}");
                     table.Cell().Element(BodyCell).Text($"{item.Price:F2}");
                     table.Cell().Element(BodyCell).Text($"{item.StockValue:F2}");
+                    table.Cell().Element(BodyCell).Text(StockStatus(item.StockQuantity));
                 }
             });
         });
@@ -120,7 +139,9 @@ public static class ReportPdfBuilder
         {
             column.Item().Text(
                 $"Aktivnih članova: {report.ActiveCount}   " +
-                $"Ističe u narednih 7 dana: {report.ExpiringIn7Days}")
+                $"Ističe u narednih 7 dana: {report.ExpiringIn7Days}   " +
+                $"Novi članovi (ovaj mjesec): {report.NewMembersThisMonth}   " +
+                $"Ukinutih članarina: {report.RevokedCount}")
                 .SemiBold();
             column.Item().PaddingTop(12).Text("Aktivne članarine po paketima")
                 .FontSize(14).SemiBold();
@@ -140,6 +161,32 @@ public static class ReportPdfBuilder
                 {
                     table.Cell().Element(BodyCell).Text(package.PackageName);
                     table.Cell().Element(BodyCell).Text($"{package.ActiveCount}");
+                }
+            });
+            column.Item().PaddingTop(12).Text("Prodaja po paketima")
+                .FontSize(14).SemiBold();
+            column.Item().Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn(3);
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                });
+                table.Header(header =>
+                {
+                    header.Cell().Element(HeaderCell).Text("Paket");
+                    header.Cell().Element(HeaderCell).Text("Prodano (ukupno)");
+                    header.Cell().Element(HeaderCell).Text("Prodano (6 mj)");
+                    header.Cell().Element(HeaderCell).Text("Prihod (KM)");
+                });
+                foreach (var sales in report.PackageSales)
+                {
+                    table.Cell().Element(BodyCell).Text(sales.PackageName);
+                    table.Cell().Element(BodyCell).Text($"{sales.SoldCount}");
+                    table.Cell().Element(BodyCell).Text($"{sales.SoldLast6Months}");
+                    table.Cell().Element(BodyCell).Text($"{sales.Revenue:F2}");
                 }
             });
             column.Item().PaddingTop(12).Text("Posjećenost po sedmicama")
@@ -195,6 +242,13 @@ public static class ReportPdfBuilder
             });
         }).GeneratePdf();
     }
+
+    private static string StockStatus(int quantity) => quantity switch
+    {
+        0 => "Nema na stanju",
+        < 10 => "Nisko",
+        _ => "OK"
+    };
 
     private static IContainer HeaderCell(IContainer container) =>
         container.Background(Colors.Grey.Lighten3).Padding(6).DefaultTextStyle(t => t.SemiBold());

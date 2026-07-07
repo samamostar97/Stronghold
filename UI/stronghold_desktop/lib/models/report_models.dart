@@ -164,31 +164,44 @@ class MonthlyRevenue {
 
 class TopProduct {
   final String name;
+  final String categoryName;
   final int quantitySold;
   final double revenue;
+  final double revenueShare;
+  final double? averageRating;
 
   TopProduct({
     required this.name,
+    required this.categoryName,
     required this.quantitySold,
     required this.revenue,
+    required this.revenueShare,
+    required this.averageRating,
   });
 
   factory TopProduct.fromJson(Map<String, dynamic> json) => TopProduct(
         name: json['name'] as String,
+        categoryName: json['categoryName'] as String,
         quantitySold: json['quantitySold'] as int,
         revenue: (json['revenue'] as num).toDouble(),
+        revenueShare: (json['revenueShare'] as num).toDouble(),
+        averageRating: (json['averageRating'] as num?)?.toDouble(),
       );
 }
 
 class InventoryReport {
   final List<InventoryItem> items;
   final double totalValue;
+  final int totalItems;
   final int lowStockCount;
+  final int outOfStockCount;
 
   InventoryReport({
     required this.items,
     required this.totalValue,
+    required this.totalItems,
     required this.lowStockCount,
+    required this.outOfStockCount,
   });
 
   factory InventoryReport.fromJson(Map<String, dynamic> json) => InventoryReport(
@@ -196,7 +209,9 @@ class InventoryReport {
             .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
             .toList(),
         totalValue: (json['totalValue'] as num).toDouble(),
+        totalItems: json['totalItems'] as int,
         lowStockCount: json['lowStockCount'] as int,
+        outOfStockCount: json['outOfStockCount'] as int,
       );
 }
 
@@ -205,6 +220,7 @@ class InventoryItem {
   final String categoryName;
   final String supplierName;
   final int stockQuantity;
+  final int soldLast30Days;
   final double price;
   final double stockValue;
 
@@ -213,6 +229,7 @@ class InventoryItem {
     required this.categoryName,
     required this.supplierName,
     required this.stockQuantity,
+    required this.soldLast30Days,
     required this.price,
     required this.stockValue,
   });
@@ -222,6 +239,7 @@ class InventoryItem {
         categoryName: json['categoryName'] as String,
         supplierName: json['supplierName'] as String,
         stockQuantity: json['stockQuantity'] as int,
+        soldLast30Days: json['soldLast30Days'] as int,
         price: (json['price'] as num).toDouble(),
         stockValue: (json['stockValue'] as num).toDouble(),
       );
@@ -230,27 +248,59 @@ class InventoryItem {
 class MembershipReport {
   final int activeCount;
   final int expiringIn7Days;
+  final int newMembersThisMonth;
+  final int revokedCount;
   final List<PackageDistribution> byPackage;
+  final List<PackageSales> packageSales;
   final List<WeeklyVisitCount> weeklyVisits;
 
   MembershipReport({
     required this.activeCount,
     required this.expiringIn7Days,
+    required this.newMembersThisMonth,
+    required this.revokedCount,
     required this.byPackage,
+    required this.packageSales,
     required this.weeklyVisits,
   });
 
   factory MembershipReport.fromJson(Map<String, dynamic> json) => MembershipReport(
         activeCount: json['activeCount'] as int,
         expiringIn7Days: json['expiringIn7Days'] as int,
+        newMembersThisMonth: json['newMembersThisMonth'] as int,
+        revokedCount: json['revokedCount'] as int,
         byPackage: (json['byPackage'] as List)
             .map((item) =>
                 PackageDistribution.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        packageSales: (json['packageSales'] as List)
+            .map((item) => PackageSales.fromJson(item as Map<String, dynamic>))
             .toList(),
         weeklyVisits: (json['weeklyVisits'] as List)
             .map((item) =>
                 WeeklyVisitCount.fromJson(item as Map<String, dynamic>))
             .toList(),
+      );
+}
+
+class PackageSales {
+  final String packageName;
+  final int soldCount;
+  final int soldLast6Months;
+  final double revenue;
+
+  PackageSales({
+    required this.packageName,
+    required this.soldCount,
+    required this.soldLast6Months,
+    required this.revenue,
+  });
+
+  factory PackageSales.fromJson(Map<String, dynamic> json) => PackageSales(
+        packageName: json['packageName'] as String,
+        soldCount: json['soldCount'] as int,
+        soldLast6Months: json['soldLast6Months'] as int,
+        revenue: (json['revenue'] as num).toDouble(),
       );
 }
 

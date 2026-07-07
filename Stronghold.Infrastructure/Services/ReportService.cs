@@ -159,32 +159,62 @@ public class ReportService : IReportService
             });
         }
 
-        var topProducts = await _db.OrderItems
+        var totalOrderRevenue = await _db.Orders
+            .Where(o => o.Status != OrderStatus.Cancelled)
+            .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
+
+        var topRaw = await _db.OrderItems
             .Where(i => i.Order.Status != OrderStatus.Cancelled)
-            .GroupBy(i => i.Supplement.Name)
-            .Select(g => new TopProduct
+            .GroupBy(i => new
             {
-                Name = g.Key,
+                i.SupplementId,
+                i.Supplement.Name,
+                CategoryName = i.Supplement.Category.Name
+            })
+            .Select(g => new
+            {
+                g.Key.SupplementId,
+                g.Key.Name,
+                g.Key.CategoryName,
                 QuantitySold = g.Sum(i => i.Quantity),
                 Revenue = g.Sum(i => i.Quantity * i.UnitPrice)
             })
             .OrderByDescending(p => p.QuantitySold)
-            .Take(5)
+            .Take(10)
             .ToListAsync();
+
+        // prosjecne ocjene posebnim upitom - agregat nad drugom tabelom u istoj projekciji EF ne prevodi
+        var topIds = topRaw.Select(p => p.SupplementId).ToList();
+        var ratings = await _db.Reviews
+            .Where(r => topIds.Contains(r.SupplementId))
+            .GroupBy(r => r.SupplementId)
+            .Select(g => new { g.Key, Avg = g.Average(r => (double)r.Rating) })
+            .ToDictionaryAsync(x => x.Key, x => x.Avg);
+
+        var topProducts = topRaw.Select(p => new TopProduct
+        {
+            Name = p.Name,
+            CategoryName = p.CategoryName,
+            QuantitySold = p.QuantitySold,
+            Revenue = p.Revenue,
+            RevenueShare = totalOrderRevenue == 0
+                ? 0
+                : (double)(p.Revenue / totalOrderRevenue * 100),
+            AverageRating = ratings.TryGetValue(p.SupplementId, out var avg) ? avg : null
+        }).ToList();
 
         return new RevenueReportResponse
         {
             MonthlyRevenue = monthly,
             TopProducts = topProducts,
             TotalMembershipRevenue = await _db.Payments.SumAsync(p => (decimal?)p.Amount) ?? 0,
-            TotalOrderRevenue = await _db.Orders
-                .Where(o => o.Status != OrderStatus.Cancelled)
-                .SumAsync(o => (decimal?)o.TotalAmount) ?? 0
+            TotalOrderRevenue = totalOrderRevenue
         };
     }
 
     public async Task<InventoryReportResponse> GetInventoryReportAsync()
     {
+        var since = DateTime.UtcNow.AddDays(-30);
         var items = await _db.Supplements.AsNoTracking()
             .OrderBy(s => s.StockQuantity)
             .Select(s => new InventoryItem
@@ -193,6 +223,10 @@ public class ReportService : IReportService
                 CategoryName = s.Category.Name,
                 SupplierName = s.Supplier.Name,
                 StockQuantity = s.StockQuantity,
+                SoldLast30Days = s.OrderItems
+                    .Where(i => i.Order.CreatedAt >= since &&
+                        i.Order.Status != OrderStatus.Cancelled)
+                    .Sum(i => (int?)i.Quantity) ?? 0,
                 Price = s.Price,
                 StockValue = s.StockQuantity * s.Price
             })
@@ -202,7 +236,9 @@ public class ReportService : IReportService
         {
             Items = items,
             TotalValue = items.Sum(i => i.StockValue),
-            LowStockCount = items.Count(i => i.StockQuantity < LowStockThreshold)
+            TotalItems = items.Count,
+            LowStockCount = items.Count(i => i.StockQuantity < LowStockThreshold),
+            OutOfStockCount = items.Count(i => i.StockQuantity == 0)
         };
     }
 
@@ -230,6 +266,27 @@ public class ReportService : IReportService
             .OrderByDescending(p => p.ActiveCount)
             .ToListAsync();
 
+        var sixMonthsAgo = now.AddMonths(-6);
+        var packageSales = await _db.Payments
+            .GroupBy(p => p.Membership.Package.Name)
+            .Select(g => new PackageSales
+            {
+                PackageName = g.Key,
+                SoldCount = g.Count(),
+                SoldLast6Months = g.Count(p => p.PaidAt >= sixMonthsAgo),
+                Revenue = g.Sum(p => p.Amount)
+            })
+            .OrderByDescending(p => p.Revenue)
+            .ToListAsync();
+
+        // novi clan = korisnik cija prva clanarina pocinje ovog mjeseca
+        var monthStart = new DateTime(now.Year, now.Month, 1);
+        var newMembersThisMonth = await _db.Memberships
+            .GroupBy(m => m.UserId)
+            .CountAsync(g => g.Min(m => m.StartDate) >= monthStart);
+
+        var revokedCount = await _db.Memberships.CountAsync(m => m.IsRevoked);
+
         // posjecenost po sedmicama za zadnjih 8 sedmica
         var eightWeeksAgo = now.Date.AddDays(-7 * 8);
         var visits = await _db.GymVisits
@@ -253,7 +310,10 @@ public class ReportService : IReportService
         {
             ActiveCount = activeCount,
             ExpiringIn7Days = expiringSoon,
+            NewMembersThisMonth = newMembersThisMonth,
+            RevokedCount = revokedCount,
             ByPackage = byPackage,
+            PackageSales = packageSales,
             WeeklyVisits = weekly
         };
     }
