@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/auth_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/validators.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -23,7 +24,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _errorMessage;
 
   static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-  static final _phoneRegex = RegExp(r'^[0-9+\-\/\s]{6,30}$');
 
   @override
   void dispose() {
@@ -132,18 +132,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   controller: _phoneController,
                   decoration: const InputDecoration(
                     labelText: 'Telefon',
+                    hintText: '061-123-456',
                   ),
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return 'Unesite broj telefona.';
-                    }
-                    if (!_phoneRegex.hasMatch(value.trim())) {
-                      return 'Unesite validan broj telefona u formatu: 061-123-456';
-                    }
-                    return null;
-                  },
+                  inputFormatters: [PhoneInputFormatter()],
+                  validator: Validators.phone,
                 ),
                 const SizedBox(height: 16),
                 TextFormField(
