@@ -22,6 +22,7 @@ class ApiClient {
 
   String? _accessToken;
   String? _refreshToken;
+  Future<bool>? _refreshFuture;
 
   /// Poziva se kad refresh ne uspije - aplikacija vraca korisnika na login.
   void Function()? onSessionExpired;
@@ -87,7 +88,7 @@ class ApiClient {
 
     // istekao access token -> jednom pokusaj refresh pa ponovi zahtjev
     if (response.statusCode == 401 && !isRetry && _refreshToken != null) {
-      final refreshed = await _tryRefresh();
+      final refreshed = await _refresh();
       if (refreshed) {
         return _send(method, path, query: query, body: body, isRetry: true);
       }
@@ -103,6 +104,11 @@ class ApiClient {
 
     throw ApiException(response.statusCode, _extractMessage(response));
   }
+
+  /// Refresh token je jednokratan - paralelni 401 odgovori dijele isti
+  /// refresh poziv da drugi ne potrosi vec iskoristeni token i izloguje korisnika.
+  Future<bool> _refresh() =>
+      _refreshFuture ??= _tryRefresh().whenComplete(() => _refreshFuture = null);
 
   Future<bool> _tryRefresh() async {
     try {
