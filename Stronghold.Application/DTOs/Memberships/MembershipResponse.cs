@@ -15,4 +15,7 @@ public class MembershipResponse
     public string? RevocationReason { get; set; }
     /// <summary>Racuna se iz datuma i flaga ukinuta - ne pohranjuje se.</summary>
     public bool IsActive { get; set; }
+
+    /// <summary>Zakazano produzenje - jos nije pocela (StartDate u buducnosti).</summary>
+    public bool IsUpcoming { get; set; }
 }

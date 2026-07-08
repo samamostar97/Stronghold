@@ -32,7 +32,9 @@ public static class MapsterConfig
             .Map(dest => dest.Username, src => src.User.Username)
             .Map(dest => dest.PackageName, src => src.Package.Name)
             .Map(dest => dest.IsActive,
-                src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow);
+                src => !src.IsRevoked && src.StartDate <= DateTime.UtcNow && src.EndDate > DateTime.UtcNow)
+            .Map(dest => dest.IsUpcoming,
+                src => !src.IsRevoked && src.StartDate > DateTime.UtcNow);
 
         TypeAdapterConfig<Review, ReviewResponse>.NewConfig()
             .Map(dest => dest.UserFullName, src => src.User.FirstName + " " + src.User.LastName)

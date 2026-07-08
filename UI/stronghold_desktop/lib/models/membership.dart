@@ -10,6 +10,7 @@ class Membership {
   final bool isRevoked;
   final String? revocationReason;
   final bool isActive;
+  final bool isUpcoming;
 
   Membership({
     required this.id,
@@ -23,6 +24,7 @@ class Membership {
     required this.isRevoked,
     this.revocationReason,
     required this.isActive,
+    required this.isUpcoming,
   });
 
   factory Membership.fromJson(Map<String, dynamic> json) => Membership(
@@ -37,6 +39,7 @@ class Membership {
         isRevoked: json['isRevoked'] as bool,
         revocationReason: json['revocationReason'] as String?,
         isActive: json['isActive'] as bool,
+        isUpcoming: json['isUpcoming'] as bool,
       );
 }
 
