@@ -39,3 +39,25 @@ class Membership {
         isActive: json['isActive'] as bool,
       );
 }
+
+/// Aktivna clanarina clana - upozorenje pri evidenciji nove uplate.
+class ActiveMembershipInfo {
+  final bool hasActive;
+  final String? packageName;
+  final DateTime? endDate;
+
+  ActiveMembershipInfo({
+    required this.hasActive,
+    this.packageName,
+    this.endDate,
+  });
+
+  factory ActiveMembershipInfo.fromJson(Map<String, dynamic> json) =>
+      ActiveMembershipInfo(
+        hasActive: json['hasActive'] as bool,
+        packageName: json['packageName'] as String?,
+        endDate: json['endDate'] == null
+            ? null
+            : DateTime.parse(json['endDate'] as String),
+      );
+}

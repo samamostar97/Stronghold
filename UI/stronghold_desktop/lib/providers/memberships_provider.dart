@@ -46,6 +46,13 @@ class MembershipsProvider extends ChangeNotifier {
     }
   }
 
+  /// Aktivna clanarina clana - za upozorenje u dijalogu nove uplate.
+  Future<ActiveMembershipInfo> activeForUser(int userId) async {
+    final data = await _api.get('/api/memberships/user/$userId/active')
+        as Map<String, dynamic>;
+    return ActiveMembershipInfo.fromJson(data);
+  }
+
   /// Dodjela clanarine = evidencija uplate; aktivira ili produzava clanarinu.
   Future<void> assign({required int userId, required int packageId}) async {
     await _api.post('/api/memberships', body: {

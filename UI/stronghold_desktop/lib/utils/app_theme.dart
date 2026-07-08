@@ -136,8 +136,16 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-        side: BorderSide.none,
-        labelStyle: const TextStyle(fontFamily: 'Manrope', fontSize: 12.5),
+        side: const BorderSide(color: cardBorder),
+        backgroundColor: Colors.white,
+        selectedColor: navyTint,
+        checkmarkColor: navy,
+        labelStyle: const TextStyle(
+          fontFamily: 'Manrope',
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: textPrimary,
+        ),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

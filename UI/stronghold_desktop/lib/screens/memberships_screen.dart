@@ -8,6 +8,7 @@ import '../providers/packages_provider.dart';
 import '../providers/payments_provider.dart';
 import '../providers/users_provider.dart';
 import '../utils/api_client.dart';
+import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/status_chip.dart';
@@ -61,6 +62,7 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
 
     int? selectedUserId;
     int? selectedPackageId;
+    ActiveMembershipInfo? activeInfo;
     String? serverError;
     final formKey = GlobalKey<FormState>();
 
@@ -98,8 +100,46 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
                         ),
                     ],
                     validator: (value) => value == null ? 'Odaberite člana.' : null,
-                    onChanged: (value) => setDialogState(() => selectedUserId = value),
+                    onChanged: (value) async {
+                      setDialogState(() {
+                        selectedUserId = value;
+                        activeInfo = null;
+                      });
+                      if (value == null) return;
+                      // upozorenje ako clan vec ima aktivnu clanarinu
+                      try {
+                        final info = await context
+                            .read<MembershipsProvider>()
+                            .activeForUser(value);
+                        if (dialogContext.mounted && selectedUserId == value) {
+                          setDialogState(() => activeInfo = info);
+                        }
+                      } on ApiException catch (e) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() => serverError = e.message);
+                        }
+                      }
+                    },
                   ),
+                  if (activeInfo?.hasActive == true) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.warning.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        'Član ima aktivnu članarinu (${activeInfo!.packageName}) '
+                        'do ${Formatters.date(activeInfo!.endDate!)} — nova će '
+                        'vrijediti od tog datuma.',
+                        style: const TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
                     initialValue: selectedPackageId,
