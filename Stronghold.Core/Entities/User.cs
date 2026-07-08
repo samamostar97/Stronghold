@@ -26,4 +26,5 @@ public class User : BaseEntity
     public ICollection<SeminarRegistration> SeminarRegistrations { get; set; } = new List<SeminarRegistration>();
     public ICollection<Review> Reviews { get; set; } = new List<Review>();
     public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
+    public ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
 }

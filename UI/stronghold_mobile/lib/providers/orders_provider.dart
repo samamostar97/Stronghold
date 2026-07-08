@@ -39,14 +39,13 @@ class OrdersProvider extends ChangeNotifier {
     }
   }
 
-  /// Checkout korak 1: server racuna iznos i vraca client secret za PaymentSheet.
+  /// Checkout korak 1: server cita korpu iz baze, racuna iznos i vraca
+  /// client secret za PaymentSheet - stavke se ne salju s klijenta.
   Future<Map<String, dynamic>> createPaymentIntent({
-    required List<Map<String, int>> items,
     required String deliveryStreet,
     required int deliveryCityId,
   }) async {
     return await _api.post('/api/orders/create-payment-intent', body: {
-      'items': items,
       'deliveryStreet': deliveryStreet,
       'deliveryCityId': deliveryCityId,
     }) as Map<String, dynamic>;

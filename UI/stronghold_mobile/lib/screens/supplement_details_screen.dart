@@ -6,6 +6,7 @@ import '../models/supplement.dart';
 import '../providers/cart_provider.dart';
 import '../providers/reviews_provider.dart';
 import '../providers/shop_provider.dart';
+import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 
 class SupplementDetailsScreen extends StatefulWidget {
@@ -147,15 +148,21 @@ class _SupplementDetailsScreenState extends State<SupplementDetailsScreen> {
                 icon: const Icon(Icons.add_shopping_cart),
                 label: const Text('Dodaj u korpu'),
                 onPressed: supplement.stockQuantity > 0
-                    ? () {
-                        context.read<CartProvider>().add(supplement);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content:
-                                Text('"${supplement.name}" je dodan u korpu.'),
-                            duration: const Duration(seconds: 1),
-                          ),
-                        );
+                    ? () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        try {
+                          await context.read<CartProvider>().add(supplement);
+                          messenger.showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                  '"${supplement.name}" je dodan u korpu.'),
+                              duration: const Duration(seconds: 1),
+                            ),
+                          );
+                        } on ApiException catch (e) {
+                          messenger
+                              .showSnackBar(SnackBar(content: Text(e.message)));
+                        }
                       }
                     : null,
               ),

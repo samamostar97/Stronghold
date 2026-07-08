@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../providers/cart_provider.dart';
 import '../providers/notifications_provider.dart';
+import '../utils/api_client.dart';
 import 'appointments_screen.dart';
 import 'home_screen.dart';
 import 'profile_screen.dart';
@@ -38,10 +39,16 @@ class _ShellScreenState extends State<ShellScreen> {
   @override
   void initState() {
     super.initState();
-    // auto-refresh notifikacija pollingom dok je korisnik prijavljen
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => context.read<NotificationsProvider>().startPolling(),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // auto-refresh notifikacija pollingom dok je korisnik prijavljen
+      context.read<NotificationsProvider>().startPolling();
+      // korpa se ucitava sa servera pri svakoj prijavi - nema curenja izmedju korisnika
+      try {
+        await context.read<CartProvider>().load();
+      } on ApiException {
+        // badge ostaje prazan; korpa se ucita pri otvaranju ekrana korpe
+      }
+    });
   }
 
   @override

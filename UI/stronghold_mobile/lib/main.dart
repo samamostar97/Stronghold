@@ -29,7 +29,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => ProfileProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => NotificationsProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => ShopProvider(apiClient)),
-        ChangeNotifierProvider(create: (_) => CartProvider()),
+        ChangeNotifierProvider(create: (_) => CartProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => OrdersProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => AppointmentsProvider(apiClient)),
         ChangeNotifierProvider(create: (_) => SeminarsProvider(apiClient)),
