@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/order.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/orders_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
@@ -30,11 +31,21 @@ class _OrdersScreenState extends State<OrdersScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => context
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // dashboard moze zatraziti otvaranje detalja konkretne narudzbe
+      final intent =
+          context.read<NavigationProvider>().takeIntent(NavTarget.orders);
+      await context
           .read<OrdersProvider>()
-          .load(page: 1, searchText: '', clearStatus: true),
-    );
+          .load(page: 1, searchText: '', clearStatus: true);
+      if (!mounted || intent?.action != 'details') return;
+      for (final order in context.read<OrdersProvider>().orders) {
+        if (order.id == intent!.entityId) {
+          _showDetails(order);
+          break;
+        }
+      }
+    });
   }
 
   @override

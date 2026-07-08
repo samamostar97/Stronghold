@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../models/city.dart';
 import '../models/user.dart';
 import '../providers/cities_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/users_provider.dart';
 import '../utils/api_client.dart';
 import '../widgets/confirm_dialog.dart';
@@ -27,9 +28,12 @@ class _UsersScreenState extends State<UsersScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => context.read<UsersProvider>().load(page: 1, searchText: ''),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final intent =
+          context.read<NavigationProvider>().takeIntent(NavTarget.users);
+      context.read<UsersProvider>().load(page: 1, searchText: '');
+      if (intent?.action == 'create') _openForm();
+    });
   }
 
   @override

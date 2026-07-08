@@ -4,14 +4,28 @@ class Dashboard {
   final int visitsToday;
   final int currentlyInGym;
   final double revenueThisMonth;
+  final int newOrdersCount;
   final List<DashboardOrder> latestOrders;
+  final List<LowStockSupplement> lowStockSupplements;
+  final int lowStockCount;
+  final List<ExpiringMembership> expiringMemberships;
+  final int expiringMembershipsCount;
+  final List<DashboardOrder> stuckOrders;
+  final int stuckOrdersCount;
 
   Dashboard({
     required this.activeMembers,
     required this.visitsToday,
     required this.currentlyInGym,
     required this.revenueThisMonth,
+    required this.newOrdersCount,
     required this.latestOrders,
+    required this.lowStockSupplements,
+    required this.lowStockCount,
+    required this.expiringMemberships,
+    required this.expiringMembershipsCount,
+    required this.stuckOrders,
+    required this.stuckOrdersCount,
   });
 
   factory Dashboard.fromJson(Map<String, dynamic> json) => Dashboard(
@@ -19,9 +33,24 @@ class Dashboard {
         visitsToday: json['visitsToday'] as int,
         currentlyInGym: json['currentlyInGym'] as int,
         revenueThisMonth: (json['revenueThisMonth'] as num).toDouble(),
+        newOrdersCount: json['newOrdersCount'] as int,
         latestOrders: (json['latestOrders'] as List)
             .map((item) => DashboardOrder.fromJson(item as Map<String, dynamic>))
             .toList(),
+        lowStockSupplements: (json['lowStockSupplements'] as List)
+            .map((item) =>
+                LowStockSupplement.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        lowStockCount: json['lowStockCount'] as int,
+        expiringMemberships: (json['expiringMemberships'] as List)
+            .map((item) =>
+                ExpiringMembership.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        expiringMembershipsCount: json['expiringMembershipsCount'] as int,
+        stuckOrders: (json['stuckOrders'] as List)
+            .map((item) => DashboardOrder.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        stuckOrdersCount: json['stuckOrdersCount'] as int,
       );
 }
 
@@ -31,6 +60,7 @@ class DashboardOrder {
   final DateTime createdAt;
   final double totalAmount;
   final String status;
+  final bool isNew;
 
   DashboardOrder({
     required this.id,
@@ -38,6 +68,7 @@ class DashboardOrder {
     required this.createdAt,
     required this.totalAmount,
     required this.status,
+    required this.isNew,
   });
 
   factory DashboardOrder.fromJson(Map<String, dynamic> json) => DashboardOrder(
@@ -46,6 +77,39 @@ class DashboardOrder {
         createdAt: DateTime.parse(json['createdAt'] as String),
         totalAmount: (json['totalAmount'] as num).toDouble(),
         status: json['status'] as String,
+        isNew: json['isNew'] as bool,
+      );
+}
+
+class LowStockSupplement {
+  final String name;
+  final int stockQuantity;
+
+  LowStockSupplement({required this.name, required this.stockQuantity});
+
+  factory LowStockSupplement.fromJson(Map<String, dynamic> json) =>
+      LowStockSupplement(
+        name: json['name'] as String,
+        stockQuantity: json['stockQuantity'] as int,
+      );
+}
+
+class ExpiringMembership {
+  final String userFullName;
+  final String packageName;
+  final DateTime endDate;
+
+  ExpiringMembership({
+    required this.userFullName,
+    required this.packageName,
+    required this.endDate,
+  });
+
+  factory ExpiringMembership.fromJson(Map<String, dynamic> json) =>
+      ExpiringMembership(
+        userFullName: json['userFullName'] as String,
+        packageName: json['packageName'] as String,
+        endDate: DateTime.parse(json['endDate'] as String),
       );
 }
 

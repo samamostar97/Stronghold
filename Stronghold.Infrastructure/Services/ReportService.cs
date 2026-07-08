@@ -11,6 +11,8 @@ namespace Stronghold.Infrastructure.Services;
 public class ReportService : IReportService
 {
     private const int LowStockThreshold = 10;
+    private const int StuckOrderDays = 3;
+    private const int AttentionListSize = 5;
 
     private readonly StrongholdDbContext _db;
 
@@ -50,7 +52,61 @@ public class ReportService : IReportService
                 UserFullName = o.User.FirstName + " " + o.User.LastName,
                 CreatedAt = o.CreatedAt,
                 TotalAmount = o.TotalAmount,
-                Status = o.Status.ToString()
+                Status = o.Status.ToString(),
+                IsNew = o.Status == OrderStatus.Processing && o.StatusChangedAt == null
+            })
+            .ToListAsync();
+
+        var newOrdersCount = await _db.Orders
+            .CountAsync(o => o.Status == OrderStatus.Processing && o.StatusChangedAt == null);
+
+        var lowStockQuery = _db.Supplements
+            .Where(s => s.StockQuantity < LowStockThreshold);
+        var lowStockCount = await lowStockQuery.CountAsync();
+        var lowStock = await lowStockQuery.AsNoTracking()
+            .OrderBy(s => s.StockQuantity)
+            .ThenBy(s => s.Name)
+            .Take(AttentionListSize)
+            .Select(s => new LowStockSupplement
+            {
+                Name = s.Name,
+                StockQuantity = s.StockQuantity
+            })
+            .ToListAsync();
+
+        // clanarina se racuna kao "istice" samo ako clan nema novije clanarine (nije obnovio)
+        var weekAhead = now.AddDays(7);
+        var expiringQuery = _db.Memberships
+            .Where(m => !m.IsRevoked && m.EndDate > now && m.EndDate <= weekAhead &&
+                !_db.Memberships.Any(r =>
+                    r.UserId == m.UserId && !r.IsRevoked && r.EndDate > m.EndDate));
+        var expiringCount = await expiringQuery.CountAsync();
+        var expiring = await expiringQuery.AsNoTracking()
+            .OrderBy(m => m.EndDate)
+            .Take(AttentionListSize)
+            .Select(m => new ExpiringMembership
+            {
+                UserFullName = m.User.FirstName + " " + m.User.LastName,
+                PackageName = m.Package.Name,
+                EndDate = m.EndDate
+            })
+            .ToListAsync();
+
+        var stuckBefore = now.AddDays(-StuckOrderDays);
+        var stuckQuery = _db.Orders
+            .Where(o => o.Status == OrderStatus.Processing && o.CreatedAt < stuckBefore);
+        var stuckCount = await stuckQuery.CountAsync();
+        var stuckOrders = await stuckQuery.AsNoTracking()
+            .OrderBy(o => o.CreatedAt)
+            .Take(AttentionListSize)
+            .Select(o => new DashboardOrder
+            {
+                Id = o.Id,
+                UserFullName = o.User.FirstName + " " + o.User.LastName,
+                CreatedAt = o.CreatedAt,
+                TotalAmount = o.TotalAmount,
+                Status = o.Status.ToString(),
+                IsNew = o.StatusChangedAt == null
             })
             .ToListAsync();
 
@@ -60,7 +116,14 @@ public class ReportService : IReportService
             VisitsToday = visitsToday,
             CurrentlyInGym = currentlyInGym,
             RevenueThisMonth = membershipRevenue + orderRevenue,
-            LatestOrders = latestOrders
+            NewOrdersCount = newOrdersCount,
+            LatestOrders = latestOrders,
+            LowStockSupplements = lowStock,
+            LowStockCount = lowStockCount,
+            ExpiringMemberships = expiring,
+            ExpiringMembershipsCount = expiringCount,
+            StuckOrders = stuckOrders,
+            StuckOrdersCount = stuckCount
         };
     }
 

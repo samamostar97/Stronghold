@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../models/membership.dart';
 import '../providers/memberships_provider.dart';
+import '../providers/navigation_provider.dart';
 import '../providers/packages_provider.dart';
 import '../providers/payments_provider.dart';
 import '../providers/users_provider.dart';
@@ -26,11 +27,14 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => context
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final intent =
+          context.read<NavigationProvider>().takeIntent(NavTarget.memberships);
+      context
           .read<MembershipsProvider>()
-          .load(page: 1, searchText: '', onlyActive: false),
-    );
+          .load(page: 1, searchText: '', onlyActive: false);
+      if (intent?.action == 'create') _openAssignDialog();
+    });
   }
 
   @override
