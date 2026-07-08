@@ -47,7 +47,13 @@ class _StaffScreenState extends State<StaffScreen> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.staffType != widget.staffType) {
       _searchController.clear();
-      context.read<StaffProvider>().load(widget.staffType, page: 1, searchText: '');
+      // didUpdateWidget se desava tokom builda - load() odmah notifikuje
+      // listenere pa poziv mora sacekati kraj framea (kao u initState)
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => context
+            .read<StaffProvider>()
+            .load(widget.staffType, page: 1, searchText: ''),
+      );
     }
   }
 
