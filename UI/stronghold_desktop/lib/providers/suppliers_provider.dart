@@ -51,14 +51,18 @@ class SuppliersProvider extends ChangeNotifier {
     return PagedResult.fromJson(data, Supplier.fromJson).items;
   }
 
-  Future<void> insert(Map<String, dynamic> body) async {
-    await _api.post('/api/suppliers', body: body);
+  Future<Supplier> insert(Map<String, dynamic> body) async {
+    final data =
+        await _api.post('/api/suppliers', body: body) as Map<String, dynamic>;
     await load(page: 1);
+    return Supplier.fromJson(data);
   }
 
-  Future<void> update(int id, Map<String, dynamic> body) async {
-    await _api.put('/api/suppliers/$id', body: body);
+  Future<Supplier> update(int id, Map<String, dynamic> body) async {
+    final data =
+        await _api.put('/api/suppliers/$id', body: body) as Map<String, dynamic>;
     await load();
+    return Supplier.fromJson(data);
   }
 
   Future<void> delete(int id) async {

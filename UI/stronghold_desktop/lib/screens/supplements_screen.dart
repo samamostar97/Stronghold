@@ -13,10 +13,12 @@ import '../providers/suppliers_provider.dart';
 import '../providers/supplements_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
+import '../widgets/category_form_dialog.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/stretch_scroll.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/supplier_form_dialog.dart';
 
 class SupplementsScreen extends StatefulWidget {
   const SupplementsScreen({super.key});
@@ -56,16 +58,10 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
   }
 
   Future<void> _openForm({Supplement? existing}) async {
-    final categories = await context.read<CategoriesProvider>().loadAll();
+    var categories = await context.read<CategoriesProvider>().loadAll();
     if (!mounted) return;
-    final suppliers = await context.read<SuppliersProvider>().loadAll();
+    var suppliers = await context.read<SuppliersProvider>().loadAll();
     if (!mounted) return;
-
-    // forma se ne otvara ako preduslovi (FK tabele) nisu ispunjeni
-    if (categories.isEmpty || suppliers.isEmpty) {
-      _showError('Prvo dodajte barem jednu kategoriju i jednog dobavljača.');
-      return;
-    }
 
     final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController(text: existing?.name ?? '');
@@ -156,39 +152,100 @@ class _SupplementsScreenState extends State<SupplementsScreen> {
                     const SizedBox(height: 16),
                     Row(children: [
                       Expanded(
-                        child: DropdownButtonFormField<int>(
-                          initialValue: categoryId,
-                          decoration: const InputDecoration(
-                            labelText: 'Kategorija',
+                        child: Row(children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              // programska promjena selekcije (brzi unos)
+                              // zahtijeva rekreaciju FormField-a preko kljuca
+                              key: ValueKey(
+                                  'category-$categoryId-${categories.length}'),
+                              initialValue: categoryId,
+                              decoration: const InputDecoration(
+                                labelText: 'Kategorija',
+                              ),
+                              items: [
+                                for (final SupplementCategory category
+                                    in categories)
+                                  DropdownMenuItem(
+                                      value: category.id,
+                                      child: Text(category.name)),
+                              ],
+                              validator: (value) => value == null
+                                  ? 'Odaberite kategoriju.'
+                                  : null,
+                              onChanged: (value) =>
+                                  setDialogState(() => categoryId = value),
+                            ),
                           ),
-                          items: [
-                            for (final SupplementCategory category in categories)
-                              DropdownMenuItem(
-                                  value: category.id, child: Text(category.name)),
-                          ],
-                          validator: (value) =>
-                              value == null ? 'Odaberite kategoriju.' : null,
-                          onChanged: (value) =>
-                              setDialogState(() => categoryId = value),
-                        ),
+                          IconButton(
+                            tooltip: 'Nova kategorija',
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed: () async {
+                              final created =
+                                  await showCategoryFormDialog(context);
+                              if (created == null ||
+                                  !mounted ||
+                                  !dialogContext.mounted) {
+                                return;
+                              }
+                              final refreshed = await context
+                                  .read<CategoriesProvider>()
+                                  .loadAll();
+                              if (!dialogContext.mounted) return;
+                              setDialogState(() {
+                                categories = refreshed;
+                                categoryId = created.id;
+                              });
+                            },
+                          ),
+                        ]),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
-                        child: DropdownButtonFormField<int>(
-                          initialValue: supplierId,
-                          decoration: const InputDecoration(
-                            labelText: 'Dobavljač',
+                        child: Row(children: [
+                          Expanded(
+                            child: DropdownButtonFormField<int>(
+                              key: ValueKey(
+                                  'supplier-$supplierId-${suppliers.length}'),
+                              initialValue: supplierId,
+                              decoration: const InputDecoration(
+                                labelText: 'Dobavljač',
+                              ),
+                              items: [
+                                for (final Supplier supplier in suppliers)
+                                  DropdownMenuItem(
+                                      value: supplier.id,
+                                      child: Text(supplier.name)),
+                              ],
+                              validator: (value) => value == null
+                                  ? 'Odaberite dobavljača.'
+                                  : null,
+                              onChanged: (value) =>
+                                  setDialogState(() => supplierId = value),
+                            ),
                           ),
-                          items: [
-                            for (final Supplier supplier in suppliers)
-                              DropdownMenuItem(
-                                  value: supplier.id, child: Text(supplier.name)),
-                          ],
-                          validator: (value) =>
-                              value == null ? 'Odaberite dobavljača.' : null,
-                          onChanged: (value) =>
-                              setDialogState(() => supplierId = value),
-                        ),
+                          IconButton(
+                            tooltip: 'Novi dobavljač',
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed: () async {
+                              final created =
+                                  await showSupplierFormDialog(context);
+                              if (created == null ||
+                                  !mounted ||
+                                  !dialogContext.mounted) {
+                                return;
+                              }
+                              final refreshed = await context
+                                  .read<SuppliersProvider>()
+                                  .loadAll();
+                              if (!dialogContext.mounted) return;
+                              setDialogState(() {
+                                suppliers = refreshed;
+                                supplierId = created.id;
+                              });
+                            },
+                          ),
+                        ]),
                       ),
                     ]),
                     const SizedBox(height: 16),

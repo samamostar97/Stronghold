@@ -8,6 +8,7 @@ import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/stretch_scroll.dart';
 import '../widgets/empty_state.dart';
+import '../widgets/supplier_form_dialog.dart';
 
 class SuppliersScreen extends StatefulWidget {
   const SuppliersScreen({super.key});
@@ -18,9 +19,6 @@ class SuppliersScreen extends StatefulWidget {
 
 class _SuppliersScreenState extends State<SuppliersScreen> {
   final _searchController = TextEditingController();
-
-  static final _emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-  static final _phoneRegex = RegExp(r'^[0-9+\-\/\s]{6,30}$');
 
   @override
   void initState() {
@@ -47,126 +45,11 @@ class _SuppliersScreenState extends State<SuppliersScreen> {
   }
 
   Future<void> _openForm({Supplier? existing}) async {
-    final formKey = GlobalKey<FormState>();
-    final nameController = TextEditingController(text: existing?.name ?? '');
-    final emailController =
-        TextEditingController(text: existing?.contactEmail ?? '');
-    final phoneController =
-        TextEditingController(text: existing?.contactPhone ?? '');
-    String? serverError;
-
-    await showDialog<void>(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (dialogContext, setDialogState) => AlertDialog(
-          title: Row(
-            children: [
-              Expanded(
-                child: Text(
-                    existing == null ? 'Novi dobavljač' : 'Izmjena dobavljača'),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(dialogContext).pop(),
-              ),
-            ],
-          ),
-          content: SizedBox(
-            width: 420,
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextFormField(
-                    controller: nameController,
-                    autofocus: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Naziv dobavljača',
-                    ),
-                    validator: (v) => v == null || v.trim().isEmpty
-                        ? 'Unesite naziv dobavljača.'
-                        : null,
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: emailController,
-                    decoration: const InputDecoration(
-                      labelText: 'Kontakt e-mail',
-                    ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'Unesite kontakt e-mail.';
-                      }
-                      if (!_emailRegex.hasMatch(v.trim())) {
-                        return 'Unesite validan e-mail u formatu: ime@domena.com';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'Kontakt telefon',
-                    ),
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) {
-                        return 'Unesite kontakt telefon.';
-                      }
-                      if (!_phoneRegex.hasMatch(v.trim())) {
-                        return 'Unesite validan broj telefona u formatu: +387-33-123-456';
-                      }
-                      return null;
-                    },
-                  ),
-                  if (serverError != null) ...[
-                    const SizedBox(height: 12),
-                    Text(
-                      serverError!,
-                      style: TextStyle(
-                          color: Theme.of(dialogContext).colorScheme.error),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('Odustani'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                final body = {
-                  'name': nameController.text.trim(),
-                  'contactEmail': emailController.text.trim(),
-                  'contactPhone': phoneController.text.trim(),
-                };
-                try {
-                  final provider = context.read<SuppliersProvider>();
-                  if (existing == null) {
-                    await provider.insert(body);
-                  } else {
-                    await provider.update(existing.id, body);
-                  }
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  _showSuccess(existing == null
-                      ? 'Dobavljač "${body['name']}" je dodan.'
-                      : 'Dobavljač je izmijenjen.');
-                } on ApiException catch (e) {
-                  setDialogState(() => serverError = e.message);
-                }
-              },
-              child: const Text('Sačuvaj'),
-            ),
-          ],
-        ),
-      ),
-    );
+    final saved = await showSupplierFormDialog(context, existing: existing);
+    if (saved == null || !mounted) return;
+    _showSuccess(existing == null
+        ? 'Dobavljač "${saved.name}" je dodan.'
+        : 'Dobavljač je izmijenjen.');
   }
 
   Future<void> _delete(Supplier supplier) async {

@@ -51,14 +51,18 @@ class CategoriesProvider extends ChangeNotifier {
     return PagedResult.fromJson(data, SupplementCategory.fromJson).items;
   }
 
-  Future<void> insert(Map<String, dynamic> body) async {
-    await _api.post('/api/supplement-categories', body: body);
+  Future<SupplementCategory> insert(Map<String, dynamic> body) async {
+    final data = await _api.post('/api/supplement-categories', body: body)
+        as Map<String, dynamic>;
     await load(page: 1);
+    return SupplementCategory.fromJson(data);
   }
 
-  Future<void> update(int id, Map<String, dynamic> body) async {
-    await _api.put('/api/supplement-categories/$id', body: body);
+  Future<SupplementCategory> update(int id, Map<String, dynamic> body) async {
+    final data = await _api.put('/api/supplement-categories/$id', body: body)
+        as Map<String, dynamic>;
     await load();
+    return SupplementCategory.fromJson(data);
   }
 
   Future<void> delete(int id) async {
