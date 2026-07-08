@@ -358,7 +358,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  initialValue: _selectedCityId,
+                  // gradovi se ucitavaju async - dok liste nema, vrijednost
+                  // ne smije biti postavljena jer nema odgovarajuceg itema
+                  initialValue: _cities.isEmpty ? null : _selectedCityId,
                   decoration: const InputDecoration(
                     labelText: 'Grad',
                   ),
