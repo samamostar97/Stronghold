@@ -20,6 +20,13 @@ public class MonthlyRevenue
 public class TopProduct
 {
     public string Name { get; set; } = null!;
+    public string CategoryName { get; set; } = null!;
     public int QuantitySold { get; set; }
     public decimal Revenue { get; set; }
+
+    /// <summary>Udio u ukupnom prihodu prodavnice, u procentima.</summary>
+    public double RevenueShare { get; set; }
+
+    /// <summary>Prosjecna ocjena; null ako proizvod nema recenzija.</summary>
+    public double? AverageRating { get; set; }
 }

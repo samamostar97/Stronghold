@@ -8,6 +8,7 @@ import '../models/report_models.dart';
 import '../providers/reports_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
+import '../widgets/status_chip.dart';
 import '../widgets/stretch_scroll.dart';
 
 /// Biznis report: tabovi Prihodi / Inventar / Clanarine, svaki sa PDF i Excel exportom.
@@ -207,20 +208,31 @@ class _ReportsScreenState extends State<ReportsScreen>
               children: [
                 Text('Najprodavaniji proizvodi',
                     style: Theme.of(context).textTheme.titleMedium),
-                DataTable(
-                  columns: const [
-                    DataColumn(label: Text('Proizvod')),
-                    DataColumn(label: Text('Prodano')),
-                    DataColumn(label: Text('Prihod')),
-                  ],
-                  rows: [
-                    for (final product in report.topProducts)
-                      DataRow(cells: [
-                        DataCell(Text(product.name)),
-                        DataCell(Text('${product.quantitySold} kom')),
-                        DataCell(Text(Formatters.money(product.revenue))),
-                      ]),
-                  ],
+                StretchScroll(
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Proizvod')),
+                      DataColumn(label: Text('Kategorija')),
+                      DataColumn(label: Text('Prodano')),
+                      DataColumn(label: Text('Udio')),
+                      DataColumn(label: Text('Ocjena')),
+                      DataColumn(label: Text('Prihod')),
+                    ],
+                    rows: [
+                      for (final product in report.topProducts)
+                        DataRow(cells: [
+                          DataCell(Text(product.name)),
+                          DataCell(Text(product.categoryName)),
+                          DataCell(Text('${product.quantitySold} kom')),
+                          DataCell(Text(
+                              '${product.revenueShare.toStringAsFixed(1)} %')),
+                          DataCell(Text(product.averageRating == null
+                              ? '-'
+                              : product.averageRating!.toStringAsFixed(1))),
+                          DataCell(Text(Formatters.money(product.revenue))),
+                        ]),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -228,6 +240,16 @@ class _ReportsScreenState extends State<ReportsScreen>
         ),
       ],
     );
+  }
+
+  StatusChip _stockStatus(int quantity) {
+    if (quantity == 0) {
+      return const StatusChip(label: 'Nema na stanju', tone: StatusTone.danger);
+    }
+    if (quantity < 10) {
+      return const StatusChip(label: 'Nisko', tone: StatusTone.warning);
+    }
+    return const StatusChip(label: 'OK', tone: StatusTone.success);
   }
 
   Widget _inventoryTab(InventoryReport? report) {
@@ -240,8 +262,10 @@ class _ReportsScreenState extends State<ReportsScreen>
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Ukupna vrijednost zaliha: ${Formatters.money(report.totalValue)}    '
-              'Artikala sa niskim zalihama (<10): ${report.lowStockCount}',
+              'Ukupno artikala: ${report.totalItems}    '
+              'Bez zaliha: ${report.outOfStockCount}    '
+              'Artikala sa niskim zalihama (<10): ${report.lowStockCount}    '
+              'Ukupna vrijednost zaliha: ${Formatters.money(report.totalValue)}',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -255,8 +279,10 @@ class _ReportsScreenState extends State<ReportsScreen>
                 DataColumn(label: Text('Kategorija')),
                 DataColumn(label: Text('Dobavljač')),
                 DataColumn(label: Text('Zalihe')),
+                DataColumn(label: Text('Prodano (30 dana)')),
                 DataColumn(label: Text('Cijena')),
                 DataColumn(label: Text('Vrijednost')),
+                DataColumn(label: Text('Status')),
               ],
               rows: [
                 for (final item in report.items)
@@ -275,8 +301,10 @@ class _ReportsScreenState extends State<ReportsScreen>
                               fontWeight: FontWeight.bold)
                           : null,
                     )),
+                    DataCell(Text('${item.soldLast30Days}')),
                     DataCell(Text(Formatters.money(item.price))),
                     DataCell(Text(Formatters.money(item.stockValue))),
+                    DataCell(_stockStatus(item.stockQuantity)),
                   ]),
               ],
             ),
@@ -297,7 +325,9 @@ class _ReportsScreenState extends State<ReportsScreen>
             padding: const EdgeInsets.all(16),
             child: Text(
               'Aktivnih članova: ${report.activeCount}    '
-              'Ističe u narednih 7 dana: ${report.expiringIn7Days}',
+              'Ističe u narednih 7 dana: ${report.expiringIn7Days}    '
+              'Novi članovi (ovaj mjesec): ${report.newMembersThisMonth}    '
+              'Ukinutih članarina: ${report.revokedCount}',
               style: const TextStyle(fontWeight: FontWeight.w600),
             ),
           ),
@@ -358,6 +388,38 @@ class _ReportsScreenState extends State<ReportsScreen>
               ),
             ),
           ],
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Prodaja po paketima',
+                    style: Theme.of(context).textTheme.titleMedium),
+                StretchScroll(
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Paket')),
+                      DataColumn(label: Text('Prodano (ukupno)')),
+                      DataColumn(label: Text('Prodano (6 mj)')),
+                      DataColumn(label: Text('Prihod (ukupno)')),
+                    ],
+                    rows: [
+                      for (final sales in report.packageSales)
+                        DataRow(cells: [
+                          DataCell(Text(sales.packageName)),
+                          DataCell(Text('${sales.soldCount}')),
+                          DataCell(Text('${sales.soldLast6Months}')),
+                          DataCell(Text(Formatters.money(sales.revenue))),
+                        ]),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ],
     );
