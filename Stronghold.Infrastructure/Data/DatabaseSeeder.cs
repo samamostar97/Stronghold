@@ -437,7 +437,25 @@ public static class DatabaseSeeder
             NewAppointment(dino, jasmin, -5, 16, AppointmentStatus.Cancelled, 8,
                 CancellationActor.Admin, "Trener spriječen zbog bolesti"),
             NewAppointment(haris, selma, 2, 14, AppointmentStatus.Cancelled, 3,
-                CancellationActor.User, "Spriječenost zbog posla")
+                CancellationActor.User, "Spriječenost zbog posla"),
+            // istorijski termini kroz prosle mjesece - izvjestaj o osoblju pokriva siri period
+            NewAppointment(mobile, emir, -20, 9, AppointmentStatus.Completed, 23),
+            NewAppointment(lejla, emir, -34, 11, AppointmentStatus.Completed, 37),
+            NewAppointment(tarik, emir, -62, 14, AppointmentStatus.Completed, 65),
+            NewAppointment(gymMember, emir, -95, 10, AppointmentStatus.Completed, 98),
+            NewAppointment(amina, jasmin, -26, 12, AppointmentStatus.Completed, 29),
+            NewAppointment(sara, jasmin, -49, 17, AppointmentStatus.Completed, 52),
+            NewAppointment(dino, jasmin, -88, 11, AppointmentStatus.Completed, 91),
+            NewAppointment(haris, selma, -31, 18, AppointmentStatus.Completed, 34),
+            NewAppointment(mobile, selma, -73, 15, AppointmentStatus.Completed, 76),
+            NewAppointment(lejla, nejra, -24, 10, AppointmentStatus.Completed, 27),
+            NewAppointment(sara, nejra, -57, 13, AppointmentStatus.Completed, 60),
+            NewAppointment(tarik, damir, -42, 16, AppointmentStatus.Completed, 45),
+            NewAppointment(amina, damir, -101, 12, AppointmentStatus.Completed, 104),
+            NewAppointment(dino, emir, -47, 13, AppointmentStatus.Cancelled, 50,
+                CancellationActor.User, "Privatne obaveze"),
+            NewAppointment(haris, nejra, -80, 11, AppointmentStatus.Cancelled, 83,
+                CancellationActor.Admin, "Nutricionistica na edukaciji")
         );
 
         // ---------- Seminari ----------
