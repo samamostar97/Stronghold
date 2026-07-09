@@ -114,62 +114,126 @@ class ExpiringMembership {
 }
 
 class RevenueReport {
-  final double revenueThisMonth;
-  final double revenueLast6Months;
-  final double avgOrderValue6M;
-  final double orderCancellationRate6M;
+  final double totalRevenue;
+  final double membershipRevenue;
+  final double orderRevenue;
+  final int newMembers;
+  final int visitCount;
   final List<MonthlyRevenue> monthlyRevenue;
   final List<TopProduct> topProducts;
-  final List<CategoryRevenue> revenueByCategory;
+  final List<PackageSales> packageSales;
 
   RevenueReport({
-    required this.revenueThisMonth,
-    required this.revenueLast6Months,
-    required this.avgOrderValue6M,
-    required this.orderCancellationRate6M,
+    required this.totalRevenue,
+    required this.membershipRevenue,
+    required this.orderRevenue,
+    required this.newMembers,
+    required this.visitCount,
     required this.monthlyRevenue,
     required this.topProducts,
-    required this.revenueByCategory,
+    required this.packageSales,
   });
 
   factory RevenueReport.fromJson(Map<String, dynamic> json) => RevenueReport(
-        revenueThisMonth: (json['revenueThisMonth'] as num).toDouble(),
-        revenueLast6Months: (json['revenueLast6Months'] as num).toDouble(),
-        avgOrderValue6M: (json['avgOrderValue6M'] as num).toDouble(),
-        orderCancellationRate6M:
-            (json['orderCancellationRate6M'] as num).toDouble(),
+        totalRevenue: (json['totalRevenue'] as num).toDouble(),
+        membershipRevenue: (json['membershipRevenue'] as num).toDouble(),
+        orderRevenue: (json['orderRevenue'] as num).toDouble(),
+        newMembers: json['newMembers'] as int,
+        visitCount: json['visitCount'] as int,
         monthlyRevenue: (json['monthlyRevenue'] as List)
             .map((item) => MonthlyRevenue.fromJson(item as Map<String, dynamic>))
             .toList(),
         topProducts: (json['topProducts'] as List)
             .map((item) => TopProduct.fromJson(item as Map<String, dynamic>))
             .toList(),
-        revenueByCategory: (json['revenueByCategory'] as List)
-            .map((item) =>
-                CategoryRevenue.fromJson(item as Map<String, dynamic>))
+        packageSales: (json['packageSales'] as List)
+            .map((item) => PackageSales.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 }
 
-class CategoryRevenue {
-  final String categoryName;
-  final int quantitySold;
+class PackageSales {
+  final String packageName;
+  final int soldCount;
   final double revenue;
-  final double revenueShare;
 
-  CategoryRevenue({
-    required this.categoryName,
-    required this.quantitySold,
+  PackageSales({
+    required this.packageName,
+    required this.soldCount,
     required this.revenue,
-    required this.revenueShare,
   });
 
-  factory CategoryRevenue.fromJson(Map<String, dynamic> json) =>
-      CategoryRevenue(
-        categoryName: json['categoryName'] as String,
-        quantitySold: json['quantitySold'] as int,
+  factory PackageSales.fromJson(Map<String, dynamic> json) => PackageSales(
+        packageName: json['packageName'] as String,
+        soldCount: json['soldCount'] as int,
         revenue: (json['revenue'] as num).toDouble(),
-        revenueShare: (json['revenueShare'] as num).toDouble(),
+      );
+}
+
+class StaffReport {
+  final int totalAppointments;
+  final int completedCount;
+  final int cancelledCount;
+  final int upcomingCount;
+  final String? busiestStaffName;
+  final int busiestStaffCount;
+  final int? busiestHour;
+  final int busiestHourCount;
+  final List<StaffAppointmentStat> staff;
+
+  StaffReport({
+    required this.totalAppointments,
+    required this.completedCount,
+    required this.cancelledCount,
+    required this.upcomingCount,
+    required this.busiestStaffName,
+    required this.busiestStaffCount,
+    required this.busiestHour,
+    required this.busiestHourCount,
+    required this.staff,
+  });
+
+  factory StaffReport.fromJson(Map<String, dynamic> json) => StaffReport(
+        totalAppointments: json['totalAppointments'] as int,
+        completedCount: json['completedCount'] as int,
+        cancelledCount: json['cancelledCount'] as int,
+        upcomingCount: json['upcomingCount'] as int,
+        busiestStaffName: json['busiestStaffName'] as String?,
+        busiestStaffCount: json['busiestStaffCount'] as int,
+        busiestHour: json['busiestHour'] as int?,
+        busiestHourCount: json['busiestHourCount'] as int,
+        staff: (json['staff'] as List)
+            .map((item) =>
+                StaffAppointmentStat.fromJson(item as Map<String, dynamic>))
+            .toList(),
+      );
+}
+
+class StaffAppointmentStat {
+  final String fullName;
+  final String staffType;
+  final int totalCount;
+  final int completedCount;
+  final int cancelledCount;
+  final int upcomingCount;
+
+  StaffAppointmentStat({
+    required this.fullName,
+    required this.staffType,
+    required this.totalCount,
+    required this.completedCount,
+    required this.cancelledCount,
+    required this.upcomingCount,
+  });
+
+  factory StaffAppointmentStat.fromJson(Map<String, dynamic> json) =>
+      StaffAppointmentStat(
+        fullName: json['fullName'] as String,
+        staffType: json['staffType'] as String,
+        totalCount: json['totalCount'] as int,
+        completedCount: json['completedCount'] as int,
+        cancelledCount: json['cancelledCount'] as int,
+        upcomingCount: json['upcomingCount'] as int,
       );
 }
 
@@ -201,16 +265,12 @@ class TopProduct {
   final String categoryName;
   final int quantitySold;
   final double revenue;
-  final double revenueShare;
-  final double? averageRating;
 
   TopProduct({
     required this.name,
     required this.categoryName,
     required this.quantitySold,
     required this.revenue,
-    required this.revenueShare,
-    required this.averageRating,
   });
 
   factory TopProduct.fromJson(Map<String, dynamic> json) => TopProduct(
@@ -218,191 +278,6 @@ class TopProduct {
         categoryName: json['categoryName'] as String,
         quantitySold: json['quantitySold'] as int,
         revenue: (json['revenue'] as num).toDouble(),
-        revenueShare: (json['revenueShare'] as num).toDouble(),
-        averageRating: (json['averageRating'] as num?)?.toDouble(),
-      );
-}
-
-class InventoryReport {
-  final List<InventoryItem> items;
-  final List<WorstRatedProduct> worstRated;
-  final double totalValue;
-  final int totalItems;
-  final int lowStockCount;
-  final int outOfStockCount;
-  final int noSalesLast30Count;
-
-  InventoryReport({
-    required this.items,
-    required this.worstRated,
-    required this.totalValue,
-    required this.totalItems,
-    required this.lowStockCount,
-    required this.outOfStockCount,
-    required this.noSalesLast30Count,
-  });
-
-  factory InventoryReport.fromJson(Map<String, dynamic> json) => InventoryReport(
-        items: (json['items'] as List)
-            .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        worstRated: (json['worstRated'] as List)
-            .map((item) =>
-                WorstRatedProduct.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        totalValue: (json['totalValue'] as num).toDouble(),
-        totalItems: json['totalItems'] as int,
-        lowStockCount: json['lowStockCount'] as int,
-        outOfStockCount: json['outOfStockCount'] as int,
-        noSalesLast30Count: json['noSalesLast30Count'] as int,
-      );
-}
-
-class InventoryItem {
-  final String name;
-  final String categoryName;
-  final String supplierName;
-  final int stockQuantity;
-  final int soldLast30Days;
-  final double price;
-  final double stockValue;
-  final double? stockCoverDays;
-
-  InventoryItem({
-    required this.name,
-    required this.categoryName,
-    required this.supplierName,
-    required this.stockQuantity,
-    required this.soldLast30Days,
-    required this.price,
-    required this.stockValue,
-    required this.stockCoverDays,
-  });
-
-  factory InventoryItem.fromJson(Map<String, dynamic> json) => InventoryItem(
-        name: json['name'] as String,
-        categoryName: json['categoryName'] as String,
-        supplierName: json['supplierName'] as String,
-        stockQuantity: json['stockQuantity'] as int,
-        soldLast30Days: json['soldLast30Days'] as int,
-        price: (json['price'] as num).toDouble(),
-        stockValue: (json['stockValue'] as num).toDouble(),
-        stockCoverDays: (json['stockCoverDays'] as num?)?.toDouble(),
-      );
-}
-
-class WorstRatedProduct {
-  final String name;
-  final double averageRating;
-  final int reviewCount;
-  final int soldLast30Days;
-
-  WorstRatedProduct({
-    required this.name,
-    required this.averageRating,
-    required this.reviewCount,
-    required this.soldLast30Days,
-  });
-
-  factory WorstRatedProduct.fromJson(Map<String, dynamic> json) =>
-      WorstRatedProduct(
-        name: json['name'] as String,
-        averageRating: (json['averageRating'] as num).toDouble(),
-        reviewCount: json['reviewCount'] as int,
-        soldLast30Days: json['soldLast30Days'] as int,
-      );
-}
-
-class MembershipReport {
-  final int activeCount;
-  final int expiringIn7Days;
-  final int newMembersThisMonth;
-  final double renewalRatePercent;
-  final List<PackageStat> packages;
-  final List<WeeklyVisitCount> weeklyVisits;
-  final List<HourlyVisitCount> visitsByHour;
-  final double avgVisitDurationMinutes;
-  final double avgVisitsPerActiveMember;
-
-  MembershipReport({
-    required this.activeCount,
-    required this.expiringIn7Days,
-    required this.newMembersThisMonth,
-    required this.renewalRatePercent,
-    required this.packages,
-    required this.weeklyVisits,
-    required this.visitsByHour,
-    required this.avgVisitDurationMinutes,
-    required this.avgVisitsPerActiveMember,
-  });
-
-  factory MembershipReport.fromJson(Map<String, dynamic> json) => MembershipReport(
-        activeCount: json['activeCount'] as int,
-        expiringIn7Days: json['expiringIn7Days'] as int,
-        newMembersThisMonth: json['newMembersThisMonth'] as int,
-        renewalRatePercent: (json['renewalRatePercent'] as num).toDouble(),
-        packages: (json['packages'] as List)
-            .map((item) => PackageStat.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        weeklyVisits: (json['weeklyVisits'] as List)
-            .map((item) =>
-                WeeklyVisitCount.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        visitsByHour: (json['visitsByHour'] as List)
-            .map((item) =>
-                HourlyVisitCount.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        avgVisitDurationMinutes:
-            (json['avgVisitDurationMinutes'] as num).toDouble(),
-        avgVisitsPerActiveMember:
-            (json['avgVisitsPerActiveMember'] as num).toDouble(),
-      );
-}
-
-class PackageStat {
-  final String packageName;
-  final int activeCount;
-  final int soldLast6Months;
-  final double revenue;
-
-  PackageStat({
-    required this.packageName,
-    required this.activeCount,
-    required this.soldLast6Months,
-    required this.revenue,
-  });
-
-  factory PackageStat.fromJson(Map<String, dynamic> json) => PackageStat(
-        packageName: json['packageName'] as String,
-        activeCount: json['activeCount'] as int,
-        soldLast6Months: json['soldLast6Months'] as int,
-        revenue: (json['revenue'] as num).toDouble(),
-      );
-}
-
-class HourlyVisitCount {
-  final int hour;
-  final int count;
-
-  HourlyVisitCount({required this.hour, required this.count});
-
-  factory HourlyVisitCount.fromJson(Map<String, dynamic> json) =>
-      HourlyVisitCount(
-        hour: json['hour'] as int,
-        count: json['count'] as int,
-      );
-}
-
-class WeeklyVisitCount {
-  final DateTime weekStart;
-  final int count;
-
-  WeeklyVisitCount({required this.weekStart, required this.count});
-
-  factory WeeklyVisitCount.fromJson(Map<String, dynamic> json) =>
-      WeeklyVisitCount(
-        weekStart: DateTime.parse(json['weekStart'] as String),
-        count: json['count'] as int,
       );
 }
 
