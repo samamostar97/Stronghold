@@ -13,7 +13,11 @@ Sistem za upravljanje teretanom — seminarski rad iz predmeta Razvoj softvera I
 
 ## Pokretanje
 
-Potreban je samo Docker (Docker Desktop na Windowsu):
+Potreban je samo Docker (Docker Desktop na Windowsu).
+
+1. Raspakovati `.env-tajne.zip` u root projekta (nastaje `.env` fajl; šifra arhive
+   se dostavlja uz predaju rada na DL sistemu).
+2. Pokrenuti:
 
 ```bash
 docker compose up --build
