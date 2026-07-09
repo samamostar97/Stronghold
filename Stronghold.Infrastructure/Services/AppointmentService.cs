@@ -18,10 +18,14 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
     private static readonly Dictionary<AppointmentStatus, AppointmentStatus[]> AllowedTransitions = new()
     {
         [AppointmentStatus.Pending] = new[] { AppointmentStatus.Confirmed, AppointmentStatus.Cancelled },
-        [AppointmentStatus.Confirmed] = new[] { AppointmentStatus.Completed, AppointmentStatus.Cancelled },
+        [AppointmentStatus.Confirmed] = new[] { AppointmentStatus.Completed, AppointmentStatus.Cancelled, AppointmentStatus.NoShow },
         [AppointmentStatus.Completed] = Array.Empty<AppointmentStatus>(),
-        [AppointmentStatus.Cancelled] = Array.Empty<AppointmentStatus>()
+        [AppointmentStatus.Cancelled] = Array.Empty<AppointmentStatus>(),
+        [AppointmentStatus.NoShow] = Array.Empty<AppointmentStatus>()
     };
+
+    /// <summary>Clan otkazuje najkasnije 2h prije pocetka - admin nema ogranicenje.</summary>
+    private const int MemberCancelLeadHours = 2;
 
     private readonly ICurrentUserService _currentUser;
     private readonly IEmailPublisher _emailPublisher;
@@ -123,6 +127,22 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         return await GetByIdAsync(id);
     }
 
+    /// <summary>Nedolazak se evidentira tek nakon sto termin prodje - do tada je otkaz jedina opcija.</summary>
+    public async Task<AppointmentResponse> MarkNoShowAsync(int id)
+    {
+        var appointment = await GetEntityAsync(id);
+        if (GetStartUtc(appointment) > DateTime.UtcNow)
+        {
+            throw new BusinessException("Nedolazak se može evidentirati tek nakon termina.");
+        }
+
+        ChangeStatus(appointment, AppointmentStatus.NoShow);
+        AddStatusNotification(appointment, "Propušten termin",
+            $"Termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 je evidentiran kao nedolazak.");
+        await Db.SaveChangesAsync();
+        return await GetByIdAsync(id);
+    }
+
     public async Task<AppointmentResponse> CancelAsync(int id, AppointmentCancelRequest request)
     {
         var appointment = await GetEntityAsync(id);
@@ -131,6 +151,17 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         if (!_currentUser.IsAdmin && appointment.UserId != _currentUser.UserId)
         {
             throw new BusinessException("Možete otkazati samo vlastite termine.");
+        }
+
+        var startUtc = GetStartUtc(appointment);
+        if (startUtc <= DateTime.UtcNow)
+        {
+            throw new BusinessException("Termin koji je već prošao ne može se otkazati.");
+        }
+        if (!_currentUser.IsAdmin && startUtc <= DateTime.UtcNow.AddHours(MemberCancelLeadHours))
+        {
+            throw new BusinessException(
+                $"Termin se može otkazati najkasnije {MemberCancelLeadHours} sata prije početka.");
         }
 
         ChangeStatus(appointment, AppointmentStatus.Cancelled);
@@ -221,6 +252,10 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         return await Db.Appointments.FindAsync(id)
             ?? throw new NotFoundException("Termin ne postoji.");
     }
+
+    // satnice termina su UTC sati, isto kao i provjera slobodnih slotova
+    private static DateTime GetStartUtc(Appointment appointment)
+        => appointment.Date.ToDateTime(new TimeOnly(appointment.StartHour, 0), DateTimeKind.Utc);
 
     private void ChangeStatus(Appointment appointment, AppointmentStatus newStatus)
     {

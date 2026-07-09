@@ -29,6 +29,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     'Confirmed': 'Potvrđen',
     'Completed': 'Održan',
     'Cancelled': 'Otkazan',
+    'NoShow': 'Nedolazak',
   };
 
   @override
@@ -60,8 +61,16 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         'Confirmed' => StatusTone.success,
         'Completed' => StatusTone.info,
         'Cancelled' => StatusTone.danger,
+        'NoShow' => StatusTone.neutral,
         _ => StatusTone.warning,
       };
+
+  /// Prosli termin - satnice su UTC sati, isto kao na backendu.
+  bool _isPast(Appointment appointment) {
+    final start = DateTime.utc(appointment.date.year, appointment.date.month,
+        appointment.date.day, appointment.startHour);
+    return start.isBefore(DateTime.now().toUtc());
+  }
 
   Future<void> _openAddDialog() async {
     final users = await context.read<UsersProvider>().loadAll();
@@ -433,7 +442,11 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                   DataCell(Text('${appointment.startHour}:00')),
                                   DataCell(Tooltip(
                                     message: appointment.status == 'Cancelled'
-                                        ? 'Otkazao: ${appointment.cancelledBy == 'Admin' ? 'administrator' : 'član'}'
+                                        ? 'Otkazao: ${switch (appointment.cancelledBy) {
+                                            'Admin' => 'administrator',
+                                            'System' => 'sistem (istekao bez potvrde)',
+                                            _ => 'član',
+                                          }}'
                                             '${appointment.cancellationReason != null ? ' - ${appointment.cancellationReason}' : ''}'
                                         : '',
                                     child: StatusChip(
@@ -466,8 +479,23 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                                 .complete,
                                             'Termin je označen kao održan.'),
                                       ),
-                                    if (appointment.status == 'Pending' ||
-                                        appointment.status == 'Confirmed')
+                                    // nedolazak se evidentira tek kad termin prodje
+                                    if (appointment.status == 'Confirmed' &&
+                                        _isPast(appointment))
+                                      IconButton(
+                                        tooltip: 'Član se nije pojavio',
+                                        icon: const Icon(Icons.person_off_outlined),
+                                        onPressed: () => _changeStatus(
+                                            appointment.id,
+                                            context
+                                                .read<AppointmentsProvider>()
+                                                .markNoShow,
+                                            'Termin je evidentiran kao nedolazak.'),
+                                      ),
+                                    // prosli termin se vise ne moze otkazati
+                                    if ((appointment.status == 'Pending' ||
+                                            appointment.status == 'Confirmed') &&
+                                        !_isPast(appointment))
                                       IconButton(
                                         tooltip: 'Otkaži termin',
                                         icon: const Icon(Icons.cancel_outlined),
