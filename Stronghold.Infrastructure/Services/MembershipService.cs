@@ -114,7 +114,9 @@ public class MembershipService : BaseService<Membership, MembershipResponse, Mem
 
     public async Task<MembershipResponse> RevokeAsync(int id, MembershipRevokeRequest request)
     {
-        var membership = await Db.Memberships.FindAsync(id)
+        var membership = await Db.Memberships
+            .Include(m => m.User)
+            .FirstOrDefaultAsync(m => m.Id == id)
             ?? throw new NotFoundException("Članarina ne postoji.");
 
         if (membership.IsRevoked)
@@ -129,7 +131,26 @@ public class MembershipService : BaseService<Membership, MembershipResponse, Mem
         membership.IsRevoked = true;
         membership.RevokedAt = DateTime.UtcNow;
         membership.RevocationReason = request.Reason;
+
+        // clan mora znati da vise nema pristup - i u aplikaciji i na e-mail
+        var message = $"Vaša članarina je ukinuta (razlog: {request.Reason}). " +
+                      "Za više informacija obratite se osoblju teretane.";
+        Db.Notifications.Add(new Notification
+        {
+            UserId = membership.UserId,
+            Title = "Članarina ukinuta",
+            Message = message,
+            Type = NotificationType.MembershipRevoked,
+            CreatedAt = DateTime.UtcNow
+        });
         await Db.SaveChangesAsync();
+
+        _emailPublisher.Publish(new EmailMessage
+        {
+            To = membership.User.Email,
+            Subject = "Stronghold - članarina ukinuta",
+            Body = $"Poštovani {membership.User.FirstName},\n\n{message}\n\nVaš Stronghold"
+        });
         return await GetByIdAsync(id);
     }
 }
