@@ -93,9 +93,10 @@ public static class ReportExcelBuilder
         sheet.Cell(1, 3).Value = "Dobavljač";
         sheet.Cell(1, 4).Value = "Zalihe (kom)";
         sheet.Cell(1, 5).Value = "Prodano (30 dana)";
-        sheet.Cell(1, 6).Value = "Cijena (KM)";
-        sheet.Cell(1, 7).Value = "Vrijednost (KM)";
-        sheet.Cell(1, 8).Value = "Status";
+        sheet.Cell(1, 6).Value = "Doseg zaliha (dana)";
+        sheet.Cell(1, 7).Value = "Cijena (KM)";
+        sheet.Cell(1, 8).Value = "Vrijednost (KM)";
+        sheet.Cell(1, 9).Value = "Status";
         var row = 2;
         foreach (var item in report.Items)
         {
@@ -104,19 +105,46 @@ public static class ReportExcelBuilder
             sheet.Cell(row, 3).Value = item.SupplierName;
             sheet.Cell(row, 4).Value = item.StockQuantity;
             sheet.Cell(row, 5).Value = item.SoldLast30Days;
-            sheet.Cell(row, 6).Value = item.Price;
-            sheet.Cell(row, 7).Value = item.StockValue;
-            sheet.Cell(row, 8).Value = StockStatus(item.StockQuantity);
+            if (item.StockCoverDays == null)
+            {
+                sheet.Cell(row, 6).Value = "-";
+            }
+            else
+            {
+                sheet.Cell(row, 6).Value = item.StockCoverDays.Value;
+            }
+            sheet.Cell(row, 7).Value = item.Price;
+            sheet.Cell(row, 8).Value = item.StockValue;
+            sheet.Cell(row, 9).Value = StockStatus(item.StockQuantity);
             row++;
         }
-        sheet.Cell(row + 1, 6).Value = "UKUPNO:";
-        sheet.Cell(row + 1, 7).Value = report.TotalValue;
+        sheet.Cell(row + 1, 7).Value = "UKUPNO:";
+        sheet.Cell(row + 1, 8).Value = report.TotalValue;
         sheet.Cell(row + 2, 1).Value = "Ukupno artikala";
         sheet.Cell(row + 2, 2).Value = report.TotalItems;
         sheet.Cell(row + 3, 1).Value = "Bez zaliha";
         sheet.Cell(row + 3, 2).Value = report.OutOfStockCount;
         sheet.Cell(row + 4, 1).Value = "Niske zalihe (<10)";
         sheet.Cell(row + 4, 2).Value = report.LowStockCount;
+        sheet.Cell(row + 5, 1).Value = "Bez prodaje (30 dana)";
+        sheet.Cell(row + 5, 2).Value = report.NoSalesLast30Count;
+
+        row += 7;
+        sheet.Cell(row, 1).Value = "Najlošije ocijenjeni proizvodi";
+        row++;
+        sheet.Cell(row, 1).Value = "Proizvod";
+        sheet.Cell(row, 2).Value = "Ocjena";
+        sheet.Cell(row, 3).Value = "Broj recenzija";
+        sheet.Cell(row, 4).Value = "Prodano (30 dana)";
+        row++;
+        foreach (var product in report.WorstRated)
+        {
+            sheet.Cell(row, 1).Value = product.Name;
+            sheet.Cell(row, 2).Value = Math.Round(product.AverageRating, 1);
+            sheet.Cell(row, 3).Value = product.ReviewCount;
+            sheet.Cell(row, 4).Value = product.SoldLast30Days;
+            row++;
+        }
 
         return Finalize(workbook, sheet);
     }

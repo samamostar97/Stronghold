@@ -355,17 +355,48 @@ class _ReportsScreenState extends State<ReportsScreen>
     }
     return ListView(
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Ukupno artikala: ${report.totalItems}    '
-              'Bez zaliha: ${report.outOfStockCount}    '
-              'Artikala sa niskim zalihama (<10): ${report.lowStockCount}    '
-              'Ukupna vrijednost zaliha: ${Formatters.money(report.totalValue)}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                icon: Icons.inventory_2,
+                value: '${report.totalItems}',
+                label: 'ukupno artikala',
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.remove_shopping_cart,
+                value: '${report.outOfStockCount}',
+                label: 'bez zaliha',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.warning_amber,
+                value: '${report.lowStockCount}',
+                label: 'niske zalihe (<10)',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.trending_down,
+                value: '${report.noSalesLast30Count}',
+                label: 'bez prodaje (30 dana)',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.savings,
+                value: Formatters.money(report.totalValue),
+                label: 'vrijednost zaliha',
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Card(
@@ -377,6 +408,7 @@ class _ReportsScreenState extends State<ReportsScreen>
                 DataColumn(label: Text('Dobavljač')),
                 DataColumn(label: Text('Zalihe')),
                 DataColumn(label: Text('Prodano (30 dana)')),
+                DataColumn(label: Text('Doseg zaliha')),
                 DataColumn(label: Text('Cijena')),
                 DataColumn(label: Text('Vrijednost')),
                 DataColumn(label: Text('Status')),
@@ -399,10 +431,50 @@ class _ReportsScreenState extends State<ReportsScreen>
                           : null,
                     )),
                     DataCell(Text('${item.soldLast30Days}')),
+                    DataCell(Text(item.stockCoverDays == null
+                        ? '—'
+                        : '${item.stockCoverDays!.toStringAsFixed(0)} d')),
                     DataCell(Text(Formatters.money(item.price))),
                     DataCell(Text(Formatters.money(item.stockValue))),
                     DataCell(_stockStatus(item.stockQuantity)),
                   ]),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Najlošije ocijenjeni proizvodi',
+                    style: Theme.of(context).textTheme.titleMedium),
+                StretchScroll(
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Proizvod')),
+                      DataColumn(label: Text('Ocjena')),
+                      DataColumn(label: Text('Broj recenzija')),
+                      DataColumn(label: Text('Prodano (30 dana)')),
+                    ],
+                    rows: [
+                      for (final product in report.worstRated)
+                        DataRow(cells: [
+                          DataCell(Text(product.name)),
+                          DataCell(Row(children: [
+                            const Icon(Icons.star,
+                                size: 16, color: Colors.amber),
+                            const SizedBox(width: 4),
+                            Text(product.averageRating.toStringAsFixed(1)),
+                          ])),
+                          DataCell(Text('${product.reviewCount}')),
+                          DataCell(Text('${product.soldLast30Days}')),
+                        ]),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
