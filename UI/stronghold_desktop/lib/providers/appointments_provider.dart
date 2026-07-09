@@ -94,6 +94,12 @@ class AppointmentsProvider extends ChangeNotifier {
     await load();
   }
 
+  /// Nedolazak clana - backend dozvoljava tek kad termin prodje.
+  Future<void> markNoShow(int id) async {
+    await _api.put('/api/appointments/$id/no-show');
+    await load();
+  }
+
   Future<void> cancel(int id, String reason) async {
     await _api.put('/api/appointments/$id/cancel', body: {'reason': reason});
     await load();

@@ -29,16 +29,18 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         'Confirmed' => StatusTone.success,
         'Completed' => StatusTone.neutral,
         'Cancelled' => StatusTone.danger,
+        'NoShow' => StatusTone.danger,
         _ => StatusTone.warning,
       };
 
+  /// Otkaz najkasnije 2h prije pocetka - isto pravilo provjerava i backend.
   bool _canCancel(Appointment appointment) {
     if (appointment.status != 'Pending' && appointment.status != 'Confirmed') {
       return false;
     }
-    final slotTime = DateTime(appointment.date.year, appointment.date.month,
+    final slotTime = DateTime.utc(appointment.date.year, appointment.date.month,
         appointment.date.day, appointment.startHour);
-    return slotTime.isAfter(DateTime.now());
+    return slotTime.isAfter(DateTime.now().toUtc().add(const Duration(hours: 2)));
   }
 
   Future<void> _cancel(Appointment appointment) async {
