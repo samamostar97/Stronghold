@@ -59,4 +59,10 @@ class OrdersProvider extends ChangeNotifier {
     await load(page: 1);
     return Order.fromJson(data);
   }
+
+  /// Otkaz vlastite narudzbe dok je u obradi - server vraca novac kroz Stripe.
+  Future<void> cancel(int id, String reason) async {
+    await _api.put('/api/orders/$id/cancel', body: {'reason': reason});
+    await load();
+  }
 }

@@ -24,6 +24,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   static const _statusLabels = {
     'Processing': 'U obradi',
+    'Shipped': 'Poslano',
     'Delivered': 'Dostavljeno',
     'Cancelled': 'Otkazano',
   };
@@ -67,6 +68,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
   StatusTone _statusTone(String status) => switch (status) {
         'Delivered' => StatusTone.success,
         'Cancelled' => StatusTone.danger,
+        'Shipped' => StatusTone.info,
         _ => StatusTone.warning,
       };
 
@@ -151,6 +153,23 @@ class _OrdersScreenState extends State<OrdersScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _ship(Order order) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Slanje narudžbe',
+      message: 'Označiti narudžbu #${order.id} kao poslanu? '
+          'Kupac će dobiti e-mail i notifikaciju.',
+      confirmLabel: 'Poslano',
+    );
+    if (!confirmed || !mounted) return;
+    try {
+      await context.read<OrdersProvider>().ship(order.id);
+      _showSuccess('Narudžba #${order.id} je označena kao poslana.');
+    } on ApiException catch (e) {
+      _showError(e.message);
+    }
   }
 
   Future<void> _deliver(Order order) async {
@@ -341,19 +360,27 @@ class _OrdersScreenState extends State<OrdersScreen> {
                                       icon: const Icon(Icons.visibility_outlined),
                                       onPressed: () => _showDetails(order),
                                     ),
-                                    if (order.status == 'Processing') ...[
+                                    if (order.status == 'Processing')
+                                      IconButton(
+                                        tooltip: 'Označi kao poslano',
+                                        icon: const Icon(
+                                            Icons.local_shipping_outlined),
+                                        onPressed: () => _ship(order),
+                                      ),
+                                    if (order.status == 'Shipped')
                                       IconButton(
                                         tooltip: 'Označi kao dostavljeno',
                                         icon: const Icon(
-                                            Icons.local_shipping_outlined),
+                                            Icons.check_circle_outline),
                                         onPressed: () => _deliver(order),
                                       ),
+                                    if (order.status == 'Processing' ||
+                                        order.status == 'Shipped')
                                       IconButton(
                                         tooltip: 'Otkaži uz povrat novca',
                                         icon: const Icon(Icons.cancel_outlined),
                                         onPressed: () => _cancel(order),
                                       ),
-                                    ],
                                   ])),
                                 ]),
                             ],

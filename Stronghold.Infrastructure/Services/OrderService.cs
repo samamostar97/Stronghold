@@ -248,10 +248,36 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         return new PagedResult<OrderResponse> { Items = items, TotalCount = totalCount };
     }
 
+    public async Task<OrderResponse> ShipAsync(int id)
+    {
+        var order = await GetEntityAsync(id);
+        EnsureStatus(order, OrderStatus.Processing, "poslati");
+
+        order.Status = OrderStatus.Shipped;
+        order.StatusChangedAt = DateTime.UtcNow;
+        order.StatusChangedByUserId = _currentUser.UserId;
+        Db.Notifications.Add(new Notification
+        {
+            UserId = order.UserId,
+            Title = "Narudžba poslana",
+            Message = $"Vaša narudžba #{order.Id} je poslana i uskoro stiže na vašu adresu.",
+            Type = NotificationType.OrderStatusChanged,
+            CreatedAt = DateTime.UtcNow
+        });
+        await Db.SaveChangesAsync();
+
+        await PublishOrderStatusEmailAsync(order,
+            "Stronghold - narudžba poslana",
+            $"vaša narudžba #{order.Id} je poslana i uskoro stiže na vašu adresu.");
+
+        _logger.LogInformation("Narudzba {OrderId} oznacena kao poslana.", id);
+        return await GetByIdAsync(id);
+    }
+
     public async Task<OrderResponse> DeliverAsync(int id)
     {
         var order = await GetEntityAsync(id);
-        EnsureStatus(order, OrderStatus.Processing, "isporučiti");
+        EnsureStatus(order, OrderStatus.Shipped, "isporučiti");
 
         order.Status = OrderStatus.Delivered;
         order.StatusChangedAt = DateTime.UtcNow;
@@ -295,14 +321,31 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             .Include(o => o.Items)
             .FirstOrDefaultAsync(o => o.Id == id)
             ?? throw new NotFoundException("Narudžba ne postoji.");
-        EnsureStatus(order, OrderStatus.Processing, "otkazati");
+
+        if (order.Status != OrderStatus.Processing && order.Status != OrderStatus.Shipped)
+        {
+            throw new BusinessException($"Narudžba u statusu '{order.Status}' se ne može otkazati.");
+        }
+
+        // kupac otkazuje samo vlastitu narudzbu i samo dok nije poslana; admin i poslanu
+        if (!_currentUser.IsAdmin)
+        {
+            if (order.UserId != _currentUser.UserId)
+            {
+                throw new BusinessException("Možete otkazati samo vlastite narudžbe.");
+            }
+            if (order.Status == OrderStatus.Shipped)
+            {
+                throw new BusinessException("Narudžba je već poslana - otkazivanje više nije moguće.");
+            }
+        }
 
         // refund na osnovu STVARNO naplacenog iznosa, ne kalkulisane cijene
         var intentService = new PaymentIntentService(_stripe);
-        var intent = await intentService.GetAsync(order.StripePaymentIntentId);
         var refundService = new RefundService(_stripe);
         try
         {
+            var intent = await intentService.GetAsync(order.StripePaymentIntentId);
             await refundService.CreateAsync(new RefundCreateOptions
             {
                 PaymentIntent = order.StripePaymentIntentId,

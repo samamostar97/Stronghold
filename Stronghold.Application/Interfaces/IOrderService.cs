@@ -20,8 +20,15 @@ public interface IOrderService : IService<OrderResponse, OrderSearch>
     /// <summary>Historija narudzbi trenutno prijavljenog clana.</summary>
     Task<PagedResult<OrderResponse>> GetMineAsync(BaseSearchObject search);
 
+    /// <summary>Processing -> Shipped: narudzba je predata kuriru.</summary>
+    Task<OrderResponse> ShipAsync(int id);
+
+    /// <summary>Shipped -> Delivered.</summary>
     Task<OrderResponse> DeliverAsync(int id);
 
-    /// <summary>Otkazivanje pokrece stvarni Stripe refund na osnovu naplacenog iznosa.</summary>
+    /// <summary>
+    /// Otkazivanje pokrece stvarni Stripe refund na osnovu naplacenog iznosa.
+    /// Kupac otkazuje vlastitu narudzbu dok nije poslana, admin i poslanu.
+    /// </summary>
     Task<OrderResponse> CancelAsync(int id, OrderCancelRequest request);
 }

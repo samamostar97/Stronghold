@@ -295,6 +295,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   String _statusLabel(String status) => switch (status) {
         'Processing' => 'U obradi',
+        'Shipped' => 'Poslano',
         'Delivered' => 'Dostavljeno',
         'Cancelled' => 'Otkazano',
         _ => status,
@@ -511,6 +512,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 tone: switch (order.status) {
                                   'Delivered' => StatusTone.success,
                                   'Cancelled' => StatusTone.danger,
+                                  'Shipped' => StatusTone.info,
                                   _ => StatusTone.warning,
                                 },
                               )),

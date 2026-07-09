@@ -17,6 +17,7 @@ class Formatters {
 
   static String orderStatus(String status) => switch (status) {
         'Processing' => 'U obradi',
+        'Shipped' => 'Poslano',
         'Delivered' => 'Dostavljeno',
         'Cancelled' => 'Otkazano',
         _ => status,
@@ -27,6 +28,7 @@ class Formatters {
         'Confirmed' => 'Potvrđen',
         'Completed' => 'Održan',
         'Cancelled' => 'Otkazan',
+        'NoShow' => 'Nedolazak',
         _ => status,
       };
 }
