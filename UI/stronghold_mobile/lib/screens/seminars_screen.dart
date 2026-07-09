@@ -44,6 +44,45 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
     }
   }
 
+  Future<void> _unregister(Seminar seminar) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Odjava sa seminara'),
+        content: Text('Odjaviti se sa "${seminar.topic}"? '
+            'Vaše mjesto postaje dostupno drugima.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Odustani'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('Odjavi se'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await context.read<SeminarsProvider>().unregister(seminar.id);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Odjavljeni ste sa "${seminar.topic}".')),
+        );
+      }
+    } on ApiException catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.red.shade700,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SeminarsProvider>();
@@ -99,25 +138,51 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                                   ),
                                 ),
                               ]),
+                              if (seminar.isCancelled &&
+                                  seminar.cancellationReason != null) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Razlog: ${seminar.cancellationReason}',
+                                  style: const TextStyle(
+                                      color: AppTheme.textSecondary),
+                                ),
+                              ],
                               const SizedBox(height: 12),
                               Align(
                                 alignment: Alignment.centerRight,
-                                child: seminar.isCurrentUserRegistered
+                                child: seminar.isCancelled
                                     ? const StatusChip(
-                                        label: 'Prijavljeni ste',
-                                        tone: StatusTone.success,
+                                        label: 'Otkazan',
+                                        tone: StatusTone.danger,
                                       )
-                                    : Tooltip(
-                                        message: full
-                                            ? 'Seminar je popunjen'
-                                            : 'Prijava jednim klikom',
-                                        child: FilledButton(
-                                          onPressed: full
-                                              ? null
-                                              : () => _register(seminar),
-                                          child: const Text('Prijavi se'),
-                                        ),
-                                      ),
+                                    : seminar.isCurrentUserRegistered
+                                        ? Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const StatusChip(
+                                                label: 'Prijavljeni ste',
+                                                tone: StatusTone.success,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              // odjava do pocetka oslobadja mjesto
+                                              TextButton(
+                                                onPressed: () =>
+                                                    _unregister(seminar),
+                                                child: const Text('Odjavi se'),
+                                              ),
+                                            ],
+                                          )
+                                        : Tooltip(
+                                            message: full
+                                                ? 'Seminar je popunjen'
+                                                : 'Prijava jednim klikom',
+                                            child: FilledButton(
+                                              onPressed: full
+                                                  ? null
+                                                  : () => _register(seminar),
+                                              child: const Text('Prijavi se'),
+                                            ),
+                                          ),
                               ),
                             ],
                           ),

@@ -212,6 +212,7 @@ public class StrongholdDbContext : DbContext
         {
             entity.Property(s => s.Topic).HasMaxLength(150).IsRequired();
             entity.Property(s => s.Speaker).HasMaxLength(100).IsRequired();
+            entity.Property(s => s.CancellationReason).HasMaxLength(300);
         });
 
         modelBuilder.Entity<SeminarRegistration>(entity =>

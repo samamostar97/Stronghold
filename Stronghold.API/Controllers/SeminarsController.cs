@@ -40,6 +40,22 @@ public class SeminarsController : BaseCrudController<SeminarResponse, SeminarSea
         return Ok(await _seminarService.RegisterAsync(id));
     }
 
+    /// <summary>Odjava oslobadja mjesto - moguca do pocetka seminara.</summary>
+    [HttpPost("{id}/unregister")]
+    [Authorize(Roles = Roles.GymMember)]
+    public async Task<ActionResult<SeminarResponse>> Unregister(int id)
+    {
+        return Ok(await _seminarService.UnregisterAsync(id));
+    }
+
+    /// <summary>Otkaz seminara - svi prijavljeni dobijaju notifikaciju i e-mail.</summary>
+    [HttpPut("{id}/cancel")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<ActionResult<SeminarResponse>> Cancel(int id, SeminarCancelRequest request)
+    {
+        return Ok(await _seminarService.CancelAsync(id, request));
+    }
+
     [HttpGet("{id}/registrations")]
     [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<List<SeminarRegistrationResponse>>> GetRegistrations(int id)

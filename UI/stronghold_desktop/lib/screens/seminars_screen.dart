@@ -7,6 +7,7 @@ import '../utils/api_client.dart';
 import '../utils/formatters.dart';
 import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
+import '../widgets/status_chip.dart';
 import '../widgets/stretch_scroll.dart';
 import '../widgets/empty_state.dart';
 
@@ -255,6 +256,102 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
     );
   }
 
+  Future<void> _cancelSeminar(Seminar seminar) async {
+    final formKey = GlobalKey<FormState>();
+    final reasonController = TextEditingController();
+    String? serverError;
+    bool processing = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              const Expanded(child: Text('Otkazivanje seminara')),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Otkazati seminar "${seminar.topic}"? Svih '
+                  '${seminar.registeredCount} prijavljenih dobija notifikaciju '
+                  'i e-mail sa razlogom. Ova akcija je nepovratna.',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: reasonController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Razlog otkazivanja',
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Unesite razlog otkazivanja.'
+                      : null,
+                ),
+                if (serverError != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    serverError!,
+                    style:
+                        TextStyle(color: Theme.of(dialogContext).colorScheme.error),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Odustani'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              onPressed: processing
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() => processing = true);
+                      try {
+                        await context
+                            .read<SeminarsProvider>()
+                            .cancel(seminar.id, reasonController.text.trim());
+                        if (dialogContext.mounted) {
+                          Navigator.of(dialogContext).pop();
+                        }
+                        _showSuccess(
+                            'Seminar je otkazan, prijavljeni su obaviješteni.');
+                      } on ApiException catch (e) {
+                        setDialogState(() {
+                          serverError = e.message;
+                          processing = false;
+                        });
+                      }
+                    },
+              child: processing
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Otkaži seminar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Future<void> _delete(Seminar seminar) async {
     final confirmed = await showConfirmDialog(
       context,
@@ -315,6 +412,7 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                               DataColumn(label: Text('Predavač')),
                               DataColumn(label: Text('Termin')),
                               DataColumn(label: Text('Prijavljeni')),
+                              DataColumn(label: Text('Status')),
                               DataColumn(label: Text('Akcije')),
                             ],
                             rows: [
@@ -331,17 +429,46 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                                       Text(Formatters.dateTime(seminar.scheduledAt))),
                                   DataCell(Text(
                                       '${seminar.registeredCount}/${seminar.maxCapacity}')),
+                                  DataCell(Tooltip(
+                                    message: seminar.isCancelled
+                                        ? (seminar.cancellationReason ?? '')
+                                        : '',
+                                    child: StatusChip(
+                                      label: seminar.isCancelled
+                                          ? 'Otkazan'
+                                          : seminar.scheduledAt
+                                                  .isBefore(DateTime.now().toUtc())
+                                              ? 'Održan'
+                                              : 'Nadolazeći',
+                                      tone: seminar.isCancelled
+                                          ? StatusTone.danger
+                                          : seminar.scheduledAt
+                                                  .isBefore(DateTime.now().toUtc())
+                                              ? StatusTone.info
+                                              : StatusTone.success,
+                                    ),
+                                  )),
                                   DataCell(Row(children: [
                                     IconButton(
                                       tooltip: 'Učesnici',
                                       icon: const Icon(Icons.group_outlined),
                                       onPressed: () => _showRegistrations(seminar),
                                     ),
-                                    IconButton(
-                                      tooltip: 'Izmijeni',
-                                      icon: const Icon(Icons.edit_outlined),
-                                      onPressed: () => _openForm(existing: seminar),
-                                    ),
+                                    // otkazani seminar se ne mijenja i ne otkazuje ponovo
+                                    if (!seminar.isCancelled) ...[
+                                      IconButton(
+                                        tooltip: 'Izmijeni',
+                                        icon: const Icon(Icons.edit_outlined),
+                                        onPressed: () => _openForm(existing: seminar),
+                                      ),
+                                      if (seminar.scheduledAt
+                                          .isAfter(DateTime.now().toUtc()))
+                                        IconButton(
+                                          tooltip: 'Otkaži i obavijesti prijavljene',
+                                          icon: const Icon(Icons.event_busy_outlined),
+                                          onPressed: () => _cancelSeminar(seminar),
+                                        ),
+                                    ],
                                     IconButton(
                                       tooltip: 'Obriši',
                                       icon: const Icon(Icons.delete_outline),

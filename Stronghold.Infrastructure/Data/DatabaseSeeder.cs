@@ -341,6 +341,7 @@ public static class DatabaseSeeder
             NewOrder(mobile, 20, OrderStatus.Delivered, new[] { (goldStandard, 1), (creatineMono, 2) }, desktop),
             NewOrder(mobile, 8, OrderStatus.Delivered, new[] { (iso100, 1) }, desktop),
             NewOrder(mobile, 1, OrderStatus.Processing, new[] { (bcaaZero, 1), (omega3, 1) }),
+            NewOrder(mobile, 3, OrderStatus.Shipped, new[] { (platinumCreatine, 1) }, desktop),
             NewOrder(lejla, 15, OrderStatus.Delivered, new[] { (isoWheyZero, 1) }, desktop),
             NewOrder(tarik, 12, OrderStatus.Delivered, new[] { (jumbo, 1), (amino5600, 1) }, desktop),
             NewOrder(amina, 2, OrderStatus.Processing, new[] { (megaDaily, 1) }),
@@ -433,6 +434,7 @@ public static class DatabaseSeeder
             NewAppointment(amina, selma, 6, 13, AppointmentStatus.Confirmed, 2),
             NewAppointment(mobile, emir, -7, 10, AppointmentStatus.Completed, 10),
             NewAppointment(sara, damir, -3, 12, AppointmentStatus.Completed, 6),
+            NewAppointment(dino, jasmin, -5, 16, AppointmentStatus.NoShow, 8),
             NewAppointment(haris, selma, 2, 14, AppointmentStatus.Cancelled, 3,
                 CancellationActor.User, "Spriječenost zbog posla")
         );
@@ -466,7 +468,17 @@ public static class DatabaseSeeder
             ScheduledAt = now.Date.AddDays(-12).AddHours(18),
             MaxCapacity = 30
         };
-        db.Seminars.AddRange(seminarIshrana, seminarSnaga, seminarSuplementi, seminarPovrede);
+        var seminarKardio = new Seminar
+        {
+            Topic = "Kardio bez gubitka mišićne mase",
+            Speaker = "Selma Krupalija",
+            ScheduledAt = now.Date.AddDays(6).AddHours(17),
+            MaxCapacity = 20,
+            IsCancelled = true,
+            CancelledAt = now.AddDays(-1),
+            CancellationReason = "Predavač spriječen, novi termin će biti objavljen"
+        };
+        db.Seminars.AddRange(seminarIshrana, seminarSnaga, seminarSuplementi, seminarPovrede, seminarKardio);
 
         SeminarRegistration NewRegistration(Seminar seminar, User user, int daysAgo)
         {

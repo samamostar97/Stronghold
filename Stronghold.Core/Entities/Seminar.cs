@@ -7,5 +7,10 @@ public class Seminar : BaseEntity
     public DateTime ScheduledAt { get; set; }
     public int MaxCapacity { get; set; }
 
+    /// <summary>Otkazani seminar ostaje u evidenciji - prijavljeni su obavijesteni.</summary>
+    public bool IsCancelled { get; set; }
+    public DateTime? CancelledAt { get; set; }
+    public string? CancellationReason { get; set; }
+
     public ICollection<SeminarRegistration> Registrations { get; set; } = new List<SeminarRegistration>();
 }
