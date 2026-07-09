@@ -114,28 +114,62 @@ class ExpiringMembership {
 }
 
 class RevenueReport {
+  final double revenueThisMonth;
+  final double revenueLast6Months;
+  final double avgOrderValue6M;
+  final double orderCancellationRate6M;
   final List<MonthlyRevenue> monthlyRevenue;
   final List<TopProduct> topProducts;
-  final double totalMembershipRevenue;
-  final double totalOrderRevenue;
+  final List<CategoryRevenue> revenueByCategory;
 
   RevenueReport({
+    required this.revenueThisMonth,
+    required this.revenueLast6Months,
+    required this.avgOrderValue6M,
+    required this.orderCancellationRate6M,
     required this.monthlyRevenue,
     required this.topProducts,
-    required this.totalMembershipRevenue,
-    required this.totalOrderRevenue,
+    required this.revenueByCategory,
   });
 
   factory RevenueReport.fromJson(Map<String, dynamic> json) => RevenueReport(
+        revenueThisMonth: (json['revenueThisMonth'] as num).toDouble(),
+        revenueLast6Months: (json['revenueLast6Months'] as num).toDouble(),
+        avgOrderValue6M: (json['avgOrderValue6M'] as num).toDouble(),
+        orderCancellationRate6M:
+            (json['orderCancellationRate6M'] as num).toDouble(),
         monthlyRevenue: (json['monthlyRevenue'] as List)
             .map((item) => MonthlyRevenue.fromJson(item as Map<String, dynamic>))
             .toList(),
         topProducts: (json['topProducts'] as List)
             .map((item) => TopProduct.fromJson(item as Map<String, dynamic>))
             .toList(),
-        totalMembershipRevenue:
-            (json['totalMembershipRevenue'] as num).toDouble(),
-        totalOrderRevenue: (json['totalOrderRevenue'] as num).toDouble(),
+        revenueByCategory: (json['revenueByCategory'] as List)
+            .map((item) =>
+                CategoryRevenue.fromJson(item as Map<String, dynamic>))
+            .toList(),
+      );
+}
+
+class CategoryRevenue {
+  final String categoryName;
+  final int quantitySold;
+  final double revenue;
+  final double revenueShare;
+
+  CategoryRevenue({
+    required this.categoryName,
+    required this.quantitySold,
+    required this.revenue,
+    required this.revenueShare,
+  });
+
+  factory CategoryRevenue.fromJson(Map<String, dynamic> json) =>
+      CategoryRevenue(
+        categoryName: json['categoryName'] as String,
+        quantitySold: json['quantitySold'] as int,
+        revenue: (json['revenue'] as num).toDouble(),
+        revenueShare: (json['revenueShare'] as num).toDouble(),
       );
 }
 

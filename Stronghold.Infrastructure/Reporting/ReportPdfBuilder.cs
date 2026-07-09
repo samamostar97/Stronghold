@@ -18,9 +18,12 @@ public static class ReportPdfBuilder
         return Build("Izvještaj o prihodima", column =>
         {
             column.Item().Text(
-                $"Ukupno članarine: {report.TotalMembershipRevenue:F2} KM   " +
-                $"Ukupno prodavnica: {report.TotalOrderRevenue:F2} KM   " +
-                $"UKUPNO: {report.TotalMembershipRevenue + report.TotalOrderRevenue:F2} KM")
+                $"Prihod ovaj mjesec: {report.RevenueThisMonth:F2} KM   " +
+                $"Ukupno zadnjih 6 mjeseci: {report.RevenueLast6Months:F2} KM")
+                .SemiBold();
+            column.Item().PaddingTop(4).Text(
+                $"Prosječna narudžba (6 mj): {report.AvgOrderValue6M:F2} KM   " +
+                $"Stopa otkaza narudžbi (6 mj): {report.OrderCancellationRate6M:F1} %")
                 .SemiBold();
             column.Item().PaddingTop(12).Text("Prihodi po mjesecima").FontSize(14).SemiBold();
             column.Item().Table(table =>
@@ -78,6 +81,32 @@ public static class ReportPdfBuilder
                     table.Cell().Element(BodyCell).Text(
                         product.AverageRating == null ? "-" : $"{product.AverageRating:F1}");
                     table.Cell().Element(BodyCell).Text($"{product.Revenue:F2}");
+                }
+            });
+            column.Item().PaddingTop(12).Text("Prihod po kategorijama (zadnjih 6 mjeseci)")
+                .FontSize(14).SemiBold();
+            column.Item().Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn(3);
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                });
+                table.Header(header =>
+                {
+                    header.Cell().Element(HeaderCell).Text("Kategorija");
+                    header.Cell().Element(HeaderCell).Text("Prodano (kom)");
+                    header.Cell().Element(HeaderCell).Text("Prihod (KM)");
+                    header.Cell().Element(HeaderCell).Text("Udio (%)");
+                });
+                foreach (var category in report.RevenueByCategory)
+                {
+                    table.Cell().Element(BodyCell).Text(category.CategoryName);
+                    table.Cell().Element(BodyCell).Text($"{category.QuantitySold}");
+                    table.Cell().Element(BodyCell).Text($"{category.Revenue:F2}");
+                    table.Cell().Element(BodyCell).Text($"{category.RevenueShare:F1}");
                 }
             });
         });

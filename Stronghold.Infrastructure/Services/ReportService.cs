@@ -159,6 +159,16 @@ public class ReportService : IReportService
             });
         }
 
+        // AOV i stopa otkaza (6 mj) jednim GroupBy upitom po ishodu narudzbe
+        var orderStats = await _db.Orders
+            .Where(o => o.CreatedAt >= from)
+            .GroupBy(o => o.Status == OrderStatus.Cancelled)
+            .Select(g => new { Cancelled = g.Key, Count = g.Count(), Total = g.Sum(o => o.TotalAmount) })
+            .ToListAsync();
+        var completed = orderStats.FirstOrDefault(s => !s.Cancelled);
+        var cancelledCount = orderStats.FirstOrDefault(s => s.Cancelled)?.Count ?? 0;
+        var totalOrderCount = (completed?.Count ?? 0) + cancelledCount;
+
         var totalOrderRevenue = await _db.Orders
             .Where(o => o.Status != OrderStatus.Cancelled)
             .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
@@ -203,12 +213,41 @@ public class ReportService : IReportService
             AverageRating = ratings.TryGetValue(p.SupplementId, out var avg) ? avg : null
         }).ToList();
 
+        // prihod prodavnice po kategorijama, zadnjih 6 mjeseci
+        var categoryRaw = await _db.OrderItems
+            .Where(i => i.Order.Status != OrderStatus.Cancelled && i.Order.CreatedAt >= from)
+            .GroupBy(i => i.Supplement.Category.Name)
+            .Select(g => new
+            {
+                Name = g.Key,
+                QuantitySold = g.Sum(i => i.Quantity),
+                Revenue = g.Sum(i => i.Quantity * i.UnitPrice)
+            })
+            .OrderByDescending(c => c.Revenue)
+            .ToListAsync();
+        var categoryTotal = categoryRaw.Sum(c => c.Revenue);
+        var revenueByCategory = categoryRaw.Select(c => new CategoryRevenue
+        {
+            CategoryName = c.Name,
+            QuantitySold = c.QuantitySold,
+            Revenue = c.Revenue,
+            RevenueShare = categoryTotal == 0 ? 0 : (double)(c.Revenue / categoryTotal * 100)
+        }).ToList();
+
+        var thisMonth = monthly[^1];
         return new RevenueReportResponse
         {
+            RevenueThisMonth = thisMonth.MembershipRevenue + thisMonth.OrderRevenue,
+            RevenueLast6Months = monthly.Sum(m => m.MembershipRevenue + m.OrderRevenue),
+            AvgOrderValue6M = completed == null || completed.Count == 0
+                ? 0
+                : completed.Total / completed.Count,
+            OrderCancellationRate6M = totalOrderCount == 0
+                ? 0
+                : 100.0 * cancelledCount / totalOrderCount,
             MonthlyRevenue = monthly,
             TopProducts = topProducts,
-            TotalMembershipRevenue = await _db.Payments.SumAsync(p => (decimal?)p.Amount) ?? 0,
-            TotalOrderRevenue = totalOrderRevenue
+            RevenueByCategory = revenueByCategory
         };
     }
 
