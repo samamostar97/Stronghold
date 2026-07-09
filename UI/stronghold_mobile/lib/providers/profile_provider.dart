@@ -15,6 +15,8 @@ class ProfileProvider extends ChangeNotifier {
   Progress? _progress;
   int? _gymOccupancy;
   bool _loading = false;
+  // raste nakon izmjene slike da NetworkImage kes ne prikaze staru verziju
+  int _imageVersion = 0;
 
   UserProfile? get profile => _profile;
   Progress? get progress => _progress;
@@ -43,6 +45,11 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  Uri imageUri() =>
+      _api.buildUri('/api/profile/image', {'v': '$_imageVersion'});
+
+  Map<String, String> imageHeaders() => _api.authHeaders();
+
   Future<List<City>> loadCities() async {
     final data = await _api.get('/api/cities', query: {
       'page': '1',
@@ -70,6 +77,7 @@ class ProfileProvider extends ChangeNotifier {
       'imageBase64': imageBase64,
     }) as Map<String, dynamic>;
     _profile = UserProfile.fromJson(data);
+    if (imageBase64 != null) _imageVersion++;
     notifyListeners();
   }
 

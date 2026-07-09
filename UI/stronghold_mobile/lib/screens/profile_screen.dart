@@ -38,6 +38,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Center(
                   child: CircleAvatar(
                     radius: 44,
+                    foregroundImage: profile.hasImage
+                        ? NetworkImage(
+                            provider.imageUri().toString(),
+                            headers: provider.imageHeaders(),
+                          )
+                        : null,
                     child: Text(
                       profile.firstName[0],
                       style: const TextStyle(fontSize: 32),
