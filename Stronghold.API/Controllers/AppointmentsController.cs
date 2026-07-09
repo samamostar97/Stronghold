@@ -78,14 +78,6 @@ public class AppointmentsController : ControllerBase
         return Ok(await _appointmentService.CompleteAsync(id));
     }
 
-    /// <summary>Evidencija nedolaska - dostupno tek kad termin prodje.</summary>
-    [HttpPut("{id}/no-show")]
-    [Authorize(Roles = Roles.Admin)]
-    public async Task<ActionResult<AppointmentResponse>> MarkNoShow(int id)
-    {
-        return Ok(await _appointmentService.MarkNoShowAsync(id));
-    }
-
     /// <summary>Otkazivanje je omoguceno i clanu (vlastiti termin) i adminu.</summary>
     [HttpPut("{id}/cancel")]
     public async Task<ActionResult<AppointmentResponse>> Cancel(int id, AppointmentCancelRequest request)

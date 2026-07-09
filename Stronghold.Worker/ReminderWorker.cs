@@ -180,8 +180,8 @@ public class ReminderWorker : BackgroundService
     }
 
     /// <summary>
-    /// Termini striktno prije danasnjeg dana: potvrdjeni se automatski zavrsavaju, a
-    /// nepotvrdjeni otkazuju. Danasnji se ne diraju da admin stigne evidentirati nedolazak.
+    /// Termini striktno prije danasnjeg dana: potvrdjeni se automatski zavrsavaju,
+    /// a nepotvrdjeni otkazuju. Danasnji se ne diraju dok dan ne istekne.
     /// </summary>
     private static async Task<int> CloseExpiredAppointmentsAsync(
         StrongholdDbContext db, DateTime now, CancellationToken stoppingToken)

@@ -434,7 +434,8 @@ public static class DatabaseSeeder
             NewAppointment(amina, selma, 6, 13, AppointmentStatus.Confirmed, 2),
             NewAppointment(mobile, emir, -7, 10, AppointmentStatus.Completed, 10),
             NewAppointment(sara, damir, -3, 12, AppointmentStatus.Completed, 6),
-            NewAppointment(dino, jasmin, -5, 16, AppointmentStatus.NoShow, 8),
+            NewAppointment(dino, jasmin, -5, 16, AppointmentStatus.Cancelled, 8,
+                CancellationActor.Admin, "Trener spriječen zbog bolesti"),
             NewAppointment(haris, selma, 2, 14, AppointmentStatus.Cancelled, 3,
                 CancellationActor.User, "Spriječenost zbog posla")
         );

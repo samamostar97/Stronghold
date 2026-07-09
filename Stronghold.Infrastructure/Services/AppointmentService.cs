@@ -18,10 +18,9 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
     private static readonly Dictionary<AppointmentStatus, AppointmentStatus[]> AllowedTransitions = new()
     {
         [AppointmentStatus.Pending] = new[] { AppointmentStatus.Confirmed, AppointmentStatus.Cancelled },
-        [AppointmentStatus.Confirmed] = new[] { AppointmentStatus.Completed, AppointmentStatus.Cancelled, AppointmentStatus.NoShow },
+        [AppointmentStatus.Confirmed] = new[] { AppointmentStatus.Completed, AppointmentStatus.Cancelled },
         [AppointmentStatus.Completed] = Array.Empty<AppointmentStatus>(),
-        [AppointmentStatus.Cancelled] = Array.Empty<AppointmentStatus>(),
-        [AppointmentStatus.NoShow] = Array.Empty<AppointmentStatus>()
+        [AppointmentStatus.Cancelled] = Array.Empty<AppointmentStatus>()
     };
 
     /// <summary>Clan otkazuje najkasnije 2h prije pocetka - admin nema ogranicenje.</summary>
@@ -123,22 +122,6 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
     {
         var appointment = await GetEntityAsync(id);
         ChangeStatus(appointment, AppointmentStatus.Completed);
-        await Db.SaveChangesAsync();
-        return await GetByIdAsync(id);
-    }
-
-    /// <summary>Nedolazak se evidentira tek nakon sto termin prodje - do tada je otkaz jedina opcija.</summary>
-    public async Task<AppointmentResponse> MarkNoShowAsync(int id)
-    {
-        var appointment = await GetEntityAsync(id);
-        if (GetStartUtc(appointment) > DateTime.UtcNow)
-        {
-            throw new BusinessException("Nedolazak se može evidentirati tek nakon termina.");
-        }
-
-        ChangeStatus(appointment, AppointmentStatus.NoShow);
-        AddStatusNotification(appointment, "Propušten termin",
-            $"Termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 je evidentiran kao nedolazak.");
         await Db.SaveChangesAsync();
         return await GetByIdAsync(id);
     }
