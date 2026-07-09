@@ -7,8 +7,9 @@ using Stronghold.Infrastructure.Data;
 namespace Stronghold.Worker;
 
 /// <summary>
-/// Periodicni job: jednom dnevno skenira clanarine koje isticu i nadolazece seminare,
-/// pa salje e-mail i kreira in-app notifikaciju. Ovo je proizvodjac podsjetnika -
+/// Periodicni job: jednom dnevno pospremi zaostala stanja (prosli termini, zaboravljeni
+/// check-outi) i posalje podsjetnike (clanarine pri isteku, sutrasnji termini, nadolazeci
+/// seminari) kao e-mail i in-app notifikaciju. Ovo je proizvodjac podsjetnika -
 /// queue sam od sebe ne generise dogadjaje.
 /// </summary>
 public class ReminderWorker : BackgroundService
@@ -57,6 +58,9 @@ public class ReminderWorker : BackgroundService
         var now = DateTime.UtcNow;
         var windowEnd = now.AddDays(ReminderWindowDays);
         var sentCount = 0;
+
+        var closedAppointments = await CloseExpiredAppointmentsAsync(db, now, stoppingToken);
+        var closedVisits = await CloseStaleVisitsAsync(db, now, stoppingToken);
 
         // clanarine koje isticu u naredna 3 dana
         var expiring = await db.Memberships
@@ -132,10 +136,104 @@ public class ReminderWorker : BackgroundService
             }
         }
 
+        // sutrasnji termini - podsjetnik clanu
+        var tomorrow = DateOnly.FromDateTime(now).AddDays(1);
+        var tomorrowsAppointments = await db.Appointments
+            .Include(a => a.User)
+            .Include(a => a.StaffMember)
+            .Where(a => a.Date == tomorrow &&
+                        (a.Status == AppointmentStatus.Pending || a.Status == AppointmentStatus.Confirmed))
+            .ToListAsync(stoppingToken);
+
+        foreach (var appointment in tomorrowsAppointments)
+        {
+            var alreadyNotified = await db.Notifications.AnyAsync(n =>
+                n.UserId == appointment.UserId &&
+                n.Type == NotificationType.UpcomingAppointment &&
+                n.CreatedAt > now.AddHours(-24), stoppingToken);
+            if (alreadyNotified)
+            {
+                continue;
+            }
+
+            var staffName = $"{appointment.StaffMember.FirstName} {appointment.StaffMember.LastName}";
+            var message = $"Sutra u {appointment.StartHour}:00 imate termin kod {staffName}.";
+            db.Notifications.Add(new Notification
+            {
+                UserId = appointment.UserId,
+                Title = "Podsjetnik na termin",
+                Message = message,
+                Type = NotificationType.UpcomingAppointment,
+                CreatedAt = now
+            });
+            await SendSafeAsync(appointment.User.Email,
+                "Stronghold - podsjetnik na termin",
+                $"Poštovani {appointment.User.FirstName},\n\n{message}\n\nVaš Stronghold", stoppingToken);
+            sentCount++;
+        }
+
         await db.SaveChangesAsync(stoppingToken);
         _logger.LogInformation(
-            "Dnevni sken zavrsen: {Memberships} clanarina pri isteku, {Seminars} nadolazecih seminara, {Sent} podsjetnika.",
-            expiring.Count, upcomingSeminars.Count, sentCount);
+            "Dnevni sken zavrsen: {Closed} zatvorenih termina, {Visits} zatvorenih posjeta, " +
+            "{Memberships} clanarina pri isteku, {Seminars} nadolazecih seminara, {Sent} podsjetnika.",
+            closedAppointments, closedVisits, expiring.Count, upcomingSeminars.Count, sentCount);
+    }
+
+    /// <summary>
+    /// Termini striktno prije danasnjeg dana: potvrdjeni se automatski zavrsavaju, a
+    /// nepotvrdjeni otkazuju. Danasnji se ne diraju da admin stigne evidentirati nedolazak.
+    /// </summary>
+    private static async Task<int> CloseExpiredAppointmentsAsync(
+        StrongholdDbContext db, DateTime now, CancellationToken stoppingToken)
+    {
+        var today = DateOnly.FromDateTime(now);
+        var stale = await db.Appointments
+            .Where(a => a.Date < today &&
+                        (a.Status == AppointmentStatus.Pending || a.Status == AppointmentStatus.Confirmed))
+            .ToListAsync(stoppingToken);
+
+        foreach (var appointment in stale)
+        {
+            if (appointment.Status == AppointmentStatus.Confirmed)
+            {
+                appointment.Status = AppointmentStatus.Completed;
+            }
+            else
+            {
+                appointment.Status = AppointmentStatus.Cancelled;
+                appointment.CancelledBy = CancellationActor.System;
+                appointment.CancellationReason = "Termin je prošao bez potvrde.";
+                db.Notifications.Add(new Notification
+                {
+                    UserId = appointment.UserId,
+                    Title = "Termin istekao",
+                    Message = $"Termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 " +
+                              "nije potvrđen na vrijeme pa je automatski otkazan.",
+                    Type = NotificationType.AppointmentStatusChanged,
+                    CreatedAt = now
+                });
+            }
+            appointment.StatusChangedAt = now;
+        }
+        return stale.Count;
+    }
+
+    /// <summary>
+    /// Zaboravljeni check-out: posjete otvorene prethodnih dana zatvaraju se
+    /// na kraj dana u kojem je clan usao, da popunjenost i XP ostanu tacni.
+    /// </summary>
+    private static async Task<int> CloseStaleVisitsAsync(
+        StrongholdDbContext db, DateTime now, CancellationToken stoppingToken)
+    {
+        var stale = await db.GymVisits
+            .Where(v => v.CheckOutAt == null && v.CheckInAt < now.Date)
+            .ToListAsync(stoppingToken);
+
+        foreach (var visit in stale)
+        {
+            visit.CheckOutAt = visit.CheckInAt.Date.AddDays(1);
+        }
+        return stale.Count;
     }
 
     private async Task SendSafeAsync(string to, string subject, string body, CancellationToken stoppingToken)
