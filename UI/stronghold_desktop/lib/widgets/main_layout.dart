@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
 import '../providers/navigation_provider.dart';
 import '../screens/appointments_screen.dart';
-import '../screens/categories_screen.dart';
 import '../screens/check_in_screen.dart';
 import '../screens/cities_screen.dart';
 import '../screens/dashboard_screen.dart';
@@ -17,9 +16,8 @@ import '../screens/payments_screen.dart';
 import '../screens/reports_screen.dart';
 import '../screens/reviews_screen.dart';
 import '../screens/seminars_screen.dart';
+import '../screens/shop_screen.dart';
 import '../screens/staff_screen.dart';
-import '../screens/suppliers_screen.dart';
-import '../screens/supplements_screen.dart';
 import '../screens/users_screen.dart';
 import '../utils/app_theme.dart';
 
@@ -73,10 +71,8 @@ class _MainLayoutState extends State<MainLayout> {
       _NavItem('Termini', Icons.event_outlined, AppointmentsScreen()),
     ]),
     _NavSection('Prodavnica', [
-      _NavItem('Suplementi', Icons.medication_outlined, SupplementsScreen(),
+      _NavItem('Suplementi', Icons.medication_outlined, ShopScreen(),
           NavTarget.supplements),
-      _NavItem('Kategorije', Icons.category_outlined, CategoriesScreen()),
-      _NavItem('Dobavljači', Icons.local_shipping_outlined, SuppliersScreen()),
       _NavItem('Narudžbe', Icons.receipt_long_outlined, OrdersScreen(),
           NavTarget.orders),
     ]),
