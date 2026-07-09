@@ -9,9 +9,8 @@
 *.user
 *.userosscache
 *.sln.docstates
-# .env se ne commita - lokalne tajne
+# .env se ne commita - tajne su u env-secrets.zip (za pokretanje raspakovati arhivu u root)
 .env
-# NAPOMENA: .env se NAMJERNO commita (krajnja osoba mora imati sve vrijednosti da pokrene projekat)
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
