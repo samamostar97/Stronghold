@@ -45,6 +45,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     final formKey = GlobalKey<FormState>();
     final reasonController = TextEditingController();
     String? serverError;
+    bool submitting = false;
 
     await showDialog<void>(
       context: context,
@@ -99,23 +100,40 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).colorScheme.error,
               ),
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                try {
-                  await context
-                      .read<AppointmentsProvider>()
-                      .cancel(appointment.id, reasonController.text.trim());
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Termin je otkazan.')),
-                    );
-                  }
-                } on ApiException catch (e) {
-                  setDialogState(() => serverError = e.message);
-                }
-              },
-              child: const Text('Otkaži termin'),
+              onPressed: submitting
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        submitting = true;
+                        serverError = null;
+                      });
+                      try {
+                        await context
+                            .read<AppointmentsProvider>()
+                            .cancel(appointment.id, reasonController.text.trim());
+                        if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Termin je otkazan.')),
+                          );
+                        }
+                      } on ApiException catch (e) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() {
+                            serverError = e.message;
+                            submitting = false;
+                          });
+                        }
+                      }
+                    },
+              child: submitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Otkaži termin'),
             ),
           ],
         ),

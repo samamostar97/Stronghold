@@ -62,7 +62,15 @@ public class GymVisitService : BaseService<GymVisit, GymVisitResponse, GymVisitS
 
         var visit = new GymVisit { UserId = user.Id, CheckInAt = now };
         Db.GymVisits.Add(visit);
-        await Db.SaveChangesAsync();
+        try
+        {
+            await Db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            // filtrirani unique indeks je uhvatio istovremeni check-in istog korisnika
+            throw new BusinessException("Korisnik je već prijavljen u teretani.");
+        }
         return await GetByIdAsync(visit.Id);
     }
 

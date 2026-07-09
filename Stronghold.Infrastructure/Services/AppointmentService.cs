@@ -75,6 +75,10 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         var now = DateTime.UtcNow;
         var today = DateOnly.FromDateTime(now);
 
+        // prosli datumi nemaju slobodnih satnica - termin se ne moze zakazati u proslost
+        if (date < today)
+            return new List<int>();
+
         return Enumerable.Range(staff.WorkStartHour, staff.WorkEndHour - staff.WorkStartHour)
             .Where(hour => !takenHours.Contains(hour))
             .Where(hour => date > today || hour > now.Hour)
