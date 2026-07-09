@@ -327,19 +327,6 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             throw new BusinessException($"Narudžba u statusu '{order.Status}' se ne može otkazati.");
         }
 
-        // kupac otkazuje samo vlastitu narudzbu i samo dok nije poslana; admin i poslanu
-        if (!_currentUser.IsAdmin)
-        {
-            if (order.UserId != _currentUser.UserId)
-            {
-                throw new BusinessException("Možete otkazati samo vlastite narudžbe.");
-            }
-            if (order.Status == OrderStatus.Shipped)
-            {
-                throw new BusinessException("Narudžba je već poslana - otkazivanje više nije moguće.");
-            }
-        }
-
         // refund na osnovu STVARNO naplacenog iznosa, ne kalkulisane cijene
         var intentService = new PaymentIntentService(_stripe);
         var refundService = new RefundService(_stripe);

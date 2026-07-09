@@ -70,11 +70,9 @@ public class OrdersController : ControllerBase
         return Ok(await _orderService.DeliverAsync(id));
     }
 
-    /// <summary>
-    /// Otkazivanje placene narudzbe vrsi stvarni Stripe refund.
-    /// Dostupno i kupcu (vlastita narudzba dok nije poslana) - provjera u servisu.
-    /// </summary>
+    /// <summary>Otkazivanje placene narudzbe vrsi stvarni Stripe refund.</summary>
     [HttpPut("{id}/cancel")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<OrderResponse>> Cancel(int id, OrderCancelRequest request)
     {
         return Ok(await _orderService.CancelAsync(id, request));
