@@ -160,6 +160,15 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
             throw new BusinessException("Termin se može zakazati samo za člana teretane.");
         }
 
+        // preduslov na serveru: termin moze zakazati samo clan sa aktivnom clanarinom
+        var now = DateTime.UtcNow;
+        var hasActiveMembership = await Db.Memberships.AnyAsync(m =>
+            m.UserId == user.Id && !m.IsRevoked && m.StartDate <= now && m.EndDate > now);
+        if (!hasActiveMembership)
+        {
+            throw new BusinessException("Korisnik nema aktivnu članarinu - zakazivanje termina nije moguće.");
+        }
+
         // slobodne satnice se provjeravaju na backendu u trenutku bookinga (race condition)
         var freeSlots = await GetFreeSlotsAsync(staffMemberId, date);
         if (!freeSlots.Contains(startHour))
@@ -209,7 +218,7 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
             ?? throw new NotFoundException("Termin ne postoji.");
     }
 
-    private static void ChangeStatus(Appointment appointment, AppointmentStatus newStatus)
+    private void ChangeStatus(Appointment appointment, AppointmentStatus newStatus)
     {
         if (!AllowedTransitions[appointment.Status].Contains(newStatus))
         {
@@ -218,6 +227,8 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         }
         appointment.Status = newStatus;
         appointment.StatusChangedAt = DateTime.UtcNow;
+        // audit trag - ko je izvrsio promjenu statusa (potvrda, zavrsetak, otkaz)
+        appointment.StatusChangedByUserId = _currentUser.UserId;
     }
 
     private static async Task<PagedResult<AppointmentResponse>> ProjectPageAsync(

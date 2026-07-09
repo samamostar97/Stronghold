@@ -16,6 +16,7 @@ public class Appointment : BaseEntity
     public AppointmentStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? StatusChangedAt { get; set; }
+    public int? StatusChangedByUserId { get; set; }
     public CancellationActor? CancelledBy { get; set; }
     public string? CancellationReason { get; set; }
 }
