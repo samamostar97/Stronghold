@@ -333,29 +333,38 @@ public class ReportService : IReportService
         var expiringSoon = await _db.Memberships
             .CountAsync(m => !m.IsRevoked && m.EndDate > now && m.EndDate <= now.AddDays(7));
 
-        var byPackage = await _db.Memberships
+        // objedinjena statistika paketa - aktivne clanarine i prodaja/prihod (6 mj)
+        var activeByPackage = await _db.Memberships
             .Where(m => !m.IsRevoked && m.StartDate <= now && m.EndDate > now)
             .GroupBy(m => m.Package.Name)
-            .Select(g => new PackageDistribution
-            {
-                PackageName = g.Key,
-                ActiveCount = g.Count()
-            })
-            .OrderByDescending(p => p.ActiveCount)
+            .Select(g => new { PackageName = g.Key, ActiveCount = g.Count() })
             .ToListAsync();
 
         var sixMonthsAgo = now.AddMonths(-6);
-        var packageSales = await _db.Payments
+        var salesByPackage = await _db.Payments
             .GroupBy(p => p.Membership.Package.Name)
-            .Select(g => new PackageSales
+            .Select(g => new
             {
                 PackageName = g.Key,
-                SoldCount = g.Count(),
                 SoldLast6Months = g.Count(p => p.PaidAt >= sixMonthsAgo),
                 Revenue = g.Sum(p => p.Amount)
             })
-            .OrderByDescending(p => p.Revenue)
             .ToListAsync();
+
+        var packages = activeByPackage.Select(a => a.PackageName)
+            .Union(salesByPackage.Select(s => s.PackageName))
+            .Select(name => new PackageStat
+            {
+                PackageName = name,
+                ActiveCount = activeByPackage
+                    .FirstOrDefault(a => a.PackageName == name)?.ActiveCount ?? 0,
+                SoldLast6Months = salesByPackage
+                    .FirstOrDefault(s => s.PackageName == name)?.SoldLast6Months ?? 0,
+                Revenue = salesByPackage
+                    .FirstOrDefault(s => s.PackageName == name)?.Revenue ?? 0
+            })
+            .OrderByDescending(p => p.Revenue)
+            .ToList();
 
         // novi clan = korisnik cija prva clanarina pocinje ovog mjeseca
         var monthStart = new DateTime(now.Year, now.Month, 1);
@@ -363,7 +372,15 @@ public class ReportService : IReportService
             .GroupBy(m => m.UserId)
             .CountAsync(g => g.Min(m => m.StartDate) >= monthStart);
 
-        var revokedCount = await _db.Memberships.CountAsync(m => m.IsRevoked);
+        // stopa obnove: clanarine istekle u zadnjih 90 dana koje pokriva
+        // nova clanarina istog korisnika pocevsi najkasnije 7 dana od isteka
+        var windowStart = now.AddDays(-90);
+        var expired = _db.Memberships
+            .Where(m => !m.IsRevoked && m.EndDate <= now && m.EndDate > windowStart);
+        var expiredCount = await expired.CountAsync();
+        var renewedCount = await expired.CountAsync(m => _db.Memberships.Any(r =>
+            r.UserId == m.UserId && r.Id != m.Id && !r.IsRevoked &&
+            r.StartDate <= m.EndDate.AddDays(7) && r.EndDate > m.EndDate));
 
         // posjecenost po sedmicama za zadnjih 8 sedmica
         var eightWeeksAgo = now.Date.AddDays(-7 * 8);
@@ -384,15 +401,39 @@ public class ReportService : IReportService
             });
         }
 
+        // spic sati - posjete grupisane po satu check-ina (DATEPART), zadnjih 30 dana
+        var since30 = now.AddDays(-30);
+        var byHourRaw = await _db.GymVisits
+            .Where(v => v.CheckInAt >= since30)
+            .GroupBy(v => v.CheckInAt.Hour)
+            .Select(g => new { Hour = g.Key, Count = g.Count() })
+            .ToListAsync();
+        var visitsByHour = Enumerable.Range(6, 18)
+            .Select(hour => new HourlyVisitCount
+            {
+                Hour = hour,
+                Count = byHourRaw.FirstOrDefault(h => h.Hour == hour)?.Count ?? 0
+            })
+            .ToList();
+
+        // TimeSpan aritmetika se ne prevodi u SQL - trajanje ide kroz DateDiffMinute
+        var avgDuration = await _db.GymVisits
+            .Where(v => v.CheckInAt >= since30 && v.CheckOutAt != null)
+            .AverageAsync(v => (double?)EF.Functions.DateDiffMinute(v.CheckInAt, v.CheckOutAt!.Value)) ?? 0;
+
+        var visits30Total = byHourRaw.Sum(h => h.Count);
+
         return new MembershipReportResponse
         {
             ActiveCount = activeCount,
             ExpiringIn7Days = expiringSoon,
             NewMembersThisMonth = newMembersThisMonth,
-            RevokedCount = revokedCount,
-            ByPackage = byPackage,
-            PackageSales = packageSales,
-            WeeklyVisits = weekly
+            RenewalRatePercent = expiredCount == 0 ? 0 : 100.0 * renewedCount / expiredCount,
+            Packages = packages,
+            WeeklyVisits = weekly,
+            VisitsByHour = visitsByHour,
+            AvgVisitDurationMinutes = avgDuration,
+            AvgVisitsPerActiveMember = activeCount == 0 ? 0 : (double)visits30Total / activeCount
         };
     }
 

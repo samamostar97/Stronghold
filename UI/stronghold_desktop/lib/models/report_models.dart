@@ -317,71 +317,79 @@ class MembershipReport {
   final int activeCount;
   final int expiringIn7Days;
   final int newMembersThisMonth;
-  final int revokedCount;
-  final List<PackageDistribution> byPackage;
-  final List<PackageSales> packageSales;
+  final double renewalRatePercent;
+  final List<PackageStat> packages;
   final List<WeeklyVisitCount> weeklyVisits;
+  final List<HourlyVisitCount> visitsByHour;
+  final double avgVisitDurationMinutes;
+  final double avgVisitsPerActiveMember;
 
   MembershipReport({
     required this.activeCount,
     required this.expiringIn7Days,
     required this.newMembersThisMonth,
-    required this.revokedCount,
-    required this.byPackage,
-    required this.packageSales,
+    required this.renewalRatePercent,
+    required this.packages,
     required this.weeklyVisits,
+    required this.visitsByHour,
+    required this.avgVisitDurationMinutes,
+    required this.avgVisitsPerActiveMember,
   });
 
   factory MembershipReport.fromJson(Map<String, dynamic> json) => MembershipReport(
         activeCount: json['activeCount'] as int,
         expiringIn7Days: json['expiringIn7Days'] as int,
         newMembersThisMonth: json['newMembersThisMonth'] as int,
-        revokedCount: json['revokedCount'] as int,
-        byPackage: (json['byPackage'] as List)
-            .map((item) =>
-                PackageDistribution.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        packageSales: (json['packageSales'] as List)
-            .map((item) => PackageSales.fromJson(item as Map<String, dynamic>))
+        renewalRatePercent: (json['renewalRatePercent'] as num).toDouble(),
+        packages: (json['packages'] as List)
+            .map((item) => PackageStat.fromJson(item as Map<String, dynamic>))
             .toList(),
         weeklyVisits: (json['weeklyVisits'] as List)
             .map((item) =>
                 WeeklyVisitCount.fromJson(item as Map<String, dynamic>))
             .toList(),
+        visitsByHour: (json['visitsByHour'] as List)
+            .map((item) =>
+                HourlyVisitCount.fromJson(item as Map<String, dynamic>))
+            .toList(),
+        avgVisitDurationMinutes:
+            (json['avgVisitDurationMinutes'] as num).toDouble(),
+        avgVisitsPerActiveMember:
+            (json['avgVisitsPerActiveMember'] as num).toDouble(),
       );
 }
 
-class PackageSales {
+class PackageStat {
   final String packageName;
-  final int soldCount;
+  final int activeCount;
   final int soldLast6Months;
   final double revenue;
 
-  PackageSales({
+  PackageStat({
     required this.packageName,
-    required this.soldCount,
+    required this.activeCount,
     required this.soldLast6Months,
     required this.revenue,
   });
 
-  factory PackageSales.fromJson(Map<String, dynamic> json) => PackageSales(
+  factory PackageStat.fromJson(Map<String, dynamic> json) => PackageStat(
         packageName: json['packageName'] as String,
-        soldCount: json['soldCount'] as int,
+        activeCount: json['activeCount'] as int,
         soldLast6Months: json['soldLast6Months'] as int,
         revenue: (json['revenue'] as num).toDouble(),
       );
 }
 
-class PackageDistribution {
-  final String packageName;
-  final int activeCount;
+class HourlyVisitCount {
+  final int hour;
+  final int count;
 
-  PackageDistribution({required this.packageName, required this.activeCount});
+  HourlyVisitCount({required this.hour, required this.count});
 
-  factory PackageDistribution.fromJson(Map<String, dynamic> json) =>
-      PackageDistribution(
-        packageName: json['packageName'] as String,
-        activeCount: json['activeCount'] as int,
+  factory HourlyVisitCount.fromJson(Map<String, dynamic> json) =>
+      HourlyVisitCount(
+        hour: json['hour'] as int,
+        count: json['count'] as int,
       );
 }
 

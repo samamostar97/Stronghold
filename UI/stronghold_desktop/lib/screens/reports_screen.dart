@@ -489,17 +489,40 @@ class _ReportsScreenState extends State<ReportsScreen>
     }
     return ListView(
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              'Aktivnih članova: ${report.activeCount}    '
-              'Ističe u narednih 7 dana: ${report.expiringIn7Days}    '
-              'Novi članovi (ovaj mjesec): ${report.newMembersThisMonth}    '
-              'Ukinutih članarina: ${report.revokedCount}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                icon: Icons.people,
+                value: '${report.activeCount}',
+                label: 'aktivnih članova',
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.person_add,
+                value: '${report.newMembersThisMonth}',
+                label: 'novi članovi (ovaj mjesec)',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.autorenew,
+                value: '${report.renewalRatePercent.toStringAsFixed(1)} %',
+                label: 'stopa obnove (90 dana)',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.hourglass_bottom,
+                value: '${report.expiringIn7Days}',
+                label: 'ističe u 7 dana',
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 12),
         Row(
@@ -512,20 +535,27 @@ class _ReportsScreenState extends State<ReportsScreen>
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Aktivne članarine po paketima',
+                      Text('Paketi članarina',
                           style: Theme.of(context).textTheme.titleMedium),
-                      DataTable(
-                        columns: const [
-                          DataColumn(label: Text('Paket')),
-                          DataColumn(label: Text('Aktivnih')),
-                        ],
-                        rows: [
-                          for (final package in report.byPackage)
-                            DataRow(cells: [
-                              DataCell(Text(package.packageName)),
-                              DataCell(Text('${package.activeCount}')),
-                            ]),
-                        ],
+                      StretchScroll(
+                        child: DataTable(
+                          columns: const [
+                            DataColumn(label: Text('Paket')),
+                            DataColumn(label: Text('Aktivnih')),
+                            DataColumn(label: Text('Prodano (6 mj)')),
+                            DataColumn(label: Text('Prihod')),
+                          ],
+                          rows: [
+                            for (final package in report.packages)
+                              DataRow(cells: [
+                                DataCell(Text(package.packageName)),
+                                DataCell(Text('${package.activeCount}')),
+                                DataCell(Text('${package.soldLast6Months}')),
+                                DataCell(
+                                    Text(Formatters.money(package.revenue))),
+                              ]),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -559,36 +589,52 @@ class _ReportsScreenState extends State<ReportsScreen>
           ],
         ),
         const SizedBox(height: 12),
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Prodaja po paketima',
-                    style: Theme.of(context).textTheme.titleMedium),
-                StretchScroll(
-                  child: DataTable(
-                    columns: const [
-                      DataColumn(label: Text('Paket')),
-                      DataColumn(label: Text('Prodano (ukupno)')),
-                      DataColumn(label: Text('Prodano (6 mj)')),
-                      DataColumn(label: Text('Prihod (ukupno)')),
-                    ],
-                    rows: [
-                      for (final sales in report.packageSales)
-                        DataRow(cells: [
-                          DataCell(Text(sales.packageName)),
-                          DataCell(Text('${sales.soldCount}')),
-                          DataCell(Text('${sales.soldLast6Months}')),
-                          DataCell(Text(Formatters.money(sales.revenue))),
-                        ]),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Posjete po satima (zadnjih 30 dana)',
+                          style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      _barChart(
+                        [
+                          for (final hour in report.visitsByHour)
+                            ('${hour.hour}', hour.count.toDouble()),
+                        ],
+                        Theme.of(context).colorScheme.primary,
+                      ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                children: [
+                  StatCard(
+                    icon: Icons.timer,
+                    value:
+                        '${report.avgVisitDurationMinutes.toStringAsFixed(0)} min',
+                    label: 'prosječno trajanje posjete',
+                  ),
+                  const SizedBox(height: 12),
+                  StatCard(
+                    icon: Icons.event_repeat,
+                    value: report.avgVisitsPerActiveMember.toStringAsFixed(1),
+                    label: 'posjeta po aktivnom članu (30 d)',
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ],
     );

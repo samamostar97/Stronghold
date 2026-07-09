@@ -160,31 +160,24 @@ public static class ReportExcelBuilder
         sheet.Cell(2, 2).Value = report.ExpiringIn7Days;
         sheet.Cell(3, 1).Value = "Novi članovi (ovaj mjesec)";
         sheet.Cell(3, 2).Value = report.NewMembersThisMonth;
-        sheet.Cell(4, 1).Value = "Ukinutih članarina";
-        sheet.Cell(4, 2).Value = report.RevokedCount;
+        sheet.Cell(4, 1).Value = "Stopa obnove - 90 dana (%)";
+        sheet.Cell(4, 2).Value = Math.Round(report.RenewalRatePercent, 1);
+        sheet.Cell(5, 1).Value = "Prosječno trajanje posjete (min)";
+        sheet.Cell(5, 2).Value = Math.Round(report.AvgVisitDurationMinutes);
+        sheet.Cell(6, 1).Value = "Posjeta po aktivnom članu (30 dana)";
+        sheet.Cell(6, 2).Value = Math.Round(report.AvgVisitsPerActiveMember, 1);
 
-        sheet.Cell(6, 1).Value = "Paket";
-        sheet.Cell(6, 2).Value = "Aktivnih članarina";
-        var row = 7;
-        foreach (var package in report.ByPackage)
+        sheet.Cell(8, 1).Value = "Paket";
+        sheet.Cell(8, 2).Value = "Aktivnih";
+        sheet.Cell(8, 3).Value = "Prodano (6 mj)";
+        sheet.Cell(8, 4).Value = "Prihod (KM)";
+        var row = 9;
+        foreach (var package in report.Packages)
         {
             sheet.Cell(row, 1).Value = package.PackageName;
             sheet.Cell(row, 2).Value = package.ActiveCount;
-            row++;
-        }
-
-        row += 1;
-        sheet.Cell(row, 1).Value = "Paket";
-        sheet.Cell(row, 2).Value = "Prodano (ukupno)";
-        sheet.Cell(row, 3).Value = "Prodano (6 mj)";
-        sheet.Cell(row, 4).Value = "Prihod (KM)";
-        row++;
-        foreach (var sales in report.PackageSales)
-        {
-            sheet.Cell(row, 1).Value = sales.PackageName;
-            sheet.Cell(row, 2).Value = sales.SoldCount;
-            sheet.Cell(row, 3).Value = sales.SoldLast6Months;
-            sheet.Cell(row, 4).Value = sales.Revenue;
+            sheet.Cell(row, 3).Value = package.SoldLast6Months;
+            sheet.Cell(row, 4).Value = package.Revenue;
             row++;
         }
 
@@ -196,6 +189,19 @@ public static class ReportExcelBuilder
         {
             sheet.Cell(row, 1).Value = week.WeekStart.ToString("dd.MM.yyyy.");
             sheet.Cell(row, 2).Value = week.Count;
+            row++;
+        }
+
+        row += 1;
+        sheet.Cell(row, 1).Value = "Posjete po satima (30 dana)";
+        row++;
+        sheet.Cell(row, 1).Value = "Sat";
+        sheet.Cell(row, 2).Value = "Broj posjeta";
+        row++;
+        foreach (var hour in report.VisitsByHour)
+        {
+            sheet.Cell(row, 1).Value = $"{hour.Hour}:00";
+            sheet.Cell(row, 2).Value = hour.Count;
             row++;
         }
 
