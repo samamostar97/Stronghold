@@ -20,7 +20,7 @@ docker compose up --build
 ```
 
 Time se podižu SQL Server, RabbitMQ, API i Worker. Baza se automatski kreira,
-migrira i puni test podacima pri prvom startu — nije potreban nijedan ručni korak.
+migrira i puni test podacima pri prvom startu.
 
 - API + Swagger: http://localhost:5000/swagger
 - RabbitMQ management: http://localhost:15672 (stronghold / stronghold123)
