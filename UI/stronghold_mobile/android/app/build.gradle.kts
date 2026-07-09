@@ -32,6 +32,12 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
     }
+
+    lint {
+        // stripe_android lint klasa vuce play-services-tapandpay koji ne postoji
+        // u javnim repoima - lintVital bi oborio svaki release build
+        checkReleaseBuilds = false
+    }
 }
 
 kotlin {
