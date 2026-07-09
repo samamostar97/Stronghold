@@ -24,36 +24,36 @@ public class ReportsController : ControllerBase
         return Ok(await _reportService.GetDashboardAsync());
     }
 
+    /// <summary>Poslovni izvjestaj za period od-do mjeseca (format GGGG-MM, default zadnjih 6).</summary>
     [HttpGet("revenue")]
-    public async Task<ActionResult<RevenueReportResponse>> GetRevenue()
+    public async Task<ActionResult<RevenueReportResponse>> GetRevenue(
+        [FromQuery] string? from, [FromQuery] string? to)
     {
-        return Ok(await _reportService.GetRevenueReportAsync());
+        return Ok(await _reportService.GetRevenueReportAsync(from, to));
     }
 
-    [HttpGet("inventory")]
-    public async Task<ActionResult<InventoryReportResponse>> GetInventory()
+    /// <summary>Izvjestaj o terminima osoblja za isti oblik perioda.</summary>
+    [HttpGet("staff")]
+    public async Task<ActionResult<StaffReportResponse>> GetStaff(
+        [FromQuery] string? from, [FromQuery] string? to)
     {
-        return Ok(await _reportService.GetInventoryReportAsync());
+        return Ok(await _reportService.GetStaffReportAsync(from, to));
     }
 
-    [HttpGet("memberships")]
-    public async Task<ActionResult<MembershipReportResponse>> GetMemberships()
-    {
-        return Ok(await _reportService.GetMembershipReportAsync());
-    }
-
-    /// <summary>PDF izvjestaj za preuzimanje i ispis (revenue/inventory/memberships).</summary>
+    /// <summary>PDF izvjestaj za preuzimanje i ispis (revenue/staff).</summary>
     [HttpGet("{reportKey}/pdf")]
-    public async Task<IActionResult> ExportPdf(string reportKey)
+    public async Task<IActionResult> ExportPdf(
+        string reportKey, [FromQuery] string? from, [FromQuery] string? to)
     {
-        var bytes = await _reportService.ExportPdfAsync(reportKey);
+        var bytes = await _reportService.ExportPdfAsync(reportKey, from, to);
         return File(bytes, "application/pdf", $"stronghold-{reportKey}.pdf");
     }
 
     [HttpGet("{reportKey}/excel")]
-    public async Task<IActionResult> ExportExcel(string reportKey)
+    public async Task<IActionResult> ExportExcel(
+        string reportKey, [FromQuery] string? from, [FromQuery] string? to)
     {
-        var bytes = await _reportService.ExportExcelAsync(reportKey);
+        var bytes = await _reportService.ExportExcelAsync(reportKey, from, to);
         return File(bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"stronghold-{reportKey}.xlsx");

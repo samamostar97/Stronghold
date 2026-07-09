@@ -1,20 +1,25 @@
 namespace Stronghold.Application.DTOs.Reports;
 
-/// <summary>Tab "Prihodi" - KPI, prihodi po mjesecima, top proizvodi i prihod po kategorijama.</summary>
+/// <summary>Tab "Prihodi" - poslovanje za odabrani period (od mjeseca do mjeseca).</summary>
 public class RevenueReportResponse
 {
-    public decimal RevenueThisMonth { get; set; }
-    public decimal RevenueLast6Months { get; set; }
+    public int FromYear { get; set; }
+    public int FromMonth { get; set; }
+    public int ToYear { get; set; }
+    public int ToMonth { get; set; }
 
-    /// <summary>Prosjecna vrijednost narudzbe u zadnjih 6 mjeseci (bez otkazanih).</summary>
-    public decimal AvgOrderValue6M { get; set; }
+    public decimal TotalRevenue { get; set; }
+    public decimal MembershipRevenue { get; set; }
+    public decimal OrderRevenue { get; set; }
 
-    /// <summary>Procenat otkazanih narudzbi u zadnjih 6 mjeseci.</summary>
-    public double OrderCancellationRate6M { get; set; }
+    /// <summary>Korisnici cija prva clanarina pocinje u periodu.</summary>
+    public int NewMembers { get; set; }
+
+    public int VisitCount { get; set; }
 
     public List<MonthlyRevenue> MonthlyRevenue { get; set; } = new();
     public List<TopProduct> TopProducts { get; set; } = new();
-    public List<CategoryRevenue> RevenueByCategory { get; set; } = new();
+    public List<PackageSales> PackageSales { get; set; } = new();
 }
 
 public class MonthlyRevenue
@@ -31,20 +36,12 @@ public class TopProduct
     public string CategoryName { get; set; } = null!;
     public int QuantitySold { get; set; }
     public decimal Revenue { get; set; }
-
-    /// <summary>Udio u ukupnom prihodu prodavnice, u procentima.</summary>
-    public double RevenueShare { get; set; }
-
-    /// <summary>Prosjecna ocjena; null ako proizvod nema recenzija.</summary>
-    public double? AverageRating { get; set; }
 }
 
-public class CategoryRevenue
+/// <summary>Prodaja clanarina po paketu u periodu.</summary>
+public class PackageSales
 {
-    public string CategoryName { get; set; } = null!;
-    public int QuantitySold { get; set; }
+    public string PackageName { get; set; } = null!;
+    public int SoldCount { get; set; }
     public decimal Revenue { get; set; }
-
-    /// <summary>Udio u prihodu prodavnice zadnjih 6 mjeseci, u procentima.</summary>
-    public double RevenueShare { get; set; }
 }
