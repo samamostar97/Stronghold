@@ -39,6 +39,7 @@ class _CheckInScreenState extends State<CheckInScreen> {
     if (!mounted) return;
     final searchController = TextEditingController();
     String? serverError;
+    bool submitting = false;
 
     await showDialog<void>(
       context: context,
@@ -97,21 +98,32 @@ class _CheckInScreenState extends State<CheckInScreen> {
                               title: Text(member.fullName),
                               subtitle: Text(member.username),
                               trailing: FilledButton(
+                                onPressed: submitting
+                                    ? null
+                                    : () async {
+                                        setDialogState(() {
+                                          submitting = true;
+                                          serverError = null;
+                                        });
+                                        try {
+                                          await context
+                                              .read<VisitsProvider>()
+                                              .checkIn(member.id);
+                                          if (dialogContext.mounted) {
+                                            Navigator.of(dialogContext).pop();
+                                          }
+                                          _showSuccess(
+                                              '${member.fullName} je prijavljen u teretanu.');
+                                        } on ApiException catch (e) {
+                                          if (dialogContext.mounted) {
+                                            setDialogState(() {
+                                              serverError = e.message;
+                                              submitting = false;
+                                            });
+                                          }
+                                        }
+                                      },
                                 child: const Text('Check-in'),
-                                onPressed: () async {
-                                  try {
-                                    await context
-                                        .read<VisitsProvider>()
-                                        .checkIn(member.id);
-                                    if (dialogContext.mounted) {
-                                      Navigator.of(dialogContext).pop();
-                                    }
-                                    _showSuccess(
-                                        '${member.fullName} je prijavljen u teretanu.');
-                                  } on ApiException catch (e) {
-                                    setDialogState(() => serverError = e.message);
-                                  }
-                                },
                               ),
                             );
                           },

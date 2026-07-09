@@ -116,6 +116,10 @@ public class StrongholdDbContext : DbContext
                 .WithMany(u => u.GymVisits)
                 .HasForeignKey(v => v.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+            // Korisnik moze imati najvise jednu otvorenu posjetu - sprjecava dupli check-in na nivou baze.
+            entity.HasIndex(v => v.UserId)
+                .IsUnique()
+                .HasFilter("[CheckOutAt] IS NULL");
         });
 
         modelBuilder.Entity<SupplementCategory>(entity =>

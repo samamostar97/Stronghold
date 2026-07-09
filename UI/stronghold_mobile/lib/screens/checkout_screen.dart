@@ -24,6 +24,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   List<City> _cities = [];
   String? _error;
   bool _processing = false;
+  // Postavlja se tek NAKON uspjesne Stripe naplate. Ako potvrda narudzbe padne,
+  // ponovni pokusaj koristi ovaj isti intent (server je idempotentan) umjesto
+  // kreiranja novog - time se izbjegava dvostruka naplata.
+  String? _paidIntentId;
 
   @override
   void initState() {
@@ -55,28 +59,36 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _processing = true);
 
     try {
-      // 1. server cita korpu iz baze, racuna iznos i kreira PaymentIntent
-      final intent = await orders.createPaymentIntent(
-        deliveryStreet: _streetController.text.trim(),
-        deliveryCityId: _selectedCityId!,
-      );
+      // Ako je prethodni pokusaj vec naplacen a potvrda pala, preskacemo naplatu
+      // i samo ponovo potvrdjujemo isti intent - bez rizika dvostruke naplate.
+      if (_paidIntentId == null) {
+        // 1. server cita korpu iz baze, racuna iznos i kreira PaymentIntent
+        final intent = await orders.createPaymentIntent(
+          deliveryStreet: _streetController.text.trim(),
+          deliveryCityId: _selectedCityId!,
+        );
 
-      // 2. in-app placanje kroz Stripe PaymentSheet
-      Stripe.publishableKey = intent['publishableKey'] as String;
-      await Stripe.instance.applySettings();
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: intent['clientSecret'] as String,
-          merchantDisplayName: 'Stronghold',
-        ),
-      );
-      await Stripe.instance.presentPaymentSheet();
+        // 2. in-app placanje kroz Stripe PaymentSheet
+        Stripe.publishableKey = intent['publishableKey'] as String;
+        await Stripe.instance.applySettings();
+        await Stripe.instance.initPaymentSheet(
+          paymentSheetParameters: SetupPaymentSheetParameters(
+            paymentIntentClientSecret: intent['clientSecret'] as String,
+            merchantDisplayName: 'Stronghold',
+          ),
+        );
+        await Stripe.instance.presentPaymentSheet();
+
+        // naplata je prosla - od sada je narudzba placena; ako potvrda padne,
+        // ponovni pokusaj koristi ISTI intent umjesto novog (server idempotentan).
+        _paidIntentId = intent['paymentIntentId'] as String;
+      }
 
       // 3. server verifikuje status kod Stripe-a i tek onda kreira narudzbu
-      final order =
-          await orders.confirmOrder(intent['paymentIntentId'] as String);
+      final order = await orders.confirmOrder(_paidIntentId!);
 
-      // server je vec ispraznio korpu u transakciji potvrde - samo lokalni reset
+      // narudzba potvrdjena - server je vec ispraznio korpu u transakciji
+      _paidIntentId = null;
       cart.resetLocal();
       if (!mounted) return;
       await showDialog<void>(
@@ -105,7 +117,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           ? 'Plaćanje je prekinuto.'
           : (e.error.localizedMessage ?? 'Plaćanje nije uspjelo. Pokušajte ponovo.'));
     } on ApiException catch (e) {
-      setState(() => _error = e.message);
+      setState(() => _error = _paidIntentId != null
+          ? 'Plaćanje je uspjelo, ali potvrda narudžbe nije prošla: ${e.message} '
+              'Pritisnite dugme ponovo da dovršimo narudžbu — nećete biti ponovo naplaćeni.'
+          : e.message);
     } finally {
       if (mounted) setState(() => _processing = false);
     }
@@ -207,7 +222,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                             width: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : Text('Plati ${Formatters.money(cart.total)}'),
+                        : Text(_paidIntentId != null
+                            ? 'Dovrši narudžbu'
+                            : 'Plati ${Formatters.money(cart.total)}'),
                   ),
                   onPressed: _processing || cart.isEmpty ? null : _pay,
                 ),

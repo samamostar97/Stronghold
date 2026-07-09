@@ -30,6 +30,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     int rating = 5;
     final commentController = TextEditingController();
     String? serverError;
+    bool submitting = false;
 
     await showDialog<void>(
       context: context,
@@ -83,28 +84,45 @@ class _OrdersScreenState extends State<OrdersScreen> {
               child: const Text('Odustani'),
             ),
             FilledButton(
-              onPressed: () async {
-                try {
-                  await context.read<ReviewsProvider>().create(
-                        supplementId: item.supplementId,
-                        rating: rating,
-                        comment: commentController.text.trim().isEmpty
-                            ? null
-                            : commentController.text.trim(),
-                      );
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                          content:
-                              Text('Recenzija za "${item.supplementName}" je sačuvana.')),
-                    );
-                  }
-                } on ApiException catch (e) {
-                  setDialogState(() => serverError = e.message);
-                }
-              },
-              child: const Text('Sačuvaj ocjenu'),
+              onPressed: submitting
+                  ? null
+                  : () async {
+                      setDialogState(() {
+                        submitting = true;
+                        serverError = null;
+                      });
+                      try {
+                        await context.read<ReviewsProvider>().create(
+                              supplementId: item.supplementId,
+                              rating: rating,
+                              comment: commentController.text.trim().isEmpty
+                                  ? null
+                                  : commentController.text.trim(),
+                            );
+                        if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    'Recenzija za "${item.supplementName}" je sačuvana.')),
+                          );
+                        }
+                      } on ApiException catch (e) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() {
+                            serverError = e.message;
+                            submitting = false;
+                          });
+                        }
+                      }
+                    },
+              child: submitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Sačuvaj ocjenu'),
             ),
           ],
         ),

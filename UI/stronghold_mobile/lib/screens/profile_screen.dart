@@ -115,6 +115,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final newController = TextEditingController();
     final confirmController = TextEditingController();
     String? serverError;
+    bool submitting = false;
 
     await showDialog<void>(
       context: context,
@@ -184,20 +185,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: const Text('Odustani'),
             ),
             FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                try {
-                  await context.read<ProfileProvider>().changePassword(
-                        oldPassword: oldController.text,
-                        newPassword: newController.text,
-                      );
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  _showSuccess('Lozinka je uspješno promijenjena.');
-                } on ApiException catch (e) {
-                  setDialogState(() => serverError = e.message);
-                }
-              },
-              child: const Text('Sačuvaj'),
+              onPressed: submitting
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        submitting = true;
+                        serverError = null;
+                      });
+                      try {
+                        await context.read<ProfileProvider>().changePassword(
+                              oldPassword: oldController.text,
+                              newPassword: newController.text,
+                            );
+                        if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                        _showSuccess('Lozinka je uspješno promijenjena.');
+                      } on ApiException catch (e) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() {
+                            serverError = e.message;
+                            submitting = false;
+                          });
+                        }
+                      }
+                    },
+              child: submitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Sačuvaj'),
             ),
           ],
         ),

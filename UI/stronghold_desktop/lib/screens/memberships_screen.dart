@@ -64,6 +64,7 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
     int? selectedPackageId;
     ActiveMembershipInfo? activeInfo;
     String? serverError;
+    bool submitting = false;
     final formKey = GlobalKey<FormState>();
 
     await showDialog<void>(
@@ -182,20 +183,37 @@ class _MembershipsScreenState extends State<MembershipsScreen> {
               child: const Text('Odustani'),
             ),
             FilledButton(
-              onPressed: () async {
-                if (!formKey.currentState!.validate()) return;
-                try {
-                  await context.read<MembershipsProvider>().assign(
-                        userId: selectedUserId!,
-                        packageId: selectedPackageId!,
-                      );
-                  if (dialogContext.mounted) Navigator.of(dialogContext).pop();
-                  _showSuccess('Uplata je evidentirana i članarina aktivirana.');
-                } on ApiException catch (e) {
-                  setDialogState(() => serverError = e.message);
-                }
-              },
-              child: const Text('Evidentiraj uplatu'),
+              onPressed: submitting
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        submitting = true;
+                        serverError = null;
+                      });
+                      try {
+                        await context.read<MembershipsProvider>().assign(
+                              userId: selectedUserId!,
+                              packageId: selectedPackageId!,
+                            );
+                        if (dialogContext.mounted) Navigator.of(dialogContext).pop();
+                        _showSuccess('Uplata je evidentirana i članarina aktivirana.');
+                      } on ApiException catch (e) {
+                        if (dialogContext.mounted) {
+                          setDialogState(() {
+                            serverError = e.message;
+                            submitting = false;
+                          });
+                        }
+                      }
+                    },
+              child: submitting
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Evidentiraj uplatu'),
             ),
           ],
         ),
