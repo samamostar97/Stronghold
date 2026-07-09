@@ -150,9 +150,14 @@ public class AppointmentService : BaseService<Appointment, AppointmentResponse, 
         ChangeStatus(appointment, AppointmentStatus.Cancelled);
         appointment.CancelledBy = _currentUser.IsAdmin ? CancellationActor.Admin : CancellationActor.User;
         appointment.CancellationReason = request.Reason;
-        AddStatusNotification(appointment, "Termin otkazan",
-            $"Termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 je otkazan " +
-            $"(razlog: {request.Reason}).");
+
+        // clan koji sam otkazuje ne dobija obavijest o vlastitoj akciji
+        if (_currentUser.IsAdmin)
+        {
+            AddStatusNotification(appointment, "Termin otkazan",
+                $"Termin {appointment.Date:dd.MM.yyyy}. u {appointment.StartHour}:00 je otkazan " +
+                $"(razlog: {request.Reason}).");
+        }
         await Db.SaveChangesAsync();
         return await GetByIdAsync(id);
     }
