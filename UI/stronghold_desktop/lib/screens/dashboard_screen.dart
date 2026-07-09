@@ -6,6 +6,7 @@ import '../providers/reports_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/app_theme.dart';
 import '../utils/formatters.dart';
+import '../widgets/stat_card.dart';
 import '../widgets/status_chip.dart';
 import '../widgets/stretch_scroll.dart';
 
@@ -34,50 +35,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _statCard(IconData icon, String value, String label) {
-    return Expanded(
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Row(
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: AppTheme.navyTint,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, size: 22, color: AppTheme.navy),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      value,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w800,
-                        color: AppTheme.textPrimary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      label,
-                      style: const TextStyle(
-                        fontSize: 12.5,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    return Expanded(child: StatCard(icon: icon, value: value, label: label));
   }
 
   Widget _quickAction(IconData icon, String label, VoidCallback onTap) {
