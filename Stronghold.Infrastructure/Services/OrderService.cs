@@ -81,7 +81,22 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             throw new BusinessException("Odabrani grad dostave ne postoji.");
         }
 
-        var lines = await BuildOrderLinesAsync(request.Items);
+        // korpa na serveru je izvor istine - klijent ne salje stavke
+        var cartItems = await Db.CartItems.AsNoTracking()
+            .Where(ci => ci.UserId == userId)
+            .OrderBy(ci => ci.AddedAt)
+            .Select(ci => new OrderItemRequest
+            {
+                SupplementId = ci.SupplementId,
+                Quantity = ci.Quantity
+            })
+            .ToListAsync();
+        if (cartItems.Count == 0)
+        {
+            throw new BusinessException("Korpa je prazna.");
+        }
+
+        var lines = await BuildOrderLinesAsync(cartItems);
         var total = lines.Sum(l => l.Supplement.Price * l.Quantity);
 
         // adresa dostave se automatski sprema na profil ako korisnik nema adresu
@@ -195,6 +210,8 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             Type = NotificationType.PaymentConfirmed,
             CreatedAt = DateTime.UtcNow
         });
+        // uspjesno placanje prazni korpu - u istoj transakciji kao narudzba
+        await Db.CartItems.Where(ci => ci.UserId == userId).ExecuteDeleteAsync();
         await Db.SaveChangesAsync();
         await transaction.CommitAsync();
 

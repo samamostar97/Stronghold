@@ -30,6 +30,7 @@ public class StrongholdDbContext : DbContext
     public DbSet<Review> Reviews => Set<Review>();
     public DbSet<Faq> Faqs => Set<Faq>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<CartItem> CartItems => Set<CartItem>();
     public DbSet<ActivityLog> ActivityLogs => Set<ActivityLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -249,6 +250,21 @@ public class StrongholdDbContext : DbContext
             entity.HasOne(n => n.User)
                 .WithMany(u => u.Notifications)
                 .HasForeignKey(n => n.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            // jedna stavka po suplementu - ponovno dodavanje povecava kolicinu
+            entity.HasIndex(ci => new { ci.UserId, ci.SupplementId }).IsUnique();
+            entity.HasOne(ci => ci.User)
+                .WithMany(u => u.CartItems)
+                .HasForeignKey(ci => ci.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            // korpa je efemerna - ne smije blokirati brisanje suplementa
+            entity.HasOne(ci => ci.Supplement)
+                .WithMany()
+                .HasForeignKey(ci => ci.SupplementId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

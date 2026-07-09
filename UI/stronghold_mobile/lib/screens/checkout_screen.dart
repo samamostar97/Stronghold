@@ -55,12 +55,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _processing = true);
 
     try {
-      // 1. server racuna iznos i kreira PaymentIntent
+      // 1. server cita korpu iz baze, racuna iznos i kreira PaymentIntent
       final intent = await orders.createPaymentIntent(
-        items: [
-          for (final item in cart.items)
-            {'supplementId': item.supplement.id, 'quantity': item.quantity},
-        ],
         deliveryStreet: _streetController.text.trim(),
         deliveryCityId: _selectedCityId!,
       );
@@ -80,7 +76,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
       final order =
           await orders.confirmOrder(intent['paymentIntentId'] as String);
 
-      cart.clear();
+      // server je vec ispraznio korpu u transakciji potvrde - samo lokalni reset
+      cart.resetLocal();
       if (!mounted) return;
       await showDialog<void>(
         context: context,
@@ -143,7 +140,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                               children: [
                                 Expanded(
                                     child: Text(
-                                        '${item.supplement.name} x ${item.quantity}')),
+                                        '${item.name} x ${item.quantity}')),
                                 Text(Formatters.money(item.subtotal)),
                               ],
                             ),

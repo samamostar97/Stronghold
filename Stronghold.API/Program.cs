@@ -46,6 +46,7 @@ builder.Services.AddScoped<ISeminarService, SeminarService>();
 builder.Services.AddScoped<IFaqService, FaqService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IRecommendationService, RecommendationService>();
