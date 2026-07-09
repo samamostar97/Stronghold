@@ -29,7 +29,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
     'Confirmed': 'Potvrđen',
     'Completed': 'Održan',
     'Cancelled': 'Otkazan',
-    'NoShow': 'Nedolazak',
   };
 
   @override
@@ -61,7 +60,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         'Confirmed' => StatusTone.success,
         'Completed' => StatusTone.info,
         'Cancelled' => StatusTone.danger,
-        'NoShow' => StatusTone.neutral,
         _ => StatusTone.warning,
       };
 
@@ -478,19 +476,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                                                 .read<AppointmentsProvider>()
                                                 .complete,
                                             'Termin je označen kao održan.'),
-                                      ),
-                                    // nedolazak se evidentira tek kad termin prodje
-                                    if (appointment.status == 'Confirmed' &&
-                                        _isPast(appointment))
-                                      IconButton(
-                                        tooltip: 'Član se nije pojavio',
-                                        icon: const Icon(Icons.person_off_outlined),
-                                        onPressed: () => _changeStatus(
-                                            appointment.id,
-                                            context
-                                                .read<AppointmentsProvider>()
-                                                .markNoShow,
-                                            'Termin je evidentiran kao nedolazak.'),
                                       ),
                                     // prosli termin se vise ne moze otkazati
                                     if ((appointment.status == 'Pending' ||

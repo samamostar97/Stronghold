@@ -29,7 +29,6 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
         'Confirmed' => StatusTone.success,
         'Completed' => StatusTone.neutral,
         'Cancelled' => StatusTone.danger,
-        'NoShow' => StatusTone.danger,
         _ => StatusTone.warning,
       };
 
