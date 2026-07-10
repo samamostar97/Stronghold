@@ -28,7 +28,6 @@ class Formatters {
         'Confirmed' => 'Potvrđen',
         'Completed' => 'Održan',
         'Cancelled' => 'Otkazan',
-        'NoShow' => 'Nedolazak',
         _ => status,
       };
 }
