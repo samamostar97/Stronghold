@@ -16,8 +16,13 @@ public interface IOrderService : IService<OrderResponse, OrderSearch>
     // Historija narudzbi trenutno prijavljenog clana.
     Task<PagedResult<OrderResponse>> GetMineAsync(BaseSearchObject search);
 
+    // Processing -> Shipped: narudzba je predata kuriru.
+    Task<OrderResponse> ShipAsync(int id);
+
+    // Shipped -> Delivered.
     Task<OrderResponse> DeliverAsync(int id);
 
     // Otkazivanje pokrece stvarni Stripe refund na osnovu naplacenog iznosa.
+    // Kupac otkazuje vlastitu narudzbu dok nije poslana, admin i poslanu.
     Task<OrderResponse> CancelAsync(int id, OrderCancelRequest request);
 }

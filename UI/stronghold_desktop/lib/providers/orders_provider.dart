@@ -51,6 +51,12 @@ class OrdersProvider extends ChangeNotifier {
     }
   }
 
+  /// Processing -> Shipped: narudzba je predata kuriru.
+  Future<void> ship(int id) async {
+    await _api.put('/api/orders/$id/ship');
+    await load();
+  }
+
   Future<void> deliver(int id) async {
     await _api.put('/api/orders/$id/deliver');
     await load();

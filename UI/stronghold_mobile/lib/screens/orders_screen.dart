@@ -133,8 +133,110 @@ class _OrdersScreenState extends State<OrdersScreen> {
   StatusTone _statusTone(String status) => switch (status) {
         'Delivered' => StatusTone.success,
         'Cancelled' => StatusTone.danger,
+        'Shipped' => StatusTone.info,
         _ => StatusTone.warning,
       };
+
+  /// Otkaz je moguc samo dok je narudzba u obradi (prije slanja).
+  Future<void> _cancelOrder(Order order) async {
+    final formKey = GlobalKey<FormState>();
+    final reasonController = TextEditingController();
+    String? serverError;
+    bool processing = false;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: Row(
+            children: [
+              Expanded(child: Text('Otkazivanje narudžbe #${order.id}')),
+              IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(dialogContext).pop(),
+              ),
+            ],
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Iznos od ${Formatters.money(order.totalAmount)} bit će '
+                  'vraćen na vašu karticu.',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: reasonController,
+                  autofocus: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Razlog otkazivanja',
+                  ),
+                  validator: (v) => v == null || v.trim().isEmpty
+                      ? 'Unesite razlog otkazivanja.'
+                      : null,
+                ),
+                if (serverError != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    serverError!,
+                    style: TextStyle(
+                        color: Theme.of(dialogContext).colorScheme.error),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Odustani'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.error,
+              ),
+              onPressed: processing
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() => processing = true);
+                      try {
+                        await context
+                            .read<OrdersProvider>()
+                            .cancel(order.id, reasonController.text.trim());
+                        if (dialogContext.mounted) {
+                          Navigator.of(dialogContext).pop();
+                        }
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text(
+                                    'Narudžba je otkazana, novac se vraća na vašu karticu.')),
+                          );
+                        }
+                      } on ApiException catch (e) {
+                        setDialogState(() {
+                          serverError = e.message;
+                          processing = false;
+                        });
+                      }
+                    },
+              child: processing
+                  ? const SizedBox(
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Otkaži narudžbu'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -204,6 +306,22 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           label: const Text('Ocijeni'),
                           onPressed: () => _openReviewDialog(item),
                         ),
+            ),
+          // dok je u obradi kupac moze odustati; poslana narudzba se ne otkazuje
+          if (order.status == 'Processing')
+            Padding(
+              padding: const EdgeInsets.only(right: 8, bottom: 8),
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error,
+                  ),
+                  icon: const Icon(Icons.cancel_outlined, size: 18),
+                  label: const Text('Otkaži narudžbu'),
+                  onPressed: () => _cancelOrder(order),
+                ),
+              ),
             ),
         ],
       ),
