@@ -19,8 +19,5 @@ public interface IAppointmentService : IService<AppointmentResponse, Appointment
 
     Task<AppointmentResponse> ConfirmAsync(int id);
     Task<AppointmentResponse> CompleteAsync(int id);
-
-    // Nedolazak clana - moguce evidentirati tek kad termin prodje.
-    Task<AppointmentResponse> MarkNoShowAsync(int id);
     Task<AppointmentResponse> CancelAsync(int id, AppointmentCancelRequest request);
 }
