@@ -36,4 +36,10 @@ class SeminarsProvider extends ChangeNotifier {
     await _api.post('/api/seminars/$seminarId/register');
     await load();
   }
+
+  /// Odjava oslobadja mjesto - moguca do pocetka seminara.
+  Future<void> unregister(int seminarId) async {
+    await _api.post('/api/seminars/$seminarId/unregister');
+    await load();
+  }
 }

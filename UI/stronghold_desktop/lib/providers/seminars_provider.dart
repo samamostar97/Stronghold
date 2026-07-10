@@ -59,6 +59,12 @@ class SeminarsProvider extends ChangeNotifier {
     await load();
   }
 
+  /// Otkaz seminara - svi prijavljeni dobijaju notifikaciju i e-mail.
+  Future<void> cancel(int id, String reason) async {
+    await _api.put('/api/seminars/$id/cancel', body: {'reason': reason});
+    await load();
+  }
+
   Future<void> delete(int id) async {
     await _api.delete('/api/seminars/$id');
     await load();

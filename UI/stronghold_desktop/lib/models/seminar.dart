@@ -5,6 +5,8 @@ class Seminar {
   final DateTime scheduledAt;
   final int maxCapacity;
   final int registeredCount;
+  final bool isCancelled;
+  final String? cancellationReason;
 
   Seminar({
     required this.id,
@@ -13,6 +15,8 @@ class Seminar {
     required this.scheduledAt,
     required this.maxCapacity,
     required this.registeredCount,
+    required this.isCancelled,
+    this.cancellationReason,
   });
 
   factory Seminar.fromJson(Map<String, dynamic> json) => Seminar(
@@ -22,6 +26,8 @@ class Seminar {
         scheduledAt: DateTime.parse(json['scheduledAt'] as String),
         maxCapacity: json['maxCapacity'] as int,
         registeredCount: json['registeredCount'] as int,
+        isCancelled: json['isCancelled'] as bool,
+        cancellationReason: json['cancellationReason'] as String?,
       );
 }
 

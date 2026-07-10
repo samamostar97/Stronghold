@@ -9,6 +9,8 @@ public class SeminarResponse
     public int MaxCapacity { get; set; }
     public int RegisteredCount { get; set; }
     public int RemainingCapacity { get; set; }
+    public bool IsCancelled { get; set; }
+    public string? CancellationReason { get; set; }
     // Da li je trenutno prijavljeni korisnik vec prijavljen (za mobile dugme).
     public bool IsCurrentUserRegistered { get; set; }
 }

@@ -5,6 +5,8 @@ class Seminar {
   final DateTime scheduledAt;
   final int maxCapacity;
   final int remainingCapacity;
+  final bool isCancelled;
+  final String? cancellationReason;
   final bool isCurrentUserRegistered;
 
   Seminar({
@@ -14,6 +16,8 @@ class Seminar {
     required this.scheduledAt,
     required this.maxCapacity,
     required this.remainingCapacity,
+    required this.isCancelled,
+    this.cancellationReason,
     required this.isCurrentUserRegistered,
   });
 
@@ -24,6 +28,8 @@ class Seminar {
         scheduledAt: DateTime.parse(json['scheduledAt'] as String),
         maxCapacity: json['maxCapacity'] as int,
         remainingCapacity: json['remainingCapacity'] as int,
+        isCancelled: json['isCancelled'] as bool,
+        cancellationReason: json['cancellationReason'] as String?,
         isCurrentUserRegistered: json['isCurrentUserRegistered'] as bool,
       );
 }

@@ -6,5 +6,8 @@ public enum NotificationType
     UpcomingSeminar = 1,
     OrderStatusChanged = 2,
     AppointmentStatusChanged = 3,
-    PaymentConfirmed = 4
+    PaymentConfirmed = 4,
+    UpcomingAppointment = 5,
+    MembershipRevoked = 6,
+    SeminarCancelled = 7
 }
