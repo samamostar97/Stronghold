@@ -271,13 +271,52 @@ public class ReportService : IReportService
             })
             .ToListAsync();
 
+        // doseg zaliha po tempu prodaje zadnjih 30 dana
+        foreach (var item in items)
+        {
+            item.StockCoverDays = item.SoldLast30Days == 0
+                ? null
+                : Math.Round(item.StockQuantity / (item.SoldLast30Days / 30.0));
+        }
+
+        // najlosije ocijenjeni - agregat nad drugom tabelom ide posebnim upitom (kao top proizvodi)
+        var worstRaw = await _db.Reviews
+            .GroupBy(r => new { r.SupplementId, r.Supplement.Name })
+            .Select(g => new
+            {
+                g.Key.SupplementId,
+                g.Key.Name,
+                AverageRating = g.Average(r => (double)r.Rating),
+                ReviewCount = g.Count()
+            })
+            .OrderBy(x => x.AverageRating).ThenBy(x => x.Name)
+            .Take(5)
+            .ToListAsync();
+        var worstIds = worstRaw.Select(w => w.SupplementId).ToList();
+        var worstSold = await _db.OrderItems
+            .Where(i => worstIds.Contains(i.SupplementId) &&
+                i.Order.CreatedAt >= since &&
+                i.Order.Status != OrderStatus.Cancelled)
+            .GroupBy(i => i.SupplementId)
+            .Select(g => new { g.Key, Quantity = g.Sum(i => i.Quantity) })
+            .ToDictionaryAsync(x => x.Key, x => x.Quantity);
+        var worstRated = worstRaw.Select(w => new WorstRatedProduct
+        {
+            Name = w.Name,
+            AverageRating = w.AverageRating,
+            ReviewCount = w.ReviewCount,
+            SoldLast30Days = worstSold.TryGetValue(w.SupplementId, out var qty) ? qty : 0
+        }).ToList();
+
         return new InventoryReportResponse
         {
             Items = items,
+            WorstRated = worstRated,
             TotalValue = items.Sum(i => i.StockValue),
             TotalItems = items.Count,
             LowStockCount = items.Count(i => i.StockQuantity < LowStockThreshold),
-            OutOfStockCount = items.Count(i => i.StockQuantity == 0)
+            OutOfStockCount = items.Count(i => i.StockQuantity == 0),
+            NoSalesLast30Count = items.Count(i => i.SoldLast30Days == 0)
         };
     }
 

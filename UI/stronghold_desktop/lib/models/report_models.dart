@@ -225,27 +225,36 @@ class TopProduct {
 
 class InventoryReport {
   final List<InventoryItem> items;
+  final List<WorstRatedProduct> worstRated;
   final double totalValue;
   final int totalItems;
   final int lowStockCount;
   final int outOfStockCount;
+  final int noSalesLast30Count;
 
   InventoryReport({
     required this.items,
+    required this.worstRated,
     required this.totalValue,
     required this.totalItems,
     required this.lowStockCount,
     required this.outOfStockCount,
+    required this.noSalesLast30Count,
   });
 
   factory InventoryReport.fromJson(Map<String, dynamic> json) => InventoryReport(
         items: (json['items'] as List)
             .map((item) => InventoryItem.fromJson(item as Map<String, dynamic>))
             .toList(),
+        worstRated: (json['worstRated'] as List)
+            .map((item) =>
+                WorstRatedProduct.fromJson(item as Map<String, dynamic>))
+            .toList(),
         totalValue: (json['totalValue'] as num).toDouble(),
         totalItems: json['totalItems'] as int,
         lowStockCount: json['lowStockCount'] as int,
         outOfStockCount: json['outOfStockCount'] as int,
+        noSalesLast30Count: json['noSalesLast30Count'] as int,
       );
 }
 
@@ -257,6 +266,7 @@ class InventoryItem {
   final int soldLast30Days;
   final double price;
   final double stockValue;
+  final double? stockCoverDays;
 
   InventoryItem({
     required this.name,
@@ -266,6 +276,7 @@ class InventoryItem {
     required this.soldLast30Days,
     required this.price,
     required this.stockValue,
+    required this.stockCoverDays,
   });
 
   factory InventoryItem.fromJson(Map<String, dynamic> json) => InventoryItem(
@@ -276,6 +287,29 @@ class InventoryItem {
         soldLast30Days: json['soldLast30Days'] as int,
         price: (json['price'] as num).toDouble(),
         stockValue: (json['stockValue'] as num).toDouble(),
+        stockCoverDays: (json['stockCoverDays'] as num?)?.toDouble(),
+      );
+}
+
+class WorstRatedProduct {
+  final String name;
+  final double averageRating;
+  final int reviewCount;
+  final int soldLast30Days;
+
+  WorstRatedProduct({
+    required this.name,
+    required this.averageRating,
+    required this.reviewCount,
+    required this.soldLast30Days,
+  });
+
+  factory WorstRatedProduct.fromJson(Map<String, dynamic> json) =>
+      WorstRatedProduct(
+        name: json['name'] as String,
+        averageRating: (json['averageRating'] as num).toDouble(),
+        reviewCount: json['reviewCount'] as int,
+        soldLast30Days: json['soldLast30Days'] as int,
       );
 }
 

@@ -120,21 +120,23 @@ public static class ReportPdfBuilder
                 $"Ukupno artikala: {report.TotalItems}   " +
                 $"Bez zaliha: {report.OutOfStockCount}   " +
                 $"Artikala sa niskim zalihama: {report.LowStockCount}   " +
+                $"Bez prodaje (30 d): {report.NoSalesLast30Count}   " +
                 $"Ukupna vrijednost zaliha: {report.TotalValue:F2} KM")
                 .SemiBold();
-            // 8 kolona - uzi font i pazljivo dimenzionisane sirine da brojevi ne lome red
+            // 9 kolona - uzi font i pazljivo dimenzionisane sirine da brojevi ne lome red
             column.Item().PaddingTop(12).DefaultTextStyle(t => t.FontSize(9)).Table(table =>
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.RelativeColumn(2.6f);
-                    columns.RelativeColumn(1.6f);
-                    columns.RelativeColumn(1.6f);
+                    columns.RelativeColumn(2.3f);
+                    columns.RelativeColumn(1.4f);
+                    columns.RelativeColumn(1.4f);
+                    columns.RelativeColumn(0.8f);
+                    columns.RelativeColumn(1.1f);
                     columns.RelativeColumn(0.9f);
-                    columns.RelativeColumn(1.2f);
                     columns.RelativeColumn(1f);
-                    columns.RelativeColumn(1.2f);
-                    columns.RelativeColumn(1.6f);
+                    columns.RelativeColumn(1.1f);
+                    columns.RelativeColumn(1.4f);
                 });
                 table.Header(header =>
                 {
@@ -143,6 +145,7 @@ public static class ReportPdfBuilder
                     header.Cell().Element(HeaderCell).Text("Dobavljač");
                     header.Cell().Element(HeaderCell).Text("Zalihe");
                     header.Cell().Element(HeaderCell).Text("Prodano (30 d)");
+                    header.Cell().Element(HeaderCell).Text("Doseg (d)");
                     header.Cell().Element(HeaderCell).Text("Cijena");
                     header.Cell().Element(HeaderCell).Text("Vrijednost");
                     header.Cell().Element(HeaderCell).Text("Status");
@@ -154,9 +157,37 @@ public static class ReportPdfBuilder
                     table.Cell().Element(BodyCell).Text(item.SupplierName);
                     table.Cell().Element(BodyCell).Text($"{item.StockQuantity}");
                     table.Cell().Element(BodyCell).Text($"{item.SoldLast30Days}");
+                    table.Cell().Element(BodyCell).Text(
+                        item.StockCoverDays == null ? "—" : $"{item.StockCoverDays:F0}");
                     table.Cell().Element(BodyCell).Text($"{item.Price:F2}");
                     table.Cell().Element(BodyCell).Text($"{item.StockValue:F2}");
                     table.Cell().Element(BodyCell).Text(StockStatus(item.StockQuantity));
+                }
+            });
+            column.Item().PaddingTop(12).Text("Najlošije ocijenjeni proizvodi")
+                .FontSize(14).SemiBold();
+            column.Item().Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn(3);
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
+                });
+                table.Header(header =>
+                {
+                    header.Cell().Element(HeaderCell).Text("Proizvod");
+                    header.Cell().Element(HeaderCell).Text("Ocjena");
+                    header.Cell().Element(HeaderCell).Text("Broj recenzija");
+                    header.Cell().Element(HeaderCell).Text("Prodano (30 d)");
+                });
+                foreach (var product in report.WorstRated)
+                {
+                    table.Cell().Element(BodyCell).Text(product.Name);
+                    table.Cell().Element(BodyCell).Text($"{product.AverageRating:F1}");
+                    table.Cell().Element(BodyCell).Text($"{product.ReviewCount}");
+                    table.Cell().Element(BodyCell).Text($"{product.SoldLast30Days}");
                 }
             });
         });
