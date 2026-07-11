@@ -71,8 +71,8 @@ public class OrdersController : ControllerBase
     }
 
     // Otkazivanje placene narudzbe vrsi stvarni Stripe refund.
-    // Dostupno i kupcu (vlastita narudzba dok nije poslana) - provjera u servisu.
     [HttpPut("{id}/cancel")]
+    [Authorize(Roles = Roles.Admin)]
     public async Task<ActionResult<OrderResponse>> Cancel(int id, OrderCancelRequest request)
     {
         return Ok(await _orderService.CancelAsync(id, request));
