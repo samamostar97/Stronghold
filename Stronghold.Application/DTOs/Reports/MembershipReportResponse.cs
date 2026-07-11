@@ -1,34 +1,43 @@
 namespace Stronghold.Application.DTOs.Reports;
 
-// Tab "Clanarine" - aktivni clanovi, raspodjela po paketima, posjecenost.
+// Tab "Clanarine" - aktivni clanovi, stopa obnove, paketi i posjecenost.
 public class MembershipReportResponse
 {
     public int ActiveCount { get; set; }
     public int ExpiringIn7Days { get; set; }
     public int NewMembersThisMonth { get; set; }
-    public int RevokedCount { get; set; }
-    public List<PackageDistribution> ByPackage { get; set; } = new();
-    public List<PackageSales> PackageSales { get; set; } = new();
+
+    // Procenat clanarina isteklih u zadnjih 90 dana koje su obnovljene u roku 7 dana.
+    public double RenewalRatePercent { get; set; }
+
+    public List<PackageStat> Packages { get; set; } = new();
     public List<WeeklyVisitCount> WeeklyVisits { get; set; } = new();
+    public List<HourlyVisitCount> VisitsByHour { get; set; } = new();
+
+    // Prosjecno trajanje zatvorene posjete u zadnjih 30 dana, u minutama.
+    public double AvgVisitDurationMinutes { get; set; }
+
+    // Prosjecan broj posjeta po aktivnom clanu u zadnjih 30 dana.
+    public double AvgVisitsPerActiveMember { get; set; }
 }
 
-// Prodaja clanarina po paketu - broj uplata i prihod.
-public class PackageSales
-{
-    public string PackageName { get; set; } = null!;
-    public int SoldCount { get; set; }
-    public int SoldLast6Months { get; set; }
-    public decimal Revenue { get; set; }
-}
-
-public class PackageDistribution
+// Objedinjena statistika paketa - aktivne clanarine, prodaja i prihod.
+public class PackageStat
 {
     public string PackageName { get; set; } = null!;
     public int ActiveCount { get; set; }
+    public int SoldLast6Months { get; set; }
+    public decimal Revenue { get; set; }
 }
 
 public class WeeklyVisitCount
 {
     public DateTime WeekStart { get; set; }
+    public int Count { get; set; }
+}
+
+public class HourlyVisitCount
+{
+    public int Hour { get; set; }
     public int Count { get; set; }
 }
