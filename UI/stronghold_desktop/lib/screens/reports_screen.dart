@@ -8,6 +8,7 @@ import '../models/report_models.dart';
 import '../providers/reports_provider.dart';
 import '../utils/api_client.dart';
 import '../utils/formatters.dart';
+import '../widgets/stat_card.dart';
 import '../widgets/status_chip.dart';
 import '../widgets/stretch_scroll.dart';
 
@@ -172,19 +173,49 @@ class _ReportsScreenState extends State<ReportsScreen>
     }
     return ListView(
       children: [
+        Row(
+          children: [
+            Expanded(
+              child: StatCard(
+                icon: Icons.payments,
+                value: Formatters.money(report.revenueThisMonth),
+                label: 'prihod ovaj mjesec',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.account_balance_wallet,
+                value: Formatters.money(report.revenueLast6Months),
+                label: 'ukupno zadnjih 6 mjeseci',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.shopping_cart_checkout,
+                value: Formatters.money(report.avgOrderValue6M),
+                label: 'prosječna narudžba (6 mj)',
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: StatCard(
+                icon: Icons.cancel_presentation,
+                value:
+                    '${report.orderCancellationRate6M.toStringAsFixed(1)} %',
+                label: 'stopa otkaza narudžbi (6 mj)',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
         Card(
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Ukupno članarine: ${Formatters.money(report.totalMembershipRevenue)}    '
-                  'Ukupno prodavnica: ${Formatters.money(report.totalOrderRevenue)}    '
-                  'UKUPNO: ${Formatters.money(report.totalMembershipRevenue + report.totalOrderRevenue)}',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 16),
                 Text('Prihodi po mjesecima (KM)',
                     style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
@@ -194,6 +225,39 @@ class _ReportsScreenState extends State<ReportsScreen>
                       ('${month.month}/${month.year % 100}', month.total),
                   ],
                   Theme.of(context).colorScheme.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Mjesečni prihodi',
+                    style: Theme.of(context).textTheme.titleMedium),
+                StretchScroll(
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Mjesec')),
+                      DataColumn(label: Text('Članarine')),
+                      DataColumn(label: Text('Prodavnica')),
+                      DataColumn(label: Text('Ukupno')),
+                    ],
+                    rows: [
+                      for (final month in report.monthlyRevenue)
+                        DataRow(cells: [
+                          DataCell(Text('${month.month}/${month.year}')),
+                          DataCell(
+                              Text(Formatters.money(month.membershipRevenue))),
+                          DataCell(Text(Formatters.money(month.orderRevenue))),
+                          DataCell(Text(Formatters.money(month.total))),
+                        ]),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -230,6 +294,39 @@ class _ReportsScreenState extends State<ReportsScreen>
                               ? '-'
                               : product.averageRating!.toStringAsFixed(1))),
                           DataCell(Text(Formatters.money(product.revenue))),
+                        ]),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Prihod po kategorijama (zadnjih 6 mjeseci)',
+                    style: Theme.of(context).textTheme.titleMedium),
+                StretchScroll(
+                  child: DataTable(
+                    columns: const [
+                      DataColumn(label: Text('Kategorija')),
+                      DataColumn(label: Text('Prodano')),
+                      DataColumn(label: Text('Prihod')),
+                      DataColumn(label: Text('Udio')),
+                    ],
+                    rows: [
+                      for (final category in report.revenueByCategory)
+                        DataRow(cells: [
+                          DataCell(Text(category.categoryName)),
+                          DataCell(Text('${category.quantitySold} kom')),
+                          DataCell(Text(Formatters.money(category.revenue))),
+                          DataCell(Text(
+                              '${category.revenueShare.toStringAsFixed(1)} %')),
                         ]),
                     ],
                   ),

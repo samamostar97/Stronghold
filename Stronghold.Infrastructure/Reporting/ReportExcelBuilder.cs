@@ -11,11 +11,21 @@ public static class ReportExcelBuilder
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Prihodi");
 
-        sheet.Cell(1, 1).Value = "Mjesec";
-        sheet.Cell(1, 2).Value = "Članarine (KM)";
-        sheet.Cell(1, 3).Value = "Prodavnica (KM)";
-        sheet.Cell(1, 4).Value = "Ukupno (KM)";
-        var row = 2;
+        sheet.Cell(1, 1).Value = "Prihod ovaj mjesec (KM)";
+        sheet.Cell(1, 2).Value = report.RevenueThisMonth;
+        sheet.Cell(2, 1).Value = "Ukupno zadnjih 6 mjeseci (KM)";
+        sheet.Cell(2, 2).Value = report.RevenueLast6Months;
+        sheet.Cell(3, 1).Value = "Prosječna narudžba - 6 mj (KM)";
+        sheet.Cell(3, 2).Value = Math.Round(report.AvgOrderValue6M, 2);
+        sheet.Cell(4, 1).Value = "Stopa otkaza narudžbi - 6 mj (%)";
+        sheet.Cell(4, 2).Value = Math.Round(report.OrderCancellationRate6M, 1);
+
+        var row = 6;
+        sheet.Cell(row, 1).Value = "Mjesec";
+        sheet.Cell(row, 2).Value = "Članarine (KM)";
+        sheet.Cell(row, 3).Value = "Prodavnica (KM)";
+        sheet.Cell(row, 4).Value = "Ukupno (KM)";
+        row++;
         foreach (var month in report.MonthlyRevenue)
         {
             sheet.Cell(row, 1).Value = $"{month.Month:D2}/{month.Year}";
@@ -50,6 +60,23 @@ public static class ReportExcelBuilder
                 sheet.Cell(row, 5).Value = Math.Round(product.AverageRating.Value, 1);
             }
             sheet.Cell(row, 6).Value = product.Revenue;
+            row++;
+        }
+
+        row += 1;
+        sheet.Cell(row, 1).Value = "Prihod po kategorijama (6 mjeseci)";
+        row++;
+        sheet.Cell(row, 1).Value = "Kategorija";
+        sheet.Cell(row, 2).Value = "Prodano (kom)";
+        sheet.Cell(row, 3).Value = "Prihod (KM)";
+        sheet.Cell(row, 4).Value = "Udio (%)";
+        row++;
+        foreach (var category in report.RevenueByCategory)
+        {
+            sheet.Cell(row, 1).Value = category.CategoryName;
+            sheet.Cell(row, 2).Value = category.QuantitySold;
+            sheet.Cell(row, 3).Value = category.Revenue;
+            sheet.Cell(row, 4).Value = Math.Round(category.RevenueShare, 1);
             row++;
         }
 
