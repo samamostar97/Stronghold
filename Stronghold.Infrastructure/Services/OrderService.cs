@@ -292,10 +292,6 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
         });
         await Db.SaveChangesAsync();
 
-        await PublishOrderStatusEmailAsync(order,
-            "Stronghold - narudžba dostavljena",
-            $"vaša narudžba #{order.Id} je dostavljena. Prijatno korištenje!");
-
         _logger.LogInformation("Narudzba {OrderId} oznacena kao dostavljena.", id);
         return await GetByIdAsync(id);
     }
