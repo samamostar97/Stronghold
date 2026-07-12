@@ -11,16 +11,20 @@ public static class ReportExcelBuilder
         using var workbook = new XLWorkbook();
         var sheet = workbook.Worksheets.Add("Prihodi");
 
-        sheet.Cell(1, 1).Value = "Prihod ovaj mjesec (KM)";
-        sheet.Cell(1, 2).Value = report.RevenueThisMonth;
-        sheet.Cell(2, 1).Value = "Ukupno zadnjih 6 mjeseci (KM)";
-        sheet.Cell(2, 2).Value = report.RevenueLast6Months;
-        sheet.Cell(3, 1).Value = "Prosječna narudžba - 6 mj (KM)";
-        sheet.Cell(3, 2).Value = Math.Round(report.AvgOrderValue6M, 2);
-        sheet.Cell(4, 1).Value = "Stopa otkaza narudžbi - 6 mj (%)";
-        sheet.Cell(4, 2).Value = Math.Round(report.OrderCancellationRate6M, 1);
+        sheet.Cell(1, 1).Value = "Period";
+        sheet.Cell(1, 2).Value = PeriodLabel(report.FromMonth, report.FromYear, report.ToMonth, report.ToYear);
+        sheet.Cell(2, 1).Value = "Ukupan prihod (KM)";
+        sheet.Cell(2, 2).Value = report.TotalRevenue;
+        sheet.Cell(3, 1).Value = "Prihod od članarina (KM)";
+        sheet.Cell(3, 2).Value = report.MembershipRevenue;
+        sheet.Cell(4, 1).Value = "Prihod prodavnice (KM)";
+        sheet.Cell(4, 2).Value = report.OrderRevenue;
+        sheet.Cell(5, 1).Value = "Novi članovi";
+        sheet.Cell(5, 2).Value = report.NewMembers;
+        sheet.Cell(6, 1).Value = "Broj posjeta";
+        sheet.Cell(6, 2).Value = report.VisitCount;
 
-        var row = 6;
+        var row = 8;
         sheet.Cell(row, 1).Value = "Mjesec";
         sheet.Cell(row, 2).Value = "Članarine (KM)";
         sheet.Cell(row, 3).Value = "Prodavnica (KM)";
@@ -41,179 +45,86 @@ public static class ReportExcelBuilder
         sheet.Cell(row, 1).Value = "Proizvod";
         sheet.Cell(row, 2).Value = "Kategorija";
         sheet.Cell(row, 3).Value = "Prodano (kom)";
-        sheet.Cell(row, 4).Value = "Udio (%)";
-        sheet.Cell(row, 5).Value = "Ocjena";
-        sheet.Cell(row, 6).Value = "Prihod (KM)";
+        sheet.Cell(row, 4).Value = "Prihod (KM)";
         row++;
         foreach (var product in report.TopProducts)
         {
             sheet.Cell(row, 1).Value = product.Name;
             sheet.Cell(row, 2).Value = product.CategoryName;
             sheet.Cell(row, 3).Value = product.QuantitySold;
-            sheet.Cell(row, 4).Value = Math.Round(product.RevenueShare, 1);
-            if (product.AverageRating == null)
-            {
-                sheet.Cell(row, 5).Value = "-";
-            }
-            else
-            {
-                sheet.Cell(row, 5).Value = Math.Round(product.AverageRating.Value, 1);
-            }
-            sheet.Cell(row, 6).Value = product.Revenue;
+            sheet.Cell(row, 4).Value = product.Revenue;
             row++;
         }
 
         row += 1;
-        sheet.Cell(row, 1).Value = "Prihod po kategorijama (6 mjeseci)";
+        sheet.Cell(row, 1).Value = "Prodaja članarina po paketima";
         row++;
-        sheet.Cell(row, 1).Value = "Kategorija";
-        sheet.Cell(row, 2).Value = "Prodano (kom)";
+        sheet.Cell(row, 1).Value = "Paket";
+        sheet.Cell(row, 2).Value = "Prodano";
         sheet.Cell(row, 3).Value = "Prihod (KM)";
-        sheet.Cell(row, 4).Value = "Udio (%)";
         row++;
-        foreach (var category in report.RevenueByCategory)
-        {
-            sheet.Cell(row, 1).Value = category.CategoryName;
-            sheet.Cell(row, 2).Value = category.QuantitySold;
-            sheet.Cell(row, 3).Value = category.Revenue;
-            sheet.Cell(row, 4).Value = Math.Round(category.RevenueShare, 1);
-            row++;
-        }
-
-        return Finalize(workbook, sheet);
-    }
-
-    public static byte[] BuildInventory(InventoryReportResponse report)
-    {
-        using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Inventar");
-
-        sheet.Cell(1, 1).Value = "Proizvod";
-        sheet.Cell(1, 2).Value = "Kategorija";
-        sheet.Cell(1, 3).Value = "Dobavljač";
-        sheet.Cell(1, 4).Value = "Zalihe (kom)";
-        sheet.Cell(1, 5).Value = "Prodano (30 dana)";
-        sheet.Cell(1, 6).Value = "Doseg zaliha (dana)";
-        sheet.Cell(1, 7).Value = "Cijena (KM)";
-        sheet.Cell(1, 8).Value = "Vrijednost (KM)";
-        sheet.Cell(1, 9).Value = "Status";
-        var row = 2;
-        foreach (var item in report.Items)
-        {
-            sheet.Cell(row, 1).Value = item.Name;
-            sheet.Cell(row, 2).Value = item.CategoryName;
-            sheet.Cell(row, 3).Value = item.SupplierName;
-            sheet.Cell(row, 4).Value = item.StockQuantity;
-            sheet.Cell(row, 5).Value = item.SoldLast30Days;
-            if (item.StockCoverDays == null)
-            {
-                sheet.Cell(row, 6).Value = "-";
-            }
-            else
-            {
-                sheet.Cell(row, 6).Value = item.StockCoverDays.Value;
-            }
-            sheet.Cell(row, 7).Value = item.Price;
-            sheet.Cell(row, 8).Value = item.StockValue;
-            sheet.Cell(row, 9).Value = StockStatus(item.StockQuantity);
-            row++;
-        }
-        sheet.Cell(row + 1, 7).Value = "UKUPNO:";
-        sheet.Cell(row + 1, 8).Value = report.TotalValue;
-        sheet.Cell(row + 2, 1).Value = "Ukupno artikala";
-        sheet.Cell(row + 2, 2).Value = report.TotalItems;
-        sheet.Cell(row + 3, 1).Value = "Bez zaliha";
-        sheet.Cell(row + 3, 2).Value = report.OutOfStockCount;
-        sheet.Cell(row + 4, 1).Value = "Niske zalihe (<10)";
-        sheet.Cell(row + 4, 2).Value = report.LowStockCount;
-        sheet.Cell(row + 5, 1).Value = "Bez prodaje (30 dana)";
-        sheet.Cell(row + 5, 2).Value = report.NoSalesLast30Count;
-
-        row += 7;
-        sheet.Cell(row, 1).Value = "Najlošije ocijenjeni proizvodi";
-        row++;
-        sheet.Cell(row, 1).Value = "Proizvod";
-        sheet.Cell(row, 2).Value = "Ocjena";
-        sheet.Cell(row, 3).Value = "Broj recenzija";
-        sheet.Cell(row, 4).Value = "Prodano (30 dana)";
-        row++;
-        foreach (var product in report.WorstRated)
-        {
-            sheet.Cell(row, 1).Value = product.Name;
-            sheet.Cell(row, 2).Value = Math.Round(product.AverageRating, 1);
-            sheet.Cell(row, 3).Value = product.ReviewCount;
-            sheet.Cell(row, 4).Value = product.SoldLast30Days;
-            row++;
-        }
-
-        return Finalize(workbook, sheet);
-    }
-
-    public static byte[] BuildMemberships(MembershipReportResponse report)
-    {
-        using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Članarine");
-
-        sheet.Cell(1, 1).Value = "Aktivnih članova";
-        sheet.Cell(1, 2).Value = report.ActiveCount;
-        sheet.Cell(2, 1).Value = "Ističe u 7 dana";
-        sheet.Cell(2, 2).Value = report.ExpiringIn7Days;
-        sheet.Cell(3, 1).Value = "Novi članovi (ovaj mjesec)";
-        sheet.Cell(3, 2).Value = report.NewMembersThisMonth;
-        sheet.Cell(4, 1).Value = "Stopa obnove - 90 dana (%)";
-        sheet.Cell(4, 2).Value = Math.Round(report.RenewalRatePercent, 1);
-        sheet.Cell(5, 1).Value = "Prosječno trajanje posjete (min)";
-        sheet.Cell(5, 2).Value = Math.Round(report.AvgVisitDurationMinutes);
-        sheet.Cell(6, 1).Value = "Posjeta po aktivnom članu (30 dana)";
-        sheet.Cell(6, 2).Value = Math.Round(report.AvgVisitsPerActiveMember, 1);
-
-        sheet.Cell(8, 1).Value = "Paket";
-        sheet.Cell(8, 2).Value = "Aktivnih";
-        sheet.Cell(8, 3).Value = "Prodano (6 mj)";
-        sheet.Cell(8, 4).Value = "Prihod (KM)";
-        var row = 9;
-        foreach (var package in report.Packages)
+        foreach (var package in report.PackageSales)
         {
             sheet.Cell(row, 1).Value = package.PackageName;
-            sheet.Cell(row, 2).Value = package.ActiveCount;
-            sheet.Cell(row, 3).Value = package.SoldLast6Months;
-            sheet.Cell(row, 4).Value = package.Revenue;
-            row++;
-        }
-
-        row += 1;
-        sheet.Cell(row, 1).Value = "Sedmica od";
-        sheet.Cell(row, 2).Value = "Broj posjeta";
-        row++;
-        foreach (var week in report.WeeklyVisits)
-        {
-            sheet.Cell(row, 1).Value = week.WeekStart.ToString("dd.MM.yyyy.");
-            sheet.Cell(row, 2).Value = week.Count;
-            row++;
-        }
-
-        row += 1;
-        sheet.Cell(row, 1).Value = "Posjete po satima (30 dana)";
-        row++;
-        sheet.Cell(row, 1).Value = "Sat";
-        sheet.Cell(row, 2).Value = "Broj posjeta";
-        row++;
-        foreach (var hour in report.VisitsByHour)
-        {
-            sheet.Cell(row, 1).Value = $"{hour.Hour}:00";
-            sheet.Cell(row, 2).Value = hour.Count;
+            sheet.Cell(row, 2).Value = package.SoldCount;
+            sheet.Cell(row, 3).Value = package.Revenue;
             row++;
         }
 
         return Finalize(workbook, sheet);
     }
 
-    private static string StockStatus(int quantity) => quantity switch
+    public static byte[] BuildStaff(StaffReportResponse report)
     {
-        0 => "Nema na stanju",
-        < 10 => "Nisko",
-        _ => "OK"
-    };
+        using var workbook = new XLWorkbook();
+        var sheet = workbook.Worksheets.Add("Osoblje");
+
+        sheet.Cell(1, 1).Value = "Period";
+        sheet.Cell(1, 2).Value = PeriodLabel(report.FromMonth, report.FromYear, report.ToMonth, report.ToYear);
+        sheet.Cell(2, 1).Value = "Termina u periodu";
+        sheet.Cell(2, 2).Value = report.TotalAppointments;
+        sheet.Cell(3, 1).Value = "Održano";
+        sheet.Cell(3, 2).Value = report.CompletedCount;
+        sheet.Cell(4, 1).Value = "Otkazano";
+        sheet.Cell(4, 2).Value = report.CancelledCount;
+        sheet.Cell(5, 1).Value = "Nadolazeći";
+        sheet.Cell(5, 2).Value = report.UpcomingCount;
+        sheet.Cell(6, 1).Value = "Najviše termina";
+        sheet.Cell(6, 2).Value = report.BusiestStaffName == null
+            ? "-"
+            : $"{report.BusiestStaffName} ({report.BusiestStaffCount})";
+        sheet.Cell(7, 1).Value = "Najtraženija satnica";
+        sheet.Cell(7, 2).Value = report.BusiestHour == null
+            ? "-"
+            : $"{report.BusiestHour}:00 ({report.BusiestHourCount} termina)";
+
+        var row = 9;
+        sheet.Cell(row, 1).Value = "Osoba";
+        sheet.Cell(row, 2).Value = "Tip";
+        sheet.Cell(row, 3).Value = "Zakazano";
+        sheet.Cell(row, 4).Value = "Održano";
+        sheet.Cell(row, 5).Value = "Otkazano";
+        sheet.Cell(row, 6).Value = "Nadolazeći";
+        row++;
+        foreach (var person in report.Staff)
+        {
+            sheet.Cell(row, 1).Value = person.FullName;
+            sheet.Cell(row, 2).Value = StaffTypeLabel(person.StaffType);
+            sheet.Cell(row, 3).Value = person.TotalCount;
+            sheet.Cell(row, 4).Value = person.CompletedCount;
+            sheet.Cell(row, 5).Value = person.CancelledCount;
+            sheet.Cell(row, 6).Value = person.UpcomingCount;
+            row++;
+        }
+
+        return Finalize(workbook, sheet);
+    }
+
+    internal static string PeriodLabel(int fromMonth, int fromYear, int toMonth, int toYear)
+        => $"{fromMonth:D2}/{fromYear} - {toMonth:D2}/{toYear}";
+
+    internal static string StaffTypeLabel(string staffType)
+        => staffType == "Nutritionist" ? "Nutricionista" : "Trener";
 
     private static byte[] Finalize(XLWorkbook workbook, IXLWorksheet sheet)
     {

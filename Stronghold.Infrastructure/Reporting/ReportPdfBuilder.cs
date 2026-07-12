@@ -15,15 +15,17 @@ public static class ReportPdfBuilder
 
     public static byte[] BuildRevenue(RevenueReportResponse report)
     {
-        return Build("Izvještaj o prihodima", column =>
+        var period = ReportExcelBuilder.PeriodLabel(
+            report.FromMonth, report.FromYear, report.ToMonth, report.ToYear);
+        return Build($"Izvještaj o prihodima ({period})", column =>
         {
             column.Item().Text(
-                $"Prihod ovaj mjesec: {report.RevenueThisMonth:F2} KM   " +
-                $"Ukupno zadnjih 6 mjeseci: {report.RevenueLast6Months:F2} KM")
+                $"Ukupan prihod: {report.TotalRevenue:F2} KM   " +
+                $"Članarine: {report.MembershipRevenue:F2} KM   " +
+                $"Prodavnica: {report.OrderRevenue:F2} KM")
                 .SemiBold();
             column.Item().PaddingTop(4).Text(
-                $"Prosječna narudžba (6 mj): {report.AvgOrderValue6M:F2} KM   " +
-                $"Stopa otkaza narudžbi (6 mj): {report.OrderCancellationRate6M:F1} %")
+                $"Novi članovi: {report.NewMembers}   Broj posjeta: {report.VisitCount}")
                 .SemiBold();
             column.Item().PaddingTop(12).Text("Prihodi po mjesecima").FontSize(14).SemiBold();
             column.Item().Table(table =>
@@ -60,16 +62,12 @@ public static class ReportPdfBuilder
                     columns.RelativeColumn(2);
                     columns.RelativeColumn();
                     columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
                 });
                 table.Header(header =>
                 {
                     header.Cell().Element(HeaderCell).Text("Proizvod");
                     header.Cell().Element(HeaderCell).Text("Kategorija");
                     header.Cell().Element(HeaderCell).Text("Prodano (kom)");
-                    header.Cell().Element(HeaderCell).Text("Udio (%)");
-                    header.Cell().Element(HeaderCell).Text("Ocjena");
                     header.Cell().Element(HeaderCell).Text("Prihod (KM)");
                 });
                 foreach (var product in report.TopProducts)
@@ -77,200 +75,80 @@ public static class ReportPdfBuilder
                     table.Cell().Element(BodyCell).Text(product.Name);
                     table.Cell().Element(BodyCell).Text(product.CategoryName);
                     table.Cell().Element(BodyCell).Text($"{product.QuantitySold}");
-                    table.Cell().Element(BodyCell).Text($"{product.RevenueShare:F1}");
-                    table.Cell().Element(BodyCell).Text(
-                        product.AverageRating == null ? "-" : $"{product.AverageRating:F1}");
                     table.Cell().Element(BodyCell).Text($"{product.Revenue:F2}");
                 }
             });
-            column.Item().PaddingTop(12).Text("Prihod po kategorijama (zadnjih 6 mjeseci)")
-                .FontSize(14).SemiBold();
+            column.Item().PaddingTop(12).Text("Prodaja članarina po paketima").FontSize(14).SemiBold();
             column.Item().Table(table =>
             {
                 table.ColumnsDefinition(columns =>
                 {
                     columns.RelativeColumn(3);
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                });
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCell).Text("Kategorija");
-                    header.Cell().Element(HeaderCell).Text("Prodano (kom)");
-                    header.Cell().Element(HeaderCell).Text("Prihod (KM)");
-                    header.Cell().Element(HeaderCell).Text("Udio (%)");
-                });
-                foreach (var category in report.RevenueByCategory)
-                {
-                    table.Cell().Element(BodyCell).Text(category.CategoryName);
-                    table.Cell().Element(BodyCell).Text($"{category.QuantitySold}");
-                    table.Cell().Element(BodyCell).Text($"{category.Revenue:F2}");
-                    table.Cell().Element(BodyCell).Text($"{category.RevenueShare:F1}");
-                }
-            });
-        });
-    }
-
-    public static byte[] BuildInventory(InventoryReportResponse report)
-    {
-        return Build("Izvještaj o inventaru", column =>
-        {
-            column.Item().Text(
-                $"Ukupno artikala: {report.TotalItems}   " +
-                $"Bez zaliha: {report.OutOfStockCount}   " +
-                $"Artikala sa niskim zalihama: {report.LowStockCount}   " +
-                $"Bez prodaje (30 d): {report.NoSalesLast30Count}   " +
-                $"Ukupna vrijednost zaliha: {report.TotalValue:F2} KM")
-                .SemiBold();
-            // 9 kolona - uzi font i pazljivo dimenzionisane sirine da brojevi ne lome red
-            column.Item().PaddingTop(12).DefaultTextStyle(t => t.FontSize(9)).Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(2.3f);
-                    columns.RelativeColumn(1.4f);
-                    columns.RelativeColumn(1.4f);
-                    columns.RelativeColumn(0.8f);
-                    columns.RelativeColumn(1.1f);
-                    columns.RelativeColumn(0.9f);
-                    columns.RelativeColumn(1f);
-                    columns.RelativeColumn(1.1f);
-                    columns.RelativeColumn(1.4f);
-                });
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCell).Text("Proizvod");
-                    header.Cell().Element(HeaderCell).Text("Kategorija");
-                    header.Cell().Element(HeaderCell).Text("Dobavljač");
-                    header.Cell().Element(HeaderCell).Text("Zalihe");
-                    header.Cell().Element(HeaderCell).Text("Prodano (30 d)");
-                    header.Cell().Element(HeaderCell).Text("Doseg (d)");
-                    header.Cell().Element(HeaderCell).Text("Cijena");
-                    header.Cell().Element(HeaderCell).Text("Vrijednost");
-                    header.Cell().Element(HeaderCell).Text("Status");
-                });
-                foreach (var item in report.Items)
-                {
-                    table.Cell().Element(BodyCell).Text(item.Name);
-                    table.Cell().Element(BodyCell).Text(item.CategoryName);
-                    table.Cell().Element(BodyCell).Text(item.SupplierName);
-                    table.Cell().Element(BodyCell).Text($"{item.StockQuantity}");
-                    table.Cell().Element(BodyCell).Text($"{item.SoldLast30Days}");
-                    table.Cell().Element(BodyCell).Text(
-                        item.StockCoverDays == null ? "—" : $"{item.StockCoverDays:F0}");
-                    table.Cell().Element(BodyCell).Text($"{item.Price:F2}");
-                    table.Cell().Element(BodyCell).Text($"{item.StockValue:F2}");
-                    table.Cell().Element(BodyCell).Text(StockStatus(item.StockQuantity));
-                }
-            });
-            column.Item().PaddingTop(12).Text("Najlošije ocijenjeni proizvodi")
-                .FontSize(14).SemiBold();
-            column.Item().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                });
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCell).Text("Proizvod");
-                    header.Cell().Element(HeaderCell).Text("Ocjena");
-                    header.Cell().Element(HeaderCell).Text("Broj recenzija");
-                    header.Cell().Element(HeaderCell).Text("Prodano (30 d)");
-                });
-                foreach (var product in report.WorstRated)
-                {
-                    table.Cell().Element(BodyCell).Text(product.Name);
-                    table.Cell().Element(BodyCell).Text($"{product.AverageRating:F1}");
-                    table.Cell().Element(BodyCell).Text($"{product.ReviewCount}");
-                    table.Cell().Element(BodyCell).Text($"{product.SoldLast30Days}");
-                }
-            });
-        });
-    }
-
-    public static byte[] BuildMemberships(MembershipReportResponse report)
-    {
-        return Build("Izvještaj o članarinama", column =>
-        {
-            column.Item().Text(
-                $"Aktivnih članova: {report.ActiveCount}   " +
-                $"Ističe u narednih 7 dana: {report.ExpiringIn7Days}   " +
-                $"Novi članovi (ovaj mjesec): {report.NewMembersThisMonth}   " +
-                $"Stopa obnove (90 dana): {report.RenewalRatePercent:F1} %")
-                .SemiBold();
-            column.Item().PaddingTop(4).Text(
-                $"Prosječno trajanje posjete (30 d): {report.AvgVisitDurationMinutes:F0} min   " +
-                $"Posjeta po aktivnom članu (30 d): {report.AvgVisitsPerActiveMember:F1}")
-                .SemiBold();
-            column.Item().PaddingTop(12).Text("Paketi članarina")
-                .FontSize(14).SemiBold();
-            column.Item().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn(3);
-                    columns.RelativeColumn();
                     columns.RelativeColumn();
                     columns.RelativeColumn();
                 });
                 table.Header(header =>
                 {
                     header.Cell().Element(HeaderCell).Text("Paket");
-                    header.Cell().Element(HeaderCell).Text("Aktivnih");
-                    header.Cell().Element(HeaderCell).Text("Prodano (6 mj)");
+                    header.Cell().Element(HeaderCell).Text("Prodano");
                     header.Cell().Element(HeaderCell).Text("Prihod (KM)");
                 });
-                foreach (var package in report.Packages)
+                foreach (var package in report.PackageSales)
                 {
                     table.Cell().Element(BodyCell).Text(package.PackageName);
-                    table.Cell().Element(BodyCell).Text($"{package.ActiveCount}");
-                    table.Cell().Element(BodyCell).Text($"{package.SoldLast6Months}");
+                    table.Cell().Element(BodyCell).Text($"{package.SoldCount}");
                     table.Cell().Element(BodyCell).Text($"{package.Revenue:F2}");
                 }
             });
-            column.Item().PaddingTop(12).Text("Posjećenost po sedmicama")
-                .FontSize(14).SemiBold();
+        });
+    }
+
+    public static byte[] BuildStaff(StaffReportResponse report)
+    {
+        var period = ReportExcelBuilder.PeriodLabel(
+            report.FromMonth, report.FromYear, report.ToMonth, report.ToYear);
+        return Build($"Izvještaj o osoblju ({period})", column =>
+        {
+            column.Item().Text(
+                $"Termina u periodu: {report.TotalAppointments}   " +
+                $"Održano: {report.CompletedCount}   " +
+                $"Otkazano: {report.CancelledCount}   " +
+                $"Nadolazećih: {report.UpcomingCount}")
+                .SemiBold();
+            column.Item().PaddingTop(4).Text(
+                $"Najviše termina: {(report.BusiestStaffName == null ? "-" : $"{report.BusiestStaffName} ({report.BusiestStaffCount})")}   " +
+                $"Najtraženija satnica: {(report.BusiestHour == null ? "-" : $"{report.BusiestHour}:00 ({report.BusiestHourCount} termina)")}")
+                .SemiBold();
+            column.Item().PaddingTop(12).Text("Termini po osobi").FontSize(14).SemiBold();
             column.Item().Table(table =>
             {
                 table.ColumnsDefinition(columns =>
                 {
+                    columns.RelativeColumn(3);
+                    columns.RelativeColumn(2);
+                    columns.RelativeColumn();
+                    columns.RelativeColumn();
                     columns.RelativeColumn();
                     columns.RelativeColumn();
                 });
                 table.Header(header =>
                 {
-                    header.Cell().Element(HeaderCell).Text("Sedmica od");
-                    header.Cell().Element(HeaderCell).Text("Broj posjeta");
+                    header.Cell().Element(HeaderCell).Text("Osoba");
+                    header.Cell().Element(HeaderCell).Text("Tip");
+                    header.Cell().Element(HeaderCell).Text("Zakazano");
+                    header.Cell().Element(HeaderCell).Text("Održano");
+                    header.Cell().Element(HeaderCell).Text("Otkazano");
+                    header.Cell().Element(HeaderCell).Text("Nadolazeći");
                 });
-                foreach (var week in report.WeeklyVisits)
+                foreach (var person in report.Staff)
                 {
-                    table.Cell().Element(BodyCell).Text($"{week.WeekStart:dd.MM.yyyy}.");
-                    table.Cell().Element(BodyCell).Text($"{week.Count}");
-                }
-            });
-            column.Item().PaddingTop(12).Text("Posjete po satima (zadnjih 30 dana)")
-                .FontSize(14).SemiBold();
-            column.Item().Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.RelativeColumn();
-                    columns.RelativeColumn();
-                });
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCell).Text("Sat");
-                    header.Cell().Element(HeaderCell).Text("Broj posjeta");
-                });
-                foreach (var hour in report.VisitsByHour)
-                {
-                    table.Cell().Element(BodyCell).Text($"{hour.Hour}:00");
-                    table.Cell().Element(BodyCell).Text($"{hour.Count}");
+                    table.Cell().Element(BodyCell).Text(person.FullName);
+                    table.Cell().Element(BodyCell)
+                        .Text(ReportExcelBuilder.StaffTypeLabel(person.StaffType));
+                    table.Cell().Element(BodyCell).Text($"{person.TotalCount}");
+                    table.Cell().Element(BodyCell).Text($"{person.CompletedCount}");
+                    table.Cell().Element(BodyCell).Text($"{person.CancelledCount}");
+                    table.Cell().Element(BodyCell).Text($"{person.UpcomingCount}");
                 }
             });
         });
@@ -306,13 +184,6 @@ public static class ReportPdfBuilder
             });
         }).GeneratePdf();
     }
-
-    private static string StockStatus(int quantity) => quantity switch
-    {
-        0 => "Nema na stanju",
-        < 10 => "Nisko",
-        _ => "OK"
-    };
 
     private static IContainer HeaderCell(IContainer container) =>
         container.Background(Colors.Grey.Lighten3).Padding(6).DefaultTextStyle(t => t.SemiBold());
