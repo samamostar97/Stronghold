@@ -11,15 +11,19 @@ class ReportsProvider extends ChangeNotifier {
 
   Dashboard? _dashboard;
   RevenueReport? _revenue;
-  InventoryReport? _inventory;
-  MembershipReport? _memberships;
+  StaffReport? _staff;
   List<LeaderboardEntry> _leaderboard = [];
+
+  // period izvjestaja - prvi dan mjeseca za "od" i "do"; default zadnjih 6 mjeseci
+  DateTime _toMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+  late DateTime _fromMonth = DateTime(_toMonth.year, _toMonth.month - 5, 1);
 
   Dashboard? get dashboard => _dashboard;
   RevenueReport? get revenue => _revenue;
-  InventoryReport? get inventory => _inventory;
-  MembershipReport? get memberships => _memberships;
+  StaffReport? get staff => _staff;
   List<LeaderboardEntry> get leaderboard => _leaderboard;
+  DateTime get fromMonth => _fromMonth;
+  DateTime get toMonth => _toMonth;
 
   List<ActivityLogEntry> _activities = [];
 
@@ -45,16 +49,29 @@ class ReportsProvider extends ChangeNotifier {
     await loadDashboard();
   }
 
+  static String _monthParam(DateTime month) =>
+      '${month.year}-${month.month.toString().padLeft(2, '0')}';
+
+  Map<String, String> get _periodQuery => {
+        'from': _monthParam(_fromMonth),
+        'to': _monthParam(_toMonth),
+      };
+
+  /// Promjena perioda vazi za oba taba i za exporte.
+  Future<void> setPeriod(DateTime from, DateTime to) async {
+    _fromMonth = DateTime(from.year, from.month, 1);
+    _toMonth = DateTime(to.year, to.month, 1);
+    await loadReports();
+  }
+
   Future<void> loadReports() async {
-    // tri taba se ucitavaju paralelno
+    // oba taba se ucitavaju paralelno, za isti period
     final results = await Future.wait([
-      _api.get('/api/reports/revenue'),
-      _api.get('/api/reports/inventory'),
-      _api.get('/api/reports/memberships'),
+      _api.get('/api/reports/revenue', query: _periodQuery),
+      _api.get('/api/reports/staff', query: _periodQuery),
     ]);
     _revenue = RevenueReport.fromJson(results[0] as Map<String, dynamic>);
-    _inventory = InventoryReport.fromJson(results[1] as Map<String, dynamic>);
-    _memberships = MembershipReport.fromJson(results[2] as Map<String, dynamic>);
+    _staff = StaffReport.fromJson(results[1] as Map<String, dynamic>);
     notifyListeners();
   }
 
@@ -67,8 +84,10 @@ class ReportsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Preuzima PDF/Excel izvjestaj sa servera.
+  /// Preuzima PDF/Excel izvjestaj sa servera za odabrani period.
   Future<List<int>> downloadExport(String reportKey, String format) {
-    return _api.getBytes('/api/reports/$reportKey/$format');
+    final query = _periodQuery;
+    return _api.getBytes(
+        '/api/reports/$reportKey/$format?from=${query['from']}&to=${query['to']}');
   }
 }
