@@ -429,16 +429,7 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# AI / agent files - nikad ne commitati
-.claude/
-CLAUDE.md
-AGENT_GUIDE.md
-.cursor/
-.cursorrules
-.aider*
-.copilot/
-*.agent.md
-
 # Radni dokumenti predmeta (prijava, upute) - ne idu u repo
 RSII_Upute_za_izradu_seminarskog_rada_2025_26.pdf
 Stronghold_Prijava_Seminarski_RS2.pdf
+Stronghold_Prijava_Seminarski_RS2.docx
