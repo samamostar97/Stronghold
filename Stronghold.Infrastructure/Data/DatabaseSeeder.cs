@@ -135,7 +135,8 @@ public static class DatabaseSeeder
         var memberships = new List<Membership>();
 
         Membership NewMembership(User user, MembershipPackage package, int startDaysAgo,
-            bool revoked = false, int? revokedDaysAgo = null, string? reason = null)
+            bool revoked = false, int? revokedDaysAgo = null, string? reason = null,
+            int? paidDaysAgo = null)
         {
             var start = now.AddDays(-startDaysAgo);
             var membership = new Membership
@@ -148,7 +149,11 @@ public static class DatabaseSeeder
                 RevokedAt = revokedDaysAgo.HasValue ? now.AddDays(-revokedDaysAgo.Value) : null,
                 RevocationReason = reason
             };
-            membership.Payments.Add(new Payment { Amount = package.Price, PaidAt = start });
+            membership.Payments.Add(new Payment
+            {
+                Amount = package.Price,
+                PaidAt = paidDaysAgo.HasValue ? now.AddDays(-paidDaysAgo.Value) : start
+            });
             memberships.Add(membership);
             return membership;
         }
@@ -172,6 +177,12 @@ public static class DatabaseSeeder
             reason: "Zahtjev korisnika - preseljenje u drugi grad");
         // historijska istekla clanarina za mobile (historija uplata)
         NewMembership(mobile, monthly, 95);
+        // obnove placene unaprijed - uplata nedavno, clanarina pocinje kad istekne postojeca
+        // (kao MembershipService.Assign; pune izvjestaj o clanarinama za zadnjih 30 dana)
+        NewMembership(dino, quarterly, -28, paidDaysAgo: 3);
+        NewMembership(lejla, monthly, -32, paidDaysAgo: 7);
+        NewMembership(haris, quarterly, -31, paidDaysAgo: 1);
+        NewMembership(mobile, monthly, -30, paidDaysAgo: 10);
 
         db.Memberships.AddRange(memberships);
 
