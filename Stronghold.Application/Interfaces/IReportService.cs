@@ -6,15 +6,15 @@ public interface IReportService
 {
     Task<DashboardResponse> GetDashboardAsync();
 
-    // Poslovni izvjestaj za period "GGGG-MM" - "GGGG-MM"; default zadnjih 6 mjeseci.
-    Task<RevenueReportResponse> GetRevenueReportAsync(string? from, string? to);
+    // Uplate clanarina za period "GGGG-MM-DD" - "GGGG-MM-DD" (default zadnjih 30 dana), opciono za jednog clana.
+    Task<MembershipsReportResponse> GetMembershipsReportAsync(string? from, string? to, int? userId);
 
-    // Izvjestaj o terminima osoblja za isti oblik perioda.
-    Task<StaffReportResponse> GetStaffReportAsync(string? from, string? to);
+    // Prodaje u prodavnici za isti oblik perioda, opciono za jednog kupca.
+    Task<ShopReportResponse> GetShopReportAsync(string? from, string? to, int? userId);
 
-    // PDF izvjestaj za tab (revenue/staff) - za preuzimanje i ispis.
-    Task<byte[]> ExportPdfAsync(string reportKey, string? from, string? to);
+    // PDF izvjestaj (memberships/shop) - za preuzimanje i ispis.
+    Task<byte[]> ExportPdfAsync(string reportKey, string? from, string? to, int? userId);
 
-    // Excel izvjestaj za tab (revenue/staff).
-    Task<byte[]> ExportExcelAsync(string reportKey, string? from, string? to);
+    // Excel izvjestaj (memberships/shop).
+    Task<byte[]> ExportExcelAsync(string reportKey, string? from, string? to, int? userId);
 }
