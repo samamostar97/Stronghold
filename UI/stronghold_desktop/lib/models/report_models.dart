@@ -113,171 +113,97 @@ class ExpiringMembership {
       );
 }
 
-class RevenueReport {
-  final double totalRevenue;
-  final double membershipRevenue;
-  final double orderRevenue;
-  final int newMembers;
-  final int visitCount;
-  final List<MonthlyRevenue> monthlyRevenue;
-  final List<TopProduct> topProducts;
-  final List<PackageSales> packageSales;
+/// Izvjestaj o clanarinama - sve uplate u odabranom periodu.
+class MembershipsReport {
+  final String? userFullName;
+  final double totalAmount;
+  final int paymentCount;
+  final List<PaymentRow> payments;
 
-  RevenueReport({
-    required this.totalRevenue,
-    required this.membershipRevenue,
-    required this.orderRevenue,
-    required this.newMembers,
-    required this.visitCount,
-    required this.monthlyRevenue,
-    required this.topProducts,
-    required this.packageSales,
+  MembershipsReport({
+    required this.userFullName,
+    required this.totalAmount,
+    required this.paymentCount,
+    required this.payments,
   });
 
-  factory RevenueReport.fromJson(Map<String, dynamic> json) => RevenueReport(
-        totalRevenue: (json['totalRevenue'] as num).toDouble(),
-        membershipRevenue: (json['membershipRevenue'] as num).toDouble(),
-        orderRevenue: (json['orderRevenue'] as num).toDouble(),
-        newMembers: json['newMembers'] as int,
-        visitCount: json['visitCount'] as int,
-        monthlyRevenue: (json['monthlyRevenue'] as List)
-            .map((item) => MonthlyRevenue.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        topProducts: (json['topProducts'] as List)
-            .map((item) => TopProduct.fromJson(item as Map<String, dynamic>))
-            .toList(),
-        packageSales: (json['packageSales'] as List)
-            .map((item) => PackageSales.fromJson(item as Map<String, dynamic>))
+  factory MembershipsReport.fromJson(Map<String, dynamic> json) =>
+      MembershipsReport(
+        userFullName: json['userFullName'] as String?,
+        totalAmount: (json['totalAmount'] as num).toDouble(),
+        paymentCount: json['paymentCount'] as int,
+        payments: (json['payments'] as List)
+            .map((item) => PaymentRow.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 }
 
-class PackageSales {
+class PaymentRow {
+  final DateTime paidAt;
+  final String userFullName;
   final String packageName;
-  final int soldCount;
-  final double revenue;
+  final double amount;
 
-  PackageSales({
+  PaymentRow({
+    required this.paidAt,
+    required this.userFullName,
     required this.packageName,
-    required this.soldCount,
-    required this.revenue,
+    required this.amount,
   });
 
-  factory PackageSales.fromJson(Map<String, dynamic> json) => PackageSales(
+  factory PaymentRow.fromJson(Map<String, dynamic> json) => PaymentRow(
+        paidAt: DateTime.parse(json['paidAt'] as String),
+        userFullName: json['userFullName'] as String,
         packageName: json['packageName'] as String,
-        soldCount: json['soldCount'] as int,
-        revenue: (json['revenue'] as num).toDouble(),
+        amount: (json['amount'] as num).toDouble(),
       );
 }
 
-class StaffReport {
-  final int totalAppointments;
-  final int completedCount;
-  final int cancelledCount;
-  final int upcomingCount;
-  final String? busiestStaffName;
-  final int busiestStaffCount;
-  final int? busiestHour;
-  final int busiestHourCount;
-  final List<StaffAppointmentStat> staff;
+/// Izvjestaj o prodavnici - sve prodaje u odabranom periodu (bez otkazanih).
+class ShopReport {
+  final String? userFullName;
+  final double totalRevenue;
+  final int orderCount;
+  final List<OrderRow> orders;
 
-  StaffReport({
-    required this.totalAppointments,
-    required this.completedCount,
-    required this.cancelledCount,
-    required this.upcomingCount,
-    required this.busiestStaffName,
-    required this.busiestStaffCount,
-    required this.busiestHour,
-    required this.busiestHourCount,
-    required this.staff,
+  ShopReport({
+    required this.userFullName,
+    required this.totalRevenue,
+    required this.orderCount,
+    required this.orders,
   });
 
-  factory StaffReport.fromJson(Map<String, dynamic> json) => StaffReport(
-        totalAppointments: json['totalAppointments'] as int,
-        completedCount: json['completedCount'] as int,
-        cancelledCount: json['cancelledCount'] as int,
-        upcomingCount: json['upcomingCount'] as int,
-        busiestStaffName: json['busiestStaffName'] as String?,
-        busiestStaffCount: json['busiestStaffCount'] as int,
-        busiestHour: json['busiestHour'] as int?,
-        busiestHourCount: json['busiestHourCount'] as int,
-        staff: (json['staff'] as List)
-            .map((item) =>
-                StaffAppointmentStat.fromJson(item as Map<String, dynamic>))
+  factory ShopReport.fromJson(Map<String, dynamic> json) => ShopReport(
+        userFullName: json['userFullName'] as String?,
+        totalRevenue: (json['totalRevenue'] as num).toDouble(),
+        orderCount: json['orderCount'] as int,
+        orders: (json['orders'] as List)
+            .map((item) => OrderRow.fromJson(item as Map<String, dynamic>))
             .toList(),
       );
 }
 
-class StaffAppointmentStat {
-  final String fullName;
-  final String staffType;
-  final int totalCount;
-  final int completedCount;
-  final int cancelledCount;
-  final int upcomingCount;
+class OrderRow {
+  final DateTime createdAt;
+  final String userFullName;
+  final int itemCount;
+  final double totalAmount;
+  final String status;
 
-  StaffAppointmentStat({
-    required this.fullName,
-    required this.staffType,
-    required this.totalCount,
-    required this.completedCount,
-    required this.cancelledCount,
-    required this.upcomingCount,
+  OrderRow({
+    required this.createdAt,
+    required this.userFullName,
+    required this.itemCount,
+    required this.totalAmount,
+    required this.status,
   });
 
-  factory StaffAppointmentStat.fromJson(Map<String, dynamic> json) =>
-      StaffAppointmentStat(
-        fullName: json['fullName'] as String,
-        staffType: json['staffType'] as String,
-        totalCount: json['totalCount'] as int,
-        completedCount: json['completedCount'] as int,
-        cancelledCount: json['cancelledCount'] as int,
-        upcomingCount: json['upcomingCount'] as int,
-      );
-}
-
-class MonthlyRevenue {
-  final int year;
-  final int month;
-  final double membershipRevenue;
-  final double orderRevenue;
-
-  MonthlyRevenue({
-    required this.year,
-    required this.month,
-    required this.membershipRevenue,
-    required this.orderRevenue,
-  });
-
-  double get total => membershipRevenue + orderRevenue;
-
-  factory MonthlyRevenue.fromJson(Map<String, dynamic> json) => MonthlyRevenue(
-        year: json['year'] as int,
-        month: json['month'] as int,
-        membershipRevenue: (json['membershipRevenue'] as num).toDouble(),
-        orderRevenue: (json['orderRevenue'] as num).toDouble(),
-      );
-}
-
-class TopProduct {
-  final String name;
-  final String categoryName;
-  final int quantitySold;
-  final double revenue;
-
-  TopProduct({
-    required this.name,
-    required this.categoryName,
-    required this.quantitySold,
-    required this.revenue,
-  });
-
-  factory TopProduct.fromJson(Map<String, dynamic> json) => TopProduct(
-        name: json['name'] as String,
-        categoryName: json['categoryName'] as String,
-        quantitySold: json['quantitySold'] as int,
-        revenue: (json['revenue'] as num).toDouble(),
+  factory OrderRow.fromJson(Map<String, dynamic> json) => OrderRow(
+        createdAt: DateTime.parse(json['createdAt'] as String),
+        userFullName: json['userFullName'] as String,
+        itemCount: json['itemCount'] as int,
+        totalAmount: (json['totalAmount'] as num).toDouble(),
+        status: json['status'] as String,
       );
 }
 

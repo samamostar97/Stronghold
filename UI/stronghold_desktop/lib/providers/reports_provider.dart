@@ -10,20 +10,22 @@ class ReportsProvider extends ChangeNotifier {
   ReportsProvider(this._api);
 
   Dashboard? _dashboard;
-  RevenueReport? _revenue;
-  StaffReport? _staff;
+  MembershipsReport? _memberships;
+  ShopReport? _shop;
   List<LeaderboardEntry> _leaderboard = [];
 
-  // period izvjestaja - prvi dan mjeseca za "od" i "do"; default zadnjih 6 mjeseci
-  DateTime _toMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
-  late DateTime _fromMonth = DateTime(_toMonth.year, _toMonth.month - 5, 1);
+  // period izvjestaja na nivou dana; default zadnjih 30 dana, opcioni filter po clanu
+  DateTime _toDate = DateTime.now();
+  late DateTime _fromDate = _toDate.subtract(const Duration(days: 29));
+  int? _memberUserId;
 
   Dashboard? get dashboard => _dashboard;
-  RevenueReport? get revenue => _revenue;
-  StaffReport? get staff => _staff;
+  MembershipsReport? get memberships => _memberships;
+  ShopReport? get shop => _shop;
   List<LeaderboardEntry> get leaderboard => _leaderboard;
-  DateTime get fromMonth => _fromMonth;
-  DateTime get toMonth => _toMonth;
+  DateTime get fromDate => _fromDate;
+  DateTime get toDate => _toDate;
+  int? get memberUserId => _memberUserId;
 
   List<ActivityLogEntry> _activities = [];
 
@@ -49,29 +51,37 @@ class ReportsProvider extends ChangeNotifier {
     await loadDashboard();
   }
 
-  static String _monthParam(DateTime month) =>
-      '${month.year}-${month.month.toString().padLeft(2, '0')}';
+  static String _dayParam(DateTime day) =>
+      '${day.year}-${day.month.toString().padLeft(2, '0')}-${day.day.toString().padLeft(2, '0')}';
 
-  Map<String, String> get _periodQuery => {
-        'from': _monthParam(_fromMonth),
-        'to': _monthParam(_toMonth),
+  Map<String, String> get _reportQuery => {
+        'from': _dayParam(_fromDate),
+        'to': _dayParam(_toDate),
+        if (_memberUserId != null) 'userId': '$_memberUserId',
       };
 
-  /// Promjena perioda vazi za oba taba i za exporte.
-  Future<void> setPeriod(DateTime from, DateTime to) async {
-    _fromMonth = DateTime(from.year, from.month, 1);
-    _toMonth = DateTime(to.year, to.month, 1);
+  /// Promjena filtera (period i/ili clan) vazi za oba taba i za exporte.
+  Future<void> setFilters({
+    DateTime? from,
+    DateTime? to,
+    int? userId,
+    bool clearUser = false,
+  }) async {
+    if (from != null) _fromDate = from;
+    if (to != null) _toDate = to;
+    if (userId != null || clearUser) _memberUserId = userId;
     await loadReports();
   }
 
   Future<void> loadReports() async {
-    // oba taba se ucitavaju paralelno, za isti period
+    // oba taba se ucitavaju paralelno, za iste filtere
     final results = await Future.wait([
-      _api.get('/api/reports/revenue', query: _periodQuery),
-      _api.get('/api/reports/staff', query: _periodQuery),
+      _api.get('/api/reports/memberships', query: _reportQuery),
+      _api.get('/api/reports/shop', query: _reportQuery),
     ]);
-    _revenue = RevenueReport.fromJson(results[0] as Map<String, dynamic>);
-    _staff = StaffReport.fromJson(results[1] as Map<String, dynamic>);
+    _memberships =
+        MembershipsReport.fromJson(results[0] as Map<String, dynamic>);
+    _shop = ShopReport.fromJson(results[1] as Map<String, dynamic>);
     notifyListeners();
   }
 
@@ -84,10 +94,11 @@ class ReportsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Preuzima PDF/Excel izvjestaj sa servera za odabrani period.
+  /// Preuzima PDF/Excel izvjestaj sa servera za odabrane filtere.
   Future<List<int>> downloadExport(String reportKey, String format) {
-    final query = _periodQuery;
+    final query = _reportQuery;
+    final user = query.containsKey('userId') ? '&userId=${query['userId']}' : '';
     return _api.getBytes(
-        '/api/reports/$reportKey/$format?from=${query['from']}&to=${query['to']}');
+        '/api/reports/$reportKey/$format?from=${query['from']}&to=${query['to']}$user');
   }
 }
