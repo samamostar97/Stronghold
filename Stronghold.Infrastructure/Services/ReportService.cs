@@ -14,7 +14,7 @@ public class ReportService : IReportService
     private const int LowStockThreshold = 10;
     private const int StuckOrderDays = 3;
     private const int AttentionListSize = 5;
-    private const int MaxPeriodMonths = 24;
+    private const int MaxPeriodDays = 366;
 
     private readonly StrongholdDbContext _db;
 
@@ -129,204 +129,151 @@ public class ReportService : IReportService
         };
     }
 
-    public async Task<RevenueReportResponse> GetRevenueReportAsync(string? from, string? to)
+    public async Task<MembershipsReportResponse> GetMembershipsReportAsync(
+        string? from, string? to, int? userId)
     {
         var (fromDate, toExclusive) = ResolvePeriod(from, to);
+        var userFullName = await ResolveUserNameAsync(userId);
 
-        // agregacije jednim GroupBy upitom po izvoru prihoda
-        var membershipByMonth = await _db.Payments
+        var payments = await _db.Payments.AsNoTracking()
             .Where(p => p.PaidAt >= fromDate && p.PaidAt < toExclusive)
-            .GroupBy(p => new { p.PaidAt.Year, p.PaidAt.Month })
-            .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(p => p.Amount) })
+            .Where(p => userId == null || p.Membership.UserId == userId)
+            .OrderByDescending(p => p.PaidAt)
+            .Select(p => new PaymentRow
+            {
+                PaidAt = p.PaidAt,
+                UserFullName = p.Membership.User.FirstName + " " + p.Membership.User.LastName,
+                PackageName = p.Membership.Package.Name,
+                Amount = p.Amount
+            })
             .ToListAsync();
 
-        var ordersByMonth = await _db.Orders
+        return new MembershipsReportResponse
+        {
+            FromDate = fromDate,
+            ToDate = toExclusive.AddDays(-1),
+            UserFullName = userFullName,
+            TotalAmount = payments.Sum(p => p.Amount),
+            PaymentCount = payments.Count,
+            Payments = payments
+        };
+    }
+
+    public async Task<ShopReportResponse> GetShopReportAsync(string? from, string? to, int? userId)
+    {
+        var (fromDate, toExclusive) = ResolvePeriod(from, to);
+        var userFullName = await ResolveUserNameAsync(userId);
+
+        var rows = await _db.Orders.AsNoTracking()
             .Where(o => o.CreatedAt >= fromDate && o.CreatedAt < toExclusive &&
                         o.Status != OrderStatus.Cancelled)
-            .GroupBy(o => new { o.CreatedAt.Year, o.CreatedAt.Month })
-            .Select(g => new { g.Key.Year, g.Key.Month, Total = g.Sum(o => o.TotalAmount) })
-            .ToListAsync();
-
-        var monthly = new List<MonthlyRevenue>();
-        for (var month = fromDate; month < toExclusive; month = month.AddMonths(1))
-        {
-            monthly.Add(new MonthlyRevenue
+            .Where(o => userId == null || o.UserId == userId)
+            .OrderByDescending(o => o.CreatedAt)
+            .Select(o => new
             {
-                Year = month.Year,
-                Month = month.Month,
-                MembershipRevenue = membershipByMonth
-                    .FirstOrDefault(m => m.Year == month.Year && m.Month == month.Month)?.Total ?? 0,
-                OrderRevenue = ordersByMonth
-                    .FirstOrDefault(o => o.Year == month.Year && o.Month == month.Month)?.Total ?? 0
-            });
-        }
-
-        var topProducts = await _db.OrderItems
-            .Where(i => i.Order.Status != OrderStatus.Cancelled &&
-                        i.Order.CreatedAt >= fromDate && i.Order.CreatedAt < toExclusive)
-            .GroupBy(i => new { i.Supplement.Name, CategoryName = i.Supplement.Category.Name })
-            .Select(g => new TopProduct
-            {
-                Name = g.Key.Name,
-                CategoryName = g.Key.CategoryName,
-                QuantitySold = g.Sum(i => i.Quantity),
-                Revenue = g.Sum(i => i.Quantity * i.UnitPrice)
+                o.CreatedAt,
+                UserFullName = o.User.FirstName + " " + o.User.LastName,
+                ItemCount = o.Items.Sum(i => i.Quantity),
+                o.TotalAmount,
+                o.Status
             })
-            .OrderByDescending(p => p.QuantitySold)
-            .Take(10)
             .ToListAsync();
 
-        var packageSales = await _db.Payments
-            .Where(p => p.PaidAt >= fromDate && p.PaidAt < toExclusive)
-            .GroupBy(p => p.Membership.Package.Name)
-            .Select(g => new PackageSales
-            {
-                PackageName = g.Key,
-                SoldCount = g.Count(),
-                Revenue = g.Sum(p => p.Amount)
-            })
-            .OrderByDescending(p => p.Revenue)
-            .ToListAsync();
-
-        // novi clan = korisnik cija PRVA clanarina pocinje u periodu
-        var newMembers = await _db.Memberships
-            .GroupBy(m => m.UserId)
-            .CountAsync(g => g.Min(m => m.StartDate) >= fromDate &&
-                             g.Min(m => m.StartDate) < toExclusive);
-
-        var visitCount = await _db.GymVisits
-            .CountAsync(v => v.CheckInAt >= fromDate && v.CheckInAt < toExclusive);
-
-        var membershipRevenue = monthly.Sum(m => m.MembershipRevenue);
-        var orderRevenue = monthly.Sum(m => m.OrderRevenue);
-        var toDate = toExclusive.AddMonths(-1);
-
-        return new RevenueReportResponse
+        var orders = rows.Select(r => new OrderRow
         {
-            FromYear = fromDate.Year,
-            FromMonth = fromDate.Month,
-            ToYear = toDate.Year,
-            ToMonth = toDate.Month,
-            TotalRevenue = membershipRevenue + orderRevenue,
-            MembershipRevenue = membershipRevenue,
-            OrderRevenue = orderRevenue,
-            NewMembers = newMembers,
-            VisitCount = visitCount,
-            MonthlyRevenue = monthly,
-            TopProducts = topProducts,
-            PackageSales = packageSales
+            CreatedAt = r.CreatedAt,
+            UserFullName = r.UserFullName,
+            ItemCount = r.ItemCount,
+            TotalAmount = r.TotalAmount,
+            Status = OrderStatusLabel(r.Status)
+        }).ToList();
+
+        return new ShopReportResponse
+        {
+            FromDate = fromDate,
+            ToDate = toExclusive.AddDays(-1),
+            UserFullName = userFullName,
+            TotalRevenue = orders.Sum(o => o.TotalAmount),
+            OrderCount = orders.Count,
+            Orders = orders
         };
     }
 
-    public async Task<StaffReportResponse> GetStaffReportAsync(string? from, string? to)
-    {
-        var (fromDate, toExclusive) = ResolvePeriod(from, to);
-        var fromDay = DateOnly.FromDateTime(fromDate);
-        var toDayExclusive = DateOnly.FromDateTime(toExclusive);
-
-        var inPeriod = _db.Appointments
-            .Where(a => a.Date >= fromDay && a.Date < toDayExclusive);
-
-        var staff = await inPeriod
-            .GroupBy(a => new
-            {
-                a.StaffMemberId,
-                a.StaffMember.FirstName,
-                a.StaffMember.LastName,
-                a.StaffMember.StaffType
-            })
-            .Select(g => new StaffAppointmentStat
-            {
-                FullName = g.Key.FirstName + " " + g.Key.LastName,
-                StaffType = g.Key.StaffType.ToString(),
-                TotalCount = g.Count(),
-                CompletedCount = g.Count(a => a.Status == AppointmentStatus.Completed),
-                CancelledCount = g.Count(a => a.Status == AppointmentStatus.Cancelled),
-                UpcomingCount = g.Count(a =>
-                    a.Status == AppointmentStatus.Pending || a.Status == AppointmentStatus.Confirmed)
-            })
-            .ToListAsync();
-        staff = staff.OrderByDescending(s => s.TotalCount).ThenBy(s => s.FullName).ToList();
-
-        var busiestHour = await inPeriod
-            .GroupBy(a => a.StartHour)
-            .Select(g => new { Hour = g.Key, Count = g.Count() })
-            .OrderByDescending(x => x.Count)
-            .FirstOrDefaultAsync();
-
-        var busiestStaff = staff.FirstOrDefault();
-        var toDate = toExclusive.AddMonths(-1);
-
-        return new StaffReportResponse
-        {
-            FromYear = fromDate.Year,
-            FromMonth = fromDate.Month,
-            ToYear = toDate.Year,
-            ToMonth = toDate.Month,
-            TotalAppointments = staff.Sum(s => s.TotalCount),
-            CompletedCount = staff.Sum(s => s.CompletedCount),
-            CancelledCount = staff.Sum(s => s.CancelledCount),
-            UpcomingCount = staff.Sum(s => s.UpcomingCount),
-            BusiestStaffName = busiestStaff?.FullName,
-            BusiestStaffCount = busiestStaff?.TotalCount ?? 0,
-            BusiestHour = busiestHour?.Hour,
-            BusiestHourCount = busiestHour?.Count ?? 0,
-            Staff = staff
-        };
-    }
-
-    public async Task<byte[]> ExportPdfAsync(string reportKey, string? from, string? to)
+    public async Task<byte[]> ExportPdfAsync(string reportKey, string? from, string? to, int? userId)
     {
         return reportKey switch
         {
-            "revenue" => ReportPdfBuilder.BuildRevenue(await GetRevenueReportAsync(from, to)),
-            "staff" => ReportPdfBuilder.BuildStaff(await GetStaffReportAsync(from, to)),
-            _ => throw new NotFoundException("Nepoznat izvještaj. Dostupni: revenue, staff.")
+            "memberships" => ReportPdfBuilder.BuildMemberships(
+                await GetMembershipsReportAsync(from, to, userId)),
+            "shop" => ReportPdfBuilder.BuildShop(await GetShopReportAsync(from, to, userId)),
+            _ => throw new NotFoundException("Nepoznat izvještaj. Dostupni: memberships, shop.")
         };
     }
 
-    public async Task<byte[]> ExportExcelAsync(string reportKey, string? from, string? to)
+    public async Task<byte[]> ExportExcelAsync(string reportKey, string? from, string? to, int? userId)
     {
         return reportKey switch
         {
-            "revenue" => ReportExcelBuilder.BuildRevenue(await GetRevenueReportAsync(from, to)),
-            "staff" => ReportExcelBuilder.BuildStaff(await GetStaffReportAsync(from, to)),
-            _ => throw new NotFoundException("Nepoznat izvještaj. Dostupni: revenue, staff.")
+            "memberships" => ReportExcelBuilder.BuildMemberships(
+                await GetMembershipsReportAsync(from, to, userId)),
+            "shop" => ReportExcelBuilder.BuildShop(await GetShopReportAsync(from, to, userId)),
+            _ => throw new NotFoundException("Nepoznat izvještaj. Dostupni: memberships, shop.")
         };
     }
 
-    /// <summary>Granice perioda iz "GGGG-MM" parametara; default je zadnjih 6 mjeseci.</summary>
+    /// <summary>Granice perioda iz "GGGG-MM-DD" parametara; default je zadnjih 30 dana.
+    /// Datumi se porede s UTC vremenima zapisa (konvencija cijele aplikacije).</summary>
     private static (DateTime FromDate, DateTime ToExclusive) ResolvePeriod(string? from, string? to)
     {
-        var now = DateTime.UtcNow;
-        var currentMonth = new DateTime(now.Year, now.Month, 1);
+        var today = DateTime.UtcNow.Date;
 
-        var fromDate = ParseMonth(from) ?? currentMonth.AddMonths(-5);
-        var toDate = ParseMonth(to) ?? currentMonth;
+        var fromDate = ParseDay(from) ?? today.AddDays(-29);
+        var toDate = ParseDay(to) ?? today;
 
         if (fromDate > toDate)
         {
-            throw new BusinessException("Početni mjesec perioda ne može biti poslije krajnjeg.");
+            throw new BusinessException("Početni datum perioda ne može biti poslije krajnjeg.");
         }
-        var months = (toDate.Year - fromDate.Year) * 12 + toDate.Month - fromDate.Month + 1;
-        if (months > MaxPeriodMonths)
+        if ((toDate - fromDate).Days + 1 > MaxPeriodDays)
         {
-            throw new BusinessException($"Period može obuhvatiti najviše {MaxPeriodMonths} mjeseca.");
+            throw new BusinessException($"Period može obuhvatiti najviše {MaxPeriodDays} dana.");
         }
-        return (fromDate, toDate.AddMonths(1));
+        return (fromDate, toDate.AddDays(1));
     }
 
-    private static DateTime? ParseMonth(string? value)
+    private static DateTime? ParseDay(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
         {
             return null;
         }
-        if (!DateTime.TryParseExact(value, "yyyy-MM", CultureInfo.InvariantCulture,
+        if (!DateTime.TryParseExact(value, "yyyy-MM-dd", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out var parsed))
         {
-            throw new BusinessException("Neispravan period. Očekivani format: GGGG-MM (npr. 2026-03).");
+            throw new BusinessException(
+                "Neispravan datum. Očekivani format: GGGG-MM-DD (npr. 2026-03-15).");
         }
-        return parsed;
+        return parsed.Date;
     }
+
+    private async Task<string?> ResolveUserNameAsync(int? userId)
+    {
+        if (userId == null)
+        {
+            return null;
+        }
+        var name = await _db.Users
+            .Where(u => u.Id == userId)
+            .Select(u => u.FirstName + " " + u.LastName)
+            .FirstOrDefaultAsync();
+        return name ?? throw new NotFoundException("Član nije pronađen.");
+    }
+
+    private static string OrderStatusLabel(OrderStatus status) => status switch
+    {
+        OrderStatus.Processing => "U obradi",
+        OrderStatus.Shipped => "Poslano",
+        OrderStatus.Delivered => "Dostavljeno",
+        _ => status.ToString()
+    };
 }

@@ -6,125 +6,120 @@ namespace Stronghold.Infrastructure.Reporting;
 /// <summary>Excel izvjestaji (ClosedXML).</summary>
 public static class ReportExcelBuilder
 {
-    public static byte[] BuildRevenue(RevenueReportResponse report)
+    private const string DateFormat = "dd.MM.yyyy.";
+    private const string MoneyFormat = "#,##0.00";
+
+    public static byte[] BuildMemberships(MembershipsReportResponse report)
     {
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Prihodi");
+        var sheet = workbook.Worksheets.Add("Članarine");
 
         sheet.Cell(1, 1).Value = "Period";
-        sheet.Cell(1, 2).Value = PeriodLabel(report.FromMonth, report.FromYear, report.ToMonth, report.ToYear);
-        sheet.Cell(2, 1).Value = "Ukupan prihod (KM)";
-        sheet.Cell(2, 2).Value = report.TotalRevenue;
-        sheet.Cell(3, 1).Value = "Prihod od članarina (KM)";
-        sheet.Cell(3, 2).Value = report.MembershipRevenue;
-        sheet.Cell(4, 1).Value = "Prihod prodavnice (KM)";
-        sheet.Cell(4, 2).Value = report.OrderRevenue;
-        sheet.Cell(5, 1).Value = "Novi članovi";
-        sheet.Cell(5, 2).Value = report.NewMembers;
-        sheet.Cell(6, 1).Value = "Broj posjeta";
-        sheet.Cell(6, 2).Value = report.VisitCount;
-
-        var row = 8;
-        sheet.Cell(row, 1).Value = "Mjesec";
-        sheet.Cell(row, 2).Value = "Članarine (KM)";
-        sheet.Cell(row, 3).Value = "Prodavnica (KM)";
-        sheet.Cell(row, 4).Value = "Ukupno (KM)";
-        row++;
-        foreach (var month in report.MonthlyRevenue)
+        sheet.Cell(1, 2).Value = PeriodLabel(report.FromDate, report.ToDate);
+        var row = 2;
+        if (report.UserFullName != null)
         {
-            sheet.Cell(row, 1).Value = $"{month.Month:D2}/{month.Year}";
-            sheet.Cell(row, 2).Value = month.MembershipRevenue;
-            sheet.Cell(row, 3).Value = month.OrderRevenue;
-            sheet.Cell(row, 4).Value = month.MembershipRevenue + month.OrderRevenue;
+            sheet.Cell(row, 1).Value = "Član";
+            sheet.Cell(row, 2).Value = report.UserFullName;
             row++;
         }
+        sheet.Cell(row, 1).Value = "Broj uplata";
+        sheet.Cell(row, 2).Value = report.PaymentCount;
+        row++;
+        sheet.Cell(row, 1).Value = "Ukupan iznos (KM)";
+        sheet.Cell(row, 2).Value = report.TotalAmount;
+        sheet.Cell(row, 2).Style.NumberFormat.Format = MoneyFormat;
+        row += 2;
 
-        row += 1;
-        sheet.Cell(row, 1).Value = "Najprodavaniji proizvodi";
-        row++;
-        sheet.Cell(row, 1).Value = "Proizvod";
-        sheet.Cell(row, 2).Value = "Kategorija";
-        sheet.Cell(row, 3).Value = "Prodano (kom)";
-        sheet.Cell(row, 4).Value = "Prihod (KM)";
-        row++;
-        foreach (var product in report.TopProducts)
+        if (report.Payments.Count == 0)
         {
-            sheet.Cell(row, 1).Value = product.Name;
-            sheet.Cell(row, 2).Value = product.CategoryName;
-            sheet.Cell(row, 3).Value = product.QuantitySold;
-            sheet.Cell(row, 4).Value = product.Revenue;
-            row++;
+            sheet.Cell(row, 1).Value = "Nema uplata u odabranom periodu.";
+            return Finalize(workbook, sheet);
         }
 
-        row += 1;
-        sheet.Cell(row, 1).Value = "Prodaja članarina po paketima";
+        sheet.Cell(row, 1).Value = "Datum";
+        sheet.Cell(row, 2).Value = "Član";
+        sheet.Cell(row, 3).Value = "Paket";
+        sheet.Cell(row, 4).Value = "Iznos (KM)";
+        sheet.Row(row).Style.Font.Bold = true;
         row++;
-        sheet.Cell(row, 1).Value = "Paket";
-        sheet.Cell(row, 2).Value = "Prodano";
-        sheet.Cell(row, 3).Value = "Prihod (KM)";
-        row++;
-        foreach (var package in report.PackageSales)
+        foreach (var payment in report.Payments)
         {
-            sheet.Cell(row, 1).Value = package.PackageName;
-            sheet.Cell(row, 2).Value = package.SoldCount;
-            sheet.Cell(row, 3).Value = package.Revenue;
+            // pravi DateTime/decimal tipovi da Excel moze sortirati i filtrirati
+            sheet.Cell(row, 1).Value = payment.PaidAt;
+            sheet.Cell(row, 1).Style.DateFormat.Format = DateFormat;
+            sheet.Cell(row, 2).Value = payment.UserFullName;
+            sheet.Cell(row, 3).Value = payment.PackageName;
+            sheet.Cell(row, 4).Value = payment.Amount;
+            sheet.Cell(row, 4).Style.NumberFormat.Format = MoneyFormat;
             row++;
         }
+        sheet.Cell(row, 1).Value = "UKUPNO";
+        sheet.Cell(row, 3).Value = $"{report.PaymentCount} uplata";
+        sheet.Cell(row, 4).Value = report.TotalAmount;
+        sheet.Cell(row, 4).Style.NumberFormat.Format = MoneyFormat;
+        sheet.Row(row).Style.Font.Bold = true;
 
         return Finalize(workbook, sheet);
     }
 
-    public static byte[] BuildStaff(StaffReportResponse report)
+    public static byte[] BuildShop(ShopReportResponse report)
     {
         using var workbook = new XLWorkbook();
-        var sheet = workbook.Worksheets.Add("Osoblje");
+        var sheet = workbook.Worksheets.Add("Prodavnica");
 
         sheet.Cell(1, 1).Value = "Period";
-        sheet.Cell(1, 2).Value = PeriodLabel(report.FromMonth, report.FromYear, report.ToMonth, report.ToYear);
-        sheet.Cell(2, 1).Value = "Termina u periodu";
-        sheet.Cell(2, 2).Value = report.TotalAppointments;
-        sheet.Cell(3, 1).Value = "Održano";
-        sheet.Cell(3, 2).Value = report.CompletedCount;
-        sheet.Cell(4, 1).Value = "Otkazano";
-        sheet.Cell(4, 2).Value = report.CancelledCount;
-        sheet.Cell(5, 1).Value = "Nadolazeći";
-        sheet.Cell(5, 2).Value = report.UpcomingCount;
-        sheet.Cell(6, 1).Value = "Najviše termina";
-        sheet.Cell(6, 2).Value = report.BusiestStaffName == null
-            ? "-"
-            : $"{report.BusiestStaffName} ({report.BusiestStaffCount})";
-        sheet.Cell(7, 1).Value = "Najtraženija satnica";
-        sheet.Cell(7, 2).Value = report.BusiestHour == null
-            ? "-"
-            : $"{report.BusiestHour}:00 ({report.BusiestHourCount} termina)";
-
-        var row = 9;
-        sheet.Cell(row, 1).Value = "Osoba";
-        sheet.Cell(row, 2).Value = "Tip";
-        sheet.Cell(row, 3).Value = "Zakazano";
-        sheet.Cell(row, 4).Value = "Održano";
-        sheet.Cell(row, 5).Value = "Otkazano";
-        sheet.Cell(row, 6).Value = "Nadolazeći";
-        row++;
-        foreach (var person in report.Staff)
+        sheet.Cell(1, 2).Value = PeriodLabel(report.FromDate, report.ToDate);
+        var row = 2;
+        if (report.UserFullName != null)
         {
-            sheet.Cell(row, 1).Value = person.FullName;
-            sheet.Cell(row, 2).Value = StaffTypeLabel(person.StaffType);
-            sheet.Cell(row, 3).Value = person.TotalCount;
-            sheet.Cell(row, 4).Value = person.CompletedCount;
-            sheet.Cell(row, 5).Value = person.CancelledCount;
-            sheet.Cell(row, 6).Value = person.UpcomingCount;
+            sheet.Cell(row, 1).Value = "Član";
+            sheet.Cell(row, 2).Value = report.UserFullName;
             row++;
         }
+        sheet.Cell(row, 1).Value = "Broj narudžbi";
+        sheet.Cell(row, 2).Value = report.OrderCount;
+        row++;
+        sheet.Cell(row, 1).Value = "Ukupna zarada (KM)";
+        sheet.Cell(row, 2).Value = report.TotalRevenue;
+        sheet.Cell(row, 2).Style.NumberFormat.Format = MoneyFormat;
+        row += 2;
+
+        if (report.Orders.Count == 0)
+        {
+            sheet.Cell(row, 1).Value = "Nema narudžbi u odabranom periodu.";
+            return Finalize(workbook, sheet);
+        }
+
+        sheet.Cell(row, 1).Value = "Datum";
+        sheet.Cell(row, 2).Value = "Kupac";
+        sheet.Cell(row, 3).Value = "Br. artikala";
+        sheet.Cell(row, 4).Value = "Iznos (KM)";
+        sheet.Cell(row, 5).Value = "Status";
+        sheet.Row(row).Style.Font.Bold = true;
+        row++;
+        foreach (var order in report.Orders)
+        {
+            sheet.Cell(row, 1).Value = order.CreatedAt;
+            sheet.Cell(row, 1).Style.DateFormat.Format = DateFormat;
+            sheet.Cell(row, 2).Value = order.UserFullName;
+            sheet.Cell(row, 3).Value = order.ItemCount;
+            sheet.Cell(row, 4).Value = order.TotalAmount;
+            sheet.Cell(row, 4).Style.NumberFormat.Format = MoneyFormat;
+            sheet.Cell(row, 5).Value = order.Status;
+            row++;
+        }
+        sheet.Cell(row, 1).Value = "UKUPNO";
+        sheet.Cell(row, 3).Value = $"{report.OrderCount} narudžbi";
+        sheet.Cell(row, 4).Value = report.TotalRevenue;
+        sheet.Cell(row, 4).Style.NumberFormat.Format = MoneyFormat;
+        sheet.Row(row).Style.Font.Bold = true;
 
         return Finalize(workbook, sheet);
     }
 
-    internal static string PeriodLabel(int fromMonth, int fromYear, int toMonth, int toYear)
-        => $"{fromMonth:D2}/{fromYear} - {toMonth:D2}/{toYear}";
-
-    internal static string StaffTypeLabel(string staffType)
-        => staffType == "Nutritionist" ? "Nutricionista" : "Trener";
+    internal static string PeriodLabel(DateTime fromDate, DateTime toDate)
+        => $"{fromDate:dd.MM.yyyy.} - {toDate:dd.MM.yyyy.}";
 
     private static byte[] Finalize(XLWorkbook workbook, IXLWorksheet sheet)
     {

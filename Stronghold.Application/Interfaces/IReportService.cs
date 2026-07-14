@@ -6,15 +6,15 @@ public interface IReportService
 {
     Task<DashboardResponse> GetDashboardAsync();
 
-    /// <summary>Poslovni izvjestaj za period "GGGG-MM" - "GGGG-MM"; default zadnjih 6 mjeseci.</summary>
-    Task<RevenueReportResponse> GetRevenueReportAsync(string? from, string? to);
+    /// <summary>Uplate clanarina za period "GGGG-MM-DD" - "GGGG-MM-DD" (default zadnjih 30 dana), opciono za jednog clana.</summary>
+    Task<MembershipsReportResponse> GetMembershipsReportAsync(string? from, string? to, int? userId);
 
-    /// <summary>Izvjestaj o terminima osoblja za isti oblik perioda.</summary>
-    Task<StaffReportResponse> GetStaffReportAsync(string? from, string? to);
+    /// <summary>Prodaje u prodavnici za isti oblik perioda, opciono za jednog kupca.</summary>
+    Task<ShopReportResponse> GetShopReportAsync(string? from, string? to, int? userId);
 
-    /// <summary>PDF izvjestaj za tab (revenue/staff) - za preuzimanje i ispis.</summary>
-    Task<byte[]> ExportPdfAsync(string reportKey, string? from, string? to);
+    /// <summary>PDF izvjestaj (memberships/shop) - za preuzimanje i ispis.</summary>
+    Task<byte[]> ExportPdfAsync(string reportKey, string? from, string? to, int? userId);
 
-    /// <summary>Excel izvjestaj za tab (revenue/staff).</summary>
-    Task<byte[]> ExportExcelAsync(string reportKey, string? from, string? to);
+    /// <summary>Excel izvjestaj (memberships/shop).</summary>
+    Task<byte[]> ExportExcelAsync(string reportKey, string? from, string? to, int? userId);
 }
