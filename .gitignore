@@ -429,7 +429,5 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# Radni dokumenti predmeta (prijava, upute) - ne idu u repo
-RSII_Upute_za_izradu_seminarskog_rada_2025_26.pdf
-Stronghold_Prijava_Seminarski_RS2.pdf
-Stronghold_Prijava_Seminarski_RS2.docx
+*.pdf
+*.docx

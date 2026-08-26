@@ -166,7 +166,7 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    // shared date picker - isti obrazac koriste i seminari
+                    // zajednicki izbor datuma - isti obrazac koriste i seminari
                     OutlinedButton.icon(
                       icon: const Icon(Icons.calendar_today),
                       label: Text(selectedDate == null

@@ -99,7 +99,7 @@ class _SeminarsScreenState extends State<SeminarsScreen> {
                         : null,
                   ),
                   const SizedBox(height: 16),
-                  // shared date picker + dropdown satnice (isti obrazac kao termini)
+                  // izbor datuma + dropdown satnice (isti obrazac kao termini)
                   Row(children: [
                     Expanded(
                       child: OutlinedButton.icon(

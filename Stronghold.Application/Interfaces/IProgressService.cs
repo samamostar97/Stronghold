@@ -5,7 +5,7 @@ namespace Stronghold.Application.Interfaces;
 
 public interface IProgressService
 {
-    // Leaderboard - top lista po XP-u, bez parametra pretrage (opravdan izuzetak).
+    // Leaderboard - top lista po XP-u.
     Task<PagedResult<LeaderboardEntryResponse>> GetLeaderboardAsync(BaseSearchObject search);
 
     // Analitika napretka trenutno prijavljenog clana.

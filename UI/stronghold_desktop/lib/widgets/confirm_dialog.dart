@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Confirmation dialog za nepovratne akcije (brisanje i sl.).
+/// Dijalog potvrde za nepovratne akcije (brisanje i sl.).
 Future<bool> showConfirmDialog(
   BuildContext context, {
   required String title,

@@ -47,7 +47,6 @@ class MainLayout extends StatefulWidget {
 }
 
 class _MainLayoutState extends State<MainLayout> {
-  // sekcije se popunjavaju kako ekrani nastaju - bez mrtvih linkova
   static const List<_NavSection> _sections = [
     _NavSection('Analitika', [
       _NavItem('Dashboard', Icons.dashboard_outlined, DashboardScreen()),

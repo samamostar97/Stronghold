@@ -27,12 +27,13 @@ Time se podižu SQL Server, RabbitMQ, API i Worker. Baza se automatski kreira,
 migrira i puni test podacima pri prvom startu.
 
 - API + Swagger: http://localhost:5000/swagger
-- RabbitMQ management: http://localhost:15672 (stronghold / stronghold123)
+- RabbitMQ management: http://localhost:15672 (kredencijali iz .env: RABBITMQ_USER / RABBITMQ_PASS)
 
 ## Funkcionalnosti
 
 **Desktop (administrator):** dashboard sa statistikom i nedavnim aktivnostima
-(undo u roku 1h), biznis report sa PDF/Excel exportom, leaderboard, korisnici,
+(undo u roku 1h), biznis reporti - uplate članarina i prodaja u prodavnici po
+periodu i članu, sa PDF/Excel exportom - leaderboard, korisnici,
 članarine i uplate, check-in praćenje posjeta, treneri i nutricionisti, termini
 sa slobodnim satnicama, suplementi/kategorije/dobavljači, narudžbe (isporuka i
 otkazivanje uz Stripe refund), seminari sa učesnicima, recenzije, FAQ, gradovi,
@@ -40,7 +41,7 @@ paketi članarina.
 
 **Mobile (član):** registracija i prijava, reset lozinke kodom na e-mail, profil
 sa XP nivoom i analitikom napretka, rang lista, prodavnica sa personalizovanim
-preporukama ("Preporučeno za tebe"), korpa i Stripe checkout (test kartica
+preporukama („Preporučeno za tebe“), korpa i Stripe checkout (test kartica
 `4242 4242 4242 4242`, bilo koji budući datum i CVC), historija narudžbi sa
 recenzijama, zakazivanje termina, seminari, notifikacije, FAQ.
 

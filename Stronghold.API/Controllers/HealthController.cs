@@ -7,8 +7,7 @@ namespace Stronghold.API.Controllers;
 [Route("api/health")]
 public class HealthController : ControllerBase
 {
-    // Anoniman jer ga koriste docker healthcheck i klijenti prije prijave;
-    // ne vraca nikakve korisnicke podatke.
+    // Anoniman - koriste ga docker healthcheck i klijenti prije prijave.
     [HttpGet]
     [AllowAnonymous]
     public IActionResult Get()

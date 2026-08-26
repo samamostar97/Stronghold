@@ -1,7 +1,7 @@
 namespace Stronghold.Application.Common;
 
-// Issuer i audience nisu tajne ni environment-specificne vrijednosti pa stoje u kodu;
-// tajni kljuc (JWT_KEY) dolazi iskljucivo iz environment varijable.
+// Issuer i audience su fiksne vrijednosti aplikacije; tajni kljuc (JWT_KEY)
+// dolazi iz environment varijable.
 public static class AuthConstants
 {
     public const string Issuer = "Stronghold.API";

@@ -8,7 +8,7 @@ using Stronghold.Infrastructure.Security;
 namespace Stronghold.Infrastructure.Data;
 
 // Puni bazu test podacima pri prvom pokretanju - dovoljno zapisa da svaki ekran
-// i grafikon odmah ima podatke. Propisani test nalozi: desktop/test, mobile/test,
+// i grafikon odmah ima podatke. Test nalozi: desktop/test, mobile/test,
 // admin/test, gymmember/test.
 public static class DatabaseSeeder
 {
@@ -447,7 +447,7 @@ public static class DatabaseSeeder
                 CancellationActor.Admin, "Trener spriječen zbog bolesti"),
             NewAppointment(haris, selma, 2, 14, AppointmentStatus.Cancelled, 3,
                 CancellationActor.User, "Spriječenost zbog posla"),
-            // istorijski termini kroz prosle mjesece - izvjestaj o osoblju pokriva siri period
+            // istorijski termini kroz prosle mjesece
             NewAppointment(mobile, emir, -20, 9, AppointmentStatus.Completed, 23),
             NewAppointment(lejla, emir, -34, 11, AppointmentStatus.Completed, 37),
             NewAppointment(tarik, emir, -62, 14, AppointmentStatus.Completed, 65),

@@ -9,7 +9,7 @@ namespace Stronghold.Infrastructure.Services;
 
 // Content-based filtering: proizvodi se preporucuju po slicnosti sa onima koje je
 // korisnik kupio ili visoko ocijenio, preko kategorije, dobavljaca i recenzija.
-// Svaki signal koji ulazi u scoring se ZAISTA koristi; svaka preporuka nosi objasnjenje.
+// Svaki signal ulazi u scoring, a svaka preporuka nosi objasnjenje.
 // Detalji: recommender-dokumentacija.md u rootu repozitorija.
 public class RecommendationService : IRecommendationService
 {

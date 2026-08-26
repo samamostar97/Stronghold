@@ -1,7 +1,7 @@
 # Sistem preporuke — dokumentacija
 
-Stronghold koristi **content-based filtering** za sekciju „Preporučeno za tebe" u
-mobilnoj prodavnici, u skladu s prijavom rada: sličnost proizvoda se računa preko
+Stronghold koristi **content-based filtering** za sekciju „Preporučeno za tebe“ u
+mobilnoj prodavnici: sličnost proizvoda se računa preko
 **kategorije**, **dobavljača** i **recenzija**.
 
 Implementacija: `Stronghold.Infrastructure/Services/RecommendationService.cs`
@@ -9,7 +9,7 @@ Endpoint: `GET /api/supplements/recommended` (rola `GymMember`)
 
 ## Ulazni signali
 
-Svi signali nastaju stvarnim korištenjem aplikacije (ne postoje samo u seedu):
+Svi signali nastaju korištenjem aplikacije:
 
 | Signal | Izvor | Kako nastaje |
 |---|---|---|
@@ -30,7 +30,7 @@ Svi signali nastaju stvarnim korištenjem aplikacije (ne postoje samo u seedu):
    | 3 | 1.0 |
    | 1–2 | 0.25 |
 
-   Time visoko ocijenjeni kupljeni proizvodi jače „vuku" preporuke prema svojoj
+   Time visoko ocijenjeni kupljeni proizvodi jače „vuku“ preporuke prema svojoj
    kategoriji/dobavljaču, a loše ocijenjeni ih gotovo isključuju.
 
 2. **Kandidati.** Svi proizvodi koje korisnik **nije** kupio i koji su na stanju.
@@ -43,7 +43,7 @@ Svi signali nastaju stvarnim korištenjem aplikacije (ne postoje samo u seedu):
          + 1.0 * (prosječnaOcjenaZajednice / 5)
    ```
 
-   Sva tri signala stvarno učestvuju u konačnom poretku: kategorija nosi najviše
+   Sva tri signala učestvuju u konačnom poretku: kategorija nosi najviše
    (najjači indikator namjere), dobavljač srednje (lojalnost brendu), a ocjena
    zajednice razbija izjednačenja i gura kvalitetnije proizvode naviše.
 
@@ -54,12 +54,12 @@ Svi signali nastaju stvarnim korištenjem aplikacije (ne postoje samo u seedu):
 Uz svaku preporuku korisniku se prikazuje **zašto** je preporučena — poruka prati
 dominantan signal u scoringu te preporuke:
 
-- „Zato što ste kupili *Jumbo* iz kategorije *Mass gaineri*"
-- „Zato što ste kupili *Iso Whey Zero* od proizvođača *BioTech USA*"
-- dodatak „— visoko ocijenjen (4.5)" kada je prosječna ocjena zajednice ≥ 4.
+- „Zato što ste kupili *Jumbo* iz kategorije *Mass gaineri*“
+- „Zato što ste kupili *Iso Whey Zero* od proizvođača *BioTech USA*“
+- dodatak „— visoko ocijenjen (4.5)“ kada je prosječna ocjena zajednice ≥ 4.
 
 ## Hladan start
 
 Korisnik bez ijedne kupovine dobija najbolje ocijenjene proizvode zajednice s
-objašnjenjem „Popularno među članovima (prosječna ocjena X.X)", odnosno „Novo u
-ponudi" za proizvode bez recenzija.
+objašnjenjem „Popularno među članovima (prosječna ocjena X.X)“, odnosno „Novo u
+ponudi“ za proizvode bez recenzija.

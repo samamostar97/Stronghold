@@ -9,7 +9,7 @@ using Stronghold.Core.Enums;
 namespace Stronghold.Infrastructure.Data;
 
 // Presrece sve CRUD operacije nad jednostavnim entitetima i snima snapshot
-// starog stanja (JSON) - osnova za undo u roku od 1 sat (Faza 17).
+// starog stanja (JSON) - osnova za undo u roku od 1 sat.
 // Narudzbe, uplate, clanarine i termini se NE loguju - oni imaju state machine
 // i vlastiti audit, a njihovo ponistavanje je regularna poslovna operacija.
 public class ActivityLogInterceptor : SaveChangesInterceptor
