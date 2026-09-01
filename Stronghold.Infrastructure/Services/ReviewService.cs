@@ -88,4 +88,15 @@ public class ReviewService : BaseService<Review, ReviewResponse, ReviewSearch>, 
             .ProjectToType<ReviewResponse>()
             .ToListAsync();
     }
+
+    public async Task DeleteAsync(int id)
+    {
+        var review = await Db.Reviews.FindAsync(id);
+        if (review == null)
+        {
+            throw new NotFoundException("Recenzija nije pronađena.");
+        }
+        Db.Reviews.Remove(review);
+        await Db.SaveChangesAsync();
+    }
 }

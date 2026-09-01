@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../models/review.dart';
 import '../providers/reviews_provider.dart';
+import '../utils/api_client.dart';
 import '../utils/formatters.dart';
+import '../widgets/confirm_dialog.dart';
 import '../widgets/pagination_bar.dart';
 import '../widgets/stretch_scroll.dart';
 import '../widgets/empty_state.dart';
 
-/// Pregled recenzija - pretraga po korisniku ili suplementu.
+/// Pregled recenzija - pretraga po korisniku ili suplementu, brisanje neprimjerenih.
 class ReviewsScreen extends StatefulWidget {
   const ReviewsScreen({super.key});
 
@@ -30,6 +33,32 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _showSuccess(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red.shade700),
+    );
+  }
+
+  Future<void> _deleteReview(Review review) async {
+    final confirmed = await showConfirmDialog(
+      context,
+      title: 'Brisanje recenzije',
+      message: 'Obrisati recenziju korisnika ${review.userFullName} '
+          'za "${review.supplementName}"?',
+    );
+    if (!confirmed || !mounted) return;
+    try {
+      await context.read<ReviewsProvider>().delete(review.id);
+      if (mounted) _showSuccess('Recenzija je obrisana.');
+    } on ApiException catch (e) {
+      if (mounted) _showError(e.message);
+    }
   }
 
   Widget _stars(int rating) {
@@ -86,6 +115,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                               DataColumn(label: Text('Ocjena')),
                               DataColumn(label: Text('Komentar')),
                               DataColumn(label: Text('Datum')),
+                              DataColumn(label: Text('Akcije')),
                             ],
                             rows: [
                               for (final review in provider.reviews)
@@ -104,6 +134,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                         maxLines: 2),
                                   )),
                                   DataCell(Text(Formatters.date(review.createdAt))),
+                                  DataCell(IconButton(
+                                    icon: const Icon(Icons.delete_outline),
+                                    tooltip: 'Obriši recenziju',
+                                    onPressed: () => _deleteReview(review),
+                                  )),
                                 ]),
                             ],
                           ),

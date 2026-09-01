@@ -39,4 +39,13 @@ public class ReviewsController : ControllerBase
     {
         return Ok(await _reviewService.GetMineAsync());
     }
+
+    // Brisanje neprimjerene recenzije - samo administrator.
+    [HttpDelete("{id}")]
+    [Authorize(Roles = Roles.Admin)]
+    public async Task<IActionResult> Delete(int id)
+    {
+        await _reviewService.DeleteAsync(id);
+        return NoContent();
+    }
 }

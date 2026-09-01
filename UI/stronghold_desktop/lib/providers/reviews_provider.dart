@@ -41,4 +41,13 @@ class ReviewsProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<void> delete(int id) async {
+    await _api.delete('/api/reviews/$id');
+    // ako je obrisan zadnji zapis na stranici, vrati se stranicu nazad
+    if (_reviews.length == 1 && _page > 1) {
+      _page--;
+    }
+    await load();
+  }
 }

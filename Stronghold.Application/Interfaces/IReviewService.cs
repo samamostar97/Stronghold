@@ -10,4 +10,7 @@ public interface IReviewService : IService<ReviewResponse, ReviewSearch>
 
     // Recenzije trenutno prijavljenog clana - mobile oznacava vec ocijenjene proizvode.
     Task<List<ReviewResponse>> GetMineAsync();
+
+    // Admin uklanja neprimjerenu recenziju.
+    Task DeleteAsync(int id);
 }
