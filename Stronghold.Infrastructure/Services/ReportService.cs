@@ -42,10 +42,13 @@ public class ReportService : IReportService
             .Where(p => p.PaidAt >= monthStart)
             .SumAsync(p => (decimal?)p.Amount) ?? 0;
         var orderRevenue = await _db.Orders
-            .Where(o => o.CreatedAt >= monthStart && o.Status != OrderStatus.Cancelled)
+            .Where(o => o.CreatedAt >= monthStart &&
+                        o.Status != OrderStatus.Cancelled &&
+                        o.Status != OrderStatus.PendingPayment)
             .SumAsync(o => (decimal?)o.TotalAmount) ?? 0;
 
         var latestOrders = await _db.Orders.AsNoTracking()
+            .Where(o => o.Status != OrderStatus.PendingPayment)
             .OrderByDescending(o => o.CreatedAt)
             .Take(5)
             .Select(o => new DashboardOrder
@@ -166,7 +169,8 @@ public class ReportService : IReportService
 
         var rows = await _db.Orders.AsNoTracking()
             .Where(o => o.CreatedAt >= fromDate && o.CreatedAt < toExclusive &&
-                        o.Status != OrderStatus.Cancelled)
+                        o.Status != OrderStatus.Cancelled &&
+                        o.Status != OrderStatus.PendingPayment)
             .Where(o => userId == null || o.UserId == userId)
             .OrderByDescending(o => o.CreatedAt)
             .Select(o => new

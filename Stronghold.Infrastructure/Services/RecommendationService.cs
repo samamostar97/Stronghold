@@ -33,7 +33,9 @@ public class RecommendationService : IRecommendationService
 
         // signali korisnika: kupovine (placene narudzbe) i vlastite recenzije
         var purchased = await _db.OrderItems.AsNoTracking()
-            .Where(i => i.Order.UserId == userId && i.Order.Status != OrderStatus.Cancelled)
+            .Where(i => i.Order.UserId == userId &&
+                        i.Order.Status != OrderStatus.Cancelled &&
+                        i.Order.Status != OrderStatus.PendingPayment)
             .Select(i => new { i.SupplementId, i.Supplement.CategoryId, i.Supplement.SupplierId, i.Supplement.Name })
             .Distinct()
             .ToListAsync();

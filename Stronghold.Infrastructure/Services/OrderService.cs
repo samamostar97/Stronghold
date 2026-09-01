@@ -47,6 +47,8 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
 
     protected override IQueryable<Order> ApplyFilter(IQueryable<Order> query, OrderSearch search)
     {
+        // nacrti koji cekaju placanje nisu prave narudzbe - ne prikazuju se
+        query = query.Where(o => o.Status != OrderStatus.PendingPayment);
         if (search.Status.HasValue)
         {
             query = query.Where(o => o.Status == search.Status);
@@ -107,8 +109,6 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             await Db.SaveChangesAsync();
         }
 
-        // stavke idu u metadata - confirm ih cita sa Stripe-a, klijentu se ne vjeruje
-        var itemsMetadata = string.Join(",", lines.Select(l => $"{l.Supplement.Id}:{l.Quantity}"));
         var intentService = new PaymentIntentService(_stripe);
         var intent = await intentService.CreateAsync(new PaymentIntentCreateOptions
         {
@@ -121,12 +121,38 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             },
             Metadata = new Dictionary<string, string>
             {
-                ["userId"] = userId.ToString(),
-                ["items"] = itemsMetadata,
-                ["deliveryStreet"] = request.DeliveryStreet,
-                ["deliveryCityId"] = request.DeliveryCityId.ToString()
+                ["userId"] = userId.ToString()
             }
         });
+
+        // narudzba sa stavkama i cijenama se snima PRIJE naplate - confirm samo potvrdjuje
+        // ovaj zapis, pa je iznos u bazi uvijek isti kao iznos za koji je kartica terecena
+        var draft = new Order
+        {
+            UserId = userId,
+            CreatedAt = DateTime.UtcNow,
+            Status = OrderStatus.PendingPayment,
+            StripePaymentIntentId = intent.Id,
+            DeliveryStreet = request.DeliveryStreet,
+            DeliveryCityId = request.DeliveryCityId,
+            TotalAmount = total
+        };
+        foreach (var line in lines)
+        {
+            draft.Items.Add(new OrderItem
+            {
+                SupplementId = line.Supplement.Id,
+                Quantity = line.Quantity,
+                UnitPrice = line.Supplement.Price
+            });
+        }
+
+        // stari nacrt istog korisnika je prevazidjen novim pokusajem placanja
+        await Db.Orders
+            .Where(o => o.UserId == userId && o.Status == OrderStatus.PendingPayment)
+            .ExecuteDeleteAsync();
+        Db.Orders.Add(draft);
+        await Db.SaveChangesAsync();
 
         return new PaymentIntentResponse
         {
@@ -139,14 +165,24 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
 
     public async Task<OrderResponse> ConfirmAsync(ConfirmOrderRequest request)
     {
-        // idempotentnost: narudzba za ovaj PaymentIntent vec postoji -> vrati je bez novih efekata
-        var existing = await Db.Orders
-            .Where(o => o.StripePaymentIntentId == request.PaymentIntentId)
-            .Select(o => o.Id)
-            .FirstOrDefaultAsync();
-        if (existing != 0)
+        var order = await Db.Orders
+            .Include(o => o.Items)
+            .FirstOrDefaultAsync(o => o.StripePaymentIntentId == request.PaymentIntentId);
+
+        // idempotentnost: nacrt je vec potvrdjen -> vrati narudzbu bez novih efekata
+        if (order != null && order.Status != OrderStatus.PendingPayment)
         {
-            return await GetByIdAsync(existing);
+            return await GetByIdAsync(order.Id);
+        }
+        if (order == null)
+        {
+            throw new BusinessException("Narudžba za ovo plaćanje ne postoji. Pokušajte ponovo iz korpe.");
+        }
+
+        var userId = _currentUser.UserId;
+        if (order.UserId != userId)
+        {
+            throw new BusinessException("Plaćanje ne pripada prijavljenom korisniku.");
         }
 
         var intentService = new PaymentIntentService(_stripe);
@@ -166,42 +202,28 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             throw new BusinessException("Plaćanje nije uspješno završeno. Narudžba nije kreirana.");
         }
 
-        var userId = _currentUser.UserId;
-        if (!intent.Metadata.TryGetValue("userId", out var intentUserId) ||
-            intentUserId != userId.ToString())
+        // naplaceni iznos mora odgovarati snimljenoj narudzbi - jedna istina o placanju
+        if (intent.AmountReceived != (long)(order.TotalAmount * 100))
         {
-            throw new BusinessException("Plaćanje ne pripada prijavljenom korisniku.");
+            throw new BusinessException("Naplaćeni iznos ne odgovara narudžbi. Kontaktirajte podršku.");
         }
-
-        var items = ParseItemsMetadata(intent.Metadata["items"]);
-        var lines = await BuildOrderLinesAsync(items);
 
         // promjena zaliha je dio poslovne operacije, ne CRUD - ne ide u nedavne aktivnosti/undo
         using var suppression = _activityLogInterceptor.Suppress();
         await using var transaction = await Db.Database.BeginTransactionAsync();
 
-        var order = new Order
+        var supplementIds = order.Items.Select(i => i.SupplementId).ToList();
+        var supplements = await Db.Supplements
+            .Where(s => supplementIds.Contains(s.Id))
+            .ToDictionaryAsync(s => s.Id);
+        foreach (var item in order.Items)
         {
-            UserId = userId,
-            CreatedAt = DateTime.UtcNow,
-            Status = OrderStatus.Processing,
-            StripePaymentIntentId = intent.Id,
-            DeliveryStreet = intent.Metadata["deliveryStreet"],
-            DeliveryCityId = int.Parse(intent.Metadata["deliveryCityId"])
-        };
-        foreach (var line in lines)
-        {
-            order.Items.Add(new OrderItem
-            {
-                SupplementId = line.Supplement.Id,
-                Quantity = line.Quantity,
-                UnitPrice = line.Supplement.Price
-            });
-            line.Supplement.StockQuantity -= line.Quantity;
+            supplements[item.SupplementId].StockQuantity -= item.Quantity;
         }
-        order.TotalAmount = order.Items.Sum(i => i.UnitPrice * i.Quantity);
 
-        Db.Orders.Add(order);
+        order.Status = OrderStatus.Processing;
+        order.CreatedAt = DateTime.UtcNow;
+
         Db.Notifications.Add(new Notification
         {
             UserId = userId,
@@ -236,7 +258,7 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
     {
         var userId = _currentUser.UserId;
         var query = Db.Orders.AsNoTracking()
-            .Where(o => o.UserId == userId)
+            .Where(o => o.UserId == userId && o.Status != OrderStatus.PendingPayment)
             .OrderByDescending(o => o.CreatedAt);
 
         var totalCount = await query.CountAsync();
@@ -405,18 +427,6 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             lines.Add((supplement, item.Quantity));
         }
         return lines;
-    }
-
-    private static List<OrderItemRequest> ParseItemsMetadata(string metadata)
-    {
-        return metadata.Split(',')
-            .Select(pair => pair.Split(':'))
-            .Select(parts => new OrderItemRequest
-            {
-                SupplementId = int.Parse(parts[0]),
-                Quantity = int.Parse(parts[1])
-            })
-            .ToList();
     }
 
     private async Task<Order> GetEntityAsync(int id)
