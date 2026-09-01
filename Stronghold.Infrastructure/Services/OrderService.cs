@@ -47,11 +47,15 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
 
     protected override IQueryable<Order> ApplyFilter(IQueryable<Order> query, OrderSearch search)
     {
-        // nacrti koji cekaju placanje nisu prave narudzbe - ne prikazuju se
-        query = query.Where(o => o.Status != OrderStatus.PendingPayment);
+        // zapisi checkouta koji cekaju placanje se ne mijesaju s pravim narudzbama,
+        // ali ih administrator moze eksplicitno filtrirati (naplaceno bez finalizacije)
         if (search.Status.HasValue)
         {
             query = query.Where(o => o.Status == search.Status);
+        }
+        else
+        {
+            query = query.Where(o => o.Status != OrderStatus.PendingPayment);
         }
         if (!string.IsNullOrWhiteSpace(search.Text))
         {
@@ -135,7 +139,8 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             StripePaymentIntentId = intent.Id,
             DeliveryStreet = request.DeliveryStreet,
             DeliveryCityId = request.DeliveryCityId,
-            TotalAmount = total
+            TotalAmount = total,
+            Currency = Currency
         };
         foreach (var line in lines)
         {
@@ -147,10 +152,19 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             });
         }
 
-        // stari nacrt istog korisnika je prevazidjen novim pokusajem placanja
-        await Db.Orders
+        // stari nenaplaceni nacrt je prevazidjen novim pokusajem; nacrt cije je
+        // placanje uspjelo se NE brise - to je trajni trag naplate bez finalizacije
+        var oldDrafts = await Db.Orders
             .Where(o => o.UserId == userId && o.Status == OrderStatus.PendingPayment)
-            .ExecuteDeleteAsync();
+            .ToListAsync();
+        foreach (var oldDraft in oldDrafts)
+        {
+            var oldIntent = await intentService.GetAsync(oldDraft.StripePaymentIntentId);
+            if (oldIntent.Status != "succeeded")
+            {
+                Db.Orders.Remove(oldDraft);
+            }
+        }
         Db.Orders.Add(draft);
         await Db.SaveChangesAsync();
 
@@ -202,8 +216,9 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             throw new BusinessException("Plaćanje nije uspješno završeno. Narudžba nije kreirana.");
         }
 
-        // naplaceni iznos mora odgovarati snimljenoj narudzbi - jedna istina o placanju
-        if (intent.AmountReceived != (long)(order.TotalAmount * 100))
+        // naplaceni iznos i valuta moraju odgovarati snimljenom zapisu checkouta
+        if (intent.AmountReceived != (long)(order.TotalAmount * 100) ||
+            !string.Equals(intent.Currency, order.Currency, StringComparison.OrdinalIgnoreCase))
         {
             throw new BusinessException("Naplaćeni iznos ne odgovara narudžbi. Kontaktirajte podršku.");
         }
@@ -232,8 +247,27 @@ public class OrderService : BaseService<Order, OrderResponse, OrderSearch>, IOrd
             Type = NotificationType.PaymentConfirmed,
             CreatedAt = DateTime.UtcNow
         });
-        // uspjesno placanje prazni korpu - u istoj transakciji kao narudzba
-        await Db.CartItems.Where(ci => ci.UserId == userId).ExecuteDeleteAsync();
+        // iz korpe se uklanjaju samo stavke ovog checkouta - artikal dodan
+        // poslije pokretanja placanja (ili veca kolicina) ostaje u korpi
+        var cartRows = await Db.CartItems
+            .Where(ci => ci.UserId == userId && supplementIds.Contains(ci.SupplementId))
+            .ToListAsync();
+        foreach (var item in order.Items)
+        {
+            var row = cartRows.FirstOrDefault(ci => ci.SupplementId == item.SupplementId);
+            if (row == null)
+            {
+                continue;
+            }
+            if (row.Quantity > item.Quantity)
+            {
+                row.Quantity -= item.Quantity;
+            }
+            else
+            {
+                Db.CartItems.Remove(row);
+            }
+        }
         await Db.SaveChangesAsync();
         await transaction.CommitAsync();
 

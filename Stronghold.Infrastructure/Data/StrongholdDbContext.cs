@@ -155,6 +155,7 @@ public class StrongholdDbContext : DbContext
         modelBuilder.Entity<Order>(entity =>
         {
             entity.Property(o => o.TotalAmount).HasPrecision(18, 2);
+            entity.Property(o => o.Currency).HasMaxLength(8).IsRequired().HasDefaultValue("bam");
             entity.Property(o => o.StripePaymentIntentId).HasMaxLength(100).IsRequired();
             entity.Property(o => o.DeliveryStreet).HasMaxLength(100).IsRequired();
             entity.Property(o => o.CancellationReason).HasMaxLength(300);

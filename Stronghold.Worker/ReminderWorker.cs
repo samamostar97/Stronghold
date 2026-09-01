@@ -59,7 +59,6 @@ public class ReminderWorker : BackgroundService
 
         var closedAppointments = await CloseExpiredAppointmentsAsync(db, now, stoppingToken);
         var closedVisits = await CloseStaleVisitsAsync(db, now, stoppingToken);
-        var removedDrafts = await RemoveStalePendingOrdersAsync(db, now, stoppingToken);
 
         // clanarine koje isticu u naredna 3 dana
         var expiring = await db.Memberships
@@ -174,20 +173,8 @@ public class ReminderWorker : BackgroundService
         await db.SaveChangesAsync(stoppingToken);
         _logger.LogInformation(
             "Dnevni sken zavrsen: {Closed} zatvorenih termina, {Visits} zatvorenih posjeta, " +
-            "{Drafts} uklonjenih nacrta narudzbi, {Memberships} clanarina pri isteku, " +
-            "{Seminars} nadolazecih seminara, {Sent} podsjetnika.",
-            closedAppointments, closedVisits, removedDrafts, expiring.Count,
-            upcomingSeminars.Count, sentCount);
-    }
-
-    // Nacrt narudzbe nastaje pri pokretanju placanja; ako placanje nikad nije zavrseno,
-    // nacrt stariji od jednog dana se uklanja (stavke se brisu kaskadno).
-    private static async Task<int> RemoveStalePendingOrdersAsync(
-        StrongholdDbContext db, DateTime now, CancellationToken stoppingToken)
-    {
-        return await db.Orders
-            .Where(o => o.Status == OrderStatus.PendingPayment && o.CreatedAt < now.AddDays(-1))
-            .ExecuteDeleteAsync(stoppingToken);
+            "{Memberships} clanarina pri isteku, {Seminars} nadolazecih seminara, {Sent} podsjetnika.",
+            closedAppointments, closedVisits, expiring.Count, upcomingSeminars.Count, sentCount);
     }
 
     // Termini striktno prije danasnjeg dana: potvrdjeni se automatski zavrsavaju,

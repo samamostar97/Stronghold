@@ -27,6 +27,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
     'Shipped': 'Poslano',
     'Delivered': 'Dostavljeno',
     'Cancelled': 'Otkazano',
+    'PendingPayment': 'Čeka potvrdu',
   };
 
   @override
